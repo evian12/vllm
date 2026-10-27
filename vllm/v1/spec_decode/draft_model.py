@@ -252,7 +252,7 @@ def merge_toks_kernel(
     start_loc = tl.load(query_start_locs_ptr + pid)
     is_last_program = pid == tl.num_programs(0) - 1
     if is_last_program:
-        next_start_loc = target_toks_size.to(tl.int32)
+        next_start_loc = tl.full((), target_toks_size, tl.int32)
     else:
         next_start_loc = tl.load(query_start_locs_ptr + pid + 1).to(tl.int32)
 
