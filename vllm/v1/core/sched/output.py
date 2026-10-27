@@ -238,6 +238,10 @@ class SchedulerOutput:
     # EC Cache Connector metadata
     ec_connector_metadata: ECConnectorMetadata | None = None
 
+    # Number of draft tokens to generate after the current target step.
+    # None means using the existing fixed-K behavior.
+    num_spec_tokens_to_schedule: int | None = None
+
     @classmethod
     def make_empty(cls) -> "SchedulerOutput":
         return cls(

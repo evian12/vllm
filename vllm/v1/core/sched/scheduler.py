@@ -56,6 +56,9 @@ from vllm.v1.request import Request, RequestStatus, StreamingUpdate
 from vllm.v1.spec_decode.metrics import SpecDecodingStats
 from vllm.v1.structured_output import StructuredOutputManager
 from vllm.v1.utils import record_function_or_nullcontext
+from vllm.v1.spec_decode.dynamic.utils import (
+    build_dynamic_sd_schedule_lookup,
+)
 
 logger = init_logger(__name__)
 
@@ -212,6 +215,24 @@ class Scheduler(SchedulerInterface):
                 self.num_lookahead_tokens = self.num_spec_tokens
             if speculative_config.uses_draft_model():
                 self.num_lookahead_tokens = self.num_spec_tokens
+        
+        self.dynamic_sd_lookup: list[int] | None = None
+
+        if (
+            speculative_config is not None
+            and speculative_config.num_speculative_tokens_per_batch_size is not None
+        ):
+            if not speculative_config.uses_draft_model():
+                raise ValueError(
+                    "This backport currently supports dynamic K "
+                    "only for draft_model speculative decoding."
+                )
+
+            self.dynamic_sd_lookup = build_dynamic_sd_schedule_lookup(
+                speculative_config.num_speculative_tokens_per_batch_size,
+                vllm_max_batch_size=self.max_num_running_reqs,
+                vllm_num_speculative_tokens=self.num_spec_tokens,
+            )
 
         # Create the KV cache manager.
         self.kv_cache_manager = KVCacheManager(
@@ -851,9 +872,18 @@ class Scheduler(SchedulerInterface):
         self.prev_step_scheduled_req_ids.clear()
         self.prev_step_scheduled_req_ids.update(num_scheduled_tokens.keys())
 
+        # Batch-Adaptive K:
+        # Use the actual number of requests scheduled in this iteration.
+        batch_size = len(num_scheduled_tokens)
+        next_k = self.num_spec_tokens
+
+        if self.dynamic_sd_lookup is not None and batch_size > 0:
+            next_k = self.dynamic_sd_lookup[batch_size]
+
         scheduler_output = SchedulerOutput(
             scheduled_new_reqs=new_reqs_data,
             scheduled_cached_reqs=cached_reqs_data,
+            num_spec_tokens_to_schedule=next_k,
             num_scheduled_tokens=num_scheduled_tokens,
             total_num_scheduled_tokens=total_num_scheduled_tokens,
             scheduled_spec_decode_tokens=scheduled_spec_decode_tokens,
