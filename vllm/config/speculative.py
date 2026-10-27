@@ -62,6 +62,11 @@ class SpeculativeConfig:
     """Override the default enforce_eager from model_config"""
     # General speculative decoding control
     num_speculative_tokens: int = Field(default=None, gt=0)
+
+    num_speculative_tokens_per_batch_size: list[
+    tuple[int, int, int]
+    ] | None = None
+
     """The number of speculative tokens, if provided. It will default to the
     number in the draft model config if present, otherwise, it is required."""
     model: str | None = None
