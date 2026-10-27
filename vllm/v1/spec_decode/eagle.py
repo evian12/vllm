@@ -287,7 +287,19 @@ class SpecDecodeBaseProposer:
         slot_mappings: dict[str, torch.Tensor]
         | list[dict[str, torch.Tensor]]
         | None = None,
+        num_speculative_tokens: int | None = None,
     ) -> torch.Tensor:
+        draft_k = (
+            self.num_speculative_tokens
+            if num_speculative_tokens is None
+            else num_speculative_tokens
+        )
+
+        if not 1 <= draft_k <= self.num_speculative_tokens:
+            raise ValueError(
+                f"Invalid draft_k={draft_k}, "
+                f"maximum={self.num_speculative_tokens}"
+            )
         batch_size = common_attn_metadata.batch_size()
 
         if self.method == "eagle3":
@@ -398,7 +410,7 @@ class SpecDecodeBaseProposer:
         logits = self.model.compute_logits(sample_hidden_states)
 
         # Early exit if there is only one draft token to be generated.
-        if self.num_speculative_tokens == 1:
+        if draft_k == 1:
             draft_token_ids = logits.argmax(dim=-1)
             return draft_token_ids.view(-1, 1)
 
@@ -472,7 +484,7 @@ class SpecDecodeBaseProposer:
             common_attn_metadata._seq_lens_cpu = None
             common_attn_metadata._num_computed_tokens_cpu = None
 
-        for token_index in range(self.num_speculative_tokens - 1):
+        for token_index in range(draft_k - 1):
             # Update the inputs.
             # cast to int32 is crucial when eagle model is compiled.
             # tensor.argmax() returns int64 by default.
