@@ -215,7 +215,7 @@ class Scheduler(SchedulerInterface):
                 self.num_lookahead_tokens = self.num_spec_tokens
             if speculative_config.uses_draft_model():
                 self.num_lookahead_tokens = self.num_spec_tokens
-        
+
         self.dynamic_sd_lookup: list[int] | None = None
 
         if (
@@ -879,6 +879,14 @@ class Scheduler(SchedulerInterface):
 
         if self.dynamic_sd_lookup is not None and batch_size > 0:
             next_k = self.dynamic_sd_lookup[batch_size]
+
+        # Independent mechanism traces only; disabled for INFO performance runs.
+        logger.debug(
+            "[CDB-SCHED] batch_size=%d selected_k=%d running=%d waiting=%d "
+            "scheduled_tokens=%d",
+            batch_size, next_k, len(self.running), len(self.waiting),
+            total_num_scheduled_tokens,
+        )
 
         scheduler_output = SchedulerOutput(
             scheduled_new_reqs=new_reqs_data,

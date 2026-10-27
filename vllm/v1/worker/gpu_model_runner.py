@@ -473,8 +473,12 @@ class GPUModelRunner(
             self.rejection_sampler = RejectionSampler(self.sampler)
 
         self.num_spec_tokens = 0
+        # Actual width of the most recently generated draft token tensor.
+        # Used to index flattened draft tokens in the async scheduling path.
+        self.prev_num_spec_tokens = 0
         if self.speculative_config:
             self.num_spec_tokens = self.speculative_config.num_speculative_tokens
+            self.prev_num_spec_tokens = self.num_spec_tokens
             draft_config = self.speculative_config.draft_model_config
             if draft_config is not None and draft_config.max_model_len is not None:
                 self.effective_drafter_max_model_len = draft_config.max_model_len
@@ -1305,7 +1309,7 @@ class GPUModelRunner(
                 spec_flattened_indices.extend(
                     range(flattened_index - draft_len + 1, flattened_index + 1)
                 )
-                start = prev_index * self.num_spec_tokens
+                start = prev_index * self.prev_num_spec_tokens
                 # prev_draft_token_indices is used to find which draft_tokens_id
                 # should be copied to input_ids
                 # example: prev draft_tokens_id [[1,2], [3,4], [5, 6]]
@@ -3633,6 +3637,18 @@ class GPUModelRunner(
         self._draft_token_req_ids = None
         self.input_batch.prev_sampled_token_ids = None
 
+        spec_config = self.speculative_config
+        next_k = self.num_spec_tokens
+        if spec_config is not None and spec_config.uses_draft_model():
+            scheduled_k = scheduler_output.num_spec_tokens_to_schedule
+            if scheduled_k is not None:
+                next_k = scheduled_k
+            if not 1 <= next_k <= self.num_spec_tokens:
+                raise ValueError(
+                    f"Invalid runtime K={next_k}, "
+                    f"maximum={self.num_spec_tokens}"
+                )
+
         def propose_draft_token_ids(sampled_token_ids):
             assert spec_decode_common_attn_metadata is not None
             with record_function_or_nullcontext("gpu_model_runner: draft"):
@@ -3647,13 +3663,35 @@ class GPUModelRunner(
                     spec_decode_common_attn_metadata,
                     slot_mappings,
                 )
+                # Ordinary draft_model currently requires a padded GPU batch.
+                if (spec_config is not None and spec_config.uses_draft_model()
+                        and not isinstance(self._draft_token_ids, torch.Tensor)):
+                    raise TypeError(
+                        "draft_model must return a 2D Tensor [batch_size, K]"
+                    )
+                # Track the actual width independently of the optional CPU copy.
+                # Async scheduling may skip the CPU copy entirely.
+                if isinstance(self._draft_token_ids, torch.Tensor):
+                    produced_k = self._draft_token_ids.shape[1]
+                    if spec_config is not None and spec_config.uses_draft_model():
+                        if produced_k != next_k:
+                            raise RuntimeError(
+                                f"Drafter returned K={produced_k}, "
+                                f"but scheduler selected K={next_k}"
+                            )
+                        logger.debug(
+                            "[BATCH-ADAPTIVE-K] batch_size=%d selected_k=%d "
+                            "produced_k=%d",
+                            len(scheduler_output.num_scheduled_tokens),
+                            next_k,
+                            produced_k,
+                        )
+                    self.prev_num_spec_tokens = produced_k
                 self._copy_draft_token_ids_to_cpu(scheduler_output)
-
-        spec_config = self.speculative_config
         propose_drafts_after_bookkeeping = False
         if spec_config is not None:
             input_fits_in_drafter = spec_decode_common_attn_metadata is not None and (
-                spec_decode_common_attn_metadata.max_seq_len + self.num_spec_tokens
+                spec_decode_common_attn_metadata.max_seq_len + next_k
                 <= self.effective_drafter_max_model_len
             )
             use_gpu_toks = (
@@ -3684,7 +3722,8 @@ class GPUModelRunner(
                     # just use zeros for the draft tokens.
                     self._draft_token_ids = torch.zeros(
                         1, device=self.device, dtype=torch.int32
-                    ).expand(len(self.input_batch.req_ids), self.num_spec_tokens)
+                    ).expand(len(self.input_batch.req_ids), next_k)
+                    self.prev_num_spec_tokens = next_k
                     self._copy_draft_token_ids_to_cpu(scheduler_output, zeros_only=True)
             else:
                 propose_drafts_after_bookkeeping = input_fits_in_drafter
@@ -3789,17 +3828,17 @@ class GPUModelRunner(
         assert self.draft_token_ids_copy_stream is not None
         assert self.draft_token_ids_cpu is not None
         default_stream = torch.cuda.current_stream()
-        num_reqs = draft_token_ids.shape[0]
+        num_reqs, actual_k = draft_token_ids.shape
         with torch.cuda.stream(self.draft_token_ids_copy_stream):
             if not zeros_only:
                 # Trigger async copy of draft token ids to cpu.
                 self.draft_token_ids_copy_stream.wait_stream(default_stream)
-                self.draft_token_ids_cpu[:num_reqs].copy_(
+                self.draft_token_ids_cpu[:num_reqs, :actual_k].copy_(
                     draft_token_ids, non_blocking=True
                 )
             else:
                 # No copy needed, just zero-out cpu tensor.
-                self.draft_token_ids_cpu[:num_reqs] = 0
+                self.draft_token_ids_cpu[:num_reqs, :actual_k] = 0
             self.draft_token_ids_event.record()
 
     def _get_draft_token_ids_cpu(self) -> tuple[list[list[int]], list[str]]:
@@ -3811,7 +3850,9 @@ class GPUModelRunner(
         assert self.draft_token_ids_event is not None
         assert self.draft_token_ids_cpu is not None
         self.draft_token_ids_event.synchronize()
-        return self.draft_token_ids_cpu[: len(req_ids)].tolist(), req_ids
+        assert isinstance(self._draft_token_ids, torch.Tensor)
+        actual_k = self._draft_token_ids.shape[1]
+        return self.draft_token_ids_cpu[: len(req_ids), :actual_k].tolist(), req_ids
 
     def _copy_valid_sampled_token_count(
         self, next_token_ids: torch.Tensor, valid_sampled_tokens_count: torch.Tensor
@@ -3859,6 +3900,9 @@ class GPUModelRunner(
         num_scheduled_tokens = scheduler_output.total_num_scheduled_tokens
         spec_config = self.speculative_config
         assert spec_config is not None
+        next_k = scheduler_output.num_spec_tokens_to_schedule
+        if next_k is None or not spec_config.uses_draft_model():
+            next_k = self.num_spec_tokens
         if spec_config.method == "ngram":
             assert isinstance(sampled_token_ids, list)
             assert isinstance(self.drafter, NgramProposer)
@@ -3999,7 +4043,7 @@ class GPUModelRunner(
             else:
                 mm_embed_inputs = None
 
-            draft_token_ids = self.drafter.propose(
+            draft_kwargs: dict[str, Any] = dict(
                 target_token_ids=target_token_ids,
                 target_positions=target_positions,
                 target_hidden_states=target_hidden_states,
@@ -4011,6 +4055,11 @@ class GPUModelRunner(
                 num_rejected_tokens_gpu=num_rejected_tokens_gpu,
                 slot_mappings=slot_mappings,
             )
+            # Only the draft_model proposer has been adapted for runtime K.
+            # EAGLE retains v0.15.1's original fixed-K behavior.
+            if spec_config.uses_draft_model():
+                draft_kwargs["num_speculative_tokens"] = next_k
+            draft_token_ids = self.drafter.propose(**draft_kwargs)
 
         return draft_token_ids
 
