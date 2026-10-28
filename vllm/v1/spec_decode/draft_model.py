@@ -1,6 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+import os  # CDB_AV_STEPPER_V1
 from typing import Any
+from vllm.v1.spec_decode.cdb_av_step_session import CDBDraftSession
+from vllm.v1.spec_decode.cdb_av_varlen import propose_varlen_steps
 
 import torch
 
@@ -20,6 +23,97 @@ logger = init_logger(__name__)
 
 
 class DraftModelProposer(SpecDecodeBaseProposer):
+    # CDB_AV_STEPPER_V1: draft_model-only, original path is the default.
+    def propose(self, *args, **kwargs):
+        if os.environ.get("CDB_AV_STEP_MODE", "0") != "1":
+            return super().propose(*args, **kwargs)
+        if (os.environ.get("CDB_AV_VARLEN", "0") == "1"
+                and os.environ.get("CDB_AV_VALIDATE_PREFIX", "0") == "1"):
+            from vllm.v1.spec_decode.cdb_av_varlen import validate_fixed_prefix
+            return validate_fixed_prefix(self, args, kwargs)
+        session = self.begin_draft(*args, **kwargs)
+        return self.finish_draft(session)
+
+    def _cdb_propose_steps(self, *args, **kwargs):
+        if os.environ.get("CDB_AV_VARLEN", "0") == "1":
+            return (yield from propose_varlen_steps(self, *args, **kwargs))
+        return (yield from super()._cdb_propose_steps(*args, **kwargs))
+
+    def begin_draft(self, *args, **kwargs):
+        """Prepare an exclusive generator-based Draft session.
+
+        IMPORTANT: no new members can be inserted during this session yet.
+        Caller must not interleave it with other target/draft forwards.
+        """
+        if getattr(self, "_cdb_active_session", None) is not None:
+            raise RuntimeError("CDB Draft session already active on this proposer")
+        session = CDBDraftSession(generator=self._cdb_propose_steps(*args, **kwargs))
+        self._cdb_active_session = session
+        return session
+
+    def draft_one_step(self, session):
+        """Execute precisely one Draft token step, returning its GPU report.
+
+        The call after the last step returns None and finalizes the result.
+        """
+        if getattr(self, "_cdb_active_session", None) is not session:
+            raise RuntimeError("Unknown or expired CDB Draft session")
+        if session.done:
+            return None
+        try:
+            report = next(session.generator)
+        except StopIteration as done:
+            logger.info("[CDB_DEBUG] generator_finished")
+            session.result = done.value
+            session.done = True
+            return None
+        step = int(report["step"])
+        if step != session.steps_completed + 1:
+            raise RuntimeError(
+                f"Unexpected CDB Draft step {step}, previous={session.steps_completed}"
+            )
+        session.steps_completed = step
+        session.last_report = report
+        if "request_ids" in report:
+            session.request_ids = report["request_ids"]
+            session.request_draft_lengths = report["request_draft_lengths"]
+            session.draft_progress = report["draft_progress"]
+            session.active_indices = tuple(
+                i for i in report["active_indices"]
+                if report["draft_progress"][i] < report["request_draft_lengths"][i])
+            session.ready_indices = report["ready_indices"]
+        if os.environ.get("CDB_AV_TRACE_STEPS", "0") == "1":
+            logger.info(
+                "[CDB_STEP] step=%d logical_batch=%d input_rows=%d",
+                step, report["logical_batch"], report["input_rows"]
+            )
+        return report
+
+    def finish_draft(self, session):
+        """Drain all remaining Draft steps and return the original token matrix."""
+        if getattr(self, "_cdb_active_session", None) is not session:
+            raise RuntimeError("Unknown or expired CDB Draft session")
+        try:
+            while not session.done:
+                self.draft_one_step(session)
+            logger.info("[CDB_DEBUG] finish_draft_return")
+            return session.result
+        finally:
+            if not session.done:
+                session.generator.close()
+            session.last_report = None
+            self._cdb_active_session = None
+
+    def abort_draft(self, session):
+        """Abort a paused Draft session. Do not resume without restoring GPU state."""
+        if getattr(self, "_cdb_active_session", None) is not session:
+            raise RuntimeError("Unknown or expired CDB Draft session")
+        try:
+            session.generator.close()
+            session.done = True
+        finally:
+            self._cdb_active_session = None
+
     def __init__(
         self,
         vllm_config: VllmConfig,

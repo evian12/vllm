@@ -1,3 +1,5 @@
+import json
+import os
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: Copyright contributors to the vLLM project
 
@@ -337,6 +339,19 @@ class GPUModelRunner(
         self.parallel_config = vllm_config.parallel_config
         self.scheduler_config = vllm_config.scheduler_config
         self.speculative_config = vllm_config.speculative_config
+        self.cdb_varlen = os.environ.get("CDB_AV_VARLEN", "0") == "1"
+        self._cdb_valid_lengths = None
+        if self.cdb_varlen:
+            if os.environ.get("CDB_AV_STEP_MODE", "0") != "1":
+                raise ValueError("CDB_AV_VARLEN requires CDB_AV_STEP_MODE=1")
+            if (not self.speculative_config
+                    or not self.speculative_config.uses_draft_model()
+                    or not self.model_config.enforce_eager
+                    or self.scheduler_config.async_scheduling
+                    or self.parallel_config.tensor_parallel_size != 1
+                    or self.parallel_config.pipeline_parallel_size != 1
+                    or self.parallel_config.data_parallel_size != 1):
+                raise ValueError("CDB varlen requires single-GPU synchronous eager draft_model")
         self.observability_config = vllm_config.observability_config
 
         from vllm.model_executor.models.utils import set_cpu_offload_max_bytes
@@ -3635,6 +3650,7 @@ class GPUModelRunner(
 
         self._draft_token_ids = None
         self._draft_token_req_ids = None
+        self._cdb_valid_lengths = None
         self.input_batch.prev_sampled_token_ids = None
 
         spec_config = self.speculative_config
@@ -3663,6 +3679,15 @@ class GPUModelRunner(
                     spec_decode_common_attn_metadata,
                     slot_mappings,
                 )
+                if self.cdb_varlen:
+                    from vllm.v1.spec_decode.cdb_av_varlen import CDBDraftResult
+                    if not isinstance(self._draft_token_ids, CDBDraftResult):
+                        raise TypeError("CDB varlen requires tokens with explicit valid lengths")
+                    result = self._draft_token_ids
+                    if result.request_ids != tuple(self.input_batch.req_ids):
+                        raise RuntimeError("CDB output request IDs were reordered")
+                    self._cdb_valid_lengths = result.valid_lengths
+                    self._draft_token_ids = result.token_ids
                 # Ordinary draft_model currently requires a padded GPU batch.
                 if (spec_config is not None and spec_config.uses_draft_model()
                         and not isinstance(self._draft_token_ids, torch.Tensor)):
@@ -3680,8 +3705,9 @@ class GPUModelRunner(
                                 f"but scheduler selected K={next_k}"
                             )
                         logger.debug(
-                            "[BATCH-ADAPTIVE-K] batch_size=%d selected_k=%d "
-                            "produced_k=%d",
+                            ("[CDB_STORAGE] batch_size=%d capacity=%d storage_width=%d"
+                             if self.cdb_varlen else
+                             "[BATCH-ADAPTIVE-K] batch_size=%d selected_k=%d produced_k=%d"),
                             len(scheduler_output.num_scheduled_tokens),
                             next_k,
                             produced_k,
@@ -3745,6 +3771,17 @@ class GPUModelRunner(
                 scheduler_output.total_num_scheduled_tokens,
                 spec_decode_metadata,
             )
+
+        if self.cdb_varlen and os.environ.get("CDB_AV_TRACE_STEPS", "0") == "1":
+            for req_id, row in zip(req_ids_output_copy, valid_sampled_token_ids):
+                drafts = scheduler_output.scheduled_spec_decode_tokens.get(req_id, [])
+                if drafts and row:
+                    accepted = len(row) - 1
+                    if not 0 <= accepted <= len(drafts) or row[:accepted] != drafts[:accepted]:
+                        raise RuntimeError("CDB verification accepted-prefix alignment failure")
+                    logger.info("[CDB_VERIFY] %s", json.dumps(dict(
+                        req_id=req_id, drafts=drafts, sampled=row, accepted=accepted,
+                        rejected=len(drafts)-accepted, bonus_or_fallback=row[-1])))
 
         if propose_drafts_after_bookkeeping:
             # ngram and other speculative decoding methods use the sampled
@@ -3852,7 +3889,14 @@ class GPUModelRunner(
         self.draft_token_ids_event.synchronize()
         assert isinstance(self._draft_token_ids, torch.Tensor)
         actual_k = self._draft_token_ids.shape[1]
-        return self.draft_token_ids_cpu[: len(req_ids), :actual_k].tolist(), req_ids
+        rows = self.draft_token_ids_cpu[:len(req_ids), :actual_k].tolist()
+        if self._cdb_valid_lengths is not None:
+            from vllm.v1.spec_decode.cdb_av_varlen import ragged_rows
+            rows = ragged_rows(rows, self._cdb_valid_lengths)
+            if os.environ.get("CDB_AV_TRACE_STEPS", "0") == "1":
+                logger.info("[CDB_HANDOFF] %s", json.dumps(dict(
+                    req_ids=req_ids, lengths=[len(row) for row in rows], tokens=rows)))
+        return rows, req_ids
 
     def _copy_valid_sampled_token_count(
         self, next_token_ids: torch.Tensor, valid_sampled_tokens_count: torch.Tensor
@@ -4059,6 +4103,18 @@ class GPUModelRunner(
             # EAGLE retains v0.15.1's original fixed-K behavior.
             if spec_config.uses_draft_model():
                 draft_kwargs["num_speculative_tokens"] = next_k
+                if self.cdb_varlen:
+                    req_ids = tuple(self.input_batch.req_ids)
+                    lengths = []
+                    for req_id in req_ids:
+                        params = self.requests[req_id].sampling_params
+                        extra = params.extra_args or {} if params is not None else {}
+                        k = extra.get("cdb_draft_k", next_k)
+                        if type(k) is not int or not 1 <= k <= next_k:
+                            raise ValueError(f"Invalid cdb_draft_k={k} for request {req_id}; max={next_k}")
+                        lengths.append(k)
+                    draft_kwargs["request_ids"] = req_ids
+                    draft_kwargs["request_draft_lengths"] = lengths
             draft_token_ids = self.drafter.propose(**draft_kwargs)
 
         return draft_token_ids
