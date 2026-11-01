@@ -737,6 +737,8 @@ class ReuseDraftQueue(PersistentDraftQueue):
     def plans(self):
         plans=[];pool=self.s.kv_cache_manager.block_pool
         for req in self.s.running:
+            if self._cdb_admit_limit is not None and len(plans) >= self._cdb_admit_limit:
+                break
             rid=req.request_id
             if (rid in self.leases or rid in self.ready or rid in self.inflight or req.status!=RequestStatus.RUNNING
                     or req.is_finished() or not req.num_output_tokens or req.spec_token_ids
