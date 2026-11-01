@@ -380,6 +380,7 @@ class PersistentDraftQueue:
             emit('p2_target_commit', target_epoch=self.target_epoch,
                  frozen=sorted(self.frozen))
         self.window += 1
+        self._p3_steps = 0
         self.rpc('open', dict(window=self.window, H=self.horizon, target_epoch=self.target_epoch))
         intra = os.getenv('CDB_AV_INTRA_WINDOW', '0') == '1'
         self._cdb_intra_window = intra
