@@ -462,11 +462,22 @@ class Scheduler(SchedulerInterface):
                         # The request can be scheduled.
                         break
 
-                    # The request cannot be scheduled.
-                    # Preempt the lowest-priority request.
+                    # The request cannot be scheduled. Frozen CDB Carry
+                    # requests are not Target-executable and must never be
+                    # selected as preemption victims.
+                    frozen_ids = (
+                        self._cdb_p2.frozen
+                        if getattr(self, "_cdb_p2", None) is not None
+                        else set()
+                    )
+                    preemptible = [
+                        r for r in self.running if r.request_id not in frozen_ids
+                    ]
+                    if not preemptible:
+                        break
                     if self.policy == SchedulingPolicy.PRIORITY:
                         preempted_req = max(
-                            self.running,
+                            preemptible,
                             key=lambda r: (r.priority, r.arrival_time),
                         )
                         self.running.remove(preempted_req)
@@ -493,7 +504,8 @@ class Scheduler(SchedulerInterface):
                                 encoder_compute_budget += num_embeds_to_restore
                             req_index -= 1
                     else:
-                        preempted_req = self.running.pop()
+                        preempted_req = preemptible[-1]
+                        self.running.remove(preempted_req)
 
                     self._preempt_request(preempted_req, scheduled_timestamp)
                     preempted_reqs.append(preempted_req)
@@ -562,7 +574,12 @@ class Scheduler(SchedulerInterface):
         # Next, schedule the WAITING requests.
         if not preempted_reqs:
             while self.waiting and token_budget > 0:
-                if len(self.running) == self.max_num_running_reqs:
+                p2 = getattr(self, "_cdb_p2", None)
+                frozen_ids = p2.frozen if p2 is not None else set()
+                target_running_count = sum(
+                    req.request_id not in frozen_ids for req in self.running
+                )
+                if target_running_count >= self.max_num_running_reqs:
                     break
 
                 request = self.waiting.peek_request()
@@ -839,7 +856,12 @@ class Scheduler(SchedulerInterface):
         assert total_num_scheduled_tokens <= self.max_num_scheduled_tokens
 
         assert token_budget >= 0
-        assert len(self.running) <= self.max_num_running_reqs
+        p2 = getattr(self, "_cdb_p2", None)
+        frozen_ids = p2.frozen if p2 is not None else set()
+        target_running_count = sum(
+            req.request_id not in frozen_ids for req in self.running
+        )
+        assert target_running_count <= self.max_num_running_reqs
         # Since some requests in the RUNNING queue may not be scheduled in
         # this step, the total number of scheduled requests can be smaller than
         # len(self.running).
