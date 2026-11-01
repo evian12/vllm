@@ -590,12 +590,18 @@ class ReuseDraftSession(PersistentDraftSession):
         return self._prepare_mixed(plans, requests)
 
     def step(self):
+        pending = list(getattr(self, 'pending_prefill', ()))
+        # Newly admitted members are registered in self.active immediately so
+        # capacity accounting includes them, but their first forward is Prefill,
+        # not Decode. Exclude pending rows from the Decode side of this batch.
+        pending_ids = {entry[4] for entry in pending}
+        decode_ids = [rid for rid in self.active if rid not in pending_ids]
         decode_inputs = {
             rid: (self.members[rid]['next_position'],
                   self.members[rid]['next_token'])
-            for rid in self.active
+            for rid in decode_ids
         }
-        pending = list(getattr(self, 'pending_prefill', ()))
+        self.active = decode_ids
         for rid, (pos, _) in decode_inputs.items():
             if len(self.members[rid]['kv_inputs']) != pos:
                 raise RuntimeError(
