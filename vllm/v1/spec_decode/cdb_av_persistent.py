@@ -344,6 +344,8 @@ class PersistentDraftQueue:
             cap = (params.extra_args or {}).get('cdb_draft_k', self.s.num_spec_tokens)
             if type(cap) is not int or not 1 <= cap <= self.s.num_spec_tokens:
                 raise ValueError('Invalid P2 request K')
+            if cap > self.horizon - self._p3_steps:
+                continue  # Do not admit work that cannot finish before this boundary.
             # Near length limits, safely use native Target-only generation.
             if req.num_tokens+cap >= self.s.max_model_len:
                 continue
