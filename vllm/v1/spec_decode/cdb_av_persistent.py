@@ -65,8 +65,8 @@ class PersistentDraftSession(RefillSession):
         return {'opened': True}
 
     def prepare(self, plans, requests):
-        if len(self.members) + len(plans) > self.capacity:
-            raise RuntimeError('P2 member capacity exceeded')
+        if len(self.active) + len(plans) > self.capacity:
+            raise RuntimeError('P2 active Draft capacity exceeded')
         for plan in plans:
             rid, prefix = plan['req_id'], plan['prefix']
             state = requests[rid]
@@ -380,6 +380,7 @@ class PersistentDraftQueue:
         self.window += 1
         self.rpc('open', dict(window=self.window, H=self.horizon, target_epoch=self.target_epoch))
         intra = os.getenv('CDB_AV_INTRA_WINDOW', '0') == '1'
+        self._cdb_intra_window = intra
         capacity = self.s.max_num_running_reqs
         first_limit = int(os.getenv('CDB_AV_INITIAL_ADMIT', '3'))
         if intra and not 1 <= first_limit <= capacity:
@@ -420,6 +421,35 @@ class PersistentDraftQueue:
             if progress < previous:
                 raise RuntimeError('P2 progress regressed')
         self._p3_done = not bool(status['active_req_ids'])
+
+        # Ready rows remain materialized until the Target boundary, but they no
+        # longer consume an Active Draft slot. Refill those slots with requests
+        # whose official Target context is already complete. In ReuseDraftSession,
+        # prepare() stages their Prefill rows for the NEXT mixed Draft forward.
+        if self._cdb_intra_window and self._p3_steps < self.horizon:
+            free_slots = max(
+                0, self.s.max_num_running_reqs - len(status['active_req_ids'])
+            )
+            if free_slots:
+                self._cdb_admit_limit = free_slots
+                try:
+                    plans = self.plans()
+                finally:
+                    self._cdb_admit_limit = None
+                if plans:
+                    ack = self.rpc('prepare', {'plans': plans})
+                    expected = [p['req_id'] for p in plans]
+                    if ack['prepared'] != expected:
+                        raise RuntimeError('P2 intra-window admission acknowledgement mismatch')
+                    self._p3_done = False
+                    emit(
+                        'p2_intra_admit',
+                        window=self.window,
+                        after_step=self._p3_steps,
+                        req_ids=expected,
+                        active_before=len(status['active_req_ids']),
+                        refill_slots=free_slots,
+                    )
         return True
 
     def finish_window(self):
