@@ -18,6 +18,10 @@ from vllm.v1.attention.backends.utils import (
     extend_all_queries_by_1,
 )
 from vllm.v1.spec_decode.eagle import PADDING_SLOT_ID, SpecDecodeBaseProposer
+from vllm.v1.spec_decode.cdb_av_state import (
+    DraftStateStore,
+    DraftPhase,
+)
 
 logger = init_logger(__name__)
 
@@ -32,7 +36,20 @@ class DraftModelProposer(SpecDecodeBaseProposer):
             from vllm.v1.spec_decode.cdb_av_varlen import validate_fixed_prefix
             return validate_fixed_prefix(self, args, kwargs)
         session = self.begin_draft(*args, **kwargs)
-        return self.finish_draft(session)
+
+        if os.environ.get("CDB_AV_EXPLICIT_STEP", "0") != "1":
+            return self.finish_draft(session)
+
+        # Explicit step execution, still within one Worker invocation.
+        # This does not yet support cross-RPC pause or new admission.
+        try:
+            while not session.done:
+                self.draft_one_step(session)
+            return self.finalize_draft(session)
+        except BaseException:
+            if getattr(self, "_cdb_active_session", None) is session:
+                self.abort_draft(session)
+            raise
 
     def _cdb_propose_steps(self, *args, **kwargs):
         if os.environ.get("CDB_AV_VARLEN", "0") == "1":
@@ -48,6 +65,8 @@ class DraftModelProposer(SpecDecodeBaseProposer):
         if getattr(self, "_cdb_active_session", None) is not None:
             raise RuntimeError("CDB Draft session already active on this proposer")
         session = CDBDraftSession(generator=self._cdb_propose_steps(*args, **kwargs))
+        if os.environ.get("CDB_AV_STATE_TRACE") == "1":
+            session._cdb_state_store = DraftStateStore()
         self._cdb_active_session = session
         return session
 
@@ -74,6 +93,46 @@ class DraftModelProposer(SpecDecodeBaseProposer):
             )
         session.steps_completed = step
         session.last_report = report
+
+        if os.environ.get("CDB_AV_STATE_TRACE") == "1":
+            store = session._cdb_state_store
+
+            req_ids = report["request_ids"]
+            active = report["active_indices"]
+            completed = set(report["completed_indices"])
+            caps = report["request_draft_lengths"]
+
+            # Draft reports contain a GPU tensor for the current active rows.
+            token_ids = report["draft_token_ids"].detach().cpu().tolist()
+
+            if len(token_ids) != len(active):
+                raise RuntimeError("CDB state-trace row mapping mismatch")
+
+            for row, original_idx in enumerate(active):
+                req_id = req_ids[original_idx]
+                key = (req_id, 0)
+
+                if key not in store.states:
+                    state = store.create(
+                        req_id=req_id,
+                        epoch=0,
+                        k_cap=caps[original_idx],
+                        context_version=0,
+                    )
+                    state.status = DraftPhase.ACTIVE
+
+                state = store.get(req_id, 0)
+                state.append_token(
+                    token_id=token_ids[row],
+                    completed=original_idx in completed,
+                )
+
+                if (
+                    state.progress
+                    != report["actual_draft_lengths"][original_idx]
+                ):
+                    raise RuntimeError("CDB state progress mismatch")
+
         if "request_ids" in report:
             session.request_ids = report["request_ids"]
             session.request_draft_lengths = report["request_draft_lengths"]
@@ -88,6 +147,28 @@ class DraftModelProposer(SpecDecodeBaseProposer):
                 step, report["logical_batch"], report["input_rows"]
             )
         return report
+
+    def finalize_draft(self, session):
+        """Return completed Draft result without executing another forward.
+
+        Caller must explicitly execute all required steps first.
+        """
+        if getattr(self, "_cdb_active_session", None) is not session:
+            raise RuntimeError("Unknown or expired CDB Draft session")
+
+        if not session.done:
+            raise RuntimeError(
+                "Cannot finalize incomplete Draft session; "
+                "execute remaining steps or explicitly preserve Carry"
+            )
+
+        if session.result is None:
+            raise RuntimeError("Completed Draft session has no result")
+
+        result = session.result
+        session.last_report = None
+        self._cdb_active_session = None
+        return result
 
     def finish_draft(self, session):
         """Drain all remaining Draft steps and return the original token matrix."""

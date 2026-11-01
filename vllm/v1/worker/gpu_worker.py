@@ -579,6 +579,29 @@ class Worker(WorkerBase):
         return self.model_runner.sample_tokens(grammar_output)
 
     @torch.inference_mode()
+    @torch.inference_mode()
+    def cdb_refill_rpc(self, operation: str, payload: dict) -> dict:
+        return self.model_runner.cdb_refill_rpc(operation, payload)
+
+    @torch.inference_mode()
+    def cdb_draft_rpc_step(self) -> dict:
+        return self.model_runner.cdb_draft_rpc_step()
+
+    @torch.inference_mode()
+    def cdb_draft_rpc_finalize(self) -> dict:
+        return self.model_runner.cdb_draft_rpc_finalize()
+
+    def cdb_step_boundary_probe(self, step_id: int) -> dict:
+        """CDB-AV control-plane probe; no GPU forward."""
+        if step_id < 0:
+            raise ValueError("Invalid CDB step ID")
+
+        return {
+            "step_id": step_id,
+            "worker_received": True,
+            "gpu_forward_executed": False,
+        }
+
     def execute_model(
         self, scheduler_output: "SchedulerOutput"
     ) -> ModelRunnerOutput | AsyncModelRunnerOutput | None:

@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: Copyright contributors to the vLLM project
+import os
 import itertools
 import time
 from collections import defaultdict, deque
@@ -364,6 +365,10 @@ class Scheduler(SchedulerInterface):
         req_index = 0
         while req_index < len(self.running) and token_budget > 0:
             request = self.running[req_index]
+            p2 = getattr(self, "_cdb_p2", None)
+            if p2 is not None and request.request_id in p2.frozen:
+                req_index += 1
+                continue
 
             # do not schedule another step for the same request while it still has
             # output placeholders for PP.
@@ -668,6 +673,13 @@ class Scheduler(SchedulerInterface):
                     # `request.num_prompt_tokens` to consider the resumed
                     # requests, which have output tokens.
                     num_new_tokens = request.num_tokens - num_computed_tokens
+                    refill_queue = getattr(self, "_cdb_refill_queue", None)
+                    if refill_queue is not None and request.request_id in refill_queue.ready:
+                        # Full Target prompt prefill and candidate verification occur
+                        # only at ordinary Target admission, AFTER the Draft window.
+                        num_new_tokens += len(request.spec_token_ids)
+                        if num_new_tokens > token_budget:
+                            break
                     threshold = self.scheduler_config.long_prefill_token_threshold
                     if 0 < threshold < num_new_tokens:
                         num_new_tokens = threshold
@@ -790,6 +802,14 @@ class Scheduler(SchedulerInterface):
                 )
                 num_scheduled_tokens[request.request_id] = num_new_tokens
                 token_budget -= num_new_tokens
+                refill_queue = getattr(self, "_cdb_refill_queue", None)
+                if refill_queue is not None and request.request_id in refill_queue.ready:
+                    candidates = list(request.spec_token_ids)
+                    if num_new_tokens + num_computed_tokens != request.num_tokens + len(candidates):
+                        raise RuntimeError("Refill v1 requires unchunked prompt plus candidates")
+                    scheduled_spec_decode_tokens[request.request_id] = candidates
+                    refill_queue.scheduled(request, candidates)
+                    request.spec_token_ids = []
                 request.status = RequestStatus.RUNNING
                 request.num_computed_tokens = num_computed_tokens
                 # Count the number of prefix cached tokens.
@@ -925,6 +945,10 @@ class Scheduler(SchedulerInterface):
 
         with record_function_or_nullcontext("schedule: update_after_schedule"):
             self._update_after_schedule(scheduler_output)
+        if os.getenv("CDB_AV_TRACE_STEPS", "0") == "1" and scheduled_spec_decode_tokens:
+            import json
+            logger.info("[CDB_VERIFY_TIMING] %s", json.dumps(dict(
+                scheduled_at=time.monotonic(),req_ids=list(scheduled_spec_decode_tokens))))
         return scheduler_output
 
     def _preempt_request(self, request: Request, timestamp: float) -> None:
@@ -1300,6 +1324,14 @@ class Scheduler(SchedulerInterface):
         # NOTE(woosuk): As len(num_scheduled_tokens) can be up to 1K or more,
         # the below loop can be a performance bottleneck. We should do our best
         # to avoid expensive operations inside the loop.
+        # CDB-AV: observe committed-context versions.
+        import os
+        cdb_epoch_trace = os.getenv("CDB_AV_EPOCH_TRACE", "0") == "1"
+        if cdb_epoch_trace:
+            from vllm.v1.spec_decode.cdb_av_epoch import DraftEpochRegistry
+            if not hasattr(self, "_cdb_epoch_registry"):
+                self._cdb_epoch_registry = DraftEpochRegistry()
+
         stopped_running_reqs: set[Request] = set()
         stopped_preempted_reqs: set[Request] = set()
         for req_id, num_tokens_scheduled in num_scheduled_tokens.items():
@@ -1313,6 +1345,11 @@ class Scheduler(SchedulerInterface):
                 # request is aborted while the model is executing it (e.g.,
                 # in pipeline parallelism).
                 continue
+
+            if cdb_epoch_trace:
+                epoch_before = self._cdb_epoch_registry.observe(
+                    req_id, request.num_tokens
+                )
 
             req_index = model_runner_output.req_id_to_index[req_id]
             generated_token_ids = (
@@ -1345,6 +1382,12 @@ class Scheduler(SchedulerInterface):
                     request_id=req_id,
                 )
 
+            p2 = getattr(self, "_cdb_p2", None)
+            if p2 is not None:
+                p2.committed(request, scheduled_spec_token_ids, generated_token_ids)
+            refill_queue = getattr(self, "_cdb_refill_queue", None)
+            if refill_queue is not None:
+                refill_queue.committed(request, scheduled_spec_token_ids, generated_token_ids)
             stopped = False
             new_logprobs = None
             new_token_ids = generated_token_ids
@@ -1357,6 +1400,21 @@ class Scheduler(SchedulerInterface):
                 new_token_ids, stopped = self._update_request_with_output(
                     request, new_token_ids
                 )
+                if cdb_epoch_trace:
+                    epoch_after = self._cdb_epoch_registry.observe(
+                        req_id, request.num_tokens
+                    )
+                    logger.info(
+                        "[CDB_EPOCH] req=%s before=%d after=%d "
+                        "tokens_before=%d tokens_after=%d "
+                        "output_count=%d",
+                        req_id,
+                        epoch_before.epoch,
+                        epoch_after.epoch,
+                        epoch_before.committed_tokens,
+                        epoch_after.committed_tokens,
+                        len(new_token_ids),
+                    )
             elif request.pooling_params and pooler_output is not None:
                 # Pooling stops as soon as there is output.
                 request.status = RequestStatus.FINISHED_STOPPED
@@ -1372,6 +1430,8 @@ class Scheduler(SchedulerInterface):
                 finish_reason = request.get_finished_reason()
                 finished = self._handle_stopped_request(request)
                 if finished:
+                    if cdb_epoch_trace:
+                        self._cdb_epoch_registry.remove(req_id)
                     kv_transfer_params = self._free_request(request)
 
                 if status_before_stop == RequestStatus.RUNNING:
@@ -1594,7 +1654,308 @@ class Scheduler(SchedulerInterface):
                 # in the decoder's KV cache.
                 self.encoder_cache_manager.free_encoder_input(request, input_id)
 
+    def inspect_cdb_draft_candidates(
+        self,
+        step_result: dict,
+        draft_capacity: int,
+    ) -> dict:
+        """Inspect real Scheduler requests for possible Draft refill.
+
+        Read-only. Never allocates KV, changes request status, or
+        authorizes actual GPU admission.
+        """
+        if draft_capacity < 1:
+            raise ValueError("Invalid CDB Draft capacity")
+
+        window_ids = set(step_result["request_ids"])
+        active_ids = set(step_result["active_req_ids"])
+        ready_ids = set(step_result["ready_req_ids"])
+
+        if active_ids & ready_ids:
+            raise RuntimeError("CDB Active/Ready overlap")
+        if active_ids | ready_ids != window_ids:
+            raise RuntimeError("CDB window membership mismatch")
+
+        refill_slots = draft_capacity - len(active_ids)
+        if refill_slots < 0:
+            raise RuntimeError("CDB active exceeds Draft capacity")
+
+        candidates = []
+        reasons = {}
+
+        # Running requests not participating in this Draft window.
+        for req in self.running:
+            req_id = req.request_id
+
+            if req_id in window_ids:
+                continue
+
+            if req_id not in self.requests:
+                continue
+
+            if req.is_finished():
+                reasons["finished"] = reasons.get("finished", 0) + 1
+                continue
+
+            # Existing speculative tokens belong to another proposal.
+            # They cannot be overwritten by a new Draft session.
+            if req.spec_token_ids:
+                reasons["existing_spec"] = (
+                    reasons.get("existing_spec", 0) + 1
+                )
+                continue
+
+            candidates.append({
+                "req_id": req_id,
+                "source": "running",
+                "context_tokens": req.num_tokens,
+                "num_computed_tokens": req.num_computed_tokens,
+                "spec_tokens": len(req.spec_token_ids),
+                "requires_draft_state_validation": True,
+                "gpu_admissible": False,
+            })
+
+        # Waiting requests are informational only.
+        waiting_count = 0
+        waiting_fresh = 0
+        waiting_preempted = 0
+        waiting_other = 0
+
+        for req in self.waiting:
+            waiting_count += 1
+
+            if req.status == RequestStatus.WAITING:
+                waiting_fresh += 1
+            elif req.status == RequestStatus.PREEMPTED:
+                waiting_preempted += 1
+            else:
+                waiting_other += 1
+
+        return {
+            "refill_slots": refill_slots,
+            "running_candidates": candidates,
+            "waiting_count": waiting_count,
+            "waiting_fresh": waiting_fresh,
+            "waiting_preempted": waiting_preempted,
+            "waiting_other": waiting_other,
+            "rejection_counts": reasons,
+            "gpu_admitted_req_ids": [],
+        }
+
+    def sync_cdb_work_queue(self, step_result: dict) -> dict:
+        """Synchronize real Draft steps with the current Draft window.
+
+        Control-plane only. Does not allocate KV or admit GPU work.
+        """
+        from vllm.v1.spec_decode.cdb_av_work_queue import (
+            CDBDraftWorkQueue,
+        )
+
+        queue = getattr(self, "_cdb_draft_work_queue", None)
+
+        if queue is None:
+            queue = CDBDraftWorkQueue()
+            self._cdb_draft_work_queue = queue
+
+        window_id = step_result.get("window_id")
+        if window_id is None:
+            raise RuntimeError("CDB work queue requires window_id")
+
+        queue.begin_window(int(window_id))
+
+        # Retire requests no longer owned by Scheduler.
+        for req_id in tuple(queue.items):
+            if req_id not in self.requests:
+                queue.retire(req_id)
+
+        versions = {}
+
+        for req_id in step_result["request_ids"]:
+            req = self.requests.get(req_id)
+
+            if req is None:
+                # Target commit may already have finished and removed
+                # this request before post_step() runs Draft RPCs.
+                #
+                # Preserve previous window-local bookkeeping if present.
+                # Otherwise use a bookkeeping-only placeholder.
+                # This is NOT proof of valid Draft KV.
+                existing = queue.items.get(req_id)
+
+                if existing is not None:
+                    versions[req_id] = (
+                        existing.context_tokens,
+                        existing.context_version,
+                    )
+                continue
+
+            versions[req_id] = (
+                req.num_tokens,
+                req.num_tokens,
+            )
+
+        real_ids = [rid for rid in step_result["request_ids"] if rid in versions]
+        real_step = dict(step_result)
+        real_step["request_ids"] = real_ids
+        for name in ("active_req_ids", "ready_req_ids"):
+            real_step[name] = [rid for rid in step_result[name] if rid in versions]
+        real_step["request_progress"] = {rid: step_result["request_progress"][rid] for rid in real_ids}
+        queue.sync_step(real_step, versions)
+
+        # Register Waiting requests without changing their real status.
+        for req in self.waiting:
+            if req.request_id in step_result["request_ids"]:
+                continue
+            if req.is_finished():
+                continue
+
+            queue.register(
+                req_id=req.request_id,
+                context_tokens=req.num_tokens,
+                context_version=req.num_tokens,
+                k_cap=1,
+                source="waiting",
+            )
+
+        snapshot = queue.snapshot()
+
+        import logging
+        logging.getLogger("vllm.cdb_av.work_queue").info(
+            "[CDB_WORK_QUEUE] window=%d total=%d "
+            "active=%d ready=%d prepare=%d stale=%d",
+            window_id,
+            snapshot["total"],
+            snapshot["counts"]["ACTIVE"],
+            snapshot["counts"]["READY"],
+            snapshot["counts"]["PREPARE_REQUIRED"],
+            snapshot["counts"]["STALE"],
+        )
+
+        return snapshot
+
+    def inspect_cdb_draft_step(
+        self,
+        step_result: dict,
+        draft_capacity: int,
+    ) -> dict:
+        """Inspect actual Draft step state without mutating scheduling state."""
+        if draft_capacity < 1:
+            raise ValueError("Invalid CDB draft capacity")
+
+        request_ids = list(step_result["request_ids"])
+        active = list(step_result["active_req_ids"])
+        ready = list(step_result["ready_req_ids"])
+        newly_completed = list(
+            step_result["newly_completed_req_ids"]
+        )
+        progress = step_result["request_progress"]
+
+        all_ids = set(request_ids)
+        active_set = set(active)
+        ready_set = set(ready)
+
+        if len(all_ids) != len(request_ids):
+            raise RuntimeError("CDB duplicate request IDs")
+
+        if len(active_set) != len(active) or len(ready_set) != len(ready):
+            raise RuntimeError("CDB duplicate Active/Ready request IDs")
+
+        if active_set & ready_set:
+            raise RuntimeError("CDB request both Active and Ready")
+
+        if active_set | ready_set != all_ids:
+            raise RuntimeError("CDB request state partition mismatch")
+
+        if set(progress) != all_ids:
+            raise RuntimeError("CDB progress request mapping mismatch")
+
+        if not set(newly_completed).issubset(ready_set):
+            raise RuntimeError("CDB completed request not Ready")
+
+        if len(active) > draft_capacity:
+            raise RuntimeError("CDB active count exceeds capacity")
+
+        # This is available capacity, NOT an actual admission.
+        refill_slots = draft_capacity - len(active)
+
+        result = {
+            "active_req_ids": active,
+            "ready_req_ids": ready,
+            "newly_completed_req_ids": newly_completed,
+            "refill_slots": refill_slots,
+            "admitted_req_ids": [],
+        }
+
+        import logging
+        logging.getLogger("vllm.cdb_av.admission").info(
+            "[CDB_ADMISSION] active=%s ready=%s "
+            "refill_slots=%d admitted=%s",
+            active,
+            ready,
+            refill_slots,
+            result["admitted_req_ids"],
+        )
+
+        return result
+
     def update_draft_token_ids(self, draft_token_ids: DraftTokenIds) -> None:
+        if os.getenv("CDB_AV_CONTEXT_TRACE", "0") == "1":
+            fingerprints = draft_token_ids.context_fingerprints
+            if fingerprints is not None:
+                from vllm.v1.spec_decode.cdb_av_fingerprint import (
+                    token_fingerprint,
+                )
+                if len(fingerprints) != len(draft_token_ids.req_ids):
+                    raise RuntimeError("CDB fingerprint alignment error")
+
+                for req_id, worker_fp in zip(
+                    draft_token_ids.req_ids, fingerprints
+                ):
+                    req = self.requests.get(req_id)
+                    if req is None or req.is_finished():
+                        continue
+
+                    official_tokens = (
+                        list(req.prompt_token_ids)
+                        + list(req.output_token_ids)
+                    )
+                    scheduler_fp = token_fingerprint(official_tokens)
+                    match = worker_fp == scheduler_fp
+
+                    logger.info(
+                        "[CDB_FINGERPRINT_CHECK] req=%s "
+                        "worker=%s scheduler=%s match=%s",
+                        req_id, worker_fp, scheduler_fp, match,
+                    )
+                    if not match:
+                        logger.warning(
+                            "[CDB_FINGERPRINT_MISMATCH] req=%s",
+                            req_id,
+                        )
+        if os.getenv("CDB_AV_CONTEXT_TRACE", "0") == "1":
+            lengths = draft_token_ids.source_context_tokens
+            if lengths is not None:
+                if len(lengths) != len(draft_token_ids.req_ids):
+                    raise RuntimeError("CDB provenance alignment error")
+                for req_id, source_length in zip(
+                    draft_token_ids.req_ids, lengths
+                ):
+                    req = self.requests.get(req_id)
+                    if req is None or req.is_finished():
+                        continue
+                    scheduler_length = req.num_tokens
+                    match = source_length == scheduler_length
+                    logger.info(
+                        "[CDB_CONTEXT_CHECK] req=%s worker=%d "
+                        "scheduler=%d match=%s",
+                        req_id, source_length, scheduler_length, match,
+                    )
+                    if not match:
+                        logger.warning(
+                            "[CDB_CONTEXT_MISMATCH] req=%s "
+                            "worker=%d scheduler=%d",
+                            req_id, source_length, scheduler_length,
+                        )
         for req_id, spec_token_ids in zip(
             draft_token_ids.req_ids,
             draft_token_ids.draft_token_ids,
@@ -1608,6 +1969,20 @@ class Scheduler(SchedulerInterface):
             if self.structured_output_manager.should_advance(request):
                 metadata = request.structured_output_request
                 spec_token_ids = metadata.grammar.validate_tokens(spec_token_ids)  # type: ignore[union-attr]
+            if os.getenv("CDB_AV_EPOCH_TRACE", "0") == "1":
+                registry = getattr(self, "_cdb_epoch_registry", None)
+                if registry is not None:
+                    epoch = registry.observe(req_id, request.num_tokens)
+                    logger.info(
+                        "[CDB_EPOCH_HANDOFF] req=%s epoch=%d "
+                        "committed_tokens=%d draft_len=%d "
+                        "provenance=unversioned",
+                        req_id,
+                        epoch.epoch,
+                        epoch.committed_tokens,
+                        len(spec_token_ids),
+                    )
+
             request.spec_token_ids = spec_token_ids
 
     def update_draft_token_ids_in_output(

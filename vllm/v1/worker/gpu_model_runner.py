@@ -341,6 +341,18 @@ class GPUModelRunner(
         self.speculative_config = vllm_config.speculative_config
         self.cdb_varlen = os.environ.get("CDB_AV_VARLEN", "0") == "1"
         self._cdb_valid_lengths = None
+        self.cdb_refill = os.environ.get("CDB_AV_REFILL", "0") == "1"
+        self.cdb_persistent = os.getenv("CDB_AV_PERSISTENT", "0") == "1"
+        if self.cdb_persistent and (not self.cdb_refill or
+                os.getenv("CDB_AV_ALLOW_FRESH_WAITING", "0") != "0" or
+                os.getenv("CDB_P1_VIRTUAL_H", "0") != "0"):
+            raise ValueError("P2 requires REFILL=1, Fresh Waiting OFF, virtual H OFF")
+        if self.cdb_refill:
+            if not self.cdb_varlen or any(os.getenv(k) != "1" for k in
+                    ("CDB_AV_SPLIT_RPC", "CDB_AV_WORK_QUEUE")):
+                raise ValueError("Refill requires VARLEN, SPLIT_RPC and WORK_QUEUE")
+            if self.cache_config.enable_prefix_caching or self.lora_config is not None:
+                raise ValueError("Refill v1 requires no prefix caching or LoRA")
         if self.cdb_varlen:
             if os.environ.get("CDB_AV_STEP_MODE", "0") != "1":
                 raise ValueError("CDB_AV_VARLEN requires CDB_AV_STEP_MODE=1")
@@ -3648,9 +3660,15 @@ class GPUModelRunner(
             sampler_output.sampled_token_ids, scheduler_output
         )
 
+        if getattr(self, "_cdb_pending_draft", None) is not None:
+            raise RuntimeError(
+                "Cannot start Target sampling with pending CDB Draft"
+            )
         self._draft_token_ids = None
         self._draft_token_req_ids = None
         self._cdb_valid_lengths = None
+        self._cdb_context_lengths = None
+        self._cdb_context_fingerprints = None
         self.input_batch.prev_sampled_token_ids = None
 
         spec_config = self.speculative_config
@@ -3679,6 +3697,13 @@ class GPUModelRunner(
                     spec_decode_common_attn_metadata,
                     slot_mappings,
                 )
+                if (
+                    os.environ.get("CDB_AV_SPLIT_RPC", "0") == "1"
+                    and getattr(self, "_cdb_pending_draft", None) is not None
+                ):
+                    # Draft forwards will run through independent Worker RPCs.
+                    return
+
                 if self.cdb_varlen:
                     from vllm.v1.spec_decode.cdb_av_varlen import CDBDraftResult
                     if not isinstance(self._draft_token_ids, CDBDraftResult):
@@ -3715,7 +3740,7 @@ class GPUModelRunner(
                     self.prev_num_spec_tokens = produced_k
                 self._copy_draft_token_ids_to_cpu(scheduler_output)
         propose_drafts_after_bookkeeping = False
-        if spec_config is not None:
+        if spec_config is not None and not self.cdb_persistent:
             input_fits_in_drafter = spec_decode_common_attn_metadata is not None and (
                 spec_decode_common_attn_metadata.max_seq_len + next_k
                 <= self.effective_drafter_max_model_len
@@ -3788,6 +3813,48 @@ class GPUModelRunner(
             # tokens on the CPU, so they are run after bookkeeping.
             propose_draft_token_ids(valid_sampled_token_ids)
 
+        # CDB-AV diagnostic: Worker context after sampler bookkeeping.
+        # This is NOT independent proof of the Draft's source prefix.
+        if (
+            self.cdb_varlen
+            and os.environ.get("CDB_AV_CONTEXT_TRACE", "0") == "1"
+            and self._draft_token_req_ids
+        ):
+            from vllm.v1.spec_decode.cdb_av_fingerprint import (
+                token_fingerprint,
+            )
+            cdb_lengths = []
+            cdb_fingerprints = []
+            for cdb_req_id in self._draft_token_req_ids:
+                cdb_state = self.requests.get(cdb_req_id)
+                if cdb_state is None:
+                    raise RuntimeError(
+                        f"CDB context missing request: {cdb_req_id}"
+                    )
+                cdb_lengths.append(
+                    len(cdb_state.prompt_token_ids)
+                    + len(cdb_state.output_token_ids)
+                )
+                tokens = (
+                    list(cdb_state.prompt_token_ids)
+                    + list(cdb_state.output_token_ids)
+                )
+                cdb_fingerprints.append(token_fingerprint(tokens))
+            self._cdb_context_lengths = cdb_lengths
+            self._cdb_context_fingerprints = cdb_fingerprints
+            logger.info(
+                "[CDB_FINGERPRINT_SOURCE] req_ids=%s fingerprints=%s "
+                "source=worker_after_bookkeeping",
+                self._draft_token_req_ids,
+                cdb_fingerprints,
+            )
+            logger.info(
+                "[CDB_CONTEXT_SOURCE] req_ids=%s lengths=%s "
+                "source=worker_after_bookkeeping",
+                self._draft_token_req_ids,
+                cdb_lengths,
+            )
+
         with record_function_or_nullcontext("gpu_model_runner: eplb"):
             self.eplb_step()
 
@@ -3839,11 +3906,217 @@ class GPUModelRunner(
 
         return async_output
 
+    def cdb_refill_rpc(self, operation: str, payload: dict) -> dict:
+        if not self.cdb_refill:
+            raise RuntimeError("Refill RPC requires CDB_AV_REFILL=1")
+        if operation.startswith("p2_"):
+            if not self.cdb_persistent:
+                raise RuntimeError("P2 RPC requires CDB_AV_PERSISTENT=1")
+            from vllm.v1.spec_decode.cdb_av_persistent import worker_rpc
+            return worker_rpc(self, operation, payload)
+        pending = getattr(self, "_cdb_pending_draft", None)
+        if pending is None:
+            return {"pending": False}
+        session = pending["session"]
+        if operation == "configure":
+            from vllm.v1.spec_decode.cdb_av_fingerprint import token_fingerprint
+            contexts = {}
+            for rid in pending["request_ids"]:
+                if rid not in payload["contexts"]:
+                    continue
+                state = self.requests[rid]
+                tokens = list(state.prompt_token_ids) + list(state.output_token_ids)
+                ctx = dict(context_tokens=len(tokens),fingerprint=token_fingerprint(tokens))
+                if ctx != payload["contexts"][rid]:
+                    raise RuntimeError("Refill Worker/Scheduler committed context mismatch")
+                contexts[rid] = ctx
+            if not contexts:
+                self._cdb_pending_draft = None
+                self._draft_token_req_ids = None
+                return {"pending": False}
+            session.configure(payload["window"],payload["H"],contexts,payload["capacity"])
+            return {"pending": True}
+        if operation == "admit":
+            session.admit(payload["plans"])
+            return {"pending": True, "prepared": [p["req_id"] for p in payload["plans"]]}
+        if operation == "step":
+            return session.step()
+        if operation == "resume_virtual_h":
+            return session.resume_virtual_h()
+        if operation == "finalize":
+            records = session.finalize()
+            self._cdb_pending_draft = None
+            self._draft_token_ids = None
+            self._draft_token_req_ids = None
+            self.prev_num_spec_tokens = pending["expected_k"]
+            return {"pending": False, "records": records}
+        raise ValueError(f"Unknown refill RPC operation: {operation}")
+
+    def cdb_draft_rpc_step(self) -> dict:
+        """Execute at most one real Draft generator step."""
+        pending = getattr(self, "_cdb_pending_draft", None)
+        if pending is None:
+            return {"pending": False, "done": True}
+
+        session = pending["session"]
+        if session.done:
+            return {
+                "pending": True,
+                "done": True,
+                "steps_completed": session.steps_completed,
+            }
+
+        report = self.drafter.draft_one_step(session)
+
+        result = {
+            "pending": True,
+            "done": session.done,
+            "steps_completed": session.steps_completed,
+        }
+
+        if report is not None:
+            result["logical_batch"] = int(report["logical_batch"])
+            result["input_rows"] = int(report["input_rows"])
+
+            req_ids = list(report["request_ids"])
+            caps = [int(x) for x in report["request_draft_lengths"]]
+            progress = [int(x) for x in report["draft_progress"]]
+
+            if not (len(req_ids) == len(caps) == len(progress)):
+                raise RuntimeError("CDB Step Result length mismatch")
+
+            if len(set(req_ids)) != len(req_ids):
+                raise RuntimeError("CDB Step Result duplicate request IDs")
+
+            if any(
+                not 0 <= current <= cap
+                for current, cap in zip(progress, caps)
+            ):
+                raise RuntimeError("CDB Step Result invalid progress")
+
+            worked_indices = [int(x) for x in report["active_indices"]]
+            completed_indices = [
+                int(x) for x in report["completed_indices"]
+            ]
+
+            if len(set(worked_indices)) != len(worked_indices):
+                raise RuntimeError("CDB duplicate worked indices")
+
+            if any(not 0 <= i < len(req_ids) for i in worked_indices):
+                raise RuntimeError("CDB worked index out of range")
+
+            if any(i not in worked_indices for i in completed_indices):
+                raise RuntimeError("CDB completed index not in worked rows")
+
+            # active_indices in the report denotes rows processed
+            # by this step, not necessarily rows remaining afterwards.
+            ready_indices = [int(i) for i in report["ready_indices"]]
+            if len(set(ready_indices)) != len(ready_indices):
+                raise RuntimeError("CDB duplicate ready indices")
+            if any(not 0 <= i < len(req_ids) for i in ready_indices):
+                raise RuntimeError("CDB ready index out of range")
+
+            ready_set = set(ready_indices)
+            remaining = [
+                req_ids[i]
+                for i in range(len(req_ids))
+                if i not in ready_set
+            ]
+            ready = [req_ids[i] for i in ready_indices]
+
+            result["request_ids"] = req_ids
+            result["worked_req_ids"] = [
+                req_ids[i] for i in worked_indices
+            ]
+            result["newly_completed_req_ids"] = [
+                req_ids[i] for i in completed_indices
+            ]
+            result["active_req_ids"] = remaining
+            result["ready_req_ids"] = ready
+            result["request_progress"] = {
+                req_id: {"progress": current, "k_cap": cap}
+                for req_id, current, cap in zip(req_ids, progress, caps)
+            }
+
+            logger.info(
+                "[CDB_STEP_RESULT] worked=%s active=%s "
+                "ready=%s newly_completed=%s",
+                result["worked_req_ids"],
+                remaining,
+                ready,
+                result["newly_completed_req_ids"],
+            )
+
+        logger.info(
+            "[CDB_DRAFT_RPC_STEP] step=%d done=%s batch=%s",
+            session.steps_completed,
+            session.done,
+            result.get("logical_batch"),
+        )
+        return result
+
+    def cdb_draft_rpc_finalize(self) -> dict:
+        """Finalize a completed session and prepare ordinary Draft handoff."""
+        pending = getattr(self, "_cdb_pending_draft", None)
+        if pending is None:
+            raise RuntimeError("No pending CDB Draft to finalize")
+
+        session = pending["session"]
+        if not session.done:
+            raise RuntimeError("Cannot finalize incomplete CDB Draft")
+
+        from vllm.v1.spec_decode.cdb_av_varlen import CDBDraftResult
+
+        result = self.drafter.finalize_draft(session)
+        if not isinstance(result, CDBDraftResult):
+            raise TypeError("Expected CDBDraftResult")
+
+        if result.request_ids != pending["request_ids"]:
+            raise RuntimeError("CDB request mapping changed across RPCs")
+
+        expected_k = pending["expected_k"]
+        if result.token_ids.ndim != 2:
+            raise RuntimeError("CDB result must be a 2D tensor")
+        if result.token_ids.shape[1] != expected_k:
+            raise RuntimeError("CDB result width mismatch")
+
+        self._draft_token_ids = result.token_ids
+        self._cdb_valid_lengths = result.valid_lengths
+        self.prev_num_spec_tokens = expected_k
+
+        self._copy_draft_token_ids_to_cpu(
+            pending["scheduler_output"]
+        )
+
+        self._cdb_pending_draft = None
+
+        logger.info(
+            "[CDB_DRAFT_RPC_FINALIZE] requests=%d k=%d",
+            len(result.request_ids),
+            expected_k,
+        )
+
+        return {
+            "finalized": True,
+            "num_requests": len(result.request_ids),
+            "k": expected_k,
+        }
+
     def take_draft_token_ids(self) -> DraftTokenIds | None:
         if not self.num_spec_tokens or not self._draft_token_req_ids:
             return None
         draft_token_ids, req_ids = self._get_draft_token_ids_cpu()
-        return DraftTokenIds(req_ids, draft_token_ids)
+        source_lengths = getattr(self, "_cdb_context_lengths", None)
+        if source_lengths is not None and len(source_lengths) != len(req_ids):
+            raise RuntimeError("CDB context length row mismatch")
+        return DraftTokenIds(
+            req_ids,
+            draft_token_ids,
+            source_context_tokens=source_lengths,
+            context_fingerprints=getattr(
+                self, "_cdb_context_fingerprints", None
+            ),
+        )
 
     def _copy_draft_token_ids_to_cpu(
         self, scheduler_output: "SchedulerOutput", zeros_only: bool = False
@@ -4115,7 +4388,33 @@ class GPUModelRunner(
                         lengths.append(k)
                     draft_kwargs["request_ids"] = req_ids
                     draft_kwargs["request_draft_lengths"] = lengths
-            draft_token_ids = self.drafter.propose(**draft_kwargs)
+            if (
+                os.environ.get("CDB_AV_SPLIT_RPC", "0") == "1"
+                and spec_config.uses_draft_model()
+                and self.cdb_varlen
+            ):
+                if getattr(self, "_cdb_pending_draft", None) is not None:
+                    raise RuntimeError("CDB pending Draft already exists")
+
+                if self.cdb_refill:
+                    from vllm.v1.spec_decode.cdb_av_refill import RefillSession
+                    session = RefillSession(self.drafter, draft_kwargs)
+                else:
+                    session = self.drafter.begin_draft(**draft_kwargs)
+                self._cdb_pending_draft = {
+                    "session": session,
+                    "scheduler_output": scheduler_output,
+                    "request_ids": tuple(self.input_batch.req_ids),
+                    "expected_k": next_k,
+                }
+                logger.info(
+                    "[CDB_DRAFT_BEGIN] requests=%d k=%d",
+                    len(self.input_batch.req_ids),
+                    next_k,
+                )
+                draft_token_ids = None
+            else:
+                draft_token_ids = self.drafter.propose(**draft_kwargs)
 
         return draft_token_ids
 

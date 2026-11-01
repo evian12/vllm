@@ -3,6 +3,7 @@
 from dataclasses import dataclass
 import json
 import os
+import time
 import torch
 from vllm.config import CUDAGraphMode
 from vllm.forward_context import set_forward_context
@@ -91,6 +92,16 @@ def propose_varlen_steps(self, target_token_ids, target_positions, target_hidden
         raise ValueError('CDB_AV_HF_THRESHOLD must be in [0, 1]')
     self._cdb_round = getattr(self, '_cdb_round', 0) + 1
     round_id = self._cdb_round
+    if os.getenv("CDB_AV_MIXED_TRACE", "0") == "1":
+        query_lens = common_attn_metadata.query_start_loc_cpu.diff().tolist()
+        logger.info(
+            "[CDB_MIXED] round=%d req_ids=%s query_lens=%s total=%d",
+            round_id,
+            list(ids),
+            query_lens,
+            sum(query_lens),
+        )
+
     builder = self.attn_metadata_builder or self._get_attention_metadata_builder()
     block_size = builder.kv_cache_spec.block_size
     # Use the existing rejection-aware merge kernel for the first (multi-token)
@@ -186,6 +197,9 @@ def propose_varlen_steps(self, target_token_ids, target_positions, target_hidden
                 ready.append(original_idx)
                 stop_reasons[ids[original_idx]] = (
                     'max_k' if cap_reached else 'low_confidence')
+        if trace and completed:
+            logger.info('[CDB_READY_TIMING] %s', json.dumps(dict(
+                ready_at=time.monotonic(),req_ids=[ids[i] for i in completed])))
         if trace and hf_dynamic:
             logger.info('[CDB_HF_CONF] %s', json.dumps(dict(
                 round=round_id, step=step, threshold=hf_threshold,

@@ -319,6 +319,8 @@ class EngineCore:
         # specific finish reason, TBD whether we propagate that
         # (i.e. client-aborted vs stop criteria met).
         self.scheduler.finish_requests(request_ids, RequestStatus.FINISHED_ABORTED)
+        if hasattr(self, "_cdb_persistent"):
+            self._cdb_persistent.reconcile()
 
     @contextmanager
     def log_error_detail(self, scheduler_output: SchedulerOutput):
@@ -375,9 +377,69 @@ class EngineCore:
 
         # Check for any requests remaining in the scheduler - unfinished,
         # or finished and not yet removed from the batch.
+        import os
+        if os.getenv("CDB_AV_PERF_DIR"):
+            from cdb_perf_probe import install
+            install(self)
+        if os.getenv("CDB_AV_PERSISTENT", "0") == "1":
+            if not hasattr(self, "_cdb_persistent"):
+                from vllm.v1.spec_decode.cdb_av_persistent import PersistentDraftQueue
+                cls = PersistentDraftQueue
+                if os.getenv("CDB_AV_KV_REUSE", "0") == "1":
+                    from vllm.v1.spec_decode.cdb_av_kv_reuse import ReuseDraftQueue
+                    cls = ReuseDraftQueue
+                self._cdb_persistent = cls(self)
+            self._cdb_persistent.reconcile()
         if not self.scheduler.has_requests():
             return {}, False
+        # CDB-AV: diagnostic Executor -> Worker call.
+        # Does not execute a Draft forward or mutate Scheduler state.
+        import os
+        if os.environ.get("CDB_AV_RPC_PROBE", "0") == "1":
+            from vllm.v1.executor.uniproc_executor import UniProcExecutor
+
+            if not isinstance(self.model_executor, UniProcExecutor):
+                raise RuntimeError(
+                    "CDB RPC probe currently supports UniProcExecutor only"
+                )
+
+            probe_id = getattr(self, "_cdb_rpc_probe_id", 0) + 1
+            self._cdb_rpc_probe_id = probe_id
+
+            probe = self.model_executor.collective_rpc(
+                "cdb_step_boundary_probe",
+                args=(probe_id,),
+                single_value=True,
+            )
+
+            if (
+                probe.get("step_id") != probe_id
+                or probe.get("worker_received") is not True
+                or probe.get("gpu_forward_executed") is not False
+            ):
+                raise RuntimeError("CDB RPC probe mismatch")
+
+            import logging
+            logging.getLogger("vllm.cdb_av.rpc").info(
+                "[CDB_RPC_RETURN] step_id=%d worker_received=%s",
+                probe_id,
+                probe["worker_received"],
+            )
+
         scheduler_output = self.scheduler.schedule()
+        if os.getenv("CDB_AV_PERSISTENT", "0") == "1":
+            self._cdb_persistent.before_target(scheduler_output)
+
+        # CDB-AV: observe actual vLLM Scheduler admission.
+        # This is NOT an independent Draft KV allocation.
+        import os
+        if os.environ.get("CDB_AV_SCHED_TRACE") == "1":
+            import logging
+            logging.getLogger("vllm.cdb_av.scheduler").info(
+                "[CDB_SCHED] scheduled=%s total_tokens=%d",
+                dict(scheduler_output.num_scheduled_tokens),
+                scheduler_output.total_num_scheduled_tokens,
+            )
         future = self.model_executor.execute_model(scheduler_output, non_block=True)
         grammar_output = self.scheduler.get_grammar_bitmask(scheduler_output)
         with (
@@ -397,11 +459,183 @@ class EngineCore:
 
         return engine_core_outputs, scheduler_output.total_num_scheduled_tokens > 0
 
+    def _cdb_refill_post_step(self):
+        from vllm.v1.executor.uniproc_executor import UniProcExecutor
+        from vllm.v1.spec_decode.cdb_av_refill_queue import RefillQueue
+        if not isinstance(self.model_executor, UniProcExecutor):
+            raise RuntimeError("Refill requires UniProcExecutor")
+        if not hasattr(self.scheduler, "_cdb_refill_queue"):
+            self.scheduler._cdb_refill_queue = RefillQueue(self.scheduler)
+        queue = self.scheduler._cdb_refill_queue
+        self._cdb_window_id = getattr(self, "_cdb_window_id", 0) + 1
+        horizon = int(os.getenv("CDB_AV_WINDOW_H", "8"))
+        if not 1 <= horizon <= 64:
+            raise ValueError("Refill H must be in [1,64]")
+        def rpc(operation, payload=None):
+            return self.model_executor.collective_rpc("cdb_refill_rpc",
+                args=(operation, payload or {}), single_value=True)
+        contexts = queue.begin(self._cdb_window_id)
+        configured = rpc("configure", dict(window=self._cdb_window_id,H=horizon,
+            contexts=contexts,capacity=self.scheduler.max_num_running_reqs))
+        if not configured["pending"]:
+            return
+        p1_virtual_h = os.getenv("CDB_P1_VIRTUAL_H", "0") == "1"
+        if p1_virtual_h and os.getenv("CDB_AV_FRESH_K", "0") != "0":
+            # Fresh Waiting selection is disabled below regardless, but make the
+            # experiment configuration unambiguous.
+            raise RuntimeError("P1 virtual H requires CDB_AV_FRESH_K=0")
+        # Bound total forwards even if the existing K policy is misconfigured.
+        total_steps = 0
+        while total_steps < 256:
+            status = rpc("step")
+            total_steps += 1
+            queue.step(status)
+            plans = (queue.select(status) if status["remaining_steps"]
+                     and not p1_virtual_h else [])
+            if plans:
+                response = rpc("admit", dict(plans=plans))
+                if response["prepared"] != [p["req_id"] for p in plans]:
+                    raise RuntimeError("Refill preparation acknowledgement mismatch")
+                queue.prepared(plans)
+            if not status["active_req_ids"] and not plans:
+                queue.accept(rpc("finalize")["records"])
+                return
+            if not status["remaining_steps"]:
+                if not p1_virtual_h:
+                    raise RuntimeError("Refill window exhausted without valid finalize")
+                rpc("resume_virtual_h")
+        raise RuntimeError("P1 virtual H exceeded 256 Draft forwards")
+
     def post_step(self, model_executed: bool) -> None:
+        if os.getenv("CDB_AV_PERSISTENT", "0") == "1":
+            if hasattr(self, "_cdb_persistent"):
+                self._cdb_persistent.advance(model_executed)
+            return
         # When using async scheduling we can't get draft token ids in advance,
         # so we update draft token ids in the worker process and don't
         # need to update draft token ids here.
         if not self.async_scheduling and self.use_spec_decode and model_executed:
+            if os.getenv("CDB_AV_REFILL", "0") == "1":
+                self._cdb_refill_post_step()
+                return
+            # CDB-AV: execute pending Draft one GPU step per Worker RPC.
+            # Target has already been committed by update_from_output().
+            # No other Target forward may interleave with this sequence.
+            if os.environ.get("CDB_AV_SPLIT_RPC", "0") == "1":
+                from vllm.v1.executor.uniproc_executor import UniProcExecutor
+                import logging
+
+                if not isinstance(self.model_executor, UniProcExecutor):
+                    raise RuntimeError(
+                        "CDB split RPC currently requires UniProcExecutor"
+                    )
+
+                split_logger = logging.getLogger("vllm.cdb_av.split")
+                had_pending = False
+
+                self._cdb_window_id = (
+                    getattr(self, "_cdb_window_id", 0) + 1
+                )
+                window_id = self._cdb_window_id
+
+                for rpc_index in range(128):
+                    status = self.model_executor.collective_rpc(
+                        "cdb_draft_rpc_step",
+                        single_value=True,
+                    )
+
+                    if not status["pending"]:
+                        if had_pending:
+                            raise RuntimeError(
+                                "CDB Draft session disappeared before finalize"
+                            )
+                        break
+
+                    had_pending = True
+                    split_logger.info(
+                        "[CDB_DRAFT_RPC_RETURN] rpc=%d "
+                        "step=%d done=%s",
+                        rpc_index + 1,
+                        status["steps_completed"],
+                        status["done"],
+                    )
+
+                    if (
+                        os.environ.get("CDB_AV_ADMISSION_TRACE", "0") == "1"
+                        and "request_ids" in status
+                    ):
+                        capacity = int(
+                            os.environ.get("CDB_AV_DRAFT_CAPACITY", "4")
+                        )
+                        if (
+                            os.environ.get("CDB_AV_WORK_QUEUE", "0") == "1"
+                        ):
+                            status["window_id"] = window_id
+
+                            work_snapshot = (
+                                self.scheduler.sync_cdb_work_queue(status)
+                            )
+
+                            split_logger.info(
+                                "[CDB_WORK_QUEUE_RETURN] window=%d "
+                                "step=%d active=%d ready=%d prepare=%d",
+                                window_id,
+                                status["steps_completed"],
+                                work_snapshot["counts"]["ACTIVE"],
+                                work_snapshot["counts"]["READY"],
+                                work_snapshot["counts"]["PREPARE_REQUIRED"],
+                            )
+
+                        decision = self.scheduler.inspect_cdb_draft_step(
+                            status, draft_capacity=capacity
+                        )
+                        split_logger.info(
+                            "[CDB_ADMISSION_RETURN] step=%d "
+                            "active=%s ready=%s refill_slots=%d "
+                            "admitted=%s",
+                            status["steps_completed"],
+                            decision["active_req_ids"],
+                            decision["ready_req_ids"],
+                            decision["refill_slots"],
+                            decision["admitted_req_ids"],
+                        )
+
+                        eligibility = (
+                            self.scheduler.inspect_cdb_draft_candidates(
+                                status,
+                                draft_capacity=capacity,
+                            )
+                        )
+
+                        split_logger.info(
+                            "[CDB_REAL_ELIGIBILITY] step=%d "
+                            "slots=%d running_candidates=%s "
+                            "waiting=%d fresh=%d preempted=%d "
+                            "other=%d gpu_admitted=%s",
+                            status["steps_completed"],
+                            eligibility["refill_slots"],
+                            [
+                                item["req_id"]
+                                for item in eligibility["running_candidates"]
+                            ],
+                            eligibility["waiting_count"],
+                            eligibility["waiting_fresh"],
+                            eligibility["waiting_preempted"],
+                            eligibility["waiting_other"],
+                            eligibility["gpu_admitted_req_ids"],
+                        )
+
+                    if status["done"]:
+                        self.model_executor.collective_rpc(
+                            "cdb_draft_rpc_finalize",
+                            single_value=True,
+                        )
+                        break
+                else:
+                    raise RuntimeError(
+                        "CDB Draft exceeded maximum RPC step count"
+                    )
+
             # Take the draft token ids.
             draft_token_ids = self.model_executor.take_draft_token_ids()
             if draft_token_ids is not None:
@@ -534,11 +768,17 @@ class EngineCore:
             self.abort_requests(request_ids)
 
     def shutdown(self):
-        self.structured_output_manager.clear_backend()
-        if self.model_executor:
-            self.model_executor.shutdown()
-        if self.scheduler:
-            self.scheduler.shutdown()
+        try:
+            p2 = getattr(self, "_cdb_persistent", None)
+            if p2 is not None and hasattr(p2, "close"):
+                p2.close()
+        finally:
+            # Even a failed GPU drain must not skip executor teardown.
+            self.structured_output_manager.clear_backend()
+            if self.model_executor:
+                self.model_executor.shutdown()
+            if self.scheduler:
+                self.scheduler.shutdown()
 
     def profile(self, is_start: bool = True):
         self.model_executor.profile(is_start)

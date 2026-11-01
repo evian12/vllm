@@ -208,6 +208,30 @@ class DraftTokenIds:
     # num_reqs x num_draft_tokens
     draft_token_ids: list[list[int]]
 
+    # CDB-AV: committed context length used to generate each draft.
+    # None means provenance is unavailable or unverified.
+    # Must align with req_ids.
+    source_context_tokens: list[int] | None = None
+    context_fingerprints: list[str] | None = None
+
+    def __post_init__(self):
+        if len(self.req_ids) != len(self.draft_token_ids):
+            raise ValueError("DraftTokenIds row count mismatch")
+        if self.source_context_tokens is not None:
+            if len(self.source_context_tokens) != len(self.req_ids):
+                raise ValueError("CDB provenance row count mismatch")
+            if any(x < 0 for x in self.source_context_tokens):
+                raise ValueError("Negative source context length")
+
+        if self.context_fingerprints is not None:
+            if len(self.context_fingerprints) != len(self.req_ids):
+                raise ValueError("CDB fingerprint row count mismatch")
+            if any(
+                not isinstance(fp, str) or len(fp) != 32
+                for fp in self.context_fingerprints
+            ):
+                raise ValueError("Invalid CDB fingerprint")
+
 
 def make_empty_encoder_model_runner_output(
     scheduler_output: "SchedulerOutput",
