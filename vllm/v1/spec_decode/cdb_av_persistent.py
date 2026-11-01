@@ -217,6 +217,12 @@ class PersistentDraftQueue:
     """CPU owner of exclusive pages and official-context version snapshots."""
     def __init__(self, engine):
         self.engine, self.s = engine, engine.scheduler
+        if (os.getenv('CDB_AV_INTRA_WINDOW', '0') == '1'
+                and os.getenv('CDB_AV_KV_REUSE', '0') != '1'):
+            raise RuntimeError(
+                'CDB_AV_INTRA_WINDOW requires CDB_AV_KV_REUSE=1 so new '
+                'Draft Prefill rows join the next mixed Decode forward'
+            )
         # Reuse the existing allocator compatibility checks; not its fresh queue.
         checked = RefillQueue(self.s)
         self.block_size = checked.block_size
