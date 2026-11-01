@@ -210,8 +210,8 @@ class ReuseDraftSession(PersistentDraftSession):
 
     def _prepare_legacy(self, plans, requests):
         """Prepare all members with one packed Prefill forward."""
-        if len(self.members) + len(plans) > self.capacity:
-            raise RuntimeError("P2 member capacity exceeded")
+        if len(self.active) + len(plans) > self.capacity:
+            raise RuntimeError("P2 active Draft capacity exceeded")
 
         staged = []
         entries = []
@@ -486,8 +486,8 @@ class ReuseDraftSession(PersistentDraftSession):
         return {"prepared": [p["req_id"] for p in plans]}
 
     def _prepare_mixed(self, plans, requests):
-        if len(self.members) + len(plans) > self.capacity:
-            raise RuntimeError("P2 member capacity exceeded")
+        if len(self.active) + len(plans) > self.capacity:
+            raise RuntimeError("P2 active Draft capacity exceeded")
         if not hasattr(self, 'pending_prefill'):
             raise RuntimeError("Mixed Prefill queue is not initialized")
         if self.pending_prefill:
@@ -747,6 +747,8 @@ class ReuseDraftQueue(PersistentDraftQueue):
                 raise ValueError('P2 supports text-only greedy requests without grammar/LoRA')
             cap=(params.extra_args or {}).get('cdb_draft_k',self.s.num_spec_tokens)
             if type(cap) is not int or not 1<=cap<=self.s.num_spec_tokens:raise ValueError('Invalid P2 request K')
+            if cap > self.horizon - self.steps_completed:
+                continue  # Do not admit work that cannot finish before this boundary.
             if req.num_tokens+cap>=self.s.max_model_len:
                 self.discard_cached([rid] if rid in self.cached_leases else [],'length_limit');continue
 
