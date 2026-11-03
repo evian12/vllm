@@ -330,13 +330,10 @@ class PersistentDraftQueue:
 
     @property
     def preempt_protected(self):
-        return (
-            set(self.leases)
-            | set(self.ready)
-            | set(self.inflight)
-            | set(getattr(self, '_target_selected_ready', set()))
-            | set(getattr(self, '_target_yield', set()))
-        )
+        # Yielded AR requests are merely skipped for this Target batch; they
+        # retain native preemption semantics. Only Draft-owned and Ready/
+        # in-flight requests carry CDB state that must never be preempted.
+        return set(self.leases) | set(self.ready) | set(self.inflight)
 
     def prepare_target(self):
         """Choose an atomic Ready subset before the next native Target schedule."""
@@ -374,6 +371,31 @@ class PersistentDraftQueue:
             return []
 
         waiting_count = len(self.s.waiting)
+        protected = set(self.leases) | set(self.ready) | set(self.inflight)
+        ordinary_running = [
+            req for req in self.s.running
+            if req.request_id not in protected
+            and not req.is_finished()
+            and req.status == RequestStatus.RUNNING
+        ]
+        # An in-progress Prefill (including the last prompt token that will
+        # produce the first Target token) must not be repeatedly yielded to
+        # make room for Ready verification. Only already-started AR requests
+        # are eligible for temporary yielding.
+        mandatory_prefill = [
+            req for req in ordinary_running
+            if (
+                not req.num_output_tokens
+                or req.num_computed_tokens < req.num_tokens - 1
+                or req.spec_token_ids
+            )
+        ]
+        mandatory_ids = {req.request_id for req in mandatory_prefill}
+        yieldable_ar = [
+            req for req in ordinary_running
+            if req.request_id not in mandatory_ids
+        ]
+
         reserve = 0
         if waiting_count and capacity > 1:
             raw_reserve = os.getenv('CDB_AV_TARGET_PREFILL_RESERVE', '1')
@@ -389,22 +411,25 @@ class PersistentDraftQueue:
                     f'[0, {capacity - 1}]'
                 )
 
-        selected = candidates[:capacity - reserve]
+        selected_limit = max(
+            0, capacity - reserve - len(mandatory_prefill)
+        )
+        selected = candidates[:selected_limit]
+        if not selected:
+            reserve = 0
         self._target_selected_ready = set(selected)
 
-        protected = set(self.leases) | set(self.ready) | set(self.inflight)
-        ordinary_running = [
-            req for req in self.s.running
-            if req.request_id not in protected
-            and not req.is_finished()
-            and req.status == RequestStatus.RUNNING
-        ]
         target_running_limit = capacity - reserve if selected else capacity
         yield_count = max(
             0, len(ordinary_running) + len(selected) - target_running_limit
         )
+        if yield_count > len(yieldable_ar):
+            raise RuntimeError(
+                'P2 Target admission cannot fit Ready work without yielding '
+                'an in-progress Prefill'
+            )
         yielded = sorted(
-            ordinary_running,
+            yieldable_ar,
             key=lambda req: (
                 getattr(req, 'arrival_time', 0.0),
                 req.request_id,
@@ -422,6 +447,7 @@ class PersistentDraftQueue:
             yielded=sorted(self._target_yield),
             target_capacity=capacity,
             prefill_reserve=reserve,
+            mandatory_prefill=sorted(mandatory_ids),
             waiting=waiting_count,
         )
         return selected
