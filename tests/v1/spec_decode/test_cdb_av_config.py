@@ -31,6 +31,7 @@ is_enabled = _config.is_enabled
 select_ready_request_ids = _config.select_ready_request_ids
 can_admit_prefill_tokens = _config.can_admit_prefill_tokens
 validate_draft_worker_status = _config.validate_draft_worker_status
+validate_server_k_cap = _config.validate_server_k_cap
 
 
 def test_default_window_is_fixed_and_configurable(monkeypatch):
@@ -250,3 +251,15 @@ def test_worker_status_rejects_inconsistent_partition(
             capacity,
             slots,
         )
+
+
+
+@pytest.mark.parametrize("cap", [1, 4, 8])
+def test_worker_plan_k_cap_within_server_limit(cap):
+    assert validate_server_k_cap(cap, 8) == cap
+
+
+@pytest.mark.parametrize("cap", [0, 9, True, "8"])
+def test_worker_plan_k_cap_rejects_invalid_values(cap):
+    with pytest.raises(ValueError, match="Draft K cap"):
+        validate_server_k_cap(cap, 8)
