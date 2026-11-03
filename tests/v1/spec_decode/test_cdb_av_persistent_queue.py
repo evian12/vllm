@@ -5,6 +5,7 @@ from types import SimpleNamespace
 import pytest
 
 from vllm.v1.request import RequestStatus
+from vllm.v1.spec_decode.cdb_av_refill_queue import RefillQueue
 
 from vllm.v1.spec_decode.cdb_av_persistent import (
     PersistentDraftQueue,
@@ -233,3 +234,83 @@ def test_target_ready_admission_does_not_yield_in_progress_prefill():
     assert queue._target_yield == {f"ar{i}" for i in range(4)}
     assert "prefill" not in queue.frozen
     assert "prefill" not in queue.preempt_protected
+
+
+
+def test_before_target_moves_only_selected_ready_requests_to_inflight():
+    queue = PersistentDraftQueue.__new__(PersistentDraftQueue)
+    queue.window = 3
+    queue.target_epoch = 2
+    queue.leases = {}
+    queue.ready = {}
+    queue.inflight = {}
+    queue._target_selected_ready = {"r0"}
+    queue._target_yield = set()
+
+    requests = {}
+    for rid, prompt, output, drafts in (
+        ("r0", [1, 2], [3], [11, 12]),
+        ("r1", [4, 5], [6], [21, 22]),
+    ):
+        req = SimpleNamespace(
+            request_id=rid,
+            prompt_token_ids=prompt,
+            output_token_ids=output,
+            spec_token_ids=list(drafts),
+            status=RequestStatus.RUNNING,
+            is_finished=lambda: False,
+        )
+        requests[rid] = req
+        ctx = RefillQueue.context(req)
+        queue.ready[rid] = {
+            "tokens": list(drafts),
+            "context_tokens": ctx["context_tokens"],
+            "fingerprint": ctx["fingerprint"],
+            "ready_at": 1.0,
+            "window": 2,
+        }
+
+    queue.s = SimpleNamespace(
+        running=list(requests.values()),
+        requests=requests,
+        kv_cache_manager=SimpleNamespace(get_block_ids=lambda _rid: []),
+    )
+    queue.reconcile = lambda: None
+    output = SimpleNamespace(
+        num_scheduled_tokens={"r0": 3},
+        total_num_scheduled_tokens=3,
+        scheduled_spec_decode_tokens={"r0": [11, 12]},
+    )
+
+    queue.before_target(output)
+
+    assert set(queue.inflight) == {"r0"}
+    assert set(queue.ready) == {"r1"}
+    assert queue._target_selected_ready == set()
+    assert queue._target_yield == set()
+    assert queue.frozen == {"r1"}
+
+
+def test_before_target_rejects_unselected_ready_verification():
+    queue = PersistentDraftQueue.__new__(PersistentDraftQueue)
+    queue.window = 1
+    queue.target_epoch = 0
+    queue.leases = {}
+    queue.inflight = {}
+    queue.ready = {"r0": {}, "r1": {}}
+    queue._target_selected_ready = {"r0"}
+    queue._target_yield = set()
+    queue.s = SimpleNamespace(
+        running=[],
+        requests={},
+        kv_cache_manager=SimpleNamespace(get_block_ids=lambda _rid: []),
+    )
+    queue.reconcile = lambda: None
+    output = SimpleNamespace(
+        num_scheduled_tokens={"r1": 3},
+        total_num_scheduled_tokens=3,
+        scheduled_spec_decode_tokens={"r1": [1, 2]},
+    )
+
+    with pytest.raises(RuntimeError, match="scheduled frozen Carry"):
+        queue.before_target(output)
