@@ -911,34 +911,27 @@ class ReuseDraftQueue(PersistentDraftQueue):
                 super().rpc('replay',{'mapping':mapping})
                 self.s.kv_cache_manager.block_pool.free_blocks(self.replay_blocks)
                 self.replay_blocks=[];self.replayed.update(keys)
-        if operation=='prepare':
+        if operation == "prepare":
             # Validation RPC copied comparisons to CPU and synchronized before ACK.
-            for bs in self.audit_leases.values():self.s.kv_cache_manager.block_pool.free_blocks(bs)
-            self.audit_leases.clear()
+            # Remove each ownership record only after its allocation is freed, so
+            # a later failure leaves the remaining leases accurately tracked.
+            pool = self.s.kv_cache_manager.block_pool
+            for rid, blocks in list(self.audit_leases.items()):
+                if any(
+                    block.is_null or block.ref_cnt != 1 for block in blocks
+                ):
+                    raise RuntimeError(
+                        f"P2 audit lease ownership lost for {rid}"
+                    )
+                pool.free_blocks(blocks)
+                self.audit_leases.pop(rid)
         return result
 
     def close(self):
-        ids=list(set(self.leases)|set(self.cached_leases)|set(self.audit_leases))
-        if ids:
-            ack=self.rpc('drop',{'ids':ids})
-            if ack['dropped']!=ids:raise RuntimeError('Reuse cleanup acknowledgement mismatch')
-        for rid in list(self.leases):super().release(rid,'close')
-        for mapping in (self.cached_leases,self.audit_leases):
-            for bs in mapping.values():
-                if any(b.ref_cnt!=1 for b in bs):raise RuntimeError('Cleanup lost KV ownership')
-                self.s.kv_cache_manager.block_pool.free_blocks(bs)
-            mapping.clear()
-        if self.replay_blocks:
-            self.s.kv_cache_manager.block_pool.free_blocks(self.replay_blocks)
-            self.replay_blocks=[]
-        pool=self.s.kv_cache_manager.block_pool
-        while self.pending_allocations:
-            bs=self.pending_allocations[0]
-            if any(b.is_null or b.ref_cnt!=1 for b in bs):
-                raise RuntimeError('P2 pending allocation ownership lost during close')
-            pool.free_blocks(bs)
-            self.pending_allocations.pop(0)
-        self.commits.clear();self.ready.clear();self.inflight.clear()
+        # Use the same preflight -> Worker reset ACK -> CPU free transaction as
+        # the base queue. This also clears Worker-only cached/suspended state,
+        # not just IDs still present in the CPU lease dictionaries.
+        self.reset()
 
     def advance(self,model_executed):
         try:super().advance(model_executed)
