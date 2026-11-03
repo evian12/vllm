@@ -169,7 +169,7 @@ def test_published_ready_is_not_frozen_by_a_later_draft_window():
 def test_target_ready_selection_respects_running_capacity_and_queue_order():
     selected = select_ready_request_ids(
         running_ids=["carry", "r0", "ar0", "r1", "r2"],
-        ready_ids={"r0", "r1", "r2"},
+        ready_ids=["r0", "r1", "r2"],
         protected_ids={"carry"},
         max_num_running_reqs=3,
     )
