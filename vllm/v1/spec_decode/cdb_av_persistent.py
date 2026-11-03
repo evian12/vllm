@@ -353,16 +353,16 @@ class PersistentDraftQueue:
 
     @property
     def frozen(self):
-        """Requests that must not execute in the current Target forward."""
+        """Current-window Draft members and unselected published Ready work.
+
+        self.ready contains only candidates published by a completed H
+        boundary. They remain eligible for Target scheduling even while a
+        later Draft window is open. Members of the current window are still in
+        self.leases and cannot enter self.ready until that window hits H.
+        """
         frozen = set(self.leases)
-        ready = set(self.ready)
-        if getattr(self, "_p3_window_open", False):
-            # A Ready request cannot be verified until the whole Draft window
-            # reaches H. Target may still run unrelated AR/Prefill requests.
-            frozen.update(ready)
-        else:
-            # At a Target boundary, only the selected Ready subset is eligible.
-            frozen.update(ready - getattr(self, "_target_selected_ready", set()))
+        selected = getattr(self, "_target_selected_ready", set())
+        frozen.update(set(self.ready) - selected)
         return frozen
 
     @property
@@ -371,10 +371,12 @@ class PersistentDraftQueue:
         return set(self.leases) | set(self.ready) | set(self.inflight)
 
     def begin_target_schedule(self):
-        """Select a capacity-bounded Ready subset without reordering vLLM queues."""
-        if getattr(self, "_p3_window_open", False):
-            self._target_selected_ready = set()
-            return
+        """Select published Ready work, including backlog from earlier windows.
+
+        Current-window members are still protected by self.leases and are not
+        published to self.ready before H. An open Draft window must therefore
+        not block verification of Ready work from older windows.
+        """
         if self.inflight:
             raise RuntimeError("P2 Target scheduling began with in-flight verification")
 
@@ -444,10 +446,6 @@ class PersistentDraftQueue:
         """Freeze Ready candidates that the running-request pass did not schedule."""
         scheduled = set(scheduled_ready_ids)
         selected = getattr(self, "_target_selected_ready", set())
-        if getattr(self, "_p3_window_open", False) and scheduled:
-            raise RuntimeError(
-                "P2 Target scheduled Ready requests before the H boundary"
-            )
         if scheduled - selected:
             raise RuntimeError(
                 "P2 Target scheduled Ready requests outside its selected subset"
@@ -664,10 +662,8 @@ class PersistentDraftQueue:
         self.reconcile()
 
         scheduled_ready = set(output.scheduled_spec_decode_tokens)
-        if getattr(self, "_p3_window_open", False) and scheduled_ready:
-            raise RuntimeError(
-                "P2 Ready requests cannot be verified before the fixed H boundary"
-            )
+        # Only candidates published by finish_window() are in self.ready.
+        # Current-window members remain in self.leases until H is reached.
         if scheduled_ready - getattr(self, "_target_selected_ready", set()):
             raise RuntimeError("P2 scheduler admitted an unselected Ready request")
 
