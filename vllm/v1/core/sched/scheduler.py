@@ -409,6 +409,7 @@ class Scheduler(SchedulerInterface):
                 # A Ready request must be verified atomically. Never trim its
                 # candidate list to fit a token budget or long-prefill threshold.
                 if num_new_tokens <= 0 or num_new_tokens > token_budget:
+                    p2._target_selected_ready.discard(request.request_id)
                     req_index += 1
                     continue
             else:
@@ -425,6 +426,7 @@ class Scheduler(SchedulerInterface):
                 self.max_model_len - 1 - request.num_computed_tokens
             )
             if p2_ready and num_new_tokens > max_position_tokens:
+                p2._target_selected_ready.discard(request.request_id)
                 req_index += 1
                 continue
             num_new_tokens = min(num_new_tokens, max_position_tokens)
@@ -483,9 +485,8 @@ class Scheduler(SchedulerInterface):
                         # The request can be scheduled.
                         break
 
-                    # The request cannot be scheduled. Frozen CDB Carry
-                    # requests are not Target-executable and must never be
-                    # selected as preemption victims.
+                    # CDB-owned Draft/Ready pages must not be preempted while
+                    # the Target scheduler is trying to allocate this request.
                     p2 = getattr(self, "_cdb_p2", None)
                     protected_ids = (
                         p2.preempt_protected if p2 is not None else set()
