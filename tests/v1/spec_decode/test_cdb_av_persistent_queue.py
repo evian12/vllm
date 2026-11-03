@@ -323,6 +323,9 @@ def test_unsupported_request_is_left_for_target_only_generation():
     queue = PersistentDraftQueue.__new__(PersistentDraftQueue)
     request = SimpleNamespace(
         sampling_params=SimpleNamespace(temperature=0, prompt_logprobs=None),
+        prompt_token_ids=[1, 2, 3],
+        prompt_embeds=None,
+        mm_features=[],
         has_encoder_inputs=False,
         lora_request=None,
         structured_output_request=None,
