@@ -1,7 +1,10 @@
 # SPDX-License-Identifier: Apache-2.0
 
+from types import SimpleNamespace
+
 import pytest
 
+from vllm.v1.request import RequestStatus
 from vllm.v1.spec_decode.cdb_av_persistent import (
     PersistentDraftQueue,
     PersistentDraftSession,
@@ -96,3 +99,100 @@ def test_advance_runs_one_draft_step_per_engine_iteration():
 
     queue.advance(model_executed=False)
     assert calls == {"step": 3, "finish": 1}
+
+
+
+def _fake_request(req_id, draft_tokens=(), base_tokens=20):
+    tokens = list(draft_tokens)
+    return SimpleNamespace(
+        request_id=req_id,
+        status=RequestStatus.RUNNING,
+        spec_token_ids=tokens,
+        num_tokens_with_spec=base_tokens + len(tokens) + 1,
+        num_output_placeholders=0,
+        num_computed_tokens=base_tokens,
+        is_finished=lambda: False,
+    )
+
+
+def test_target_admission_selects_only_available_running_slots():
+    carry = _fake_request("carry")
+    other0 = _fake_request("other0")
+    other1 = _fake_request("other1")
+    ready = {
+        rid: _fake_request(rid, [index, index + 1])
+        for index, rid in enumerate(("ready0", "ready1", "ready2"))
+    }
+
+    queue = PersistentDraftQueue.__new__(PersistentDraftQueue)
+    queue.s = SimpleNamespace(
+        max_num_running_reqs=4,
+        max_num_scheduled_tokens=8192,
+        running=[carry, other0, other1, *ready.values()],
+        requests={"carry": carry, "other0": other0, "other1": other1, **ready},
+    )
+    queue.leases = {"carry"}
+    queue.ready = {
+        rid: {"tokens": list(req.spec_token_ids)}
+        for rid, req in ready.items()
+    }
+    queue.inflight = {}
+    queue._target_selected_ready = set()
+    queue.window = 2
+
+    selected = queue.select_target()
+
+    assert selected == ["ready0", "ready1"]
+    assert queue.frozen == {"carry", "ready2"}
+    assert queue.preempt_protected == {
+        "carry", "ready0", "ready1", "ready2"
+    }
+
+
+def test_target_verify_never_accepts_a_partial_candidate_budget():
+    req = _fake_request("ready0", [10, 11, 12])
+    queue = PersistentDraftQueue.__new__(PersistentDraftQueue)
+    queue.ready = {"ready0": {"tokens": [10, 11, 12]}}
+    queue._target_selected_ready = {"ready0"}
+
+    assert queue.can_schedule_verify(req, 4)
+    assert not queue.can_schedule_verify(req, 3)
+
+
+def test_intra_window_refill_continues_after_a_request_becomes_ready(
+    monkeypatch,
+):
+    monkeypatch.setenv("CDB_AV_INTRA_WINDOW", "1")
+    queue = PersistentDraftQueue.__new__(PersistentDraftQueue)
+    queue.window = 1
+    queue.horizon = 8
+    queue._p3_window_open = True
+    queue._p3_done = False
+    queue._p3_steps = 0
+    queue._p3_ready_seen = False
+    queue._cdb_admit_limit = None
+    queue.carry = {}
+    calls = []
+    plan = {"req_id": "new-request"}
+
+    def rpc(operation, payload=None):
+        calls.append((operation, payload))
+        if operation == "step":
+            return {
+                "progress": {"ready-request": 2},
+                "ready_req_ids": ["ready-request"],
+                "active_req_ids": [],
+                "slots": 4,
+            }
+        if operation == "prepare":
+            return {"prepared": [item["req_id"] for item in payload["plans"]]}
+        raise AssertionError(operation)
+
+    queue.rpc = rpc
+    queue.plans = lambda: [plan]
+
+    assert queue.advance_one_step()
+    assert queue._p3_ready_seen is True
+    assert queue._p3_steps == 1
+    assert any(operation == "prepare" for operation, _ in calls)
+    assert queue._p3_done is False
