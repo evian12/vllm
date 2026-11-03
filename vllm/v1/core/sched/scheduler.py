@@ -398,7 +398,14 @@ class Scheduler(SchedulerInterface):
                 + request.num_output_placeholders
                 - request.num_computed_tokens
             )
-            if 0 < self.scheduler_config.long_prefill_token_threshold < num_new_tokens:
+            p2 = getattr(self, "_cdb_p2", None)
+            cdb_target_verify = (
+                p2 is not None and p2.is_target_selected(request.request_id)
+            )
+            if (
+                0 < self.scheduler_config.long_prefill_token_threshold < num_new_tokens
+                and not cdb_target_verify
+            ):
                 num_new_tokens = self.scheduler_config.long_prefill_token_threshold
             num_new_tokens = min(num_new_tokens, token_budget)
 
@@ -435,10 +442,8 @@ class Scheduler(SchedulerInterface):
             # scheduling may otherwise trim spec_token_ids to the remaining
             # token budget, which would silently turn one verification into a
             # partial verification and invalidate the Ready handoff.
-            p2 = getattr(self, "_cdb_p2", None)
             if (
-                p2 is not None
-                and p2.is_target_selected(request.request_id)
+                cdb_target_verify
                 and not p2.can_schedule_verify(request, num_new_tokens)
             ):
                 req_index += 1
