@@ -361,6 +361,12 @@ class Scheduler(SchedulerInterface):
         # For logging.
         scheduled_timestamp = time.monotonic()
 
+        # During an open Draft window, Ready requests stay frozen. At a Target
+        # boundary, unfreeze only the Ready subset that fits Target capacity.
+        p2 = getattr(self, "_cdb_p2", None)
+        if p2 is not None:
+            p2.begin_target_schedule()
+
         # First, schedule the RUNNING requests.
         req_index = 0
         while req_index < len(self.running) and token_budget > 0:
@@ -449,6 +455,15 @@ class Scheduler(SchedulerInterface):
                 req_index += 1
                 continue
 
+            # A CDB Ready request is verified atomically. If the current
+            # Target token budget can cover only a prefix of its candidates,
+            # leave the complete request in Ready for a later Target step.
+            if p2 is not None and not p2.can_schedule_verify(
+                request, num_new_tokens
+            ):
+                req_index += 1
+                continue
+
             # Schedule newly needed KV blocks for the request.
             with record_function_or_nullcontext("schedule: allocate_slots"):
                 while True:
@@ -462,16 +477,15 @@ class Scheduler(SchedulerInterface):
                         # The request can be scheduled.
                         break
 
-                    # The request cannot be scheduled. Frozen CDB Carry
-                    # requests are not Target-executable and must never be
-                    # selected as preemption victims.
-                    frozen_ids = (
-                        self._cdb_p2.frozen
-                        if getattr(self, "_cdb_p2", None) is not None
-                        else set()
+                    # Draft leases, Ready candidates, and in-flight
+                    # verifications are ownership-protected and cannot be
+                    # selected as Target preemption victims.
+                    protected_ids = (
+                        p2.preempt_protected if p2 is not None else set()
                     )
                     preemptible = [
-                        r for r in self.running if r.request_id not in frozen_ids
+                        r for r in self.running
+                        if r.request_id not in protected_ids
                     ]
                     if not preemptible:
                         break
@@ -556,6 +570,12 @@ class Scheduler(SchedulerInterface):
                     self.encoder_cache_manager.allocate(request, i)
                     if self.ec_connector is not None:
                         self.ec_connector.update_state_after_alloc(request, i)
+
+        # Shrink the Ready selection to the candidates that actually fit
+        # this Target running pass. Unscheduled Ready requests stay frozen, so
+        # the waiting pass can still admit AR/Prefill work into free capacity.
+        if p2 is not None:
+            p2.update_target_selection(scheduled_spec_decode_tokens)
 
         # Record the LoRAs in scheduled_running_reqs
         scheduled_loras: set[int] = set()

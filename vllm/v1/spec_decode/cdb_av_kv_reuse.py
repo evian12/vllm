@@ -750,10 +750,16 @@ class ReuseDraftQueue(PersistentDraftQueue):
             if (rid in self.leases or rid in self.ready or rid in self.inflight or req.status!=RequestStatus.RUNNING
                     or req.is_finished() or not req.num_output_tokens or req.spec_token_ids
                     or req.num_computed_tokens!=req.num_tokens-1):continue
+            reason = self.unsupported_reason(req)
+            if reason is not None:
+                emit(
+                    'p2_skip_unsupported',
+                    window=self.window,
+                    req_id=rid,
+                    reason=reason,
+                )
+                continue
             params=req.sampling_params
-            if (params is None or params.temperature!=0 or req.has_encoder_inputs or req.lora_request is not None
-                    or req.structured_output_request or params.prompt_logprobs is not None):
-                raise ValueError('P2 supports text-only greedy requests without grammar/LoRA')
             cap=(params.extra_args or {}).get('cdb_draft_k',self.s.num_spec_tokens)
             if type(cap) is not int or not 1<=cap<=self.s.num_spec_tokens:raise ValueError('Invalid P2 request K')
             if req.num_tokens+cap>=self.s.max_model_len:

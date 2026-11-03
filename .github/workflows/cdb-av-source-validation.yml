@@ -1,0 +1,37 @@
+name: CDB-AV source validation
+
+on:
+  push:
+    branches:
+      - cdb-av-complete-runtime-20261103
+
+permissions:
+  contents: read
+
+jobs:
+  python-source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Compile changed Python modules
+        run: |
+          python -m compileall -q \
+            vllm/v1/core/sched/scheduler.py \
+            vllm/v1/spec_decode/cdb_av_persistent.py \
+            vllm/v1/spec_decode/cdb_av_kv_reuse.py \
+            tests/v1/spec_decode/test_cdb_av_persistent_queue.py
+      - name: Check patch whitespace
+        run: git diff HEAD^ HEAD --check
+      - name: Check undefined names
+        run: |
+          python -m pip install --quiet ruff
+          ruff check --select F821 \
+            vllm/v1/core/sched/scheduler.py \
+            vllm/v1/spec_decode/cdb_av_persistent.py \
+            vllm/v1/spec_decode/cdb_av_kv_reuse.py \
+            tests/v1/spec_decode/test_cdb_av_persistent_queue.py

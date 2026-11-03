@@ -105,6 +105,60 @@ class PersistentDraftSession(RefillSession):
                  blocks=blocks, kv_valid_upto=count, cap=plan['cap'])
         return {'prepared': [p['req_id'] for p in plans]}
 
+    def step(self):
+        """Advance exactly one Draft-window step, including Ready-only idle ticks."""
+        if self.window is None or self.done:
+            raise RuntimeError("P2 Draft step outside a configured window")
+        if self.steps_completed >= self.horizon:
+            raise RuntimeError(
+                f"P2 Draft window already reached H={self.horizon}"
+            )
+
+        pending_prefill = getattr(self, "pending_prefill", ())
+        if not self.active and not pending_prefill:
+            unfinished = [
+                rid for rid, member in self.members.items()
+                if not member["ready"]
+            ]
+            if unfinished:
+                raise RuntimeError(
+                    "P2 unfinished members are missing from the Active batch: "
+                    f"{unfinished}"
+                )
+
+            self.steps_completed += 1
+            ready_ids = [
+                rid for rid, member in self.members.items()
+                if member["ready"]
+            ]
+            emit(
+                "p2_idle_step",
+                window=self.window,
+                step=self.steps_completed,
+                ready=ready_ids,
+                reason="ready_barrier",
+            )
+            return {
+                "pending": True,
+                "done": False,
+                "window": self.window,
+                "steps_completed": self.steps_completed,
+                "active_req_ids": [],
+                "newly_completed_req_ids": [],
+                "ready_req_ids": ready_ids,
+                "progress": {
+                    rid: member["progress"]
+                    for rid, member in self.members.items()
+                },
+                "slots": self.capacity,
+                "remaining_steps": self.horizon - self.steps_completed,
+            }
+
+        status = super().step()
+        if status["steps_completed"] != self.steps_completed:
+            raise RuntimeError("P2 Worker step counter diverged")
+        return status
+
     def kv_bytes(self, m):
         # Validation only: compare exact bytes, including NaN payload bits in
         # unused slots. Production Carry correctness relies on exclusive leases.
@@ -185,13 +239,25 @@ class PersistentDraftSession(RefillSession):
         # Do not discard ownership records before synchronization succeeds.
         torch.cuda.synchronize(self.p.device)
 
-        for rid in ids:
+        ids_set = set(ids)
+        for rid in ids_set:
             self.members.pop(rid, None)
             self.suspended.pop(rid, None)
             self.kv_snapshots.pop(rid, None)
+            if hasattr(self, "cached"):
+                self.cached.pop(rid, None)
 
-        self.active = [r for r in self.active if r not in ids]
-        return {'dropped': ids}
+        if hasattr(self, "pending_prefill"):
+            self.pending_prefill = [
+                entry for entry in self.pending_prefill if entry[4] not in ids_set
+            ]
+        if hasattr(self, "ready_records"):
+            self.ready_records = [
+                record for record in self.ready_records
+                if record.get("req_id") not in ids_set
+            ]
+        self.active = [rid for rid in self.active if rid not in ids_set]
+        return {"dropped": ids}
 
     def reset(self):
         """Synchronously discard all persistent Draft state."""
@@ -264,11 +330,115 @@ class PersistentDraftQueue:
         from vllm.v1.spec_decode.cdb_av_config import get_window_h
         self.horizon = get_window_h()
         self._cdb_admit_limit = None
+        self._target_selected_ready = set()
+        self._p3_window_open = False
+        self._p3_steps = 0
+        self._p3_done = True
+        self._p3_ready_seen = False
         self.s._cdb_p2 = self
 
     @property
     def frozen(self):
-        return set(self.leases)
+        """Requests that must not execute in the current Target forward."""
+        frozen = set(self.leases)
+        ready = set(self.ready)
+        if getattr(self, "_p3_window_open", False):
+            # A Ready request cannot be verified until the whole Draft window
+            # reaches H. Target may still run unrelated AR/Prefill requests.
+            frozen.update(ready)
+        else:
+            # At a Target boundary, only the selected Ready subset is eligible.
+            frozen.update(ready - getattr(self, "_target_selected_ready", set()))
+        return frozen
+
+    @property
+    def preempt_protected(self):
+        """All P2-owned/in-flight requests whose state must survive preemption."""
+        return set(self.leases) | set(self.ready) | set(self.inflight)
+
+    def begin_target_schedule(self):
+        """Select a capacity-bounded Ready subset without reordering vLLM queues."""
+        if getattr(self, "_p3_window_open", False):
+            self._target_selected_ready = set()
+            return
+        if self.inflight:
+            raise RuntimeError("P2 Target scheduling began with in-flight verification")
+
+        running_ids = [req.request_id for req in self.s.running]
+        ready_ids = set(self.ready)
+        occupied = set(self.leases) | ready_ids | set(self.inflight)
+        non_ready_running = set(running_ids) - occupied
+        available = max(
+            0, self.s.max_num_running_reqs - len(non_ready_running)
+        )
+
+        selected = []
+        if available:
+            for req in self.s.running:
+                rid = req.request_id
+                if (
+                    rid in ready_ids
+                    and req.status == RequestStatus.RUNNING
+                    and not req.is_finished()
+                ):
+                    selected.append(rid)
+                    if len(selected) >= available:
+                        break
+
+        self._target_selected_ready = set(selected)
+        emit(
+            "target_ready_select",
+            window=self.window,
+            capacity=self.s.max_num_running_reqs,
+            non_ready_running=len(non_ready_running),
+            ready_queue=len(ready_ids),
+            selected=selected,
+            deferred=sorted(ready_ids - set(selected)),
+        )
+
+    def can_schedule_verify(self, request, num_new_tokens):
+        """Require the complete candidate sequence in one Target forward."""
+        record = self.ready.get(request.request_id)
+        if record is None:
+            return True
+
+        expected = list(record["tokens"])
+        if list(request.spec_token_ids) != expected:
+            raise RuntimeError(
+                "P2 Ready candidate list changed before Target verification"
+            )
+
+        scheduled = (
+            num_new_tokens
+            + request.num_computed_tokens
+            - request.num_tokens
+            - request.num_output_placeholders
+        )
+        required = len(expected)
+        if scheduled < required:
+            emit(
+                "target_verify_deferred",
+                req_id=request.request_id,
+                required_spec_tokens=required,
+                schedulable_spec_tokens=max(0, scheduled),
+                ready_window=record["window"],
+            )
+            return False
+        return True
+
+    def update_target_selection(self, scheduled_ready_ids):
+        """Freeze Ready candidates that the running-request pass did not schedule."""
+        scheduled = set(scheduled_ready_ids)
+        selected = getattr(self, "_target_selected_ready", set())
+        if getattr(self, "_p3_window_open", False) and scheduled:
+            raise RuntimeError(
+                "P2 Target scheduled Ready requests before the H boundary"
+            )
+        if scheduled - selected:
+            raise RuntimeError(
+                "P2 Target scheduled Ready requests outside its selected subset"
+            )
+        self._target_selected_ready = scheduled
 
     def rpc(self, operation, payload=None):
         return self.engine.model_executor.collective_rpc('cdb_refill_rpc',
@@ -287,6 +457,47 @@ class PersistentDraftQueue:
         self.carry.pop(rid, None)
         emit('p2_lease_release', window=self.window, req_id=rid, reason=reason,
              live_leases=len(self.leases), blocks=[b.block_id for b in blocks])
+
+    @staticmethod
+    def unsupported_reason(req):
+        """Return why a request must stay on native Target-only generation."""
+        params = req.sampling_params
+        if params is None:
+            return "missing_sampling_params"
+        if params.temperature != 0:
+            return "non_greedy_sampling"
+        if req.has_encoder_inputs:
+            return "encoder_inputs"
+        if req.lora_request is not None:
+            return "lora"
+        if req.structured_output_request:
+            return "structured_output"
+        if params.prompt_logprobs is not None:
+            return "prompt_logprobs"
+        return None
+
+    def rollback_plans(self, req_ids, reason):
+        """Drop Worker state before releasing leases staged for a failed window."""
+        ids = [rid for rid in req_ids if rid in self.leases]
+        if not ids:
+            return
+        ack = self.rpc("drop", {"ids": ids})
+        if ack.get("dropped") != ids:
+            raise RuntimeError("P2 plan rollback acknowledgement mismatch")
+
+        pool = self.s.kv_cache_manager.block_pool
+        for rid in ids:
+            self.release(rid, reason)
+            commits = getattr(self, "commits", None)
+            if commits is not None:
+                commits.pop(rid, None)
+            audit_leases = getattr(self, "audit_leases", None)
+            if audit_leases is not None and rid in audit_leases:
+                blocks = audit_leases[rid]
+                if any(block.ref_cnt != 1 or block.is_null for block in blocks):
+                    raise RuntimeError("P2 audit lease ownership lost during rollback")
+                pool.free_blocks(blocks)
+                audit_leases.pop(rid)
 
     def reset(self):
         """Reset persistent Draft state with ownership-safe cleanup."""
@@ -389,6 +600,7 @@ class PersistentDraftQueue:
         self._p3_steps = 0
         self._p3_done = True
         self._p3_ready_seen = False
+        self._target_selected_ready.clear()
 
         emit(
             "p2_reset",
@@ -436,34 +648,71 @@ class PersistentDraftQueue:
 
     def before_target(self, output):
         self.reconcile()
+
+        scheduled_ready = set(output.scheduled_spec_decode_tokens)
+        if getattr(self, "_p3_window_open", False) and scheduled_ready:
+            raise RuntimeError(
+                "P2 Ready requests cannot be verified before the fixed H boundary"
+            )
+        if scheduled_ready - getattr(self, "_target_selected_ready", set()):
+            raise RuntimeError("P2 scheduler admitted an unselected Ready request")
+
         owned = [b.block_id for bs in self.leases.values() for b in bs]
-        formal = {b for req in self.s.running
-                  for group in self.s.kv_cache_manager.get_block_ids(req.request_id) for b in group}
+        formal = {
+            b
+            for req in self.s.running
+            for group in self.s.kv_cache_manager.get_block_ids(req.request_id)
+            for b in group
+        }
         if len(set(owned)) != len(owned) or formal.intersection(owned):
-            raise RuntimeError('P2 Draft lease collides with formal Target ownership')
-        if any(b.ref_cnt != 1 for bs in self.leases.values() for b in bs):
-            raise RuntimeError('P2 exclusive lease reference count changed')
+            raise RuntimeError(
+                "P2 Draft lease collides with formal Target ownership"
+            )
+        if any(
+            b.ref_cnt != 1
+            for bs in self.leases.values()
+            for b in bs
+        ):
+            raise RuntimeError("P2 exclusive lease reference count changed")
         if self.frozen.intersection(output.num_scheduled_tokens):
-            raise RuntimeError('P2 scheduled frozen Carry in Target')
+            raise RuntimeError("P2 scheduled a frozen Draft/Ready request")
+
         if not output.total_num_scheduled_tokens:
+            self._target_selected_ready = set()
             return
+
         self.target_epoch += 1
         for rid, drafts in output.scheduled_spec_decode_tokens.items():
             record = self.ready.pop(rid, None)
-            if record is None or record['tokens'] != drafts:
-                raise RuntimeError('P2 missing/duplicate Ready handoff')
+            if record is None or record["tokens"] != drafts:
+                raise RuntimeError("P2 missing/duplicate Ready handoff")
             if RefillQueue.context(self.s.requests[rid]) != {
-                    'context_tokens': record['context_tokens'], 'fingerprint': record['fingerprint']}:
-                raise RuntimeError('P2 stale Ready context')
+                "context_tokens": record["context_tokens"],
+                "fingerprint": record["fingerprint"],
+            }:
+                raise RuntimeError("P2 stale Ready context")
             self.inflight[rid] = record
-            emit('target_verify', target_epoch=self.target_epoch, window=self.window,
-                 req_id=rid, tokens=drafts, fingerprint=record['fingerprint'],
-                 ready_wait=time.monotonic()-record['ready_at'])
+            emit(
+                "target_verify",
+                target_epoch=self.target_epoch,
+                window=record["window"],
+                req_id=rid,
+                tokens=drafts,
+                fingerprint=record["fingerprint"],
+                ready_wait=time.monotonic() - record["ready_at"],
+            )
+
         if set(self.ready).intersection(output.num_scheduled_tokens):
-            raise RuntimeError('P2 scheduled Ready without its complete candidates')
-        emit('p2_target_begin', target_epoch=self.target_epoch,
-             scheduled=dict(output.num_scheduled_tokens), frozen=sorted(self.frozen),
-             verify=list(output.scheduled_spec_decode_tokens))
+            raise RuntimeError("P2 scheduled Ready without its complete candidates")
+
+        self._target_selected_ready = scheduled_ready
+        emit(
+            "p2_target_begin",
+            target_epoch=self.target_epoch,
+            scheduled=dict(output.num_scheduled_tokens),
+            frozen=sorted(self.frozen),
+            verify=list(output.scheduled_spec_decode_tokens),
+        )
 
     def committed(self, req, drafts, generated):
         record = self.inflight.pop(req.request_id, None)
@@ -490,11 +739,16 @@ class PersistentDraftQueue:
                     or not req.num_output_tokens or req.spec_token_ids
                     or req.num_computed_tokens != req.num_tokens-1):
                 continue
+            reason = self.unsupported_reason(req)
+            if reason is not None:
+                emit(
+                    "p2_skip_unsupported",
+                    window=self.window,
+                    req_id=rid,
+                    reason=reason,
+                )
+                continue
             params = req.sampling_params
-            if (params is None or params.temperature != 0 or req.has_encoder_inputs
-                    or req.lora_request is not None or req.structured_output_request
-                    or params.prompt_logprobs is not None):
-                raise ValueError('P2 supports text-only greedy requests without grammar/LoRA')
             cap = (params.extra_args or {}).get('cdb_draft_k', self.s.num_spec_tokens)
             if type(cap) is not int or not 1 <= cap <= self.s.num_spec_tokens:
                 raise ValueError('Invalid P2 request K')
@@ -506,95 +760,156 @@ class PersistentDraftQueue:
             # native Target-only generation, never a fabricated Draft context.
             if pool.get_num_free_blocks() < nblocks + self.s.max_num_running_reqs*2:
                 continue
-            blocks = pool.get_new_blocks(nblocks)
-            if any(b.ref_cnt != 1 or b.is_null for b in blocks):
-                raise RuntimeError('P2 new lease not exclusive')
-            self.leases[rid] = blocks
             ctx = RefillQueue.context(req)
-            self.contexts[rid] = {'context': ctx, 'computed': req.num_computed_tokens}
-            plans.append(dict(req_id=rid, prefix=list(req.prompt_token_ids)+list(req.output_token_ids),
-                cap=cap, blocks=[b.block_id for b in blocks], **ctx))
+            prefix = list(req.prompt_token_ids) + list(req.output_token_ids)
+            blocks = pool.get_new_blocks(nblocks)
+            if len(blocks) != nblocks:
+                if blocks and all(
+                    block.ref_cnt == 1 and not block.is_null for block in blocks
+                ):
+                    pool.free_blocks(blocks)
+                raise RuntimeError("P2 allocator returned an incomplete lease")
+            if any(block.ref_cnt != 1 or block.is_null for block in blocks):
+                raise RuntimeError("P2 new lease not exclusive")
+
+            self.leases[rid] = blocks
+            self.contexts[rid] = {
+                "context": ctx,
+                "computed": req.num_computed_tokens,
+            }
+            plans.append(
+                dict(
+                    req_id=rid,
+                    prefix=prefix,
+                    cap=cap,
+                    blocks=[block.block_id for block in blocks],
+                    **ctx,
+                )
+            )
             emit('p2_selected', window=self.window, req_id=rid, cap=cap,
                  blocks=[b.block_id for b in blocks], context=ctx,
                  official_output_tokens=req.num_output_tokens)
         return plans
 
     def begin_window(self, model_executed):
-        """Open a P2 window; no Draft Forward is performed here."""
-        if getattr(self, '_p3_window_open', False):
-            raise RuntimeError('P3 window already open')
+        """Open a fixed-H Draft window after a Target scheduling opportunity."""
+        if getattr(self, "_p3_window_open", False):
+            raise RuntimeError("P3 window already open")
         self.reconcile()
         if self.inflight:
-            raise RuntimeError('P2 Target did not return every Ready result')
+            raise RuntimeError("P2 Target did not return every Ready result")
         if not model_executed and not self.leases:
             return False
+
         if model_executed:
-            emit('p2_target_commit', target_epoch=self.target_epoch,
-                 frozen=sorted(self.frozen))
+            emit(
+                "p2_target_commit",
+                target_epoch=self.target_epoch,
+                frozen=sorted(self.frozen),
+            )
+
         self.window += 1
-        self.rpc('open', dict(window=self.window, H=self.horizon, target_epoch=self.target_epoch))
         from vllm.v1.spec_decode.cdb_av_config import (
             get_initial_admit_limit,
             is_enabled,
         )
-        intra = is_enabled('CDB_AV_INTRA_WINDOW', default=True)
+        intra = is_enabled("CDB_AV_INTRA_WINDOW", default=True)
         capacity = self.s.max_num_running_reqs
-        first_limit = get_initial_admit_limit(capacity)
-        if intra and not 1 <= first_limit <= capacity:
-            raise ValueError('CDB_AV_INITIAL_ADMIT must be in [1, max_num_running_reqs]')
-        # Do not overwrite the caller's setting after a window; plans() reads it.
-        self._cdb_admit_limit = (max(0, min(first_limit - len(self.leases),
-                                               capacity - len(self.leases)))
-                                 if intra else None)
+        first_limit = get_initial_admit_limit(capacity) if intra else capacity
+
+        # Plan only Target-confirmed requests. A new request becomes eligible
+        # after Target has prefetched it and produced its first output token.
+        self._cdb_admit_limit = max(
+            0,
+            min(first_limit - len(self.leases), capacity - len(self.leases)),
+        )
+        previous_leases = set(self.leases)
         try:
             plans = self.plans()
+        except BaseException:
+            staged_ids = sorted(set(self.leases) - previous_leases)
+            try:
+                self.rollback_plans(staged_ids, "plan_failed")
+            except BaseException as cleanup_error:
+                raise RuntimeError(
+                    "P2 planning failed and staged lease rollback also failed"
+                ) from cleanup_error
+            self.window -= 1
+            raise
         finally:
             self._cdb_admit_limit = None
-        if plans:
-            ack = self.rpc('prepare', {'plans': plans})
-            if ack['prepared'] != [p['req_id'] for p in plans]:
-                raise RuntimeError('P2 preparation acknowledgement mismatch')
-            if intra:
-                emit('p2_intra_admit', window=self.window, after_step=0,
-                     req_ids=[p['req_id'] for p in plans])
+
+        # Do not create an empty Worker window. A Ready-only queue can continue
+        # to be serviced by Target when there is no Draft Carry or new work.
+        if not self.leases and not plans:
+            self.window -= 1
+            self._target_selected_ready = set()
+            return False
+
+        staged_ids = [plan["req_id"] for plan in plans]
+        try:
+            self.rpc(
+                "open",
+                dict(window=self.window, H=self.horizon, target_epoch=self.target_epoch),
+            )
+            if plans:
+                ack = self.rpc("prepare", {"plans": plans})
+                expected = [plan["req_id"] for plan in plans]
+                if ack["prepared"] != expected:
+                    raise RuntimeError("P2 preparation acknowledgement mismatch")
+                if intra:
+                    emit(
+                        "p2_intra_admit",
+                        window=self.window,
+                        after_step=0,
+                        req_ids=expected,
+                    )
+        except BaseException:
+            try:
+                self.rollback_plans(staged_ids, "window_prepare_failed")
+            except BaseException as cleanup_error:
+                raise RuntimeError(
+                    "P2 Worker preparation failed and staged lease rollback also failed"
+                ) from cleanup_error
+            raise
+
         self._p3_window_open = True
         self._p3_steps = 0
-        self._p3_done = not bool(self.leases)
+        self._p3_done = False
         self._p3_ready_seen = False
+        self._target_selected_ready = set()
         return True
 
     def advance_one_step(self):
-        """Execute one Draft step and refill newly available Active slots."""
-        if not getattr(self, '_p3_window_open', False):
-            raise RuntimeError('P3 step outside open window')
-        if self._p3_done or self._p3_steps >= self.horizon:
-            return False
-        if not self.leases:
-            self._p3_done = True
+        """Execute one Draft step and refill every newly available Active slot."""
+        if not getattr(self, "_p3_window_open", False):
+            raise RuntimeError("P3 step outside open window")
+        if self._p3_steps >= self.horizon:
             return False
 
-        status = self.rpc('step')
+        # The Worker returns an idle barrier tick when every current member is
+        # Ready. This keeps Ready queued until H without issuing an empty GPU
+        # forward, and gives Target a chance to prefill new requests meanwhile.
+        status = self.rpc("step")
         self._p3_steps += 1
-        self._p3_ready_seen = bool(status.get('ready_req_ids'))
+        if status.get("steps_completed") != self._p3_steps:
+            raise RuntimeError("P2 Worker/Scheduler Draft-step counter mismatch")
+        self._p3_ready_seen = bool(status.get("ready_req_ids"))
 
-        for rid, progress in status['progress'].items():
-            previous = self.carry.get(rid, {}).get('progress', 0)
+        for rid, progress in status["progress"].items():
+            previous = self.carry.get(rid, {}).get("progress", 0)
             if progress < previous:
-                raise RuntimeError('P2 progress regressed')
+                raise RuntimeError("P2 progress regressed")
 
         admitted = []
+        from vllm.v1.spec_decode.cdb_av_config import is_enabled
+        intra = is_enabled("CDB_AV_INTRA_WINDOW", default=True)
 
-        # READY requests have already left Worker active.
-        # Their KV leases remain owned until boundary handoff.
-        #
-        # Admit only Target-confirmed requests. plans() enforces:
-        # num_output_tokens > 0 and num_computed_tokens == num_tokens - 1.
-        # Do not admit after the final Draft step of this window.
-        intra = os.getenv('CDB_AV_INTRA_WINDOW', '0') == '1'
-
-        if intra and self._p3_steps < self.horizon and not self._p3_ready_seen:
-            slots = max(0, int(status.get('slots', 0)))
-
+        # Ready members have left Active, but they stay in the Worker/CPU lease
+        # set until H. Their freed Active slots may be filled by other requests
+        # whose Target first token was produced in an intervening Target step.
+        if intra and self._p3_steps < self.horizon:
+            slots = max(0, int(status.get("slots", 0)))
             if slots:
                 self._cdb_admit_limit = slots
                 try:
@@ -603,69 +918,99 @@ class PersistentDraftQueue:
                     self._cdb_admit_limit = None
 
                 if plans:
-                    ack = self.rpc('prepare', {'plans': plans})
-                    expected = [p['req_id'] for p in plans]
-
-                    if ack['prepared'] != expected:
+                    ack = self.rpc("prepare", {"plans": plans})
+                    expected = [p["req_id"] for p in plans]
+                    if ack["prepared"] != expected:
                         raise RuntimeError(
-                            'P2 intra-window preparation acknowledgement mismatch'
+                            "P2 intra-window preparation acknowledgement mismatch"
                         )
-
                     admitted = expected
-
                     emit(
-                        'p2_intra_admit',
+                        "p2_intra_admit",
                         window=self.window,
                         after_step=self._p3_steps,
                         slots=slots,
                         req_ids=admitted,
                     )
 
-        # Newly prepared mixed Prefill rows are pending Worker work.
-        # They must execute in the NEXT Draft step.
-        self._p3_done = (
-            not bool(status['active_req_ids'])
-            and not bool(admitted)
+        self._p3_done = False
+        emit(
+            "p2_draft_step",
+            window=self.window,
+            step=self._p3_steps,
+            active=status["active_req_ids"],
+            ready=status["ready_req_ids"],
+            admitted=admitted,
+            slots=status["slots"],
+            remaining_steps=status["remaining_steps"],
         )
-
         return True
 
     def finish_window(self):
-        """Commit the original P2 boundary and ready handoffs."""
-        if not getattr(self, '_p3_window_open', False):
-            raise RuntimeError('P3 finish outside open window')
-        if (not self._p3_done and self._p3_steps < self.horizon
-                and not self._p3_ready_seen):
-            raise RuntimeError('P3 boundary before Draft window is finished or Ready is available')
-        result = self.rpc('boundary')
-        self.carry = result['carry']
-        for record in result['records']:
-            rid = record['req_id']
+        """Publish Ready candidates only after exactly H Draft steps."""
+        if not getattr(self, "_p3_window_open", False):
+            raise RuntimeError("P3 finish outside open window")
+        if self._p3_steps != self.horizon:
+            raise RuntimeError(
+                f"P2 window must complete exactly H={self.horizon} Draft steps "
+                f"(completed {self._p3_steps})"
+            )
+
+        result = self.rpc("boundary")
+        self.carry = result["carry"]
+        for record in result["records"]:
+            rid = record["req_id"]
             if rid in self.ready or rid not in self.leases:
-                raise RuntimeError('P2 duplicate/unowned Ready')
-            if self.contexts[rid]['context'] != {
-                    'context_tokens':record['context_tokens'], 'fingerprint':record['fingerprint']}:
-                raise RuntimeError('P2 handoff provenance mismatch')
+                raise RuntimeError("P2 duplicate/unowned Ready")
+            if self.contexts[rid]["context"] != {
+                "context_tokens": record["context_tokens"],
+                "fingerprint": record["fingerprint"],
+            }:
+                raise RuntimeError("P2 handoff provenance mismatch")
+
             self.ready[rid] = record
-            self.release(rid, 'ready_acknowledged')
-            self.s.update_draft_token_ids(DraftTokenIds([rid], [record['tokens']],
-                source_context_tokens=[record['context_tokens']],
-                context_fingerprints=[record['fingerprint']]))
-            emit('p2_handoff', **record)
-        if set(self.carry) != self.frozen:
-            raise RuntimeError('P2 Carry/lease membership mismatch')
-        emit('p2_boundary', window=self.window, ready=list(self.ready),
-             carry=list(self.carry), leases=len(self.leases),
-             leased_pages=sum(len(b) for b in self.leases.values()))
+            self.release(rid, "ready_acknowledged")
+            self.s.update_draft_token_ids(
+                DraftTokenIds(
+                    [rid],
+                    [record["tokens"]],
+                    source_context_tokens=[record["context_tokens"]],
+                    context_fingerprints=[record["fingerprint"]],
+                )
+            )
+            emit("p2_handoff", **record)
+
+        if set(self.carry) != set(self.leases):
+            raise RuntimeError("P2 Carry/lease membership mismatch")
+        emit(
+            "p2_boundary",
+            window=self.window,
+            ready=list(self.ready),
+            carry=list(self.carry),
+            leases=len(self.leases),
+            leased_pages=sum(len(blocks) for blocks in self.leases.values()),
+        )
         self._p3_window_open = False
+        self._p3_done = True
+        self._p3_ready_seen = False
+        self._target_selected_ready = set()
 
     def advance(self, model_executed):
-        """Compatibility wrapper: still synchronous until EngineCore is changed."""
-        if not self.begin_window(model_executed):
+        """Advance one Draft step per EngineCore iteration.
+
+        Target and Draft never execute GPU forwards concurrently. EngineCore
+        first completes its Target forward (if any), then this hook executes
+        one Draft step. The next EngineCore iteration may process AR/Prefill
+        before the next Draft step. Ready verification is released only at H.
+        """
+        if not getattr(self, "_p3_window_open", False):
+            if not self.begin_window(model_executed):
+                return
+
+        if self._p3_steps >= self.horizon:
+            self.finish_window()
             return
-        while self.advance_one_step():
-            # Return control to Target as soon as any Draft request is Ready.
-            # Remaining active members are suspended and resumed next window.
-            if self._p3_ready_seen:
-                break
-        self.finish_window()
+
+        advanced = self.advance_one_step()
+        if advanced and self._p3_steps == self.horizon:
+            self.finish_window()
