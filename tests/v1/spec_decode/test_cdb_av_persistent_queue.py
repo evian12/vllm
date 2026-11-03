@@ -1,6 +1,10 @@
 # SPDX-License-Identifier: Apache-2.0
 
+from types import SimpleNamespace
+
 import pytest
+
+from vllm.v1.request import RequestStatus
 
 from vllm.v1.spec_decode.cdb_av_persistent import (
     PersistentDraftQueue,
@@ -96,3 +100,75 @@ def test_advance_runs_one_draft_step_per_engine_iteration():
 
     queue.advance(model_executed=False)
     assert calls == {"step": 3, "finish": 1}
+
+
+
+def test_target_ready_queue_reserves_prefill_and_keeps_overflow_queued(monkeypatch):
+    queue = PersistentDraftQueue.__new__(PersistentDraftQueue)
+    queue.window = 1
+    queue.target_epoch = 0
+    queue.leases = {"carry"}
+    queue.inflight = {"inflight": {}}
+    ready_ids = [f"ready{i}" for i in range(8)]
+    ready_tokens = {
+        rid: [100 + i, 200 + i]
+        for i, rid in enumerate(ready_ids)
+    }
+    requests = {}
+
+    def make_request(rid, arrival_time, tokens):
+        return SimpleNamespace(
+            request_id=rid,
+            status=RequestStatus.RUNNING,
+            spec_token_ids=list(tokens),
+            arrival_time=arrival_time,
+            is_finished=lambda: False,
+        )
+
+    carry = make_request("carry", 0.0, [])
+    requests["carry"] = carry
+    running = [carry]
+    for i, rid in enumerate(ready_ids):
+        req = make_request(rid, float(i + 1), ready_tokens[rid])
+        requests[rid] = req
+        running.append(req)
+    for i in range(4):
+        rid = f"ar{i}"
+        req = make_request(rid, float(20 + i), [])
+        requests[rid] = req
+        running.append(req)
+
+    queue.ready = {
+        rid: {"tokens": ready_tokens[rid], "ready_at": float(i)}
+        for i, rid in enumerate(ready_ids)
+    }
+    queue._target_selected_ready = set()
+    queue._target_yield = set()
+    queue.s = SimpleNamespace(
+        max_num_running_reqs=4,
+        running=running,
+        requests=requests,
+        waiting=[object()],
+    )
+
+    selected = queue.prepare_target()
+
+    # One target slot is reserved for a fresh Prefill/first-token request.
+    assert selected == ready_ids[:3]
+    assert queue._target_yield == {f"ar{i}" for i in range(4)}
+    assert queue.frozen == (
+        {"carry"}
+        | set(ready_ids[3:])
+        | {f"ar{i}" for i in range(4)}
+    )
+    assert queue.preempt_protected == (
+        {"carry", "inflight"}
+        | set(ready_ids)
+        | {f"ar{i}" for i in range(4)}
+    )
+
+    # Without fresh waiting work, all four Target slots can verify Ready work.
+    queue.s.waiting = []
+    selected = queue.prepare_target()
+    assert selected == ready_ids[:4]
+    assert queue._target_yield == {f"ar{i}" for i in range(4)}
