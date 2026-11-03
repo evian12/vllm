@@ -45,8 +45,6 @@ class RefillQueue:
     def select(self, status):
         if os.getenv("CDB_AV_ALLOW_FRESH_WAITING", "1") == "0":
             return []
-        if os.getenv("CDB_AV_ALLOW_FRESH_WAITING", "1") == "0":
-            return []
         if status['window'] != self.window:
             raise RuntimeError('Refill selection against stale snapshot')
         plans = []
@@ -64,7 +62,13 @@ class RefillQueue:
             from vllm.v1.spec_decode.cdb_av_config import get_request_k_cap
             cap = get_request_k_cap(params.extra_args, self.s.num_spec_tokens)
 
-            fresh_k = int(os.getenv('CDB_AV_FRESH_K', '0'))
+            # HF-confidence mode must not inherit a fixed fresh-request K.
+            # Its only request-level stopping rule is the confidence threshold.
+            policy = os.getenv("CDB_AV_K_POLICY", "manual").strip().lower()
+            fresh_k = (
+                0 if policy == "hf_confidence"
+                else int(os.getenv("CDB_AV_FRESH_K", "0"))
+            )
             if fresh_k < 0 or fresh_k > self.s.num_spec_tokens:
                 raise ValueError('Invalid CDB_AV_FRESH_K')
             if fresh_k:
