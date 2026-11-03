@@ -414,13 +414,14 @@ class PersistentDraftQueue:
             slots -= 1
 
         self._target_selected_ready = selected
-        emit(
-            'p2_target_admission',
-            window=self.window,
-            selected=sorted(selected),
-            other_running=other_running,
-            remaining_slots=slots,
-        )
+        if ready_ids or selected:
+            emit(
+                'p2_target_admission',
+                window=self.window,
+                selected=sorted(selected),
+                other_running=other_running,
+                remaining_slots=slots,
+            )
         return sorted(selected)
 
     def rpc(self, operation, payload=None):
