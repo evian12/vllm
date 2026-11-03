@@ -35,7 +35,9 @@ jobs:
             tests/v1/spec_decode/test_cdb_av_config.py \
             tests/v1/spec_decode/test_cdb_av_persistent_queue.py
       - name: Run CPU-only K policy tests
-        run: pytest -q tests/v1/spec_decode/test_cdb_av_config.py
+        # These tests are pure CPU policy checks; skip the repository-wide
+        # GPU/driver conftest and its unrelated optional test dependencies.
+        run: pytest --confcutdir=tests/v1/spec_decode -q tests/v1/spec_decode/test_cdb_av_config.py
       - name: Check patch whitespace
         run: git diff HEAD^ HEAD --check
       - name: Check undefined names
