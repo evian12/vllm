@@ -1,0 +1,98 @@
+# SPDX-License-Identifier: Apache-2.0
+
+import pytest
+
+from vllm.v1.spec_decode.cdb_av_persistent import (
+    PersistentDraftQueue,
+    PersistentDraftSession,
+)
+
+
+def test_persistent_session_advances_idle_ticks_until_fixed_h():
+    session = PersistentDraftSession.__new__(PersistentDraftSession)
+    session.window = 1
+    session.done = False
+    session.horizon = 8
+    session.steps_completed = 3
+    session.active = []
+    session.pending_prefill = []
+    session.capacity = 4
+    session.members = {
+        "r1": {"ready": True, "progress": 2},
+        "r2": {"ready": True, "progress": 4},
+    }
+
+    status = session.step()
+
+    assert session.steps_completed == 4
+    assert status["steps_completed"] == 4
+    assert status["active_req_ids"] == []
+    assert status["ready_req_ids"] == ["r1", "r2"]
+    assert status["slots"] == 4
+    assert status["remaining_steps"] == 4
+
+
+def test_persistent_session_rejects_step_after_h():
+    session = PersistentDraftSession.__new__(PersistentDraftSession)
+    session.window = 1
+    session.done = False
+    session.horizon = 8
+    session.steps_completed = 8
+    session.active = []
+    session.pending_prefill = []
+    session.capacity = 4
+    session.members = {}
+
+    with pytest.raises(RuntimeError, match="already reached H"):
+        session.step()
+
+
+def test_ready_requests_are_frozen_except_selected_target_subset():
+    queue = PersistentDraftQueue.__new__(PersistentDraftQueue)
+    queue.leases = {"carry"}
+    queue.ready = {"ready0": {}, "ready1": {}, "ready2": {}}
+    queue.inflight = {"verify": {}}
+    queue._target_selected_ready = {"ready1"}
+
+    assert queue.frozen == {"carry", "ready0", "ready2"}
+    assert queue.preempt_protected == {
+        "carry", "ready0", "ready1", "ready2", "verify"
+    }
+
+
+def test_finish_window_rejects_ready_early_before_h():
+    queue = PersistentDraftQueue.__new__(PersistentDraftQueue)
+    queue._p3_window_open = True
+    queue._p3_steps = 2
+    queue.horizon = 8
+
+    with pytest.raises(RuntimeError, match="exactly H=8"):
+        queue.finish_window()
+
+
+def test_advance_runs_one_draft_step_per_engine_iteration():
+    queue = PersistentDraftQueue.__new__(PersistentDraftQueue)
+    queue._p3_window_open = True
+    queue._p3_steps = 0
+    queue.horizon = 3
+    calls = {"step": 0, "finish": 0}
+
+    def one_step():
+        calls["step"] += 1
+        queue._p3_steps += 1
+        return True
+
+    def finish():
+        calls["finish"] += 1
+
+    queue.advance_one_step = one_step
+    queue.finish_window = finish
+
+    queue.advance(model_executed=False)
+    assert calls == {"step": 1, "finish": 0}
+
+    queue.advance(model_executed=False)
+    assert calls == {"step": 2, "finish": 0}
+
+    queue.advance(model_executed=False)
+    assert calls == {"step": 3, "finish": 1}
