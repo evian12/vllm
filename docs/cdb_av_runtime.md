@@ -58,7 +58,11 @@ scheduling even while a later Draft window is open. The scheduler:
 
 There is no dynamic refill inside a Target verification forward. If the Ready
 queue is larger than the available Target capacity, the remainder stays queued
-for a later scheduling opportunity.
+for a later scheduling opportunity. Ready requests that cannot fit the current
+token budget are skipped in favor of shorter Ready requests behind them. If a
+request's full K+1 verification input cannot fit even in an otherwise empty
+Target batch, it is not admitted to Draft and remains on native Target-only
+generation instead of becoming permanently stuck in Ready.
 
 ## 4. Intra-window admission and packed Draft token budget
 

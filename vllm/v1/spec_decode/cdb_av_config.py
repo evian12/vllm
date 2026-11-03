@@ -202,6 +202,22 @@ def select_ready_request_ids(
 
 
 
+def can_verify_ready_tokens(k_cap: int, target_token_budget: int) -> bool:
+    """Return whether Target can verify K candidates plus the current input token.
+
+    Speculative verification is atomic: one Target forward consumes the
+    current input token and all K candidates. A request that cannot fit even
+    when scheduled alone must remain on native Target-only generation.
+    """
+    if type(k_cap) is not int or k_cap < 1:
+        raise ValueError(f"Invalid Ready K cap: {k_cap!r}")
+    if type(target_token_budget) is not int or target_token_budget < 1:
+        raise ValueError(
+            f"Invalid Target token budget: {target_token_budget!r}"
+        )
+    return k_cap + 1 <= target_token_budget
+
+
 def can_admit_prefill_tokens(
     planned_tokens: int,
     request_tokens: int,

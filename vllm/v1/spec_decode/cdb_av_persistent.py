@@ -833,6 +833,21 @@ class PersistentDraftQueue:
             params = req.sampling_params
             from vllm.v1.spec_decode.cdb_av_config import get_request_k_cap
             cap = get_request_k_cap(params.extra_args, self.max_k)
+            from vllm.v1.spec_decode.cdb_av_config import (
+                can_verify_ready_tokens,
+            )
+            if not can_verify_ready_tokens(
+                cap, self.s.max_num_scheduled_tokens
+            ):
+                emit(
+                    "p2_skip_target_verify_budget",
+                    window=self.window,
+                    req_id=rid,
+                    k_cap=cap,
+                    required_tokens=cap + 1,
+                    target_token_budget=self.s.max_num_scheduled_tokens,
+                )
+                continue
             # Near length limits, safely use native Target-only generation.
             if req.num_tokens+cap >= self.s.max_model_len:
                 continue

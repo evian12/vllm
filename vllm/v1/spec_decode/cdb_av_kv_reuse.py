@@ -770,12 +770,30 @@ class ReuseDraftQueue(PersistentDraftQueue):
             params=req.sampling_params
             from vllm.v1.spec_decode.cdb_av_config import get_request_k_cap
             cap = get_request_k_cap(params.extra_args, self.max_k)
+            cached=self.cached_leases.get(rid,[])
+            from vllm.v1.spec_decode.cdb_av_config import (
+                can_verify_ready_tokens,
+            )
+            if not can_verify_ready_tokens(
+                cap, self.s.max_num_scheduled_tokens
+            ):
+                self.discard_cached(
+                    [rid] if cached else [], "target_verify_token_budget"
+                )
+                emit(
+                    "p2_skip_target_verify_budget",
+                    window=self.window,
+                    req_id=rid,
+                    k_cap=cap,
+                    required_tokens=cap + 1,
+                    target_token_budget=self.s.max_num_scheduled_tokens,
+                )
+                continue
             if req.num_tokens+cap>=self.s.max_model_len:
-                self.discard_cached([rid] if rid in self.cached_leases else [],'length_limit');continue
+                self.discard_cached([rid] if cached else [],'length_limit');continue
 
             ctx=RefillQueue.context(req)
             prefix=list(req.prompt_token_ids)+list(req.output_token_ids)
-            cached=self.cached_leases.get(rid,[])
             commit=self.commits.get(rid) if cached else None
             reuse_start=0
             reuse_reason="no_cached_lease"

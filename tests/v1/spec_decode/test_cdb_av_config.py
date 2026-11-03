@@ -30,6 +30,7 @@ get_window_h = _config.get_window_h
 is_enabled = _config.is_enabled
 select_ready_request_ids = _config.select_ready_request_ids
 can_admit_prefill_tokens = _config.can_admit_prefill_tokens
+can_verify_ready_tokens = _config.can_verify_ready_tokens
 validate_draft_worker_status = _config.validate_draft_worker_status
 validate_server_k_cap = _config.validate_server_k_cap
 
@@ -289,3 +290,30 @@ def test_ready_selection_respects_aggregate_token_budget():
         token_budget=5,
     )
     assert selected == ("r0", "r2")
+
+
+
+@pytest.mark.parametrize(
+    ("k_cap", "target_token_budget", "expected"),
+    [
+        (8, 9, True),
+        (8, 8, False),
+        (1, 2, True),
+        (1, 1, False),
+    ],
+)
+def test_atomic_ready_verification_must_fit_alone(
+    k_cap, target_token_budget, expected
+):
+    assert can_verify_ready_tokens(k_cap, target_token_budget) is expected
+
+
+@pytest.mark.parametrize(
+    ("k_cap", "target_token_budget"),
+    [(0, 8), (1, 0), (-1, 8)],
+)
+def test_atomic_ready_verification_rejects_invalid_budgets(
+    k_cap, target_token_budget
+):
+    with pytest.raises(ValueError):
+        can_verify_ready_tokens(k_cap, target_token_budget)
