@@ -739,6 +739,7 @@ class PersistentDraftQueue:
             or self.carry
             or self.ready
             or self.inflight
+            or self._worker_boundary_ready_ids
             or self._p3_window_open
         ):
             self.reset()
