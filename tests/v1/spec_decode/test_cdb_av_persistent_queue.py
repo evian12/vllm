@@ -126,7 +126,10 @@ def test_published_ready_backlog_can_be_selected_during_open_window():
     queue = PersistentDraftQueue.__new__(PersistentDraftQueue)
     queue.leases = {"carry", "current_window_member"}
     # r2 entered Ready before r1, although Scheduler.running orders r1 first.
-    queue.ready = {"r2": {}, "r1": {}}
+    queue.ready = {
+        "r2": {"tokens": [1], "window": 1},
+        "r1": {"tokens": [1, 2], "window": 1},
+    }
     queue.inflight = {}
     queue._p3_window_open = True
     queue._target_selected_ready = set()
@@ -167,7 +170,9 @@ def test_current_window_members_stay_frozen_until_h():
 def test_target_ready_selection_respects_remaining_capacity():
     queue = PersistentDraftQueue.__new__(PersistentDraftQueue)
     queue.leases = {"carry"}
-    queue.ready = {f"r{i}": {} for i in range(8)}
+    queue.ready = {
+        f"r{i}": {"tokens": [1], "window": 1} for i in range(8)
+    }
     queue.inflight = {}
     queue._p3_window_open = False
     queue._target_selected_ready = set()
@@ -528,7 +533,9 @@ def test_ready_backlog_is_drained_in_capacity_bounded_target_batches():
     assert len(queue.ready) == 8
 
     # Simulate the first Target batch committing; the other four remain Ready.
-    queue.ready = {f"r{i}": {} for i in range(4, 8)}
+    queue.ready = {
+        f"r{i}": {"tokens": [1], "window": 1} for i in range(4, 8)
+    }
     queue.s.running = [_fake_req(f"r{i}") for i in range(4, 8)]
     queue.inflight = {}
     queue._target_selected_ready = set()
