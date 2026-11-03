@@ -127,3 +127,27 @@ def test_k_stop_reason_uses_confidence_until_max_cap():
     assert get_k_stop_reason(8, 8, False) == "max_k"
     # Reaching the cap is the primary reason if both conditions coincide.
     assert get_k_stop_reason(8, 8, True) == "max_k"
+
+
+
+@pytest.mark.parametrize("client_k", [1, 2, 3, 4])
+def test_hf_confidence_ignores_legacy_client_k_cycle(monkeypatch, client_k):
+    monkeypatch.setenv("CDB_AV_K_POLICY", "hf_confidence")
+    assert get_request_k_cap({"cdb_draft_k": client_k}, 8) == 8
+
+
+def test_hf_confidence_uses_server_limit_without_client_override(monkeypatch):
+    monkeypatch.setenv("CDB_AV_K_POLICY", "hf_confidence")
+    assert get_request_k_cap(None, 8) == 8
+    assert get_request_k_cap({}, 8) == 8
+
+
+def test_manual_policy_preserves_explicit_request_cap(monkeypatch):
+    monkeypatch.setenv("CDB_AV_K_POLICY", "manual")
+    assert get_request_k_cap({"cdb_draft_k": 3}, 8) == 3
+
+
+def test_invalid_k_policy_is_rejected(monkeypatch):
+    monkeypatch.setenv("CDB_AV_K_POLICY", "cycle_1234")
+    with pytest.raises(ValueError, match="CDB_AV_K_POLICY"):
+        get_request_k_cap({}, 8)
