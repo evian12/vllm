@@ -22,7 +22,6 @@ _CONFIG_SPEC.loader.exec_module(_config)
 
 DEFAULT_WINDOW_H = _config.DEFAULT_WINDOW_H
 confidence_stop_flags = _config.confidence_stop_flags
-get_initial_admit_limit = _config.get_initial_admit_limit
 get_frozen_request_ids = _config.get_frozen_request_ids
 get_initial_admit_limit = _config.get_initial_admit_limit
 get_k_stop_reason = _config.get_k_stop_reason
