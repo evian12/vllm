@@ -149,13 +149,22 @@ def get_frozen_request_ids(lease_ids, ready_ids, selected_ready_ids):
 
 
 def select_ready_request_ids(
-    running_ids, ready_ids, protected_ids, max_num_running_reqs: int
+    running_ids,
+    ready_ids,
+    protected_ids,
+    max_num_running_reqs: int,
+    ready_token_costs=None,
+    token_budget: int | None = None,
 ) -> tuple[str, ...]:
-    """Select a queue-ordered Ready subset within Target running capacity."""
+    """Select a FIFO Ready subset within Target request and token capacity."""
     if type(max_num_running_reqs) is not int or max_num_running_reqs < 0:
         raise ValueError(
             f"Invalid Target running capacity: {max_num_running_reqs!r}"
         )
+    if token_budget is not None and (
+        type(token_budget) is not int or token_budget < 0
+    ):
+        raise ValueError(f"Invalid Target token budget: {token_budget!r}")
 
     running_ids = list(running_ids)
     ready_order = list(ready_ids)
@@ -167,16 +176,28 @@ def select_ready_request_ids(
     if available <= 0:
         return ()
 
+    costs = ready_token_costs or {}
     selected = []
     seen = set()
+    remaining_tokens = token_budget
     # The Ready dictionary preserves publication order across H boundaries.
     # Select FIFO from that queue, not from Scheduler's unrelated running order.
+    # A candidate that cannot fit the current token budget is skipped so it
+    # cannot head-of-line block a shorter Ready request behind it.
     for req_id in ready_order:
-        if req_id in running_set and req_id not in seen:
-            selected.append(req_id)
-            seen.add(req_id)
-            if len(selected) == available:
-                break
+        if req_id not in running_set or req_id in seen:
+            continue
+        cost = costs.get(req_id, 1)
+        if type(cost) is not int or cost < 1:
+            raise ValueError(f"Invalid Ready token cost for {req_id}: {cost!r}")
+        if remaining_tokens is not None and cost > remaining_tokens:
+            continue
+        selected.append(req_id)
+        seen.add(req_id)
+        if remaining_tokens is not None:
+            remaining_tokens -= cost
+        if len(selected) == available:
+            break
     return tuple(selected)
 
 
