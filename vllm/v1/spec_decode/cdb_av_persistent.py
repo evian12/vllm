@@ -632,6 +632,18 @@ class PersistentDraftQueue:
             "released_blocks": len(owned),
         }
 
+    def close(self):
+        """Release persistent Worker state and CPU-owned leases at shutdown."""
+        if (
+            self.leases
+            or self.contexts
+            or self.carry
+            or self.ready
+            or self.inflight
+            or self._p3_window_open
+        ):
+            self.reset()
+
     def reconcile(self):
         invalid = []
         for rid, ctx in self.contexts.items():
