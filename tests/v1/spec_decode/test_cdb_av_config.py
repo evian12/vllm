@@ -193,7 +193,7 @@ def test_target_ready_selection_rejects_invalid_capacity():
 
 
 @pytest.mark.parametrize(
-    ("planned", "request", "limit", "maximum", "expected"),
+    ("planned", "request_tokens", "limit", "maximum", "expected"),
     [
         (0, 8, 8, 8, True),
         (3, 5, 8, 8, True),
