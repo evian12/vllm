@@ -203,10 +203,10 @@ def test_target_ready_selection_rejects_invalid_capacity():
     ],
 )
 def test_mixed_prefill_token_budget(
-    planned, request, limit, maximum, expected
+    planned, request_tokens, limit, maximum, expected
 ):
     assert can_admit_prefill_tokens(
-        planned, request, limit, maximum
+        planned, request_tokens, limit, maximum
     ) is expected
 
 
