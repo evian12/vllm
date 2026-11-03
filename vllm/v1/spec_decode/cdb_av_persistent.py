@@ -542,6 +542,7 @@ class PersistentDraftQueue:
         self._target_selected_ready.clear()
         self._p3_window_open = False
         self._p3_steps = 0
+        self._p3_slots = 0
         self._p3_done = True
         self._p3_ready_seen = False
 
@@ -578,6 +579,11 @@ class PersistentDraftQueue:
             for rid in invalid:
                 self.release(rid, 'invalid')
                 emit('p2_invalidated', window=self.window, req_id=rid)
+            if getattr(self, '_p3_window_open', False):
+                self._p3_slots = min(
+                    self.s.max_num_running_reqs,
+                    getattr(self, '_p3_slots', 0) + len(invalid),
+                )
         for rid in list(self.inflight):
             req = self.s.requests.get(rid)
             if req is None or req.is_finished():
@@ -777,8 +783,23 @@ class PersistentDraftQueue:
 
         status = self.rpc('step')
         self._p3_steps += 1
+        worker_steps = status.get('steps_completed')
+        if worker_steps != self._p3_steps:
+            raise RuntimeError(
+                f'P2 Worker/EngineCore Draft tick mismatch: '
+                f'{worker_steps} != {self._p3_steps}'
+            )
+        remaining = status.get('remaining_steps')
+        if remaining != self.horizon - self._p3_steps:
+            raise RuntimeError(
+                f'P2 Worker/EngineCore H mismatch: remaining={remaining}, '
+                f'expected={self.horizon - self._p3_steps}'
+            )
+        slots = int(status.get('slots', -1))
+        if not 0 <= slots <= self.s.max_num_running_reqs:
+            raise RuntimeError(f'P2 Worker returned invalid free-slot count: {slots}')
         self._p3_ready_seen = bool(status.get('ready_req_ids'))
-        self._p3_slots = max(0, int(status.get('slots', 0)))
+        self._p3_slots = slots
 
         for rid, progress in status['progress'].items():
             previous = self.carry.get(rid, {}).get('progress', 0)
@@ -820,6 +841,7 @@ class PersistentDraftQueue:
              carry=list(self.carry), leases=len(self.leases),
              leased_pages=sum(len(b) for b in self.leases.values()))
         self._p3_window_open = False
+        self._p3_slots = 0
 
     def advance(self, model_executed):
         """Advance exactly one Draft tick per EngineCore iteration.
