@@ -23,10 +23,13 @@ _CONFIG_SPEC.loader.exec_module(_config)
 DEFAULT_WINDOW_H = _config.DEFAULT_WINDOW_H
 confidence_stop_flags = _config.confidence_stop_flags
 get_initial_admit_limit = _config.get_initial_admit_limit
+get_frozen_request_ids = _config.get_frozen_request_ids
+get_initial_admit_limit = _config.get_initial_admit_limit
 get_k_stop_reason = _config.get_k_stop_reason
 get_request_k_cap = _config.get_request_k_cap
 get_window_h = _config.get_window_h
 is_enabled = _config.is_enabled
+select_ready_request_ids = _config.select_ready_request_ids
 
 
 def test_default_window_is_fixed_and_configurable(monkeypatch):
@@ -151,3 +154,38 @@ def test_invalid_k_policy_is_rejected(monkeypatch):
     monkeypatch.setenv("CDB_AV_K_POLICY", "cycle_1234")
     with pytest.raises(ValueError, match="CDB_AV_K_POLICY"):
         get_request_k_cap({}, 8)
+
+
+
+def test_published_ready_is_not_frozen_by_a_later_draft_window():
+    assert get_frozen_request_ids(
+        {"carry", "current_window_member"},
+        {"old_ready_1", "old_ready_2"},
+        {"old_ready_1"},
+    ) == {"carry", "current_window_member", "old_ready_2"}
+
+
+def test_target_ready_selection_respects_running_capacity_and_queue_order():
+    selected = select_ready_request_ids(
+        running_ids=["carry", "r0", "ar0", "r1", "r2"],
+        ready_ids={"r0", "r1", "r2"},
+        protected_ids={"carry"},
+        max_num_running_reqs=3,
+    )
+    # AR already occupies one Target slot, leaving two slots for Ready.
+    assert selected == ("r0", "r1")
+
+
+def test_target_ready_selection_returns_empty_when_ar_uses_capacity():
+    selected = select_ready_request_ids(
+        running_ids=["carry", "ar0", "ar1", "r0"],
+        ready_ids={"r0"},
+        protected_ids={"carry"},
+        max_num_running_reqs=2,
+    )
+    assert selected == ()
+
+
+def test_target_ready_selection_rejects_invalid_capacity():
+    with pytest.raises(ValueError, match="Target running capacity"):
+        select_ready_request_ids(["r0"], {"r0"}, set(), -1)
