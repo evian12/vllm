@@ -627,6 +627,7 @@ class PersistentDraftQueue:
     def committed(self, req, drafts, generated):
         record = self.inflight.pop(req.request_id, None)
         if record is None:
+            self._target_selected_ready.discard(req.request_id)
             if drafts:
                 raise RuntimeError('P2 unexpected verification result')
             return
@@ -811,7 +812,7 @@ class PersistentDraftQueue:
                 source_context_tokens=[record['context_tokens']],
                 context_fingerprints=[record['fingerprint']]))
             emit('p2_handoff', **record)
-        if set(self.carry) != self.frozen:
+        if set(self.carry) != set(self.leases):
             raise RuntimeError('P2 Carry/lease membership mismatch')
         emit('p2_boundary', window=self.window, ready=list(self.ready),
              carry=list(self.carry), leases=len(self.leases),
