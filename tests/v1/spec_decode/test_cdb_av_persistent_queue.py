@@ -124,7 +124,8 @@ def _fake_req(req_id):
 def test_published_ready_backlog_can_be_selected_during_open_window():
     queue = PersistentDraftQueue.__new__(PersistentDraftQueue)
     queue.leases = {"carry", "current_window_member"}
-    queue.ready = {"r1": {}, "r2": {}}
+    # r2 entered Ready before r1, although Scheduler.running orders r1 first.
+    queue.ready = {"r2": {}, "r1": {}}
     queue.inflight = {}
     queue._p3_window_open = True
     queue._target_selected_ready = set()
@@ -140,8 +141,8 @@ def test_published_ready_backlog_can_be_selected_during_open_window():
 
     queue.begin_target_schedule()
 
-    assert queue._target_selected_ready == {"r1"}
-    assert queue.frozen == {"carry", "current_window_member", "r2"}
+    assert queue._target_selected_ready == {"r2"}
+    assert queue.frozen == {"carry", "current_window_member", "r1"}
 
 
 def test_current_window_members_stay_frozen_until_h():

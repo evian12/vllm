@@ -1139,7 +1139,10 @@ class PersistentDraftQueue:
             if record["window"] != self.window:
                 raise RuntimeError("P2 Ready record belongs to a stale window")
             tokens = record["tokens"]
-            if not 1 <= len(tokens) <= self.max_k or record["ready_at"] is None:
+            if (
+                not 1 <= len(tokens) <= self.max_k
+                or not isinstance(record["ready_at"], (int, float))
+            ):
                 raise RuntimeError("P2 Worker returned an invalid Ready record")
             if any(
                 block.ref_cnt != 1 or block.is_null
@@ -1148,6 +1151,12 @@ class PersistentDraftQueue:
                 raise RuntimeError("P2 Ready lease ownership lost at boundary")
             if rid in getattr(self, "cached_leases", {}):
                 raise RuntimeError("P2 Ready request already has a cached lease")
+
+        # The Worker iterates members in admission order, which is not Ready
+        # completion order. Publish by monotonic ready_at so older Ready
+        # requests remain ahead of requests that finish in later windows.
+        records.sort(key=lambda record: record["ready_at"])
+        record_ids = [record["req_id"] for record in records]
 
         # Publish the entire Ready batch atomically to the Scheduler. This is
         # one CPU-side handoff; Target still verifies each request in a single

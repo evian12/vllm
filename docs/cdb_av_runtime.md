@@ -49,8 +49,8 @@ early.
 Ready records from an earlier completed window remain eligible for Target
 scheduling even while a later Draft window is open. The scheduler:
 
-1. selects a queue-ordered Ready subset within the available
-   `max_num_running_reqs` capacity;
+1. selects the oldest Ready requests by their `ready_at` timestamps, within
+   the available `max_num_running_reqs` capacity;
 2. keeps unselected Ready records queued and protected from preemption;
 3. schedules each selected request only when all its Draft candidates fit in
    the current Target token budget; partial verification is rejected;
