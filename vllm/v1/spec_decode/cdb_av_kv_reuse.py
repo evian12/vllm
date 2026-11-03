@@ -756,6 +756,8 @@ class ReuseDraftQueue(PersistentDraftQueue):
                 raise ValueError('P2 supports text-only greedy requests without grammar/LoRA')
             cap=(params.extra_args or {}).get('cdb_draft_k',self.s.num_spec_tokens)
             if type(cap) is not int or not 1<=cap<=self.s.num_spec_tokens:raise ValueError('Invalid P2 request K')
+            cap=min(cap,req.max_tokens-req.num_output_tokens)
+            if cap<1:continue
             if req.num_tokens+cap>=self.s.max_model_len:
                 self.discard_cached([rid] if rid in self.cached_leases else [],'length_limit');continue
 
