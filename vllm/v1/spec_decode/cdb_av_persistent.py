@@ -533,9 +533,13 @@ class PersistentDraftQueue:
                  frozen=sorted(self.frozen))
         self.window += 1
         self.rpc('open', dict(window=self.window, H=self.horizon, target_epoch=self.target_epoch))
-        intra = os.getenv('CDB_AV_INTRA_WINDOW', '0') == '1'
+        from vllm.v1.spec_decode.cdb_av_config import (
+            get_initial_admit_limit,
+            is_enabled,
+        )
+        intra = is_enabled('CDB_AV_INTRA_WINDOW', default=True)
         capacity = self.s.max_num_running_reqs
-        first_limit = int(os.getenv('CDB_AV_INITIAL_ADMIT', '3'))
+        first_limit = get_initial_admit_limit(capacity)
         if intra and not 1 <= first_limit <= capacity:
             raise ValueError('CDB_AV_INITIAL_ADMIT must be in [1, max_num_running_reqs]')
         # Do not overwrite the caller's setting after a window; plans() reads it.
@@ -660,5 +664,8 @@ class PersistentDraftQueue:
         if not self.begin_window(model_executed):
             return
         while self.advance_one_step():
-            pass
+            # Return control to Target as soon as any Draft request is Ready.
+            # Remaining active members are suspended and resumed next window.
+            if self._p3_ready_seen:
+                break
         self.finish_window()
