@@ -1,16 +1,32 @@
 # SPDX-License-Identifier: Apache-2.0
 
+from importlib.util import module_from_spec, spec_from_file_location
+from pathlib import Path
+
 import pytest
 
-from vllm.v1.spec_decode.cdb_av_config import (
-    DEFAULT_WINDOW_H,
-    confidence_stop_flags,
-    get_initial_admit_limit,
-    get_k_stop_reason,
-    get_request_k_cap,
-    get_window_h,
-    is_enabled,
+
+# Load this dependency-free config module directly. Importing the vllm package
+# would also import torch and unrelated GPU runtime dependencies.
+_CONFIG_PATH = (
+    Path(__file__).resolve().parents[3]
+    / "vllm"
+    / "v1"
+    / "spec_decode"
+    / "cdb_av_config.py"
 )
+_CONFIG_SPEC = spec_from_file_location("cdb_av_config_under_test", _CONFIG_PATH)
+assert _CONFIG_SPEC is not None and _CONFIG_SPEC.loader is not None
+_config = module_from_spec(_CONFIG_SPEC)
+_CONFIG_SPEC.loader.exec_module(_config)
+
+DEFAULT_WINDOW_H = _config.DEFAULT_WINDOW_H
+confidence_stop_flags = _config.confidence_stop_flags
+get_initial_admit_limit = _config.get_initial_admit_limit
+get_k_stop_reason = _config.get_k_stop_reason
+get_request_k_cap = _config.get_request_k_cap
+get_window_h = _config.get_window_h
+is_enabled = _config.is_enabled
 
 
 def test_default_window_is_fixed_and_configurable(monkeypatch):
