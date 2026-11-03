@@ -218,6 +218,39 @@ python "$CLIENT" \
   2>&1 | tee "$RUN_DIR/diagnostic_client.log"
 grep '\[CDB_HF_CONF\]' "$RUN_DIR/diagnostic_server.log" \
   > "$RUN_DIR/hf_confidence_trace.log" || true
+python - "$RUN_DIR/hf_confidence_trace.log" <<'PY'
+import json
+import sys
+from collections import Counter
+from pathlib import Path
+
+path = Path(sys.argv[1])
+caps, actuals = set(), set()
+reasons = Counter()
+records = 0
+for line in path.read_text().splitlines():
+    marker = "[CDB_HF_CONF]"
+    if marker not in line:
+        continue
+    payload = line.split(marker, 1)[1].strip()
+    try:
+        event = json.loads(payload)
+    except json.JSONDecodeError:
+        continue
+    records += 1
+    caps.update(int(v) for v in event.get("K_cap", {}).values())
+    actuals.update(int(v) for v in event.get("K_actual", {}).values())
+    reasons.update(event.get("stop_reasons", {}).values())
+
+print(f"[HF-K] records={records}, K_cap={sorted(caps)}, "
+      f"K_actual={sorted(actuals)}, stop_reasons={dict(reasons)}")
+if records == 0:
+    raise SystemExit("No CDB_HF_CONF telemetry; dynamic K was not verified.")
+if caps != {8}:
+    raise SystemExit(f"Expected every request to use K_cap=8, observed {caps}")
+if not actuals or any(k < 1 or k > 8 for k in actuals):
+    raise SystemExit(f"Invalid actual Draft K values: {actuals}")
+PY
 echo "CDB_HF_CONF records: $(wc -l < "$RUN_DIR/hf_confidence_trace.log")"
 stop_server
 
