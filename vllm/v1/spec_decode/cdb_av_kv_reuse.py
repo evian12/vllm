@@ -939,8 +939,6 @@ class ReuseDraftQueue(PersistentDraftQueue):
         # not just IDs still present in the CPU lease dictionaries.
         self.reset()
 
-    def advance(self,model_executed):
-        try:super().advance(model_executed)
-        except BaseException:
-            self.close()
-            raise
+    def advance(self, model_executed):
+        # The base queue owns the transactional reset-on-failure path.
+        return super().advance(model_executed)

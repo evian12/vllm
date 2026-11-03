@@ -659,6 +659,21 @@ class PersistentDraftQueue:
                 "P2 Worker reset membership mismatch; preserving CPU KV ownership"
             ) from exc
 
+        # Any partially published Ready candidates must be removed before the
+        # queue falls back to Target-only generation after a reset.
+        reset_req_ids = (
+            set(self.leases)
+            | set(getattr(self, "cached_leases", {}))
+            | set(self.ready)
+            | set(self.inflight)
+        )
+        for rid in reset_req_ids:
+            req = self.s.requests.get(rid)
+            if req is not None:
+                spec_token_ids = getattr(req, "spec_token_ids", None)
+                if spec_token_ids is not None:
+                    spec_token_ids.clear()
+
         # Phase 3: Release all validated blocks exactly once.
         if owned:
             pool.free_blocks(owned)
@@ -1298,15 +1313,27 @@ class PersistentDraftQueue:
         first completes its Target forward (if any), then this hook executes
         one Draft step. The next EngineCore iteration may process AR/Prefill
         before the next Draft step. Ready verification is released only at H.
+
+        Any protocol/Worker failure resets persistent Draft ownership and
+        removes partially published candidates before the engine can continue.
         """
-        if not getattr(self, "_p3_window_open", False):
-            if not self.begin_window(model_executed):
+        try:
+            if not getattr(self, "_p3_window_open", False):
+                if not self.begin_window(model_executed):
+                    return
+
+            if self._p3_steps >= self.horizon:
+                self.finish_window()
                 return
 
-        if self._p3_steps >= self.horizon:
-            self.finish_window()
-            return
-
-        advanced = self.advance_one_step()
-        if advanced and self._p3_steps == self.horizon:
-            self.finish_window()
+            advanced = self.advance_one_step()
+            if advanced and self._p3_steps == self.horizon:
+                self.finish_window()
+        except BaseException:
+            try:
+                self.reset()
+            except BaseException as cleanup_error:
+                raise RuntimeError(
+                    "P2 advance failed and ownership-safe reset also failed"
+                ) from cleanup_error
+            raise
