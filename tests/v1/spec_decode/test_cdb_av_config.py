@@ -480,7 +480,7 @@ def test_live_request_validates_accepted_prefix():
 @pytest.mark.parametrize(
     ("drafts", "generated"),
     [
-        ([11, 12], [11, 99]),
+        ([11, 12], [12, 99]),
         ([11, 12], [99, 11]),
         ([11, 12], []),
     ],
