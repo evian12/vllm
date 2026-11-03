@@ -73,6 +73,18 @@ class RefillQueue:
                 raise ValueError('Invalid CDB_AV_FRESH_K')
             if fresh_k:
                 cap = min(cap, fresh_k)
+            # The legacy non-carry path must finish every admitted member
+            # inside this window. Defer work that cannot fit; never let Worker
+            # admission fail after CPU-side KV leases have been allocated.
+            if cap > int(status["remaining_steps"]):
+                emit(
+                    "deferred_insufficient_window",
+                    window=self.window,
+                    req_id=rid,
+                    cap=cap,
+                    remaining_steps=status["remaining_steps"],
+                )
+                continue
             ctx = self.context(req)
             item = self.queue.items.get(rid)
             if item is None:
