@@ -741,7 +741,7 @@ class ReuseDraftQueue(PersistentDraftQueue):
                 self.pending_allocations.append(list(blocks))
 
     def plans(self):
-        plans=[];pool=self.s.kv_cache_manager.block_pool
+        plans=[];planned_prefill_tokens=0;pool=self.s.kv_cache_manager.block_pool
         for req in self.s.running:
             if (self._cdb_admit_limit is not None
                     and len(plans) >= self._cdb_admit_limit):
@@ -765,6 +765,25 @@ class ReuseDraftQueue(PersistentDraftQueue):
             if req.num_tokens+cap>=self.s.max_model_len:
                 self.discard_cached([rid] if rid in self.cached_leases else [],'length_limit');continue
 
+            ctx=RefillQueue.context(req)
+            prefix=list(req.prompt_token_ids)+list(req.output_token_ids)
+            prefill_cost=ctx["context_tokens"]
+            token_limit=self._cdb_admit_token_limit
+            if prefill_cost>self.s.max_num_scheduled_tokens or (
+                token_limit is not None
+                and planned_prefill_tokens+prefill_cost>token_limit
+            ):
+                emit(
+                    "p2_defer_prefill_budget",
+                    window=self.window,
+                    req_id=rid,
+                    prefill_tokens=prefill_cost,
+                    planned_tokens=planned_prefill_tokens,
+                    token_limit=token_limit,
+                    target_token_budget=self.s.max_num_scheduled_tokens,
+                )
+                continue
+
             n=(req.num_tokens+cap+self.block_size-1)//self.block_size
             cached=self.cached_leases.get(rid,[])
             extra=max(0,n-len(cached))
@@ -786,8 +805,6 @@ class ReuseDraftQueue(PersistentDraftQueue):
                     raise RuntimeError('P2 staged lease has insufficient block capacity')
                 if any(b.ref_cnt!=1 or b.is_null for b in blocks):
                     raise RuntimeError('P2 new lease not exclusive')
-                ctx=RefillQueue.context(req)
-                prefix=list(req.prompt_token_ids)+list(req.output_token_ids)
                 if audit:
                     audit_blocks=pool.get_new_blocks(n)
                     if len(audit_blocks) != n:
@@ -818,6 +835,7 @@ class ReuseDraftQueue(PersistentDraftQueue):
             if commit is not None:
                 self.commits.pop(rid,None)
             plans.append(plan)
+            planned_prefill_tokens+=prefill_cost
         return plans
 
     def rpc(self,operation,payload=None):
