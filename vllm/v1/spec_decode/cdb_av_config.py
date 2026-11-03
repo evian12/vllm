@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Validated, fixed-at-startup CDB-AV runtime configuration."""
 
+import math
 import os
 
 
@@ -57,3 +58,66 @@ def get_initial_admit_limit(capacity: int) -> int:
             f"CDB_AV_INITIAL_ADMIT must be in [1, {capacity}], got {limit}"
         )
     return limit
+
+
+
+def get_request_k_cap(extra_args, max_k: int) -> int:
+    """Resolve a request's maximum Draft length, not its actual generated K.
+
+    In HF-confidence mode, confidence may stop a request before this cap.
+    Omitting cdb_draft_k therefore means the full server-side max_k.
+    """
+    if type(max_k) is not int or max_k < 1:
+        raise ValueError(f"Invalid server maximum Draft K: {max_k!r}")
+    if extra_args is None:
+        extra_args = {}
+    if not hasattr(extra_args, "get"):
+        raise ValueError("SamplingParams.extra_args must be a mapping")
+    cap = extra_args.get("cdb_draft_k", max_k)
+    if type(cap) is not int or not 1 <= cap <= max_k:
+        raise ValueError(
+            f"cdb_draft_k must be an integer in [1, {max_k}], got {cap!r}"
+        )
+    return cap
+
+
+def confidence_stop_flags(confidences, threshold: float) -> list[bool]:
+    """Stop only when selected-token confidence is strictly below threshold."""
+    try:
+        threshold = float(threshold)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("CDB_AV_HF_THRESHOLD must be a finite value in [0, 1]") from exc
+    if not math.isfinite(threshold) or not 0.0 <= threshold <= 1.0:
+        raise ValueError("CDB_AV_HF_THRESHOLD must be a finite value in [0, 1]")
+
+    stop_flags = []
+    for confidence in confidences:
+        try:
+            probability = float(confidence)
+        except (TypeError, ValueError) as exc:
+            raise ValueError("Draft confidence must be a finite probability") from exc
+        if not math.isfinite(probability) or not 0.0 <= probability <= 1.0:
+            raise ValueError(
+                f"Draft confidence must be a finite probability, got {confidence!r}"
+            )
+        stop_flags.append(probability < threshold)
+    return stop_flags
+
+
+def get_k_stop_reason(
+    actual_k: int, k_cap: int, low_confidence: bool
+) -> str | None:
+    """Return the request stop reason after retaining the current Draft token."""
+    if (
+        type(actual_k) is not int
+        or type(k_cap) is not int
+        or not 0 <= actual_k <= k_cap
+    ):
+        raise ValueError(
+            f"Invalid Draft K progress: actual_k={actual_k!r}, k_cap={k_cap!r}"
+        )
+    if actual_k == k_cap:
+        return "max_k"
+    if low_confidence:
+        return "low_confidence"
+    return None

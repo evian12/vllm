@@ -9,6 +9,10 @@ from vllm.config import CUDAGraphMode
 from vllm.forward_context import set_forward_context
 from vllm.logger import init_logger
 from vllm.v1.attention.backend import CommonAttentionMetadata
+from vllm.v1.spec_decode.cdb_av_config import (
+    confidence_stop_flags,
+    get_k_stop_reason,
+)
 
 logger = init_logger(__name__)
 
@@ -180,7 +184,9 @@ def propose_varlen_steps(self, target_token_ids, target_positions, target_hidden
                 dim=-1, index=tokens.unsqueeze(-1)).exp().squeeze(-1)
             # Single batched D2H transfer per step, not one .item() sync per row.
             # Diagnostic only: preserve the GPU-to-CPU synchronization.
-            stop_flags = (confidence < hf_threshold).detach().cpu().tolist()
+            stop_flags = confidence_stop_flags(
+                confidence.detach().cpu().tolist(), hf_threshold
+            )
 
         result[original, step - 1] = tokens
         # A full original-row token vector makes the next gather unambiguous.
@@ -190,13 +196,14 @@ def propose_varlen_steps(self, target_token_ids, target_positions, target_hidden
         for local_idx, original_idx in enumerate(active):
             progress[original_idx] += 1
             actual_lengths[original_idx] = progress[original_idx]
-            cap_reached = progress[original_idx] >= lengths[original_idx]
             low_confidence = hf_dynamic and bool(stop_flags[local_idx])
-            if cap_reached or low_confidence:
+            reason = get_k_stop_reason(
+                progress[original_idx], lengths[original_idx], low_confidence
+            )
+            if reason is not None:
                 completed.append(original_idx)
                 ready.append(original_idx)
-                stop_reasons[ids[original_idx]] = (
-                    'max_k' if cap_reached else 'low_confidence')
+                stop_reasons[ids[original_idx]] = reason
         if trace and completed:
             logger.info('[CDB_READY_TIMING] %s', json.dumps(dict(
                 ready_at=time.monotonic(),req_ids=[ids[i] for i in completed])))
@@ -205,6 +212,8 @@ def propose_varlen_steps(self, target_token_ids, target_positions, target_hidden
                 round=round_id, step=step, threshold=hf_threshold,
                 confidence=dict(zip((ids[i] for i in active),
                                     confidence.detach().cpu().tolist())),
+                K_cap=dict(zip(ids, lengths)),
+                K_actual=dict(zip(ids, actual_lengths)),
                 stop_reasons=stop_reasons)))
         report = dict(step=step, logical_batch=len(active), input_rows=int(inputs.shape[0]),
             draft_token_ids=tokens, request_ids=ids, active_indices=tuple(active),

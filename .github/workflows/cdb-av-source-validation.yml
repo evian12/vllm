@@ -18,20 +18,37 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Compile changed Python modules
+      - name: Install lightweight test tools
+        run: python -m pip install --quiet pytest ruff
+      - name: Compile CDB-AV runtime and tests
         run: |
           python -m compileall -q \
             vllm/v1/core/sched/scheduler.py \
+            vllm/v1/engine/core.py \
+            vllm/v1/worker/gpu_model_runner.py \
+            vllm/v1/spec_decode/cdb_av_config.py \
+            vllm/v1/spec_decode/cdb_av_refill.py \
+            vllm/v1/spec_decode/cdb_av_refill_queue.py \
+            vllm/v1/spec_decode/cdb_av_varlen.py \
             vllm/v1/spec_decode/cdb_av_persistent.py \
             vllm/v1/spec_decode/cdb_av_kv_reuse.py \
+            tests/v1/spec_decode/test_cdb_av_config.py \
             tests/v1/spec_decode/test_cdb_av_persistent_queue.py
+      - name: Run CPU-only K policy tests
+        run: pytest -q tests/v1/spec_decode/test_cdb_av_config.py
       - name: Check patch whitespace
         run: git diff HEAD^ HEAD --check
       - name: Check undefined names
         run: |
-          python -m pip install --quiet ruff
           ruff check --select F821 \
             vllm/v1/core/sched/scheduler.py \
+            vllm/v1/engine/core.py \
+            vllm/v1/worker/gpu_model_runner.py \
+            vllm/v1/spec_decode/cdb_av_config.py \
+            vllm/v1/spec_decode/cdb_av_refill.py \
+            vllm/v1/spec_decode/cdb_av_refill_queue.py \
+            vllm/v1/spec_decode/cdb_av_varlen.py \
             vllm/v1/spec_decode/cdb_av_persistent.py \
             vllm/v1/spec_decode/cdb_av_kv_reuse.py \
+            tests/v1/spec_decode/test_cdb_av_config.py \
             tests/v1/spec_decode/test_cdb_av_persistent_queue.py

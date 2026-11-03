@@ -329,6 +329,20 @@ class PersistentDraftQueue:
         self.window = self.target_epoch = 0
         from vllm.v1.spec_decode.cdb_av_config import get_window_h
         self.horizon = get_window_h()
+        self.max_k = self.s.num_spec_tokens
+        if type(self.max_k) is not int or self.max_k < 1:
+            raise ValueError(
+                "CDB-AV persistent mode requires num_speculative_tokens >= 1"
+            )
+        emit(
+            "p2_runtime_config",
+            H=self.horizon,
+            max_k=self.max_k,
+            k_policy=os.getenv("CDB_AV_K_POLICY", "manual").strip().lower(),
+            hf_threshold=os.getenv("CDB_AV_HF_THRESHOLD", "0.4"),
+            kv_reuse=os.getenv("CDB_AV_KV_REUSE", "0"),
+            intra_window=os.getenv("CDB_AV_INTRA_WINDOW", "1"),
+        )
         self._cdb_admit_limit = None
         self._target_selected_ready = set()
         self._p3_window_open = False
@@ -749,9 +763,8 @@ class PersistentDraftQueue:
                 )
                 continue
             params = req.sampling_params
-            cap = (params.extra_args or {}).get('cdb_draft_k', self.s.num_spec_tokens)
-            if type(cap) is not int or not 1 <= cap <= self.s.num_spec_tokens:
-                raise ValueError('Invalid P2 request K')
+            from vllm.v1.spec_decode.cdb_av_config import get_request_k_cap
+            cap = get_request_k_cap(params.extra_args, self.max_k)
             # Near length limits, safely use native Target-only generation.
             if req.num_tokens+cap >= self.s.max_model_len:
                 continue
@@ -911,27 +924,39 @@ class PersistentDraftQueue:
         if intra and self._p3_steps < self.horizon:
             slots = max(0, int(status.get("slots", 0)))
             if slots:
+                previous_leases = set(self.leases)
                 self._cdb_admit_limit = slots
                 try:
                     plans = self.plans()
+                    if plans:
+                        ack = self.rpc("prepare", {"plans": plans})
+                        expected = [p["req_id"] for p in plans]
+                        if ack["prepared"] != expected:
+                            raise RuntimeError(
+                                "P2 intra-window preparation acknowledgement mismatch"
+                            )
+                        admitted = expected
+                        emit(
+                            "p2_intra_admit",
+                            window=self.window,
+                            after_step=self._p3_steps,
+                            slots=slots,
+                            req_ids=admitted,
+                        )
+                except BaseException:
+                    staged_ids = sorted(set(self.leases) - previous_leases)
+                    try:
+                        self.rollback_plans(
+                            staged_ids, "intra_window_prepare_failed"
+                        )
+                    except BaseException as cleanup_error:
+                        raise RuntimeError(
+                            "P2 intra-window preparation failed and staged "
+                            "lease rollback also failed"
+                        ) from cleanup_error
+                    raise
                 finally:
                     self._cdb_admit_limit = None
-
-                if plans:
-                    ack = self.rpc("prepare", {"plans": plans})
-                    expected = [p["req_id"] for p in plans]
-                    if ack["prepared"] != expected:
-                        raise RuntimeError(
-                            "P2 intra-window preparation acknowledgement mismatch"
-                        )
-                    admitted = expected
-                    emit(
-                        "p2_intra_admit",
-                        window=self.window,
-                        after_step=self._p3_steps,
-                        slots=slots,
-                        req_ids=admitted,
-                    )
 
         self._p3_done = False
         emit(

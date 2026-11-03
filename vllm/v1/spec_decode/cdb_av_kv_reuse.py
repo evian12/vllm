@@ -760,8 +760,8 @@ class ReuseDraftQueue(PersistentDraftQueue):
                 )
                 continue
             params=req.sampling_params
-            cap=(params.extra_args or {}).get('cdb_draft_k',self.s.num_spec_tokens)
-            if type(cap) is not int or not 1<=cap<=self.s.num_spec_tokens:raise ValueError('Invalid P2 request K')
+            from vllm.v1.spec_decode.cdb_av_config import get_request_k_cap
+            cap = get_request_k_cap(params.extra_args, self.max_k)
             if req.num_tokens+cap>=self.s.max_model_len:
                 self.discard_cached([rid] if rid in self.cached_leases else [],'length_limit');continue
 

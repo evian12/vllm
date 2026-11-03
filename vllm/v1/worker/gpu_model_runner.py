@@ -4378,14 +4378,12 @@ class GPUModelRunner(
                 draft_kwargs["num_speculative_tokens"] = next_k
                 if self.cdb_varlen:
                     req_ids = tuple(self.input_batch.req_ids)
+                    from vllm.v1.spec_decode.cdb_av_config import get_request_k_cap
                     lengths = []
                     for req_id in req_ids:
                         params = self.requests[req_id].sampling_params
-                        extra = params.extra_args or {} if params is not None else {}
-                        k = extra.get("cdb_draft_k", next_k)
-                        if type(k) is not int or not 1 <= k <= next_k:
-                            raise ValueError(f"Invalid cdb_draft_k={k} for request {req_id}; max={next_k}")
-                        lengths.append(k)
+                        extra = params.extra_args if params is not None else None
+                        lengths.append(get_request_k_cap(extra, next_k))
                     draft_kwargs["request_ids"] = req_ids
                     draft_kwargs["request_draft_lengths"] = lengths
             if (

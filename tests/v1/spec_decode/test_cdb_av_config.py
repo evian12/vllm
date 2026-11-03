@@ -4,7 +4,10 @@ import pytest
 
 from vllm.v1.spec_decode.cdb_av_config import (
     DEFAULT_WINDOW_H,
+    confidence_stop_flags,
     get_initial_admit_limit,
+    get_k_stop_reason,
+    get_request_k_cap,
     get_window_h,
     is_enabled,
 )
@@ -51,3 +54,60 @@ def test_boolean_environment_is_strict(monkeypatch):
     monkeypatch.setenv("CDB_AV_INTRA_WINDOW", "true")
     with pytest.raises(ValueError, match="CDB_AV_INTRA_WINDOW"):
         is_enabled("CDB_AV_INTRA_WINDOW")
+
+
+
+@pytest.mark.parametrize(
+    ("extra_args", "expected"),
+    [
+        (None, 8),
+        ({}, 8),
+        ({"cdb_draft_k": 8}, 8),
+        ({"cdb_draft_k": 3}, 3),
+    ],
+)
+def test_request_k_cap_is_an_upper_bound(extra_args, expected):
+    assert get_request_k_cap(extra_args, 8) == expected
+
+
+@pytest.mark.parametrize(
+    "extra_args",
+    [
+        {"cdb_draft_k": 0},
+        {"cdb_draft_k": 9},
+        {"cdb_draft_k": True},
+        {"cdb_draft_k": "8"},
+    ],
+)
+def test_invalid_request_k_cap_is_rejected(extra_args):
+    with pytest.raises(ValueError, match="cdb_draft_k"):
+        get_request_k_cap(extra_args, 8)
+
+
+def test_hf_confidence_stops_only_below_threshold():
+    assert confidence_stop_flags([0.2, 0.399, 0.4, 0.8], 0.4) == [
+        True,
+        True,
+        False,
+        False,
+    ]
+
+
+@pytest.mark.parametrize("threshold", [-0.1, 1.1, float("nan")])
+def test_invalid_hf_threshold_is_rejected(threshold):
+    with pytest.raises(ValueError, match="CDB_AV_HF_THRESHOLD"):
+        confidence_stop_flags([0.5], threshold)
+
+
+@pytest.mark.parametrize("confidence", [-0.1, 1.1, float("nan")])
+def test_invalid_draft_confidence_is_rejected(confidence):
+    with pytest.raises(ValueError, match="Draft confidence"):
+        confidence_stop_flags([confidence], 0.4)
+
+
+def test_k_stop_reason_uses_confidence_until_max_cap():
+    assert get_k_stop_reason(1, 8, False) is None
+    assert get_k_stop_reason(3, 8, True) == "low_confidence"
+    assert get_k_stop_reason(8, 8, False) == "max_k"
+    # Reaching the cap is the primary reason if both conditions coincide.
+    assert get_k_stop_reason(8, 8, True) == "max_k"

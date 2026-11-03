@@ -13,6 +13,10 @@ from vllm.forward_context import set_forward_context
 from vllm.logger import init_logger
 from vllm.v1.attention.backend import CommonAttentionMetadata
 from vllm.v1.spec_decode.cdb_av_fingerprint import token_fingerprint
+from vllm.v1.spec_decode.cdb_av_config import (
+    confidence_stop_flags,
+    get_k_stop_reason,
+)
 
 logger = init_logger(__name__)
 
@@ -39,10 +43,16 @@ class RefillSession:
         self.ready_records = []
         self.builder = proposer.attn_metadata_builder or proposer._get_attention_metadata_builder()
         self.block_size = self.builder.kv_cache_spec.block_size
-        self.policy = os.getenv('CDB_AV_K_POLICY', 'manual')
+        self.policy = os.getenv('CDB_AV_K_POLICY', 'manual').strip().lower()
         self.threshold = float(os.getenv('CDB_AV_HF_THRESHOLD', '0.4'))
         if self.policy not in ('manual', 'hf_confidence') or not 0 <= self.threshold <= 1:
             raise ValueError('Invalid refill stopping policy')
+        emit(
+            'k_policy_config',
+            policy=self.policy,
+            threshold=self.threshold,
+            server_max_k=getattr(proposer, 'num_speculative_tokens', None),
+        )
 
     def configure(self, window, horizon, contexts, capacity):
         if self.window is not None or (
@@ -289,29 +299,85 @@ class RefillSession:
         self.steps_completed += 1
         completed = []
         if logits is not None:
+            if logits.ndim != 2 or logits.shape[0] != len(worked):
+                raise RuntimeError('Draft logits/request alignment mismatch')
+
             tokens = logits.argmax(-1)
-            stops = ([False] * len(worked) if self.policy == 'manual' else
-                (logits.float().log_softmax(-1)
-                 .gather(1, tokens[:, None]).exp().squeeze(1)
-                 < self.threshold).tolist())
-            for rid, tok, stop in zip(worked, tokens.tolist(), stops):
+            token_values = tokens.tolist()
+            confidence_values = None
+            if self.policy == 'hf_confidence':
+                confidence = logits.float().log_softmax(-1).gather(
+                    1, tokens[:, None]
+                ).exp().squeeze(1)
+                # One batched D2H transfer per step; no per-request .item() sync.
+                confidence_values = confidence.detach().cpu().tolist()
+                stops = confidence_stop_flags(confidence_values, self.threshold)
+            else:
+                stops = [False] * len(worked)
+
+            k_caps = {}
+            k_actual = {}
+            stop_reasons = {}
+            for index, (rid, tok, stop) in enumerate(
+                zip(worked, token_values, stops)
+            ):
                 m = self.members[rid]
                 if m['ready']:
                     raise RuntimeError('Completed request reactivated')
+                # Retain the sampled candidate before evaluating the stop rule.
                 m['tokens'].append(tok)
                 m['progress'] += 1
                 m['next_token'] = tok
                 m['next_position'] += 1
-                if m['progress'] == m['cap'] or stop:
+                k_caps[rid] = m['cap']
+                k_actual[rid] = m['progress']
+
+                reason = get_k_stop_reason(m['progress'], m['cap'], stop)
+                if reason is not None:
                     m['ready'] = True
                     m['ready_at'] = time.monotonic()
                     completed.append(rid)
-                    emit('ready', window=self.window,
-                         step=self.steps_completed, req_id=rid,
-                         ready_at=m['ready_at'], tokens=m['tokens'],
-                         fingerprint=m['fingerprint'], source=m['source'],
-                         reason='max_k' if m['progress'] == m['cap']
-                                else 'low_confidence')
+                    stop_reasons[rid] = reason
+                    emit(
+                        'ready',
+                        window=self.window,
+                        step=self.steps_completed,
+                        req_id=rid,
+                        ready_at=m['ready_at'],
+                        tokens=m['tokens'],
+                        fingerprint=m['fingerprint'],
+                        source=m['source'],
+                        reason=reason,
+                        k_cap=m['cap'],
+                        k_actual=m['progress'],
+                        confidence=(
+                            None if confidence_values is None
+                            else confidence_values[index]
+                        ),
+                        threshold=(
+                            self.threshold if self.policy == 'hf_confidence'
+                            else None
+                        ),
+                    )
+
+            if (
+                self.policy == 'hf_confidence'
+                and os.getenv('CDB_AV_TRACE_STEPS', '0') == '1'
+            ):
+                logger.info(
+                    '[CDB_HF_CONF] %s',
+                    json.dumps(
+                        dict(
+                            window=self.window,
+                            step=self.steps_completed,
+                            threshold=self.threshold,
+                            confidence=dict(zip(worked, confidence_values)),
+                            K_cap=k_caps,
+                            K_actual=k_actual,
+                            stop_reasons=stop_reasons,
+                        )
+                    ),
+                )
 
         # These rows have now been materialized by the successful mixed forward.
         if hasattr(self, 'pending_prefill'):

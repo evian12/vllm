@@ -366,3 +366,128 @@ def test_plan_rollback_ack_failure_preserves_allocator_ownership():
 
     assert queue.leases == {"r1": [block]}
     assert block.ref_cnt == 1
+
+
+
+def _make_intra_window_rollback_queue(monkeypatch, failure_stage):
+    from vllm.v1.spec_decode import cdb_av_config
+
+    monkeypatch.setattr(
+        cdb_av_config, "is_enabled", lambda name, default=False: True
+    )
+
+    class FakeBlock:
+        def __init__(self, block_id):
+            self.block_id = block_id
+            self.ref_cnt = 1
+            self.is_null = False
+
+    class FakePool:
+        def __init__(self):
+            self.freed = []
+
+        def free_blocks(self, blocks):
+            self.freed.extend(blocks)
+            for block in blocks:
+                block.ref_cnt = 0
+
+    block = FakeBlock(21)
+    pool = FakePool()
+    queue = PersistentDraftQueue.__new__(PersistentDraftQueue)
+    queue.window = 1
+    queue._p3_window_open = True
+    queue._p3_steps = 0
+    queue.horizon = 8
+    queue._p3_ready_seen = False
+    queue._p3_done = False
+    queue._cdb_admit_limit = None
+    queue.carry = {}
+    queue.leases = {}
+    queue.contexts = {}
+    queue.ready = {}
+    queue.inflight = {}
+    queue.s = SimpleNamespace(
+        kv_cache_manager=SimpleNamespace(block_pool=pool)
+    )
+    calls = []
+
+    def rpc(operation, payload=None):
+        calls.append((operation, payload))
+        if operation == "step":
+            return {
+                "steps_completed": 1,
+                "progress": {},
+                "ready_req_ids": [],
+                "active_req_ids": ["carry"],
+                "slots": 1,
+                "remaining_steps": 7,
+            }
+        if operation == "prepare" and failure_stage == "prepare":
+            raise RuntimeError("simulated prepare failure")
+        if operation == "drop":
+            return {"dropped": payload["ids"]}
+        raise AssertionError(operation)
+
+    def plans():
+        queue.leases["r_new"] = [block]
+        queue.contexts["r_new"] = {
+            "context": {"context_tokens": 3, "fingerprint": "fp"},
+            "computed": 2,
+        }
+        if failure_stage == "plan":
+            raise RuntimeError("simulated plan failure")
+        return [{"req_id": "r_new"}]
+
+    queue.rpc = rpc
+    queue.plans = plans
+    return queue, block, pool, calls
+
+
+@pytest.mark.parametrize("failure_stage", ["plan", "prepare"])
+def test_intra_window_admission_failure_rolls_back_staged_leases(
+    monkeypatch, failure_stage
+):
+    queue, block, pool, calls = _make_intra_window_rollback_queue(
+        monkeypatch, failure_stage
+    )
+
+    expected_message = (
+        "simulated plan failure"
+        if failure_stage == "plan"
+        else "simulated prepare failure"
+    )
+    with pytest.raises(RuntimeError, match=expected_message):
+        queue.advance_one_step()
+
+    assert queue.leases == {}
+    assert queue.contexts == {}
+    assert pool.freed == [block]
+    assert block.ref_cnt == 0
+    assert calls[-1] == ("drop", {"ids": ["r_new"]})
+    assert queue._cdb_admit_limit is None
+
+
+def test_ready_backlog_is_drained_in_capacity_bounded_target_batches():
+    queue = PersistentDraftQueue.__new__(PersistentDraftQueue)
+    queue.leases = set()
+    queue.ready = {f"r{i}": {} for i in range(8)}
+    queue.inflight = {}
+    queue._p3_window_open = False
+    queue._target_selected_ready = set()
+    queue.s = SimpleNamespace(
+        max_num_running_reqs=4,
+        running=[_fake_req(f"r{i}") for i in range(8)],
+    )
+
+    queue.begin_target_schedule()
+    assert queue._target_selected_ready == {"r0", "r1", "r2", "r3"}
+    assert len(queue.ready) == 8
+
+    # Simulate the first Target batch committing; the other four remain Ready.
+    queue.ready = {f"r{i}": {} for i in range(4, 8)}
+    queue.s.running = [_fake_req(f"r{i}") for i in range(4, 8)]
+    queue.inflight = {}
+    queue._target_selected_ready = set()
+
+    queue.begin_target_schedule()
+    assert queue._target_selected_ready == {"r4", "r5", "r6", "r7"}

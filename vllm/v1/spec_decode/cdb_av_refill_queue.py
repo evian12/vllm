@@ -61,9 +61,8 @@ class RefillQueue:
                     or params.temperature != 0 or req.structured_output_request is not None
                     or req.prompt_token_ids is None or params.prompt_logprobs is not None):
                 continue
-            cap = (params.extra_args or {}).get('cdb_draft_k', self.s.num_spec_tokens)
-            if type(cap) is not int or not 1 <= cap <= self.s.num_spec_tokens:
-                raise ValueError(f'Invalid waiting draft K: {rid}')
+            from vllm.v1.spec_decode.cdb_av_config import get_request_k_cap
+            cap = get_request_k_cap(params.extra_args, self.s.num_spec_tokens)
 
             fresh_k = int(os.getenv('CDB_AV_FRESH_K', '0'))
             if fresh_k < 0 or fresh_k > self.s.num_spec_tokens:
