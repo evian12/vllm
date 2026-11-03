@@ -768,10 +768,15 @@ class ReuseDraftQueue(PersistentDraftQueue):
             ctx=RefillQueue.context(req)
             prefix=list(req.prompt_token_ids)+list(req.output_token_ids)
             prefill_cost=ctx["context_tokens"]
+            from vllm.v1.spec_decode.cdb_av_config import (
+                can_admit_prefill_tokens,
+            )
             token_limit=self._cdb_admit_token_limit
-            if prefill_cost>self.s.max_num_scheduled_tokens or (
-                token_limit is not None
-                and planned_prefill_tokens+prefill_cost>token_limit
+            if not can_admit_prefill_tokens(
+                planned_prefill_tokens,
+                prefill_cost,
+                token_limit,
+                self.s.max_num_scheduled_tokens,
             ):
                 emit(
                     "p2_defer_prefill_budget",
