@@ -49,6 +49,17 @@ def test_persistent_session_rejects_step_after_h():
         session.step()
 
 
+def test_worker_boundary_rejects_early_handoff():
+    session = PersistentDraftSession.__new__(PersistentDraftSession)
+    session.initialized = True
+    session.done = False
+    session.horizon = 8
+    session.steps_completed = 7
+
+    with pytest.raises(RuntimeError, match="exactly H=8"):
+        session.boundary()
+
+
 def test_ready_requests_are_frozen_except_selected_target_subset():
     queue = PersistentDraftQueue.__new__(PersistentDraftQueue)
     queue.leases = {"carry"}
