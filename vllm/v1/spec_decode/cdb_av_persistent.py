@@ -420,7 +420,7 @@ class PersistentDraftQueue:
             tuple(sorted(selected)),
             other_running,
         )
-        if admission_snapshot != getattr(
+        if ready_ids and admission_snapshot != getattr(
             self, '_last_target_admission_snapshot', None
         ):
             emit(
