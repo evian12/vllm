@@ -168,8 +168,9 @@ def test_intra_window_refill_continues_after_a_request_becomes_ready(
     queue.horizon = 8
     queue._p3_window_open = True
     queue._p3_done = False
-    queue._p3_steps = 0
-    queue._p3_ready_seen = False
+    queue._p3_steps = 1
+    queue._p3_slots = 4
+    queue._p3_ready_seen = True
     queue._cdb_admit_limit = None
     queue.carry = {}
     calls = []
@@ -182,7 +183,7 @@ def test_intra_window_refill_continues_after_a_request_becomes_ready(
                 "progress": {"ready-request": 2},
                 "ready_req_ids": ["ready-request"],
                 "active_req_ids": [],
-                "slots": 4,
+                "slots": 3,
             }
         if operation == "prepare":
             return {"prepared": [item["req_id"] for item in payload["plans"]]}
@@ -193,8 +194,9 @@ def test_intra_window_refill_continues_after_a_request_becomes_ready(
 
     assert queue.advance_one_step()
     assert queue._p3_ready_seen is True
-    assert queue._p3_steps == 1
-    assert any(operation == "prepare" for operation, _ in calls)
+    assert queue._p3_steps == 2
+    assert [operation for operation, _ in calls] == ["prepare", "step"]
+    assert queue._p3_slots == 3
     assert queue._p3_done is False
 
 
