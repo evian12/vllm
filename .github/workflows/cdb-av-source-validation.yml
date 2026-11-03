@@ -38,6 +38,8 @@ jobs:
         # These tests are pure CPU policy checks; skip the repository-wide
         # GPU/driver conftest and its unrelated optional test dependencies.
         run: pytest --confcutdir=tests/v1/spec_decode -q tests/v1/spec_decode/test_cdb_av_config.py
+      - name: Check 512-request GPU runner syntax
+        run: bash -n scripts/cdb_av/run_512_stress.sh
       - name: Check patch whitespace
         run: git diff HEAD^ HEAD --check
       - name: Check undefined names
