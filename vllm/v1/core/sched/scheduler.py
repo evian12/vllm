@@ -366,7 +366,7 @@ class Scheduler(SchedulerInterface):
         # while a later Draft window is open.
         p2 = getattr(self, "_cdb_p2", None)
         if p2 is not None:
-            p2.begin_target_schedule()
+            p2.begin_target_schedule(token_budget)
 
         # First, schedule the RUNNING requests.
         req_index = 0
@@ -405,7 +405,11 @@ class Scheduler(SchedulerInterface):
                 + request.num_output_placeholders
                 - request.num_computed_tokens
             )
-            if 0 < self.scheduler_config.long_prefill_token_threshold < num_new_tokens:
+            is_p2_ready = p2 is not None and request.request_id in p2.ready
+            if (
+                not is_p2_ready
+                and 0 < self.scheduler_config.long_prefill_token_threshold < num_new_tokens
+            ):
                 num_new_tokens = self.scheduler_config.long_prefill_token_threshold
             num_new_tokens = min(num_new_tokens, token_budget)
 
