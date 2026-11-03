@@ -158,17 +158,21 @@ def select_ready_request_ids(
         )
 
     running_ids = list(running_ids)
-    ready_ids = set(ready_ids)
+    ready_order = list(ready_ids)
+    ready_set = set(ready_order)
     protected_ids = set(protected_ids)
-    non_ready_running = set(running_ids) - ready_ids - protected_ids
+    running_set = set(running_ids)
+    non_ready_running = running_set - ready_set - protected_ids
     available = max_num_running_reqs - len(non_ready_running)
     if available <= 0:
         return ()
 
     selected = []
     seen = set()
-    for req_id in running_ids:
-        if req_id in ready_ids and req_id not in seen:
+    # The Ready dictionary preserves publication order across H boundaries.
+    # Select FIFO from that queue, not from Scheduler's unrelated running order.
+    for req_id in ready_order:
+        if req_id in running_set and req_id not in seen:
             selected.append(req_id)
             seen.add(req_id)
             if len(selected) == available:
