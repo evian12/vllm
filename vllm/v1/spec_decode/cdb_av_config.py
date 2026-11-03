@@ -242,3 +242,15 @@ def validate_draft_worker_status(
         raise ValueError(
             f"Worker reports {slots} free slots; expected {expected_slots}"
         )
+
+
+
+def validate_server_k_cap(cap, max_k: int) -> int:
+    """Validate a Worker plan's cap against the configured server maximum."""
+    if type(max_k) is not int or max_k < 1:
+        raise ValueError(f"Invalid server maximum Draft K: {max_k!r}")
+    if type(cap) is not int or not 1 <= cap <= max_k:
+        raise ValueError(
+            f"Draft K cap must be an integer in [1, {max_k}], got {cap!r}"
+        )
+    return cap
