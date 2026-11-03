@@ -1052,6 +1052,9 @@ class PersistentDraftQueue:
                 f"(completed {self._p3_steps})"
             )
 
+        # Reconcile aborts/preemptions and re-check frozen context provenance
+        # immediately before the Worker commits its H-boundary partition.
+        self.reconcile()
         result = self.rpc("boundary")
         records = result["records"]
         record_ids = [record["req_id"] for record in records]
