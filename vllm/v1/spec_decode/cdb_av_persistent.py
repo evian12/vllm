@@ -411,9 +411,9 @@ class PersistentDraftQueue:
         )
 
         running_ids = [req.request_id for req in self.s.running]
-        ready_ids = set(self.ready)
+        ready_ids = list(self.ready)
         occupied = set(self.leases) | set(self.inflight)
-        non_ready_running = set(running_ids) - ready_ids - occupied
+        non_ready_running = set(running_ids) - set(ready_ids) - occupied
         selected = select_ready_request_ids(
             running_ids,
             ready_ids,
