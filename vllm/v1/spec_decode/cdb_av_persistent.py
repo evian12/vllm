@@ -344,6 +344,10 @@ class PersistentDraftQueue:
             intra_window=os.getenv("CDB_AV_INTRA_WINDOW", "1"),
         )
         self._cdb_admit_limit = None
+        self._cdb_admit_token_limit = None
+        self._uses_mixed_prefill = (
+            os.getenv("CDB_AV_KV_REUSE", "0") == "1"
+        )
         self._target_selected_ready = set()
         self._p3_window_open = False
         self._p3_steps = 0
@@ -754,6 +758,7 @@ class PersistentDraftQueue:
 
     def plans(self):
         plans = []
+        planned_prefill_tokens = 0
         pool = self.s.kv_cache_manager.block_pool
         for req in self.s.running:
             if self._cdb_admit_limit is not None and len(plans) >= self._cdb_admit_limit:
@@ -786,6 +791,26 @@ class PersistentDraftQueue:
                 continue
             ctx = RefillQueue.context(req)
             prefix = list(req.prompt_token_ids) + list(req.output_token_ids)
+            prefill_cost = (
+                ctx["context_tokens"]
+                if self._uses_mixed_prefill
+                else max(0, ctx["context_tokens"] - 1)
+            )
+            token_limit = self._cdb_admit_token_limit
+            if prefill_cost > self.s.max_num_scheduled_tokens or (
+                token_limit is not None
+                and planned_prefill_tokens + prefill_cost > token_limit
+            ):
+                emit(
+                    "p2_defer_prefill_budget",
+                    window=self.window,
+                    req_id=rid,
+                    prefill_tokens=prefill_cost,
+                    planned_tokens=planned_prefill_tokens,
+                    token_limit=token_limit,
+                    target_token_budget=self.s.max_num_scheduled_tokens,
+                )
+                continue
             blocks = pool.get_new_blocks(nblocks)
             if len(blocks) != nblocks:
                 if blocks and all(
@@ -810,6 +835,7 @@ class PersistentDraftQueue:
                     **ctx,
                 )
             )
+            planned_prefill_tokens += prefill_cost
             emit('p2_selected', window=self.window, req_id=rid, cap=cap,
                  blocks=[b.block_id for b in blocks], context=ctx,
                  official_output_tokens=req.num_output_tokens)
@@ -847,6 +873,11 @@ class PersistentDraftQueue:
             0,
             min(first_limit - len(self.leases), capacity - len(self.leases)),
         )
+        self._cdb_admit_token_limit = (
+            max(0, self.s.max_num_scheduled_tokens - len(self.carry))
+            if self._uses_mixed_prefill
+            else None
+        )
         previous_leases = set(self.leases)
         try:
             plans = self.plans()
@@ -862,6 +893,7 @@ class PersistentDraftQueue:
             raise
         finally:
             self._cdb_admit_limit = None
+            self._cdb_admit_token_limit = None
 
         # Do not create an empty Worker window. A Ready-only queue can continue
         # to be serviced by Target when there is no Draft Carry or new work.
@@ -937,6 +969,15 @@ class PersistentDraftQueue:
             if slots:
                 previous_leases = set(self.leases)
                 self._cdb_admit_limit = slots
+                self._cdb_admit_token_limit = (
+                    max(
+                        0,
+                        self.s.max_num_scheduled_tokens
+                        - len(status["active_req_ids"]),
+                    )
+                    if self._uses_mixed_prefill
+                    else None
+                )
                 try:
                     plans = self.plans()
                     if plans:
@@ -968,6 +1009,7 @@ class PersistentDraftQueue:
                     raise
                 finally:
                     self._cdb_admit_limit = None
+                    self._cdb_admit_token_limit = None
 
         self._p3_done = False
         emit(
