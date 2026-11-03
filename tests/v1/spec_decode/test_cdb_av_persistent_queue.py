@@ -4,6 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 
+from vllm.v1.request import RequestStatus
 from vllm.v1.spec_decode.cdb_av_persistent import (
     PersistentDraftQueue,
     PersistentDraftSession,
