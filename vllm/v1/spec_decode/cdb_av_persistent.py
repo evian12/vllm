@@ -378,8 +378,6 @@ class PersistentDraftQueue:
             0,
             self.s.max_num_running_reqs - other_running - len(selected),
         )
-        deferred = []
-
         for rid, record in self.ready.items():
             if slots <= 0:
                 break
@@ -407,8 +405,11 @@ class PersistentDraftQueue:
                     f'{required} != {len(record["tokens"]) + 1}'
                 )
             if required > self.s.max_num_scheduled_tokens:
-                deferred.append((rid, 'verify_exceeds_token_budget'))
-                continue
+                raise RuntimeError(
+                    f'P2 Ready verification for {rid} requires {required} '
+                    f'Target tokens, exceeding max_num_scheduled_tokens='
+                    f'{self.s.max_num_scheduled_tokens}'
+                )
             selected.add(rid)
             slots -= 1
 
@@ -417,7 +418,6 @@ class PersistentDraftQueue:
             'p2_target_admission',
             window=self.window,
             selected=sorted(selected),
-            deferred=deferred,
             other_running=other_running,
             remaining_slots=slots,
         )
