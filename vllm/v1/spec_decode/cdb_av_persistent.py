@@ -40,6 +40,11 @@ class PersistentDraftSession(RefillSession):
                 "P2 CPU/Worker running-capacity mismatch: "
                 f"CPU={payload.get('capacity')}, Worker={self.capacity}"
             )
+        if (
+            set(self.members) != set(self.suspended)
+            or set(self.active) != set(self.suspended)
+        ):
+            raise RuntimeError("P2 Worker Carry/Active membership mismatch")
         self.window, self.horizon = payload['window'], payload['H']
         if not 1 <= self.horizon <= 64:
             raise ValueError('P2 H must be in [1,64]')
@@ -216,6 +221,8 @@ class PersistentDraftSession(RefillSession):
             rid: snapshot(m)
             for rid, m in next_members.items()
         }
+        if set(self.active) != set(next_members):
+            raise RuntimeError("P2 Worker Active/Carry boundary mismatch")
 
         next_kv_snapshots = self.kv_snapshots
         if os.getenv('CDB_AV_CARRY_VALIDATE', '0') == '1':
