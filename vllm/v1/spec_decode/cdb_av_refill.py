@@ -84,6 +84,12 @@ class RefillSession:
         n = ids.numel()
         if n <= 0 or len(req_ids) > self.capacity:
             raise RuntimeError('Invalid refill forward dimensions')
+        input_capacity = p.input_ids.shape[0]
+        if n > input_capacity:
+            raise RuntimeError(
+                f'Refill packed input has {n} tokens, exceeding Draft '
+                f'input buffer capacity {input_capacity}'
+            )
         mode, desc = p.cudagraph_dispatcher.dispatch(n)
         if mode != CUDAGraphMode.NONE or desc.num_tokens != n:
             raise RuntimeError('Refill requires eager, no graph padding')
