@@ -135,23 +135,10 @@ assert all(row["payload"]["vllm_xargs"]["cdb_draft_k"] == 8 for row in rows)
 print(f"[OK] payloads={len(rows)}, client_K_cap=8 for every request")
 PY
 
-# Only replace an existing service when it is the user's own persistent
-# Qwen3-8B CDB-AV service on this exact port.
-OLD_PID="$(port_pid)"
-if [[ -n "$OLD_PID" ]]; then
-  OLD_CMD="$(ps -p "$OLD_PID" -o args= 2>/dev/null || true)"
-  OLD_ENV="$(tr '\0' '\n' < "/proc/$OLD_PID/environ" 2>/dev/null || true)"
-  [[ "$OLD_CMD" == *"vllm serve $TARGET"* ]] \
-    || die "Port $PORT is occupied by an unexpected process: PID=$OLD_PID $OLD_CMD"
-  grep -qx 'CDB_AV_PERSISTENT=1' <<< "$OLD_ENV" \
-    || die "Port $PORT is not owned by a persistent CDB-AV service; refusing to kill it."
-  echo "[INFO] Stopping previous CDB-AV service PID=$OLD_PID"
-  kill -TERM "$OLD_PID"
-  for ((i=0; i<120; i++)); do
-    [[ -z "$(port_pid)" ]] && break
-    sleep 1
-  done
-  [[ -z "$(port_pid)" ]] || die "Old service did not release port $PORT"
+# Never stop or replace an existing process. This runner owns only the
+# process it starts below and exits if another process acquired the port.
+if [[ -n "$(port_pid)" ]]; then
+  die "Port $PORT became occupied before startup; refusing to stop any service."
 fi
 
 start_server() {
