@@ -197,3 +197,44 @@ def can_admit_prefill_tokens(
     if request_tokens > max_token_budget:
         return False
     return token_limit is None or planned_tokens + request_tokens <= token_limit
+
+
+
+def validate_draft_worker_status(
+    lease_ids,
+    active_ids,
+    ready_ids,
+    progress_ids,
+    capacity: int,
+    slots: int,
+) -> None:
+    """Validate that Worker Active/Ready state exactly matches CPU leases."""
+    if type(capacity) is not int or capacity < 1:
+        raise ValueError(f"Invalid Draft/Target capacity: {capacity!r}")
+    if type(slots) is not int or slots < 0:
+        raise ValueError(f"Invalid Worker Active slots: {slots!r}")
+
+    leases = set(lease_ids)
+    active = list(active_ids)
+    ready = list(ready_ids)
+    progress = set(progress_ids)
+    active_set = set(active)
+    ready_set = set(ready)
+
+    if len(active_set) != len(active) or len(ready_set) != len(ready):
+        raise ValueError("Worker Active/Ready IDs contain duplicates")
+    if active_set.intersection(ready_set):
+        raise ValueError("Worker request cannot be both Active and Ready")
+    if active_set.union(ready_set) != leases or progress != leases:
+        raise ValueError(
+            "Worker Active/Ready/progress membership differs from CPU leases"
+        )
+    if len(active_set) > capacity:
+        raise ValueError(
+            f"Worker Active count {len(active_set)} exceeds capacity {capacity}"
+        )
+    expected_slots = capacity - len(active_set)
+    if slots != expected_slots:
+        raise ValueError(
+            f"Worker reports {slots} free slots; expected {expected_slots}"
+        )
