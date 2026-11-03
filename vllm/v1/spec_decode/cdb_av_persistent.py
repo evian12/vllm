@@ -721,7 +721,12 @@ class PersistentDraftQueue:
                 "fingerprint": record["fingerprint"],
             }:
                 raise RuntimeError("P2 stale Ready context")
-            self.inflight[rid] = record
+            req = self.s.requests[rid]
+            old_prefix = list(req.prompt_token_ids) + list(req.output_token_ids)
+            self.inflight[rid] = {
+                **record,
+                "old_prefix": old_prefix,
+            }
             emit(
                 "target_verify",
                 target_epoch=self.target_epoch,
