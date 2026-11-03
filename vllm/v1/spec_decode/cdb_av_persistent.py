@@ -397,14 +397,12 @@ class PersistentDraftQueue:
             occupied,
             self.s.max_num_running_reqs,
         )
-        selected = [
-            rid
-            for rid in selected
-            if (
-                self.s.requests[rid].status == RequestStatus.RUNNING
-                and not self.s.requests[rid].is_finished()
-            )
-        ]
+        eligible_ready_ids = {
+            req.request_id
+            for req in self.s.running
+            if req.status == RequestStatus.RUNNING and not req.is_finished()
+        }
+        selected = [rid for rid in selected if rid in eligible_ready_ids]
 
         self._target_selected_ready = set(selected)
         emit(
