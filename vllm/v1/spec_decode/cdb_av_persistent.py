@@ -537,9 +537,9 @@ class PersistentDraftQueue:
             get_token_only_input_unsupported_reason,
         )
         token_input_reason = get_token_only_input_unsupported_reason(
-            req.prompt_token_ids,
-            req.prompt_embeds,
-            req.mm_features,
+            getattr(req, "prompt_token_ids", None),
+            getattr(req, "prompt_embeds", None),
+            getattr(req, "mm_features", None),
         )
         if token_input_reason is not None:
             return token_input_reason

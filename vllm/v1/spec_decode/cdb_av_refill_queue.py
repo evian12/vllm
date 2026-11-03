@@ -63,7 +63,9 @@ class RefillQueue:
                 get_token_only_input_unsupported_reason,
             )
             if get_token_only_input_unsupported_reason(
-                req.prompt_token_ids, req.prompt_embeds, req.mm_features
+                getattr(req, "prompt_token_ids", None),
+                getattr(req, "prompt_embeds", None),
+                getattr(req, "mm_features", None),
             ) is not None:
                 continue
             from vllm.v1.spec_decode.cdb_av_config import get_request_k_cap
