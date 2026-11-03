@@ -461,7 +461,7 @@ class PersistentDraftQueue:
             non_ready_running=len(non_ready_running),
             ready_queue=len(ready_ids),
             selected=selected,
-            deferred=sorted(set(ready_ids) - set(selected)),
+            deferred=[rid for rid in ready_ids if rid not in set(selected)],
             token_budget=token_budget,
         )
 
