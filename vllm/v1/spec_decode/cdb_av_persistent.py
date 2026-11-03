@@ -360,10 +360,13 @@ class PersistentDraftQueue:
         later Draft window is open. Members of the current window are still in
         self.leases and cannot enter self.ready until that window hits H.
         """
-        frozen = set(self.leases)
-        selected = getattr(self, "_target_selected_ready", set())
-        frozen.update(set(self.ready) - selected)
-        return frozen
+        from vllm.v1.spec_decode.cdb_av_config import get_frozen_request_ids
+
+        return get_frozen_request_ids(
+            self.leases,
+            self.ready,
+            getattr(self, "_target_selected_ready", set()),
+        )
 
     @property
     def preempt_protected(self):
@@ -380,26 +383,28 @@ class PersistentDraftQueue:
         if self.inflight:
             raise RuntimeError("P2 Target scheduling began with in-flight verification")
 
-        running_ids = [req.request_id for req in self.s.running]
-        ready_ids = set(self.ready)
-        occupied = set(self.leases) | ready_ids | set(self.inflight)
-        non_ready_running = set(running_ids) - occupied
-        available = max(
-            0, self.s.max_num_running_reqs - len(non_ready_running)
+        from vllm.v1.spec_decode.cdb_av_config import (
+            select_ready_request_ids,
         )
 
-        selected = []
-        if available:
-            for req in self.s.running:
-                rid = req.request_id
-                if (
-                    rid in ready_ids
-                    and req.status == RequestStatus.RUNNING
-                    and not req.is_finished()
-                ):
-                    selected.append(rid)
-                    if len(selected) >= available:
-                        break
+        running_ids = [req.request_id for req in self.s.running]
+        ready_ids = set(self.ready)
+        occupied = set(self.leases) | set(self.inflight)
+        non_ready_running = set(running_ids) - ready_ids - occupied
+        selected = select_ready_request_ids(
+            running_ids,
+            ready_ids,
+            occupied,
+            self.s.max_num_running_reqs,
+        )
+        selected = [
+            rid
+            for rid in selected
+            if (
+                self.s.requests[rid].status == RequestStatus.RUNNING
+                and not self.s.requests[rid].is_finished()
+            )
+        ]
 
         self._target_selected_ready = set(selected)
         emit(
