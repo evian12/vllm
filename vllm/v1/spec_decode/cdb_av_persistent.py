@@ -831,13 +831,24 @@ class PersistentDraftQueue:
 
     def committed(self, req, drafts, generated):
         record = self.inflight.pop(req.request_id, None)
-        if record is None:
-            if drafts:
-                raise RuntimeError('P2 unexpected verification result')
+        from vllm.v1.spec_decode.cdb_av_config import (
+            validate_verification_commit,
+        )
+        try:
+            accepted = validate_verification_commit(
+                record, req.is_finished(), drafts, generated
+            )
+        except ValueError as exc:
+            raise RuntimeError(str(exc)) from exc
+        if accepted is None:
+            if req.is_finished() and (record is not None or drafts):
+                emit(
+                    "p2_aborted_verification_ignored",
+                    target_epoch=self.target_epoch,
+                    req_id=req.request_id,
+                    window=None if record is None else record["window"],
+                )
             return
-        accepted = len(generated)-1
-        if drafts != record['tokens'] or not 0 <= accepted <= len(drafts) or generated[:accepted] != drafts[:accepted]:
-            raise RuntimeError('P2 verification accepted-prefix mismatch')
         emit('p2_verified', target_epoch=self.target_epoch, req_id=req.request_id,
              window=record['window'], drafts=drafts, generated=generated,
              accepted=accepted, fingerprint=record['fingerprint'])

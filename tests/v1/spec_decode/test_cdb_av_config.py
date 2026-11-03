@@ -36,6 +36,7 @@ validate_draft_open_ack = _config.validate_draft_open_ack
 validate_draft_step_status = _config.validate_draft_step_status
 validate_server_k_cap = _config.validate_server_k_cap
 validate_worker_reset_ids = _config.validate_worker_reset_ids
+validate_verification_commit = _config.validate_verification_commit
 validate_exclusive_kv_ownership = _config.validate_exclusive_kv_ownership
 
 
@@ -445,3 +446,46 @@ def test_worker_draft_step_status_rejects_stale_or_incomplete_state(
     status[field] = value
     with pytest.raises(ValueError, match=field):
         validate_draft_step_status(status, 3, 4, 8)
+
+
+
+def test_aborted_request_ignores_late_verification_result():
+    record = {"tokens": [11, 12], "window": 3}
+    assert validate_verification_commit(
+        record, True, [11, 12], [11, 99]
+    ) is None
+
+
+def test_finished_request_without_inflight_record_ignores_late_drafts():
+    assert validate_verification_commit(
+        None, True, [11, 12], [11, 99]
+    ) is None
+
+
+def test_live_request_without_inflight_record_rejects_drafts():
+    with pytest.raises(ValueError, match="unexpected verification"):
+        validate_verification_commit(
+            None, False, [11, 12], [11, 99]
+        )
+
+
+def test_live_request_validates_accepted_prefix():
+    record = {"tokens": [11, 12, 13]}
+    assert validate_verification_commit(
+        record, False, [11, 12, 13], [11, 12, 13, 99]
+    ) == 3
+
+
+@pytest.mark.parametrize(
+    ("drafts", "generated"),
+    [
+        ([11, 12], [11, 99]),
+        ([11, 12], [99, 11]),
+        ([11, 12], []),
+    ],
+)
+def test_live_request_rejects_invalid_verification_prefix(drafts, generated):
+    with pytest.raises(ValueError, match="accepted-prefix"):
+        validate_verification_commit(
+            {"tokens": [11, 12]}, False, drafts, generated
+        )

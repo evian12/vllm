@@ -721,6 +721,12 @@ class ReuseDraftQueue(PersistentDraftQueue):
     def committed(self,req,drafts,generated):
         record=self.inflight.get(req.request_id)
         super().committed(req,drafts,generated)
+        if req.is_finished():
+            if req.request_id in self.cached_leases:
+                self.discard_cached(
+                    [req.request_id], "aborted_during_verification"
+                )
+            return
         if record is None:return
         if req.request_id not in self.cached_leases:raise RuntimeError('Verified request lost its cache lease')
         a=len(generated)-1

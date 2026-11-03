@@ -310,6 +310,30 @@ def validate_draft_step_status(
             )
 
 
+def validate_verification_commit(
+    record, request_finished: bool, drafts, generated
+) -> int | None:
+    """Validate a Target verification result, ignoring late results after abort."""
+    if request_finished:
+        return None
+
+    drafts = list(drafts or ())
+    generated = list(generated or ())
+    if record is None:
+        if drafts:
+            raise ValueError("P2 unexpected verification result for a live request")
+        return None
+
+    accepted = len(generated) - 1
+    if (
+        drafts != record["tokens"]
+        or not 0 <= accepted <= len(drafts)
+        or generated[:accepted] != drafts[:accepted]
+    ):
+        raise ValueError("P2 verification accepted-prefix mismatch")
+    return accepted
+
+
 def validate_worker_reset_ids(expected_ids, reported_ids) -> None:
     """Require Worker reset ACKs to cover exactly the CPU-owned Worker IDs."""
     expected = set(expected_ids)
