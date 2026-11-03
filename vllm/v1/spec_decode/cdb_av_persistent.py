@@ -261,9 +261,8 @@ class PersistentDraftQueue:
         self.leases, self.contexts, self.carry = {}, {}, {}
         self.ready, self.inflight = {}, {}
         self.window = self.target_epoch = 0
-        self.horizon = int(os.getenv('CDB_AV_WINDOW_H', '2'))
-        if not 1 <= self.horizon <= 64:
-            raise ValueError('P2 H must be in [1,64]')
+        from vllm.v1.spec_decode.cdb_av_config import get_window_h
+        self.horizon = get_window_h()
         self._cdb_admit_limit = None
         self.s._cdb_p2 = self
 
@@ -389,6 +388,7 @@ class PersistentDraftQueue:
         self._p3_window_open = False
         self._p3_steps = 0
         self._p3_done = True
+        self._p3_ready_seen = False
 
         emit(
             "p2_reset",
@@ -556,6 +556,7 @@ class PersistentDraftQueue:
         self._p3_window_open = True
         self._p3_steps = 0
         self._p3_done = not bool(self.leases)
+        self._p3_ready_seen = False
         return True
 
     def advance_one_step(self):
@@ -570,6 +571,7 @@ class PersistentDraftQueue:
 
         status = self.rpc('step')
         self._p3_steps += 1
+        self._p3_ready_seen = bool(status.get('ready_req_ids'))
 
         for rid, progress in status['progress'].items():
             previous = self.carry.get(rid, {}).get('progress', 0)
@@ -628,8 +630,9 @@ class PersistentDraftQueue:
         """Commit the original P2 boundary and ready handoffs."""
         if not getattr(self, '_p3_window_open', False):
             raise RuntimeError('P3 finish outside open window')
-        if not self._p3_done and self._p3_steps < self.horizon:
-            raise RuntimeError('P3 boundary before draft window is finished')
+        if (not self._p3_done and self._p3_steps < self.horizon
+                and not self._p3_ready_seen):
+            raise RuntimeError('P3 boundary before Draft window is finished or Ready is available')
         result = self.rpc('boundary')
         self.carry = result['carry']
         for record in result['records']:
