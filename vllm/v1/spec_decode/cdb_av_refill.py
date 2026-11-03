@@ -309,7 +309,7 @@ class RefillSession:
                 confidence = logits.float().log_softmax(-1).gather(
                     1, tokens[:, None]
                 ).exp().squeeze(1)
-                # One batched D2H transfer per step; no per-request .item() sync.
+                # One batched D2H transfer for all confidences; avoid per-request .item() sync.
                 confidence_values = confidence.detach().cpu().tolist()
                 stops = confidence_stop_flags(confidence_values, self.threshold)
             else:
