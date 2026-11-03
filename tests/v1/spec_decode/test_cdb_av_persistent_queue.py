@@ -122,6 +122,9 @@ def test_target_ready_queue_reserves_prefill_and_keeps_overflow_queued(monkeypat
             status=RequestStatus.RUNNING,
             spec_token_ids=list(tokens),
             arrival_time=arrival_time,
+            num_output_tokens=1,
+            num_computed_tokens=5,
+            num_tokens=6,
             is_finished=lambda: False,
         )
 
@@ -161,14 +164,72 @@ def test_target_ready_queue_reserves_prefill_and_keeps_overflow_queued(monkeypat
         | set(ready_ids[3:])
         | {f"ar{i}" for i in range(4)}
     )
-    assert queue.preempt_protected == (
-        {"carry", "inflight"}
-        | set(ready_ids)
-        | {f"ar{i}" for i in range(4)}
-    )
+    assert queue.preempt_protected == {"carry", "inflight"} | set(ready_ids)
 
     # Without fresh waiting work, all four Target slots can verify Ready work.
     queue.s.waiting = []
     selected = queue.prepare_target()
     assert selected == ready_ids[:4]
     assert queue._target_yield == {f"ar{i}" for i in range(4)}
+
+
+
+def test_target_ready_admission_does_not_yield_in_progress_prefill():
+    queue = PersistentDraftQueue.__new__(PersistentDraftQueue)
+    queue.window = 2
+    queue.target_epoch = 1
+    queue.leases = set()
+    queue.inflight = {}
+    ready_ids = [f"ready{i}" for i in range(8)]
+    requests = {}
+
+    def make_request(rid, arrival_time, tokens, output_tokens, computed, total):
+        return SimpleNamespace(
+            request_id=rid,
+            status=RequestStatus.RUNNING,
+            spec_token_ids=list(tokens),
+            arrival_time=arrival_time,
+            num_output_tokens=output_tokens,
+            num_computed_tokens=computed,
+            num_tokens=total,
+            is_finished=lambda: False,
+        )
+
+    running = []
+    for i, rid in enumerate(ready_ids):
+        tokens = [300 + i, 400 + i]
+        req = make_request(rid, float(i), tokens, 1, 5, 6)
+        requests[rid] = req
+        running.append(req)
+    prefill = make_request("prefill", 30.0, [], 0, 5, 10)
+    requests["prefill"] = prefill
+    running.append(prefill)
+    for i in range(4):
+        rid = f"ar{i}"
+        req = make_request(rid, float(40 + i), [], 1, 5, 6)
+        requests[rid] = req
+        running.append(req)
+
+    queue.ready = {
+        rid: {
+            "tokens": [300 + i, 400 + i],
+            "ready_at": float(i),
+        }
+        for i, rid in enumerate(ready_ids)
+    }
+    queue._target_selected_ready = set()
+    queue._target_yield = set()
+    queue.s = SimpleNamespace(
+        max_num_running_reqs=4,
+        running=running,
+        requests=requests,
+        waiting=[object()],
+    )
+
+    selected = queue.prepare_target()
+
+    # Keep the in-progress Prefill and reserve one new Prefill slot.
+    assert selected == ready_ids[:2]
+    assert queue._target_yield == {f"ar{i}" for i in range(4)}
+    assert "prefill" not in queue.frozen
+    assert "prefill" not in queue.preempt_protected
