@@ -196,3 +196,51 @@ def test_intra_window_refill_continues_after_a_request_becomes_ready(
     assert queue._p3_steps == 1
     assert any(operation == "prepare" for operation, _ in calls)
     assert queue._p3_done is False
+
+
+
+def test_target_admission_leaves_ready_overflow_queued():
+    ready = {
+        f"ready{index}": _fake_request(f"ready{index}", [index, index + 1])
+        for index in range(8)
+    }
+    queue = PersistentDraftQueue.__new__(PersistentDraftQueue)
+    queue.s = SimpleNamespace(
+        max_num_running_reqs=4,
+        max_num_scheduled_tokens=8192,
+        running=list(ready.values()),
+        requests=ready,
+    )
+    queue.leases = {}
+    queue.ready = {
+        rid: {"tokens": list(req.spec_token_ids)}
+        for rid, req in ready.items()
+    }
+    queue.inflight = {}
+    queue._target_selected_ready = set()
+    queue.window = 3
+
+    selected = queue.select_target()
+
+    assert selected == ["ready0", "ready1", "ready2", "ready3"]
+    assert queue.frozen == {"ready4", "ready5", "ready6", "ready7"}
+    assert queue.preempt_protected == set(ready)
+
+
+def test_target_admission_fails_fast_if_full_verify_cannot_fit():
+    req = _fake_request("ready0", [1, 2, 3])
+    queue = PersistentDraftQueue.__new__(PersistentDraftQueue)
+    queue.s = SimpleNamespace(
+        max_num_running_reqs=1,
+        max_num_scheduled_tokens=3,
+        running=[req],
+        requests={"ready0": req},
+    )
+    queue.leases = {}
+    queue.ready = {"ready0": {"tokens": [1, 2, 3]}}
+    queue.inflight = {}
+    queue._target_selected_ready = set()
+    queue.window = 1
+
+    with pytest.raises(RuntimeError, match="exceeding max_num_scheduled_tokens"):
+        queue.select_target()
