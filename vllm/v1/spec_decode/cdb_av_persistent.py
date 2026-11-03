@@ -592,7 +592,7 @@ class PersistentDraftQueue:
         # Do not admit after the final Draft step of this window.
         intra = os.getenv('CDB_AV_INTRA_WINDOW', '0') == '1'
 
-        if intra and self._p3_steps < self.horizon:
+        if intra and self._p3_steps < self.horizon and not self._p3_ready_seen:
             slots = max(0, int(status.get('slots', 0)))
 
             if slots:
