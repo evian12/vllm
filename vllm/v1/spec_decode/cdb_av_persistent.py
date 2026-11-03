@@ -35,6 +35,11 @@ class PersistentDraftSession(RefillSession):
     def open_window(self, payload, requests):
         if self.window is not None and payload['window'] <= self.window:
             raise RuntimeError('P2 window must advance')
+        if payload.get("capacity") != self.capacity:
+            raise RuntimeError(
+                "P2 CPU/Worker running-capacity mismatch: "
+                f"CPU={payload.get('capacity')}, Worker={self.capacity}"
+            )
         self.window, self.horizon = payload['window'], payload['H']
         if not 1 <= self.horizon <= 64:
             raise ValueError('P2 H must be in [1,64]')
@@ -62,7 +67,7 @@ class PersistentDraftSession(RefillSession):
         self.target_epoch = payload['target_epoch']
         emit('p2_window_begin', window=self.window, H=self.horizon,
              active=list(self.active), target_epoch=self.target_epoch)
-        return {'opened': True}
+        return {'opened': True, 'capacity': self.capacity}
 
     def prepare(self, plans, requests):
         occupied = len(self.active) + len(
@@ -922,10 +927,17 @@ class PersistentDraftQueue:
 
         staged_ids = [plan["req_id"] for plan in plans]
         try:
-            self.rpc(
+            open_ack = self.rpc(
                 "open",
-                dict(window=self.window, H=self.horizon, target_epoch=self.target_epoch),
+                dict(
+                    window=self.window,
+                    H=self.horizon,
+                    target_epoch=self.target_epoch,
+                    capacity=capacity,
+                ),
             )
+            if open_ack.get("capacity") != capacity:
+                raise RuntimeError("P2 Worker open capacity acknowledgement mismatch")
             if plans:
                 ack = self.rpc("prepare", {"plans": plans})
                 expected = [plan["req_id"] for plan in plans]
@@ -961,6 +973,10 @@ class PersistentDraftQueue:
         if self._p3_steps >= self.horizon:
             return False
 
+        # Reconcile external aborts/preemptions before checking the Worker
+        # membership partition and advancing the next global Draft step.
+        self.reconcile()
+
         # The Worker returns an idle barrier tick when every current member is
         # Ready. This keeps Ready queued until H without issuing an empty GPU
         # forward, and gives Target a chance to prefill new requests meanwhile.
@@ -968,6 +984,17 @@ class PersistentDraftQueue:
         self._p3_steps += 1
         if status.get("steps_completed") != self._p3_steps:
             raise RuntimeError("P2 Worker/Scheduler Draft-step counter mismatch")
+        from vllm.v1.spec_decode.cdb_av_config import (
+            validate_draft_worker_status,
+        )
+        validate_draft_worker_status(
+            self.leases,
+            status["active_req_ids"],
+            status["ready_req_ids"],
+            status["progress"].keys(),
+            self.s.max_num_running_reqs,
+            int(status["slots"]),
+        )
         self._p3_ready_seen = bool(status.get("ready_req_ids"))
 
         for rid, progress in status["progress"].items():
