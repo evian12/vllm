@@ -135,3 +135,42 @@ def get_k_stop_reason(
     if low_confidence:
         return "low_confidence"
     return None
+
+
+
+def get_frozen_request_ids(lease_ids, ready_ids, selected_ready_ids):
+    """Return current Draft leases and published Ready work not selected by Target.
+
+    Ready entries are published only after their originating window reaches H.
+    They therefore remain eligible during later Draft windows; only unselected
+    entries stay frozen for the current Target forward.
+    """
+    return set(lease_ids) | (set(ready_ids) - set(selected_ready_ids))
+
+
+def select_ready_request_ids(
+    running_ids, ready_ids, protected_ids, max_num_running_reqs: int
+) -> tuple[str, ...]:
+    """Select a queue-ordered Ready subset within Target running capacity."""
+    if type(max_num_running_reqs) is not int or max_num_running_reqs < 0:
+        raise ValueError(
+            f"Invalid Target running capacity: {max_num_running_reqs!r}"
+        )
+
+    running_ids = list(running_ids)
+    ready_ids = set(ready_ids)
+    protected_ids = set(protected_ids)
+    non_ready_running = set(running_ids) - ready_ids - protected_ids
+    available = max_num_running_reqs - len(non_ready_running)
+    if available <= 0:
+        return ()
+
+    selected = []
+    seen = set()
+    for req_id in running_ids:
+        if req_id in ready_ids and req_id not in seen:
+            selected.append(req_id)
+            seen.add(req_id)
+            if len(selected) == available:
+                break
+    return tuple(selected)
