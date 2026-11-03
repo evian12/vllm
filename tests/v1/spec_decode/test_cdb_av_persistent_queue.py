@@ -110,18 +110,45 @@ def _fake_req(req_id):
     )
 
 
-def test_ready_requests_remain_frozen_during_open_window():
+def test_published_ready_backlog_can_be_selected_during_open_window():
     queue = PersistentDraftQueue.__new__(PersistentDraftQueue)
-    queue.leases = {"carry"}
+    queue.leases = {"carry", "current_window_member"}
     queue.ready = {"r1": {}, "r2": {}}
     queue.inflight = {}
     queue._p3_window_open = True
-    queue._target_selected_ready = {"r1"}
+    queue._target_selected_ready = set()
+    queue.s = SimpleNamespace(
+        max_num_running_reqs=1,
+        running=[
+            _fake_req("carry"),
+            _fake_req("current_window_member"),
+            _fake_req("r1"),
+            _fake_req("r2"),
+        ],
+    )
+
+    queue.begin_target_schedule()
+
+    assert queue._target_selected_ready == {"r1"}
+    assert queue.frozen == {"carry", "current_window_member", "r2"}
+
+
+def test_current_window_members_stay_frozen_until_h():
+    queue = PersistentDraftQueue.__new__(PersistentDraftQueue)
+    queue.leases = {"current_window_member"}
+    queue.ready = {}
+    queue.inflight = {}
+    queue._p3_window_open = True
+    queue._target_selected_ready = set()
+    queue.s = SimpleNamespace(
+        max_num_running_reqs=4,
+        running=[_fake_req("current_window_member")],
+    )
 
     queue.begin_target_schedule()
 
     assert queue._target_selected_ready == set()
-    assert queue.frozen == {"carry", "r1", "r2"}
+    assert queue.frozen == {"current_window_member"}
 
 
 def test_target_ready_selection_respects_remaining_capacity():
@@ -268,15 +295,15 @@ def test_target_selection_shrinks_to_actually_scheduled_ready():
     assert queue.frozen == {"r1", "r2"}
 
 
-def test_target_selection_cannot_admit_ready_before_h():
+def test_unselected_published_ready_cannot_be_scheduled_during_open_window():
     queue = PersistentDraftQueue.__new__(PersistentDraftQueue)
-    queue.leases = set()
+    queue.leases = {"current_window_member"}
     queue.ready = {"r0": {}}
     queue.inflight = {}
     queue._p3_window_open = True
-    queue._target_selected_ready = {"r0"}
+    queue._target_selected_ready = set()
 
-    with pytest.raises(RuntimeError, match="before the H boundary"):
+    with pytest.raises(RuntimeError, match="outside its selected subset"):
         queue.update_target_selection({"r0"})
 
 
