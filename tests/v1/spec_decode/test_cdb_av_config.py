@@ -30,6 +30,7 @@ get_window_h = _config.get_window_h
 is_enabled = _config.is_enabled
 select_ready_request_ids = _config.select_ready_request_ids
 can_admit_prefill_tokens = _config.can_admit_prefill_tokens
+validate_draft_worker_status = _config.validate_draft_worker_status
 
 
 def test_default_window_is_fixed_and_configurable(monkeypatch):
@@ -213,3 +214,39 @@ def test_mixed_prefill_token_budget(
 def test_mixed_prefill_token_budget_rejects_negative_values():
     with pytest.raises(ValueError, match="request_tokens"):
         can_admit_prefill_tokens(0, -1, 8, 8)
+
+
+
+def test_worker_status_matches_cpu_lease_partition():
+    validate_draft_worker_status(
+        lease_ids={"a", "b", "c"},
+        active_ids=["a", "b"],
+        ready_ids=["c"],
+        progress_ids={"a", "b", "c"},
+        capacity=4,
+        slots=2,
+    )
+
+
+@pytest.mark.parametrize(
+    ("active", "ready", "progress", "capacity", "slots", "message"),
+    [
+        (["a"], ["b"], {"a"}, 4, 3, "membership"),
+        (["a"], ["a"], {"a"}, 4, 3, "both Active and Ready"),
+        (["a", "b"], [], {"a", "b"}, 1, 0, "exceeds capacity"),
+        (["a"], [], {"a"}, 4, 1, "free slots"),
+        (["a", "a"], [], {"a"}, 4, 3, "duplicates"),
+    ],
+)
+def test_worker_status_rejects_inconsistent_partition(
+    active, ready, progress, capacity, slots, message
+):
+    with pytest.raises(ValueError, match=message):
+        validate_draft_worker_status(
+            {"a", "b"} if "b" in progress else {"a"},
+            active,
+            ready,
+            progress,
+            capacity,
+            slots,
+        )
