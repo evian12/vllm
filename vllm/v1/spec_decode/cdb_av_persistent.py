@@ -753,16 +753,29 @@ class PersistentDraftQueue:
             if ack['dropped'] != invalid:
                 raise RuntimeError('P2 invalidation acknowledgement mismatch')
             for rid in invalid:
+                req = self.s.requests.get(rid)
+                if req is not None:
+                    spec_token_ids = getattr(req, "spec_token_ids", None)
+                    if spec_token_ids is not None:
+                        spec_token_ids.clear()
                 self.release(rid, 'invalid')
                 emit('p2_invalidated', window=self.window, req_id=rid)
         for rid in list(self.inflight):
             req = self.s.requests.get(rid)
             if req is None or req.is_finished():
+                if req is not None:
+                    spec_token_ids = getattr(req, "spec_token_ids", None)
+                    if spec_token_ids is not None:
+                        spec_token_ids.clear()
                 self.inflight.pop(rid)
                 emit('p2_inflight_cancelled', window=self.window, req_id=rid)
         for rid in list(self.ready):
             req = self.s.requests.get(rid)
             if req is None or req.is_finished() or req.status != RequestStatus.RUNNING:
+                if req is not None:
+                    spec_token_ids = getattr(req, "spec_token_ids", None)
+                    if spec_token_ids is not None:
+                        spec_token_ids.clear()
                 self.ready.pop(rid)
                 emit('p2_ready_invalidated', window=self.window, req_id=rid)
 

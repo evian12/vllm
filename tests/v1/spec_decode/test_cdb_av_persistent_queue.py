@@ -534,3 +534,44 @@ def test_ready_backlog_is_drained_in_capacity_bounded_target_batches():
 
     queue.begin_target_schedule()
     assert queue._target_selected_ready == {"r4", "r5", "r6", "r7"}
+
+
+
+def test_reconcile_clears_stale_spec_tokens_for_invalid_ready_request():
+    queue = PersistentDraftQueue.__new__(PersistentDraftQueue)
+    request = SimpleNamespace(
+        spec_token_ids=[11, 12],
+        status=RequestStatus.FINISHED_ABORTED,
+        is_finished=lambda: True,
+    )
+    queue.s = SimpleNamespace(requests={"r0": request})
+    queue.contexts = {}
+    queue.inflight = {}
+    queue.ready = {"r0": {"tokens": [11, 12]}}
+    queue.leases = {}
+    queue.window = 2
+
+    queue.reconcile()
+
+    assert request.spec_token_ids == []
+    assert queue.ready == {}
+
+
+def test_reconcile_clears_stale_spec_tokens_for_cancelled_inflight_request():
+    queue = PersistentDraftQueue.__new__(PersistentDraftQueue)
+    request = SimpleNamespace(
+        spec_token_ids=[11, 12],
+        status=RequestStatus.FINISHED_ABORTED,
+        is_finished=lambda: True,
+    )
+    queue.s = SimpleNamespace(requests={"r0": request})
+    queue.contexts = {}
+    queue.inflight = {"r0": {"tokens": [11, 12]}}
+    queue.ready = {}
+    queue.leases = {}
+    queue.window = 2
+
+    queue.reconcile()
+
+    assert request.spec_token_ids == []
+    assert queue.inflight == {}
