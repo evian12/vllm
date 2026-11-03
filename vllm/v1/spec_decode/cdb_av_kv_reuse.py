@@ -723,8 +723,15 @@ class ReuseDraftQueue(PersistentDraftQueue):
         if record is None:return
         if req.request_id not in self.cached_leases:raise RuntimeError('Verified request lost its cache lease')
         a=len(generated)-1
-        self.commits[req.request_id]=dict(source_fp=record['fingerprint'],drafts=list(drafts),generated=list(generated),
-            branch='all' if a==len(drafts) else ('zero' if a==0 else 'partial'),accepted=a,k=len(drafts))
+        self.commits[req.request_id]=dict(
+            source_fp=record['fingerprint'],
+            old_prefix=list(record['old_prefix']),
+            drafts=list(drafts),
+            generated=list(generated),
+            branch='all' if a==len(drafts) else ('zero' if a==0 else 'partial'),
+            accepted=a,
+            k=len(drafts),
+        )
 
     def _rollback_allocations(self, allocations):
         """Free temporary allocations, retaining ownership records on failure."""
@@ -767,8 +774,30 @@ class ReuseDraftQueue(PersistentDraftQueue):
 
             ctx=RefillQueue.context(req)
             prefix=list(req.prompt_token_ids)+list(req.output_token_ids)
-            prefill_cost=ctx["context_tokens"]
             cached=self.cached_leases.get(rid,[])
+            commit=self.commits.get(rid) if cached else None
+            reuse_start=0
+            reuse_reason="no_cached_lease"
+            if commit is not None:
+                expected_cached_inputs = (
+                    list(commit["old_prefix"]) + list(commit["drafts"][:-1])
+                )
+                reuse_start, reuse_reason = reuse_span(
+                    expected_cached_inputs,
+                    prefix,
+                    list(commit["old_prefix"]),
+                    list(commit["drafts"]),
+                    commit,
+                )
+            prefill_cost=len(prefix)-reuse_start
+            emit(
+                "p2_reuse_plan",
+                window=self.window,
+                req_id=rid,
+                reused_tokens=reuse_start,
+                prefill_tokens=prefill_cost,
+                reason=reuse_reason,
+            )
             if prefill_cost > self.s.max_num_scheduled_tokens:
                 self.discard_cached([rid] if cached else [], "prefill_token_limit")
                 emit(
@@ -827,7 +856,6 @@ class ReuseDraftQueue(PersistentDraftQueue):
                         raise RuntimeError('P2 allocator returned an incomplete audit lease')
                     if any(b.ref_cnt!=1 or b.is_null for b in audit_blocks):
                         raise RuntimeError('P2 audit lease not exclusive')
-                commit=self.commits.get(rid)
                 plan=dict(req_id=rid,prefix=prefix,cap=cap,
                     blocks=[b.block_id for b in blocks],
                     audit_blocks=[b.block_id for b in audit_blocks],
