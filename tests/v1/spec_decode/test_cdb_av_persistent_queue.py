@@ -469,6 +469,7 @@ def test_intra_window_admission_failure_rolls_back_staged_leases(
 
 def test_ready_backlog_is_drained_in_capacity_bounded_target_batches():
     queue = PersistentDraftQueue.__new__(PersistentDraftQueue)
+    queue.window = 1
     queue.leases = set()
     queue.ready = {f"r{i}": {} for i in range(8)}
     queue.inflight = {}
