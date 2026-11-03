@@ -54,6 +54,10 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 source "$ROOT/activate-cdb-av.sh"
+# Clear stale experiment switches inherited from an interactive shell.
+for key in $(compgen -e | grep '^CDB_' || true); do
+  unset "$key"
+done
 cd "$VLLM_DIR"
 
 [[ -d "$TARGET" ]] || die "Target model not found: $TARGET"
