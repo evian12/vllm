@@ -173,6 +173,13 @@ class PersistentDraftSession(RefillSession):
         return result
 
     def boundary(self):
+        if not self.initialized or self.done:
+            raise RuntimeError("P2 Worker boundary requires an active Draft window")
+        if self.steps_completed != self.horizon:
+            raise RuntimeError(
+                f"P2 Worker boundary requires exactly H={self.horizon} steps "
+                f"(completed {self.steps_completed})"
+            )
         # Synchronize before mutating live Member ownership.
         torch.cuda.synchronize(self.p.device)
 
