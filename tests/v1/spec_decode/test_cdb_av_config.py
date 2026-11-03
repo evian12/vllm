@@ -36,6 +36,7 @@ validate_draft_open_ack = _config.validate_draft_open_ack
 validate_draft_step_status = _config.validate_draft_step_status
 validate_server_k_cap = _config.validate_server_k_cap
 validate_worker_reset_ids = _config.validate_worker_reset_ids
+get_expected_worker_request_ids = _config.get_expected_worker_request_ids
 validate_verification_commit = _config.validate_verification_commit
 get_token_only_input_unsupported_reason = _config.get_token_only_input_unsupported_reason
 validate_exclusive_kv_ownership = _config.validate_exclusive_kv_ownership
@@ -513,3 +514,31 @@ def test_token_only_input_skips_unsupported_request_types(
     assert get_token_only_input_unsupported_reason(
         prompt_token_ids, prompt_embeds, mm_features
     ) == expected
+
+
+
+def test_expected_worker_ids_excludes_boundary_ready_without_kv_reuse():
+    assert get_expected_worker_request_ids(
+        {"carry", "ready"},
+        set(),
+        {"ready"},
+        kv_reuse=False,
+    ) == {"carry"}
+
+
+def test_expected_worker_ids_keeps_boundary_ready_with_kv_reuse():
+    assert get_expected_worker_request_ids(
+        {"carry", "ready"},
+        set(),
+        {"ready"},
+        kv_reuse=True,
+    ) == {"carry", "ready"}
+
+
+def test_expected_worker_ids_includes_parked_cached_ready():
+    assert get_expected_worker_request_ids(
+        {"carry"},
+        {"ready"},
+        {"ready"},
+        kv_reuse=True,
+    ) == {"carry", "ready"}

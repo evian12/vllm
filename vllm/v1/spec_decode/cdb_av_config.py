@@ -347,6 +347,18 @@ def validate_verification_commit(
     return accepted
 
 
+def get_expected_worker_request_ids(
+    lease_ids, cached_ids, boundary_ready_ids, kv_reuse: bool
+) -> set[str]:
+    """Return Worker-owned request IDs during normal and H-boundary cleanup."""
+    expected = set(lease_ids) | set(cached_ids)
+    if not kv_reuse:
+        # Non-reuse Worker boundary has already discarded Ready members, even
+        # though the CPU still holds their leases until handoff publication.
+        expected.difference_update(boundary_ready_ids)
+    return expected
+
+
 def validate_worker_reset_ids(expected_ids, reported_ids) -> None:
     """Require Worker reset ACKs to cover exactly the CPU-owned Worker IDs."""
     expected = set(expected_ids)

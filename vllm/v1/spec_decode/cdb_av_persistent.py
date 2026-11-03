@@ -391,6 +391,7 @@ class PersistentDraftQueue:
             os.getenv("CDB_AV_KV_REUSE", "0") == "1"
         )
         self._target_selected_ready = set()
+        self._worker_boundary_ready_ids = set()
         self._p3_window_open = False
         self._p3_steps = 0
         self._p3_done = True
@@ -644,11 +645,15 @@ class PersistentDraftQueue:
         if not ack.get("reset"):
             raise RuntimeError("P2 Worker reset failed")
 
-        expected_worker_ids = set(self.leases) | set(
-            getattr(self, "cached_leases", {})
-        )
         from vllm.v1.spec_decode.cdb_av_config import (
+            get_expected_worker_request_ids,
             validate_worker_reset_ids,
+        )
+        expected_worker_ids = get_expected_worker_request_ids(
+            self.leases,
+            getattr(self, "cached_leases", {}),
+            getattr(self, "_worker_boundary_ready_ids", set()),
+            getattr(self, "_uses_mixed_prefill", False),
         )
         try:
             validate_worker_reset_ids(
@@ -709,6 +714,7 @@ class PersistentDraftQueue:
         self._p3_done = True
         self._p3_ready_seen = False
         self._target_selected_ready.clear()
+        self._worker_boundary_ready_ids.clear()
 
         emit(
             "p2_reset",
@@ -1237,6 +1243,11 @@ class PersistentDraftQueue:
         self.reconcile()
         result = self.rpc("boundary")
         records = result["records"]
+        self._worker_boundary_ready_ids = {
+            record["req_id"]
+            for record in records
+            if isinstance(record, dict) and "req_id" in record
+        }
         record_ids = [record["req_id"] for record in records]
         ready_ids = set(record_ids)
         carry = result["carry"]
@@ -1318,6 +1329,7 @@ class PersistentDraftQueue:
         self._p3_done = True
         self._p3_ready_seen = False
         self._target_selected_ready = set()
+        self._worker_boundary_ready_ids.clear()
 
     def advance(self, model_executed):
         """Advance one Draft step per EngineCore iteration.
