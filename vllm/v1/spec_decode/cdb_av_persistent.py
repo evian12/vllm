@@ -40,6 +40,16 @@ class PersistentDraftSession(RefillSession):
                 "P2 CPU/Worker running-capacity mismatch: "
                 f"CPU={payload.get('capacity')}, Worker={self.capacity}"
             )
+        from vllm.v1.spec_decode.cdb_av_config import validate_server_k_cap
+        self.max_k = validate_server_k_cap(
+            payload.get("max_k"), payload.get("max_k")
+        )
+        proposer_max_k = getattr(self.p, "num_speculative_tokens", None)
+        if proposer_max_k is not None and proposer_max_k != self.max_k:
+            raise RuntimeError(
+                "P2 CPU/Worker maximum K mismatch: "
+                f"CPU={self.max_k}, Draft proposer={proposer_max_k}"
+            )
         if (
             set(self.members) != set(self.suspended)
             or set(self.active) != set(self.suspended)
@@ -72,9 +82,20 @@ class PersistentDraftSession(RefillSession):
         self.target_epoch = payload['target_epoch']
         emit('p2_window_begin', window=self.window, H=self.horizon,
              active=list(self.active), target_epoch=self.target_epoch)
-        return {'opened': True, 'capacity': self.capacity}
+        return {
+            'opened': True,
+            'capacity': self.capacity,
+            'max_k': self.max_k,
+        }
+
+    def validate_plan_caps(self, plans):
+        from vllm.v1.spec_decode.cdb_av_config import validate_server_k_cap
+
+        for plan in plans:
+            validate_server_k_cap(plan.get("cap"), self.max_k)
 
     def prepare(self, plans, requests):
+        self.validate_plan_caps(plans)
         occupied = len(self.active) + len(
             getattr(self, 'pending_prefill', ())
         )
@@ -941,10 +962,13 @@ class PersistentDraftQueue:
                     H=self.horizon,
                     target_epoch=self.target_epoch,
                     capacity=capacity,
+                    max_k=self.max_k,
                 ),
             )
             if open_ack.get("capacity") != capacity:
                 raise RuntimeError("P2 Worker open capacity acknowledgement mismatch")
+            if open_ack.get("max_k") != self.max_k:
+                raise RuntimeError("P2 Worker open maximum-K acknowledgement mismatch")
             if plans:
                 ack = self.rpc("prepare", {"plans": plans})
                 expected = [plan["req_id"] for plan in plans]
