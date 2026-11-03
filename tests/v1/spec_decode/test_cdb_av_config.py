@@ -264,3 +264,28 @@ def test_worker_plan_k_cap_within_server_limit(cap):
 def test_worker_plan_k_cap_rejects_invalid_values(cap):
     with pytest.raises(ValueError, match="Draft K cap"):
         validate_server_k_cap(cap, 8)
+
+
+
+def test_ready_selection_skips_head_that_cannot_fit_token_budget():
+    selected = select_ready_request_ids(
+        running_ids=["r0", "r1", "r2"],
+        ready_ids=["r0", "r1", "r2"],
+        protected_ids=set(),
+        max_num_running_reqs=1,
+        ready_token_costs={"r0": 9, "r1": 3, "r2": 2},
+        token_budget=4,
+    )
+    assert selected == ("r1",)
+
+
+def test_ready_selection_respects_aggregate_token_budget():
+    selected = select_ready_request_ids(
+        running_ids=["r0", "r1", "r2"],
+        ready_ids=["r0", "r1", "r2"],
+        protected_ids=set(),
+        max_num_running_reqs=3,
+        ready_token_costs={"r0": 3, "r1": 3, "r2": 2},
+        token_budget=5,
+    )
+    assert selected == ("r0", "r2")
