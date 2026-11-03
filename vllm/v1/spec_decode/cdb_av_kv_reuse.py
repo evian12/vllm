@@ -768,6 +768,18 @@ class ReuseDraftQueue(PersistentDraftQueue):
             ctx=RefillQueue.context(req)
             prefix=list(req.prompt_token_ids)+list(req.output_token_ids)
             prefill_cost=ctx["context_tokens"]
+            cached=self.cached_leases.get(rid,[])
+            if prefill_cost > self.s.max_num_scheduled_tokens:
+                self.discard_cached([rid] if cached else [], "prefill_token_limit")
+                emit(
+                    "p2_skip_prefill_too_large",
+                    window=self.window,
+                    req_id=rid,
+                    prefill_tokens=prefill_cost,
+                    target_token_budget=self.s.max_num_scheduled_tokens,
+                )
+                continue
+
             from vllm.v1.spec_decode.cdb_av_config import (
                 can_admit_prefill_tokens,
             )
@@ -790,7 +802,6 @@ class ReuseDraftQueue(PersistentDraftQueue):
                 continue
 
             n=(req.num_tokens+cap+self.block_size-1)//self.block_size
-            cached=self.cached_leases.get(rid,[])
             extra=max(0,n-len(cached))
             audit=os.getenv('CDB_AV_REUSE_VALIDATE','0')=='1'
             if pool.get_num_free_blocks()<extra+(n if audit else 0)+self.s.max_num_running_reqs*2:
