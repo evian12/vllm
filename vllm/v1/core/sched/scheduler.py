@@ -361,8 +361,9 @@ class Scheduler(SchedulerInterface):
         # For logging.
         scheduled_timestamp = time.monotonic()
 
-        # During an open Draft window, Ready requests stay frozen. At a Target
-        # boundary, unfreeze only the Ready subset that fits Target capacity.
+        # Freeze current-window Draft leases and unselected published Ready
+        # work. Ready work from an earlier H boundary remains eligible even
+        # while a later Draft window is open.
         p2 = getattr(self, "_cdb_p2", None)
         if p2 is not None:
             p2.begin_target_schedule()
