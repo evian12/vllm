@@ -314,6 +314,7 @@ class PersistentDraftQueue:
         self.horizon = get_window_h()
         self._cdb_admit_limit = None
         self._target_selected_ready = set()
+        self._last_target_admission_snapshot = None
         self.s._cdb_p2 = self
 
     @property
@@ -414,7 +415,14 @@ class PersistentDraftQueue:
             slots -= 1
 
         self._target_selected_ready = selected
-        if ready_ids or selected:
+        admission_snapshot = (
+            tuple(sorted(ready_ids)),
+            tuple(sorted(selected)),
+            other_running,
+        )
+        if admission_snapshot != getattr(
+            self, '_last_target_admission_snapshot', None
+        ):
             emit(
                 'p2_target_admission',
                 window=self.window,
@@ -422,6 +430,7 @@ class PersistentDraftQueue:
                 other_running=other_running,
                 remaining_slots=slots,
             )
+            self._last_target_admission_snapshot = admission_snapshot
         return sorted(selected)
 
     def rpc(self, operation, payload=None):
@@ -540,6 +549,7 @@ class PersistentDraftQueue:
 
         self._cdb_admit_limit = None
         self._target_selected_ready.clear()
+        self._last_target_admission_snapshot = None
         self._p3_window_open = False
         self._p3_steps = 0
         self._p3_slots = 0
