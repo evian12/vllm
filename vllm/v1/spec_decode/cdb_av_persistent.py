@@ -725,42 +725,31 @@ class PersistentDraftQueue:
                      req_ids=[p['req_id'] for p in plans])
         self._p3_window_open = True
         self._p3_steps = 0
-        # H is a fixed Draft scheduling window.  If all current members are
+        # Worker capacity includes carry and any newly prepared Prefill rows.
+        # Newly freed slots are consumed before the next Draft tick.
+        self._p3_slots = max(0, capacity - len(self.leases))
+        # H is a fixed Draft scheduling window. If all current members are
         # Ready, idle ticks still advance H while Target serves AR/Prefill.
         self._p3_done = False
         self._p3_ready_seen = False
         return True
 
     def advance_one_step(self):
-        """Execute one Draft step and refill newly available Active slots."""
+        """Execute one Draft tick, admitting fresh Target-confirmed rows first."""
         if not getattr(self, '_p3_window_open', False):
             raise RuntimeError('P3 step outside open window')
         if self._p3_done or self._p3_steps >= self.horizon:
             return False
 
-        status = self.rpc('step')
-        self._p3_steps += 1
-        self._p3_ready_seen = bool(status.get('ready_req_ids'))
-
-        for rid, progress in status['progress'].items():
-            previous = self.carry.get(rid, {}).get('progress', 0)
-            if progress < previous:
-                raise RuntimeError('P2 progress regressed')
-
-        admitted = []
-
-        # READY requests have already left Worker active.
-        # Their KV leases remain owned until boundary handoff.
-        #
-        # Admit only Target-confirmed requests. plans() enforces:
-        # num_output_tokens > 0 and num_computed_tokens == num_tokens - 1.
-        # Do not admit after the final Draft step of this window.
         from vllm.v1.spec_decode.cdb_av_config import is_enabled
         intra = is_enabled('CDB_AV_INTRA_WINDOW', default=True)
 
-        if intra and self._p3_steps < self.horizon:
-            slots = max(0, int(status.get('slots', 0)))
-
+        # Target ran immediately before this hook. Admit requests whose first
+        # Target token is now committed before the upcoming Draft forward, so
+        # their Prefill rows can be packed with surviving Decode rows.
+        admitted = []
+        if intra and 0 < self._p3_steps < self.horizon:
+            slots = max(0, int(getattr(self, '_p3_slots', 0)))
             if slots:
                 self._cdb_admit_limit = slots
                 try:
@@ -771,26 +760,34 @@ class PersistentDraftQueue:
                 if plans:
                     ack = self.rpc('prepare', {'plans': plans})
                     expected = [p['req_id'] for p in plans]
-
                     if ack['prepared'] != expected:
                         raise RuntimeError(
                             'P2 intra-window preparation acknowledgement mismatch'
                         )
-
                     admitted = expected
-
+                    self._p3_slots = max(0, slots - len(admitted))
                     emit(
                         'p2_intra_admit',
                         window=self.window,
                         after_step=self._p3_steps,
+                        before_step=self._p3_steps + 1,
                         slots=slots,
                         req_ids=admitted,
                     )
 
-        # Newly prepared mixed Prefill rows are pending Worker work and will
-        # join the next Draft forward.  Ready does not close the window.
-        self._p3_done = self._p3_steps >= self.horizon
+        status = self.rpc('step')
+        self._p3_steps += 1
+        self._p3_ready_seen = bool(status.get('ready_req_ids'))
+        self._p3_slots = max(0, int(status.get('slots', 0)))
 
+        for rid, progress in status['progress'].items():
+            previous = self.carry.get(rid, {}).get('progress', 0)
+            if progress < previous:
+                raise RuntimeError('P2 progress regressed')
+
+        # Ready does not close the window. It only frees Draft slots; the
+        # requests remain hidden until the fixed H boundary.
+        self._p3_done = self._p3_steps >= self.horizon
         return True
 
     def finish_window(self):
