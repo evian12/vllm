@@ -241,6 +241,27 @@ def can_admit_prefill_tokens(
 
 
 
+def validate_exclusive_kv_ownership(
+    block_states, formal_block_ids
+) -> None:
+    """Require every CDB-owned KV page to be unique and exclusively owned."""
+    states = list(block_states)
+    block_ids = [block_id for block_id, _, _ in states]
+    if len(set(block_ids)) != len(block_ids):
+        raise ValueError("CDB KV ownership contains duplicate block IDs")
+    overlap = set(block_ids).intersection(formal_block_ids)
+    if overlap:
+        raise ValueError(
+            f"CDB KV ownership overlaps formal Target blocks: {sorted(overlap)}"
+        )
+    for block_id, ref_cnt, is_null in states:
+        if is_null or ref_cnt != 1:
+            raise ValueError(
+                "CDB KV block is not exclusively owned: "
+                f"block={block_id}, ref_cnt={ref_cnt}, is_null={is_null}"
+            )
+
+
 def validate_worker_reset_ids(expected_ids, reported_ids) -> None:
     """Require Worker reset ACKs to cover exactly the CPU-owned Worker IDs."""
     expected = set(expected_ids)

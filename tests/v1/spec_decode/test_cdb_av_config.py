@@ -34,6 +34,7 @@ can_verify_ready_tokens = _config.can_verify_ready_tokens
 validate_draft_worker_status = _config.validate_draft_worker_status
 validate_server_k_cap = _config.validate_server_k_cap
 validate_worker_reset_ids = _config.validate_worker_reset_ids
+validate_exclusive_kv_ownership = _config.validate_exclusive_kv_ownership
 
 
 def test_default_window_is_fixed_and_configurable(monkeypatch):
@@ -338,3 +339,27 @@ def test_worker_reset_ack_rejects_ownership_mismatch(
 ):
     with pytest.raises(ValueError, match=message):
         validate_worker_reset_ids(expected, reported)
+
+
+
+def test_cdb_kv_ownership_accepts_distinct_exclusive_pages():
+    validate_exclusive_kv_ownership(
+        [(1, 1, False), (2, 1, False), (3, 1, False)],
+        {10, 11},
+    )
+
+
+@pytest.mark.parametrize(
+    ("states", "formal", "message"),
+    [
+        ([(1, 1, False), (1, 1, False)], set(), "duplicate"),
+        ([(1, 1, False)], {1}, "formal Target"),
+        ([(1, 2, False)], set(), "exclusively owned"),
+        ([(1, 1, True)], set(), "exclusively owned"),
+    ],
+)
+def test_cdb_kv_ownership_rejects_overlap_and_shared_pages(
+    states, formal, message
+):
+    with pytest.raises(ValueError, match=message):
+        validate_exclusive_kv_ownership(states, formal)

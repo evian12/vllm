@@ -748,23 +748,40 @@ class PersistentDraftQueue:
         if scheduled_ready - getattr(self, "_target_selected_ready", set()):
             raise RuntimeError("P2 scheduler admitted an unselected Ready request")
 
-        owned = [b.block_id for bs in self.leases.values() for b in bs]
+        owned_blocks = []
+        for category, mapping in (
+            ("lease", self.leases),
+            ("cached_lease", getattr(self, "cached_leases", {})),
+            ("audit_lease", getattr(self, "audit_leases", {})),
+        ):
+            for owner, blocks in mapping.items():
+                owned_blocks.extend(
+                    (block.block_id, block.ref_cnt, block.is_null)
+                    for block in blocks
+                )
+        for block in getattr(self, "replay_blocks", []):
+            owned_blocks.append((block.block_id, block.ref_cnt, block.is_null))
+        for blocks in getattr(self, "pending_allocations", []):
+            owned_blocks.extend(
+                (block.block_id, block.ref_cnt, block.is_null)
+                for block in blocks
+            )
+
         formal = {
-            b
+            block_id
             for req in self.s.running
             for group in self.s.kv_cache_manager.get_block_ids(req.request_id)
-            for b in group
+            for block_id in group
         }
-        if len(set(owned)) != len(owned) or formal.intersection(owned):
+        from vllm.v1.spec_decode.cdb_av_config import (
+            validate_exclusive_kv_ownership,
+        )
+        try:
+            validate_exclusive_kv_ownership(owned_blocks, formal)
+        except ValueError as exc:
             raise RuntimeError(
-                "P2 Draft lease collides with formal Target ownership"
-            )
-        if any(
-            b.ref_cnt != 1
-            for bs in self.leases.values()
-            for b in bs
-        ):
-            raise RuntimeError("P2 exclusive lease reference count changed")
+                "P2 CDB-owned KV pages overlap or lost exclusive ownership"
+            ) from exc
         if self.frozen.intersection(output.num_scheduled_tokens):
             raise RuntimeError("P2 scheduled a frozen Draft/Ready request")
 
