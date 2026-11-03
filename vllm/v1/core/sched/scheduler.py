@@ -398,15 +398,38 @@ class Scheduler(SchedulerInterface):
                 + request.num_output_placeholders
                 - request.num_computed_tokens
             )
-            if 0 < self.scheduler_config.long_prefill_token_threshold < num_new_tokens:
-                num_new_tokens = self.scheduler_config.long_prefill_token_threshold
-            num_new_tokens = min(num_new_tokens, token_budget)
+            p2_ready = p2 is not None and request.request_id in p2.ready
+            if p2_ready:
+                if request.request_id not in getattr(
+                    p2, "_target_selected_ready", set()
+                ):
+                    raise RuntimeError(
+                        "P2 Ready request reached Scheduler without admission"
+                    )
+                # A Ready request must be verified atomically. Never trim its
+                # candidate list to fit a token budget or long-prefill threshold.
+                if num_new_tokens <= 0 or num_new_tokens > token_budget:
+                    p2._target_selected_ready.discard(request.request_id)
+                    req_index += 1
+                    continue
+            else:
+                if (
+                    0 < self.scheduler_config.long_prefill_token_threshold
+                    < num_new_tokens
+                ):
+                    num_new_tokens = self.scheduler_config.long_prefill_token_threshold
+                num_new_tokens = min(num_new_tokens, token_budget)
 
             # Make sure the input position does not exceed the max model len.
             # This is necessary when using spec decoding.
-            num_new_tokens = min(
-                num_new_tokens, self.max_model_len - 1 - request.num_computed_tokens
+            max_position_tokens = (
+                self.max_model_len - 1 - request.num_computed_tokens
             )
+            if p2_ready and num_new_tokens > max_position_tokens:
+                p2._target_selected_ready.discard(request.request_id)
+                req_index += 1
+                continue
+            num_new_tokens = min(num_new_tokens, max_position_tokens)
 
             # Schedule encoder inputs.
             encoder_inputs_to_schedule = None
@@ -462,16 +485,15 @@ class Scheduler(SchedulerInterface):
                         # The request can be scheduled.
                         break
 
-                    # The request cannot be scheduled. Frozen CDB Carry
-                    # requests are not Target-executable and must never be
-                    # selected as preemption victims.
-                    frozen_ids = (
-                        self._cdb_p2.frozen
-                        if getattr(self, "_cdb_p2", None) is not None
-                        else set()
+                    # CDB-owned Draft/Ready pages must not be preempted while
+                    # the Target scheduler is trying to allocate this request.
+                    p2 = getattr(self, "_cdb_p2", None)
+                    protected_ids = (
+                        p2.preempt_protected if p2 is not None else set()
                     )
                     preemptible = [
-                        r for r in self.running if r.request_id not in frozen_ids
+                        r for r in self.running
+                        if r.request_id not in protected_ids
                     ]
                     if not preemptible:
                         break
@@ -532,6 +554,10 @@ class Scheduler(SchedulerInterface):
                     - request.num_tokens
                     - request.num_output_placeholders
                 )
+                if p2_ready and num_scheduled_spec_tokens != len(request.spec_token_ids):
+                    raise RuntimeError(
+                        "CDB-AV Ready verification must be scheduled atomically"
+                    )
                 if num_scheduled_spec_tokens > 0:
                     # Trim spec_token_ids list to num_scheduled_spec_tokens.
                     del request.spec_token_ids[num_scheduled_spec_tokens:]
