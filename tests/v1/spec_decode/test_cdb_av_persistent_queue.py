@@ -541,7 +541,7 @@ def test_reconcile_clears_stale_spec_tokens_for_invalid_ready_request():
     queue = PersistentDraftQueue.__new__(PersistentDraftQueue)
     request = SimpleNamespace(
         spec_token_ids=[11, 12],
-        status=RequestStatus.FINISHED_ABORTED,
+        status="finished",
         is_finished=lambda: True,
     )
     queue.s = SimpleNamespace(requests={"r0": request})
@@ -561,7 +561,7 @@ def test_reconcile_clears_stale_spec_tokens_for_cancelled_inflight_request():
     queue = PersistentDraftQueue.__new__(PersistentDraftQueue)
     request = SimpleNamespace(
         spec_token_ids=[11, 12],
-        status=RequestStatus.FINISHED_ABORTED,
+        status="finished",
         is_finished=lambda: True,
     )
     queue.s = SimpleNamespace(requests={"r0": request})
