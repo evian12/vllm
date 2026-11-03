@@ -4,13 +4,12 @@
 set -Eeuo pipefail
 
 ROOT="$HOME/CDB-AV"
-VLLM_DIR="$ROOT/vllm"
+VLLM_DIR="$ROOT/cdb-av-512-test"
 CLIENT="$ROOT/cdb_av_stepper_patch/stress_waiting.py"
 TARGET="/disk14T/yypan/models/Qwen3-8B"
 DRAFT="/disk14T/yypan/models/Qwen3-1.7B"
-BRANCH="cdb-av-complete-runtime-20261103"
-GPU=3
-PORT=18082
+GPU="${CDB_AV_512_GPU:-1}"
+PORT="${CDB_AV_512_PORT:-18083}"
 N_REQUESTS=512
 CONCURRENCY=16
 MAX_TOKENS=128
@@ -66,20 +65,19 @@ cd "$VLLM_DIR"
 grep -q '"cdb_draft_k": 8' "$CLIENT" \
   || die "stress_waiting.py must send vllm_xargs.cdb_draft_k=8"
 
-if [[ -n "$(git status --porcelain)" ]]; then
-  git status --short
-  die "Working tree is not clean; commit/stash local changes before switching branches."
-fi
+# This extracted source tree is not a Git worktree. Never fetch, switch
+# branches, or inspect/modify the original ~/CDB-AV/vllm checkout.
+[[ -f "$VLLM_DIR/vllm/__init__.py" ]] || die "Missing isolated vLLM source: $VLLM_DIR"
+[[ "$VLLM_DIR" == "$ROOT/cdb-av-512-test" ]] || die "Unexpected VLLM_DIR: $VLLM_DIR"
 
-git fetch https://github.com/evian12/vllm.git "$BRANCH"
-if git show-ref --verify --quiet "refs/heads/$BRANCH"; then
-  git switch "$BRANCH"
-  git merge --ff-only FETCH_HEAD
-else
-  git switch -c "$BRANCH" FETCH_HEAD
+# Require an otherwise idle GPU for the independent Qwen3-8B + Qwen3-1.7B run.
+GPU_USED_MIB="$(nvidia-smi --id="$GPU" --query-gpu=memory.used --format=csv,noheader,nounits | tr -d ' ')"
+[[ "$GPU_USED_MIB" =~ ^[0-9]+$ ]] || die "Cannot read memory usage for GPU $GPU"
+(( GPU_USED_MIB <= 2048 )) || die "GPU $GPU already has ${GPU_USED_MIB} MiB allocated; refusing to start another model"
+
+if [[ -n "$(port_pid)" ]]; then
+  die "Port $PORT is already occupied by PID $(port_pid); refusing to stop or replace any existing service."
 fi
-[[ "$(git branch --show-current)" == "$BRANCH" ]] \
-  || die "Failed to switch to $BRANCH"
 
 python -m compileall -q \
   vllm/v1/core/sched/scheduler.py \
@@ -93,8 +91,9 @@ python -m compileall -q \
 mkdir -p "$RUN_DIR"
 {
   echo "timestamp=$STAMP"
-  echo "branch=$BRANCH"
-  echo "git_commit=$(git rev-parse HEAD)"
+  echo "source_branch=cdb-av-complete-runtime-20261103"
+  echo "source_commit=4a8500ab6799ae3f8f10931df9596e7fa78f8118"
+  echo "source_dir=$VLLM_DIR"
   echo "gpu=$GPU"
   echo "port=$PORT"
   echo "target=$TARGET"
@@ -104,11 +103,12 @@ mkdir -p "$RUN_DIR"
   echo "max_tokens=$MAX_TOKENS"
   echo "repeats=$REPEATS"
   echo "H=8"
+  echo "initial_admit=3"
   echo "K_max=8"
   echo "K_policy=hf_confidence"
   echo "HF_threshold=0.4"
   echo "KV_reuse=1"
-  python -c 'import vllm; print("vllm_version=" + vllm.__version__); print("vllm_file=" + vllm.__file__)'
+  python -c 'import importlib.metadata as m, vllm; print("vllm_version=" + m.version("vllm")); print("vllm_file=" + str(vllm.__file__))'
 } | tee "$RUN_DIR/run_config.txt"
 
 python "$CLIENT" \
@@ -170,6 +170,7 @@ start_server() {
     CDB_AV_WORK_QUEUE=1 \
     CDB_AV_KV_REUSE=1 \
     CDB_AV_INTRA_WINDOW=1 \
+    CDB_AV_INITIAL_ADMIT=3 \
     CDB_AV_ALLOW_FRESH_WAITING=0 \
     CDB_P1_VIRTUAL_H=0 \
     CDB_AV_TRACE_STEPS="$trace" \
@@ -232,6 +233,8 @@ path = Path(sys.argv[1])
 caps, actuals = set(), set()
 reasons = Counter()
 records = 0
+low_confidence_stops = 0
+sub_cap_observations = 0
 for line in path.read_text().splitlines():
     marker = "[CDB_HF_CONF]"
     if marker not in line:
@@ -244,16 +247,28 @@ for line in path.read_text().splitlines():
     records += 1
     caps.update(int(v) for v in event.get("K_cap", {}).values())
     actuals.update(int(v) for v in event.get("K_actual", {}).values())
-    reasons.update(event.get("stop_reasons", {}).values())
+    event_reasons = list(event.get("stop_reasons", {}).values())
+    reasons.update(event_reasons)
+    low_confidence_stops += sum(reason == "low_confidence" for reason in event_reasons)
+    sub_cap_observations += sum(
+        int(value) < 8 for value in event.get("K_actual", {}).values()
+    )
 
 print(f"[HF-K] records={records}, K_cap={sorted(caps)}, "
-      f"K_actual={sorted(actuals)}, stop_reasons={dict(reasons)}")
+      f"K_actual={sorted(actuals)}, stop_reasons={dict(reasons)}, "
+      f"low_confidence_stops={low_confidence_stops}, "
+      f"sub_cap_observations={sub_cap_observations}")
 if records == 0:
     raise SystemExit("No CDB_HF_CONF telemetry; dynamic K was not verified.")
 if caps != {8}:
     raise SystemExit(f"Expected every request to use K_cap=8, observed {caps}")
 if not actuals or any(k < 1 or k > 8 for k in actuals):
     raise SystemExit(f"Invalid actual Draft K values: {actuals}")
+if low_confidence_stops == 0 or sub_cap_observations == 0:
+    raise SystemExit(
+        "HF dynamic stopping was not demonstrated: expected at least one "
+        "low_confidence stop and one K_actual < K_cap observation."
+    )
 PY
 echo "CDB_HF_CONF records: $(wc -l < "$RUN_DIR/hf_confidence_trace.log")"
 stop_server
