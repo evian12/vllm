@@ -615,6 +615,7 @@ class PersistentDraftQueue:
             self.replayed.clear()
 
         self._cdb_admit_limit = None
+        self._cdb_admit_token_limit = None
         self._p3_window_open = False
         self._p3_steps = 0
         self._p3_done = True
