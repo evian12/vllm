@@ -210,8 +210,11 @@ class ReuseDraftSession(PersistentDraftSession):
 
     def _prepare_legacy(self, plans, requests):
         """Prepare all members with one packed Prefill forward."""
-        if len(self.members) + len(plans) > self.capacity:
-            raise RuntimeError("P2 member capacity exceeded")
+        occupied = len(self.active) + len(
+            getattr(self, 'pending_prefill', ())
+        )
+        if occupied + len(plans) > self.capacity:
+            raise RuntimeError("P2 active capacity exceeded")
 
         staged = []
         entries = []
@@ -486,8 +489,11 @@ class ReuseDraftSession(PersistentDraftSession):
         return {"prepared": [p["req_id"] for p in plans]}
 
     def _prepare_mixed(self, plans, requests):
-        if len(self.members) + len(plans) > self.capacity:
-            raise RuntimeError("P2 member capacity exceeded")
+        occupied = len(self.active) + len(
+            getattr(self, 'pending_prefill', ())
+        )
+        if occupied + len(plans) > self.capacity:
+            raise RuntimeError("P2 active capacity exceeded")
         if not hasattr(self, 'pending_prefill'):
             raise RuntimeError("Mixed Prefill queue is not initialized")
         if self.pending_prefill:
@@ -737,6 +743,9 @@ class ReuseDraftQueue(PersistentDraftQueue):
     def plans(self):
         plans=[];pool=self.s.kv_cache_manager.block_pool
         for req in self.s.running:
+            if (self._cdb_admit_limit is not None
+                    and len(plans) >= self._cdb_admit_limit):
+                break
             rid=req.request_id
             if (rid in self.leases or rid in self.ready or rid in self.inflight or req.status!=RequestStatus.RUNNING
                     or req.is_finished() or not req.num_output_tokens or req.spec_token_ids

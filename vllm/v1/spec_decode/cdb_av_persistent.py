@@ -65,8 +65,11 @@ class PersistentDraftSession(RefillSession):
         return {'opened': True}
 
     def prepare(self, plans, requests):
-        if len(self.members) + len(plans) > self.capacity:
-            raise RuntimeError('P2 member capacity exceeded')
+        occupied = len(self.active) + len(
+            getattr(self, 'pending_prefill', ())
+        )
+        if occupied + len(plans) > self.capacity:
+            raise RuntimeError('P2 active capacity exceeded')
         for plan in plans:
             rid, prefix = plan['req_id'], plan['prefix']
             state = requests[rid]
@@ -190,6 +193,39 @@ class PersistentDraftSession(RefillSession):
         self.active = [r for r in self.active if r not in ids]
         return {'dropped': ids}
 
+    def reset(self):
+        """Synchronously discard all persistent Draft state."""
+        ids = set(self.members)
+        ids.update(self.suspended)
+        ids.update(self.kv_snapshots)
+        ids.update(self.active)
+        ids.update(getattr(self, 'cached', {}).keys())
+        ids = sorted(ids)
+
+        # Synchronize CUDA before discarding Worker ownership.
+        ack = self.drop(ids)
+        if ack['dropped'] != ids:
+            raise RuntimeError('P2 Worker reset acknowledgement mismatch')
+
+        self.pending_prefill.clear()
+        self.ready_records.clear()
+        if hasattr(self, 'history'):
+            self.history.clear()
+
+        self.steps_completed = 0
+        self.done = False
+
+        emit('p2_worker_reset', dropped=ids, window=self.window,
+             target_epoch=self.target_epoch)
+
+        return {
+            'reset': True,
+            'dropped': ids,
+            'window': self.window,
+            'target_epoch': self.target_epoch,
+        }
+
+
 def worker_rpc(runner, operation, payload):
     session = getattr(runner, '_cdb_persistent_session', None)
     if session is None:
@@ -210,6 +246,8 @@ def worker_rpc(runner, operation, payload):
         return session.replay(payload['mapping'])
     if operation == 'p2_drop':
         return session.drop(payload['ids'])
+    if operation == 'p2_reset':
+        return session.reset()
     raise ValueError(operation)
 
 
@@ -250,6 +288,122 @@ class PersistentDraftQueue:
         self.carry.pop(rid, None)
         emit('p2_lease_release', window=self.window, req_id=rid, reason=reason,
              live_leases=len(self.leases), blocks=[b.block_id for b in blocks])
+
+    def reset(self):
+        """Reset persistent Draft state with ownership-safe cleanup."""
+
+        pool = self.s.kv_cache_manager.block_pool
+
+        # Phase 1: Preflight every CPU-owned allocation.
+        # No Worker or CPU ownership state is modified in this phase.
+        owned = []
+        seen = {}
+
+        mappings = [
+            ("leases", self.leases),
+            ("cached_leases", getattr(self, "cached_leases", {})),
+            ("audit_leases", getattr(self, "audit_leases", {})),
+        ]
+
+        groups = []
+        for name, mapping in mappings:
+            for rid, blocks in mapping.items():
+                groups.append((name, rid, blocks))
+
+        replay_blocks = getattr(self, "replay_blocks", [])
+        if replay_blocks:
+            groups.append(("replay_blocks", "temporary", replay_blocks))
+
+        for index, blocks in enumerate(
+            getattr(self, "pending_allocations", [])
+        ):
+            groups.append(("pending_allocations", index, blocks))
+
+        for category, owner, blocks in groups:
+            for block in blocks:
+                bid = block.block_id
+
+                if bid in seen:
+                    raise RuntimeError(
+                        f"P2 duplicate KV ownership: block={bid}, "
+                        f"first={seen[bid]}, second={(category, owner)}"
+                    )
+
+                if block.is_null or block.ref_cnt != 1:
+                    raise RuntimeError(
+                        f"P2 invalid KV ownership before reset: "
+                        f"category={category}, owner={owner}, "
+                        f"block={bid}, ref_cnt={block.ref_cnt}, "
+                        f"is_null={block.is_null}"
+                    )
+
+                if (
+                    bid < 0
+                    or bid >= len(pool.blocks)
+                    or pool.blocks[bid] is not block
+                ):
+                    raise RuntimeError(
+                        f"P2 stale KV block reference: "
+                        f"category={category}, owner={owner}, block={bid}"
+                    )
+
+                seen[bid] = (category, owner)
+                owned.append(block)
+
+        # Phase 2: Synchronize and reset Worker state.
+        # CPU ownership remains intact until Worker acknowledges.
+        ack = self.rpc("reset", {})
+
+        if not ack.get("reset"):
+            raise RuntimeError("P2 Worker reset failed")
+
+        # Phase 3: Release all validated blocks exactly once.
+        if owned:
+            pool.free_blocks(owned)
+
+        # Phase 4: Clear CPU-side ownership records.
+        for _, mapping in mappings:
+            mapping.clear()
+
+        self.contexts.clear()
+        self.carry.clear()
+        self.ready.clear()
+        self.inflight.clear()
+
+        if hasattr(self, "replay_blocks"):
+            self.replay_blocks.clear()
+
+        if hasattr(self, "pending_allocations"):
+            self.pending_allocations.clear()
+
+        if hasattr(self, "commits"):
+            self.commits.clear()
+
+        if hasattr(self, "history_pages"):
+            self.history_pages.clear()
+
+        if hasattr(self, "replayed"):
+            self.replayed.clear()
+
+        self._cdb_admit_limit = None
+        self._p3_window_open = False
+        self._p3_steps = 0
+        self._p3_done = True
+
+        emit(
+            "p2_reset",
+            window=self.window,
+            target_epoch=self.target_epoch,
+            released_blocks=len(owned),
+            live_leases=len(self.leases),
+            ready=len(self.ready),
+            inflight=len(self.inflight),
+        )
+
+        return {
+            "reset": True,
+            "released_blocks": len(owned),
+        }
 
     def reconcile(self):
         invalid = []
@@ -405,7 +559,7 @@ class PersistentDraftQueue:
         return True
 
     def advance_one_step(self):
-        """Run at most one Draft Forward, preserving existing Carry checks."""
+        """Execute one Draft step and refill newly available Active slots."""
         if not getattr(self, '_p3_window_open', False):
             raise RuntimeError('P3 step outside open window')
         if self._p3_done or self._p3_steps >= self.horizon:
@@ -413,13 +567,61 @@ class PersistentDraftQueue:
         if not self.leases:
             self._p3_done = True
             return False
+
         status = self.rpc('step')
         self._p3_steps += 1
+
         for rid, progress in status['progress'].items():
             previous = self.carry.get(rid, {}).get('progress', 0)
             if progress < previous:
                 raise RuntimeError('P2 progress regressed')
-        self._p3_done = not bool(status['active_req_ids'])
+
+        admitted = []
+
+        # READY requests have already left Worker active.
+        # Their KV leases remain owned until boundary handoff.
+        #
+        # Admit only Target-confirmed requests. plans() enforces:
+        # num_output_tokens > 0 and num_computed_tokens == num_tokens - 1.
+        # Do not admit after the final Draft step of this window.
+        intra = os.getenv('CDB_AV_INTRA_WINDOW', '0') == '1'
+
+        if intra and self._p3_steps < self.horizon:
+            slots = max(0, int(status.get('slots', 0)))
+
+            if slots:
+                self._cdb_admit_limit = slots
+                try:
+                    plans = self.plans()
+                finally:
+                    self._cdb_admit_limit = None
+
+                if plans:
+                    ack = self.rpc('prepare', {'plans': plans})
+                    expected = [p['req_id'] for p in plans]
+
+                    if ack['prepared'] != expected:
+                        raise RuntimeError(
+                            'P2 intra-window preparation acknowledgement mismatch'
+                        )
+
+                    admitted = expected
+
+                    emit(
+                        'p2_intra_admit',
+                        window=self.window,
+                        after_step=self._p3_steps,
+                        slots=slots,
+                        req_ids=admitted,
+                    )
+
+        # Newly prepared mixed Prefill rows are pending Worker work.
+        # They must execute in the NEXT Draft step.
+        self._p3_done = (
+            not bool(status['active_req_ids'])
+            and not bool(admitted)
+        )
+
         return True
 
     def finish_window(self):
