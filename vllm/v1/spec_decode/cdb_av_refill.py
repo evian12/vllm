@@ -302,18 +302,22 @@ class RefillSession:
             if logits.ndim != 2 or logits.shape[0] != len(worked):
                 raise RuntimeError('Draft logits/request alignment mismatch')
 
-            tokens = logits.argmax(-1)
-            token_values = tokens.tolist()
             confidence_values = None
             if self.policy == 'hf_confidence':
-                confidence = logits.float().log_softmax(-1).gather(
-                    1, tokens[:, None]
-                ).exp().squeeze(1)
+                # The confidence of the greedy token is exp(max(logits) -
+                # logsumexp(logits)). Avoid materializing a full log_softmax
+                # tensor for every vocabulary row.
+                logits_fp32 = logits.float()
+                max_logits, tokens = logits_fp32.max(dim=-1)
+                log_normalizer = torch.logsumexp(logits_fp32, dim=-1)
+                confidence = (max_logits - log_normalizer).exp()
                 # One batched D2H transfer for all confidences; avoid per-request .item() sync.
                 confidence_values = confidence.detach().cpu().tolist()
                 stops = confidence_stop_flags(confidence_values, self.threshold)
             else:
+                tokens = logits.argmax(-1)
                 stops = [False] * len(worked)
+            token_values = tokens.tolist()
 
             k_caps = {}
             k_actual = {}
