@@ -431,6 +431,19 @@ class Scheduler(SchedulerInterface):
                     request, num_new_tokens
                 )
 
+            # CDB Ready requests are verified atomically. Native speculative
+            # scheduling may otherwise trim spec_token_ids to the remaining
+            # token budget, which would silently turn one verification into a
+            # partial verification and invalidate the Ready handoff.
+            p2 = getattr(self, "_cdb_p2", None)
+            if (
+                p2 is not None
+                and p2.is_target_selected(request.request_id)
+                and not p2.can_schedule_verify(request, num_new_tokens)
+            ):
+                req_index += 1
+                continue
+
             if num_new_tokens == 0:
                 # The request cannot be scheduled because one of the following
                 # reasons:
@@ -465,13 +478,14 @@ class Scheduler(SchedulerInterface):
                     # The request cannot be scheduled. Frozen CDB Carry
                     # requests are not Target-executable and must never be
                     # selected as preemption victims.
-                    frozen_ids = (
-                        self._cdb_p2.frozen
+                    protected_ids = (
+                        self._cdb_p2.preempt_protected
                         if getattr(self, "_cdb_p2", None) is not None
                         else set()
                     )
                     preemptible = [
-                        r for r in self.running if r.request_id not in frozen_ids
+                        r for r in self.running
+                        if r.request_id not in protected_ids
                     ]
                     if not preemptible:
                         break
