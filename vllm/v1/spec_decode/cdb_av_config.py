@@ -241,6 +241,22 @@ def can_admit_prefill_tokens(
 
 
 
+def validate_worker_reset_ids(expected_ids, reported_ids) -> None:
+    """Require Worker reset ACKs to cover exactly the CPU-owned Worker IDs."""
+    expected = set(expected_ids)
+    reported = list(reported_ids)
+    reported_set = set(reported)
+    if len(reported_set) != len(reported):
+        raise ValueError("Worker reset acknowledgement contains duplicate IDs")
+    if reported_set != expected:
+        missing = sorted(expected - reported_set)
+        unexpected = sorted(reported_set - expected)
+        raise ValueError(
+            "Worker reset membership mismatch: "
+            f"missing={missing}, unexpected={unexpected}"
+        )
+
+
 def validate_draft_worker_status(
     lease_ids,
     active_ids,

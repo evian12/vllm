@@ -632,6 +632,21 @@ class PersistentDraftQueue:
         if not ack.get("reset"):
             raise RuntimeError("P2 Worker reset failed")
 
+        expected_worker_ids = set(self.leases) | set(
+            getattr(self, "cached_leases", {})
+        )
+        from vllm.v1.spec_decode.cdb_av_config import (
+            validate_worker_reset_ids,
+        )
+        try:
+            validate_worker_reset_ids(
+                expected_worker_ids, ack.get("dropped", [])
+            )
+        except ValueError as exc:
+            raise RuntimeError(
+                "P2 Worker reset membership mismatch; preserving CPU KV ownership"
+            ) from exc
+
         # Phase 3: Release all validated blocks exactly once.
         if owned:
             pool.free_blocks(owned)

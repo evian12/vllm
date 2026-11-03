@@ -33,6 +33,7 @@ can_admit_prefill_tokens = _config.can_admit_prefill_tokens
 can_verify_ready_tokens = _config.can_verify_ready_tokens
 validate_draft_worker_status = _config.validate_draft_worker_status
 validate_server_k_cap = _config.validate_server_k_cap
+validate_worker_reset_ids = _config.validate_worker_reset_ids
 
 
 def test_default_window_is_fixed_and_configurable(monkeypatch):
@@ -317,3 +318,23 @@ def test_atomic_ready_verification_rejects_invalid_budgets(
 ):
     with pytest.raises(ValueError):
         can_verify_ready_tokens(k_cap, target_token_budget)
+
+
+
+def test_worker_reset_ack_must_match_cpu_owned_ids():
+    validate_worker_reset_ids({"a", "b"}, ["b", "a"])
+
+
+@pytest.mark.parametrize(
+    ("expected", "reported", "message"),
+    [
+        ({"a", "b"}, ["a"], "missing"),
+        ({"a"}, ["a", "orphan"], "unexpected"),
+        ({"a"}, ["a", "a"], "duplicate"),
+    ],
+)
+def test_worker_reset_ack_rejects_ownership_mismatch(
+    expected, reported, message
+):
+    with pytest.raises(ValueError, match=message):
+        validate_worker_reset_ids(expected, reported)
