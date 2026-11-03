@@ -361,10 +361,19 @@ class Scheduler(SchedulerInterface):
         # For logging.
         scheduled_timestamp = time.monotonic()
 
-        # First, schedule the RUNNING requests.
+        # First, schedule the RUNNING requests. CDB Ready candidates are
+        # prioritized so a completed Draft request does not wait behind
+        # unrelated decode work before Target verification.
+        p2 = getattr(self, "_cdb_p2", None)
+        running_reqs = list(self.running)
+        if p2 is not None and p2.ready:
+            ready_ids = p2.ready.keys()
+            running_reqs.sort(
+                key=lambda req: req.request_id not in ready_ids
+            )
         req_index = 0
-        while req_index < len(self.running) and token_budget > 0:
-            request = self.running[req_index]
+        while req_index < len(running_reqs) and token_budget > 0:
+            request = running_reqs[req_index]
             p2 = getattr(self, "_cdb_p2", None)
             if p2 is not None and request.request_id in p2.frozen:
                 req_index += 1
