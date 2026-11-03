@@ -417,8 +417,8 @@ class PersistentDraftQueue:
         """All P2-owned/in-flight requests whose state must survive preemption."""
         return set(self.leases) | set(self.ready) | set(self.inflight)
 
-    def begin_target_schedule(self):
-        """Select published Ready work, including backlog from earlier windows.
+    def begin_target_schedule(self, token_budget=None):
+        """Select published Ready work within Target request/token capacity.
 
         Current-window members are still protected by self.leases and are not
         published to self.ready before H. An open Draft window must therefore
@@ -440,6 +440,11 @@ class PersistentDraftQueue:
             ready_ids,
             occupied,
             self.s.max_num_running_reqs,
+            ready_token_costs={
+                rid: len(record["tokens"]) + 1
+                for rid, record in self.ready.items()
+            },
+            token_budget=token_budget,
         )
         eligible_ready_ids = {
             req.request_id
@@ -456,7 +461,8 @@ class PersistentDraftQueue:
             non_ready_running=len(non_ready_running),
             ready_queue=len(ready_ids),
             selected=selected,
-            deferred=sorted(ready_ids - set(selected)),
+            deferred=sorted(set(ready_ids) - set(selected)),
+            token_budget=token_budget,
         )
 
     def can_schedule_verify(self, request, num_new_tokens):
