@@ -57,7 +57,14 @@ class RefillQueue:
                     or req.num_output_tokens != 0 or req.has_encoder_inputs
                     or req.lora_request is not None or params is None
                     or params.temperature != 0 or req.structured_output_request is not None
-                    or req.prompt_token_ids is None or params.prompt_logprobs is not None):
+                    or params.prompt_logprobs is not None):
+                continue
+            from vllm.v1.spec_decode.cdb_av_config import (
+                get_token_only_input_unsupported_reason,
+            )
+            if get_token_only_input_unsupported_reason(
+                req.prompt_token_ids, req.prompt_embeds, req.mm_features
+            ) is not None:
                 continue
             from vllm.v1.spec_decode.cdb_av_config import get_request_k_cap
             cap = get_request_k_cap(params.extra_args, self.s.num_spec_tokens)

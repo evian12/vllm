@@ -92,6 +92,11 @@ overlap formal Target ownership. At H:
 - Shutdown preflights all CPU-owned blocks, requires the Worker reset ACK to
   match the exact active/cached request-ID set, and only then frees the pages.
 
+The persistent token-only Draft path skips requests with encoder inputs,
+multimodal features, prompt embeddings, LoRA, structured output, prompt
+logprobs, or non-greedy sampling. Those requests continue through native
+Target-only generation.
+
 Failed intra-window admission rolls back staged Worker members and CPU leases.
 Shutdown releases persistent Worker state and CPU-owned leases.
 

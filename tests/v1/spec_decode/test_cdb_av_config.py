@@ -37,6 +37,7 @@ validate_draft_step_status = _config.validate_draft_step_status
 validate_server_k_cap = _config.validate_server_k_cap
 validate_worker_reset_ids = _config.validate_worker_reset_ids
 validate_verification_commit = _config.validate_verification_commit
+get_token_only_input_unsupported_reason = _config.get_token_only_input_unsupported_reason
 validate_exclusive_kv_ownership = _config.validate_exclusive_kv_ownership
 
 
@@ -489,3 +490,26 @@ def test_live_request_rejects_invalid_verification_prefix(drafts, generated):
         validate_verification_commit(
             {"tokens": [11, 12]}, False, drafts, generated
         )
+
+
+
+def test_token_only_input_accepts_text_request():
+    assert get_token_only_input_unsupported_reason(
+        [1, 2, 3], None, []
+    ) is None
+
+
+@pytest.mark.parametrize(
+    ("prompt_token_ids", "prompt_embeds", "mm_features", "expected"),
+    [
+        (None, None, [], "missing_prompt_token_ids"),
+        ([1, 2], object(), [], "prompt_embeds"),
+        ([1, 2], None, [object()], "multimodal_inputs"),
+    ],
+)
+def test_token_only_input_skips_unsupported_request_types(
+    prompt_token_ids, prompt_embeds, mm_features, expected
+):
+    assert get_token_only_input_unsupported_reason(
+        prompt_token_ids, prompt_embeds, mm_features
+    ) == expected

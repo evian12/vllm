@@ -533,6 +533,16 @@ class PersistentDraftQueue:
             return "missing_sampling_params"
         if params.temperature != 0:
             return "non_greedy_sampling"
+        from vllm.v1.spec_decode.cdb_av_config import (
+            get_token_only_input_unsupported_reason,
+        )
+        token_input_reason = get_token_only_input_unsupported_reason(
+            req.prompt_token_ids,
+            req.prompt_embeds,
+            req.mm_features,
+        )
+        if token_input_reason is not None:
+            return token_input_reason
         if req.has_encoder_inputs:
             return "encoder_inputs"
         if req.lora_request is not None:

@@ -310,6 +310,19 @@ def validate_draft_step_status(
             )
 
 
+def get_token_only_input_unsupported_reason(
+    prompt_token_ids, prompt_embeds, mm_features
+) -> str | None:
+    """Return why a request cannot use the token-only Draft runtime."""
+    if prompt_token_ids is None:
+        return "missing_prompt_token_ids"
+    if prompt_embeds is not None:
+        return "prompt_embeds"
+    if mm_features:
+        return "multimodal_inputs"
+    return None
+
+
 def validate_verification_commit(
     record, request_finished: bool, drafts, generated
 ) -> int | None:
