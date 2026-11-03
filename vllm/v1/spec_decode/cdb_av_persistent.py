@@ -993,27 +993,63 @@ class PersistentDraftQueue:
             )
 
         result = self.rpc("boundary")
-        self.carry = result["carry"]
-        for record in result["records"]:
+        records = result["records"]
+        record_ids = [record["req_id"] for record in records]
+        ready_ids = set(record_ids)
+        carry = result["carry"]
+
+        # Validate the complete Worker boundary before publishing any request
+        # or transferring/freeing any CPU-owned KV lease.
+        if len(ready_ids) != len(record_ids):
+            raise RuntimeError("P2 Worker boundary contains duplicate Ready IDs")
+        if ready_ids.intersection(self.ready) or ready_ids - set(self.leases):
+            raise RuntimeError("P2 duplicate/unowned Ready")
+        if set(carry) != set(self.leases) - ready_ids:
+            raise RuntimeError("P2 Worker Carry/Ready partition mismatch")
+
+        for record in records:
             rid = record["req_id"]
-            if rid in self.ready or rid not in self.leases:
-                raise RuntimeError("P2 duplicate/unowned Ready")
-            if self.contexts[rid]["context"] != {
+            context = self.contexts.get(rid)
+            if context is None or context["context"] != {
                 "context_tokens": record["context_tokens"],
                 "fingerprint": record["fingerprint"],
             }:
                 raise RuntimeError("P2 handoff provenance mismatch")
+            if record["window"] != self.window:
+                raise RuntimeError("P2 Ready record belongs to a stale window")
+            tokens = record["tokens"]
+            if not 1 <= len(tokens) <= self.max_k or record["ready_at"] is None:
+                raise RuntimeError("P2 Worker returned an invalid Ready record")
+            if any(
+                block.ref_cnt != 1 or block.is_null
+                for block in self.leases[rid]
+            ):
+                raise RuntimeError("P2 Ready lease ownership lost at boundary")
+            if rid in getattr(self, "cached_leases", {}):
+                raise RuntimeError("P2 Ready request already has a cached lease")
 
-            self.ready[rid] = record
-            self.release(rid, "ready_acknowledged")
+        # Publish the entire Ready batch atomically to the Scheduler. This is
+        # one CPU-side handoff; Target still verifies each request in a single
+        # later forward, subject to its running/token capacity.
+        if records:
             self.s.update_draft_token_ids(
                 DraftTokenIds(
-                    [rid],
-                    [record["tokens"]],
-                    source_context_tokens=[record["context_tokens"]],
-                    context_fingerprints=[record["fingerprint"]],
+                    record_ids,
+                    [list(record["tokens"]) for record in records],
+                    source_context_tokens=[
+                        record["context_tokens"] for record in records
+                    ],
+                    context_fingerprints=[
+                        record["fingerprint"] for record in records
+                    ],
                 )
             )
+
+        self.carry = carry
+        for record in records:
+            self.ready[record["req_id"]] = record
+        for record in records:
+            self.release(record["req_id"], "ready_acknowledged")
             emit("p2_handoff", **record)
 
         if set(self.carry) != set(self.leases):
