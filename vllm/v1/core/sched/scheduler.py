@@ -398,7 +398,14 @@ class Scheduler(SchedulerInterface):
                 + request.num_output_placeholders
                 - request.num_computed_tokens
             )
-            if 0 < self.scheduler_config.long_prefill_token_threshold < num_new_tokens:
+            p2 = getattr(self, "_cdb_p2", None)
+            cdb_target_verify = (
+                p2 is not None and p2.is_target_selected(request.request_id)
+            )
+            if (
+                0 < self.scheduler_config.long_prefill_token_threshold < num_new_tokens
+                and not cdb_target_verify
+            ):
                 num_new_tokens = self.scheduler_config.long_prefill_token_threshold
             num_new_tokens = min(num_new_tokens, token_budget)
 
@@ -430,6 +437,17 @@ class Scheduler(SchedulerInterface):
                 num_new_tokens = self._mamba_block_aligned_split(
                     request, num_new_tokens
                 )
+
+            # CDB Ready requests are verified atomically. Native speculative
+            # scheduling may otherwise trim spec_token_ids to the remaining
+            # token budget, which would silently turn one verification into a
+            # partial verification and invalidate the Ready handoff.
+            if (
+                cdb_target_verify
+                and not p2.can_schedule_verify(request, num_new_tokens)
+            ):
+                req_index += 1
+                continue
 
             if num_new_tokens == 0:
                 # The request cannot be scheduled because one of the following
@@ -465,13 +483,14 @@ class Scheduler(SchedulerInterface):
                     # The request cannot be scheduled. Frozen CDB Carry
                     # requests are not Target-executable and must never be
                     # selected as preemption victims.
-                    frozen_ids = (
-                        self._cdb_p2.frozen
+                    protected_ids = (
+                        self._cdb_p2.preempt_protected
                         if getattr(self, "_cdb_p2", None) is not None
                         else set()
                     )
                     preemptible = [
-                        r for r in self.running if r.request_id not in frozen_ids
+                        r for r in self.running
+                        if r.request_id not in protected_ids
                     ]
                     if not preemptible:
                         break

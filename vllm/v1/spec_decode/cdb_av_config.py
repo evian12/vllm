@@ -12,8 +12,9 @@ MAX_WINDOW_H = 64
 def get_window_h() -> int:
     """Return the configured fixed Draft window horizon.
 
-    H is a per-window upper bound, not an adaptive runtime control variable.
-    It is read from the environment when the EngineCore creates its CDB queue.
+    H is the exact number of Draft scheduling ticks in each window, not an
+    adaptive runtime control variable. It is read once when EngineCore creates
+    its CDB queue.
     """
     raw = os.getenv("CDB_AV_WINDOW_H", str(DEFAULT_WINDOW_H))
     try:
