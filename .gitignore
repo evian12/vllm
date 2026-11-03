@@ -191,7 +191,6 @@ CLAUDE.md
 .claude/
 
 # Codex
-AGENTS.md
 .codex/
 
 # Cursor
@@ -202,6 +201,7 @@ AGENTS.md
 
 # Results
 *.csv
+!**/summary.csv
 
 # Python pickle files
 *.pkl
@@ -238,3 +238,23 @@ ep_kernels_workspace/
 vllm/grpc/vllm_engine_pb2.py
 vllm/grpc/vllm_engine_pb2_grpc.py
 vllm/grpc/vllm_engine_pb2.pyi
+
+# CDB-AV local research material: keep configs and summary JSON in Git.
+/models/
+/datasets/
+/checkpoints/
+*.safetensors
+*.ckpt
+*.gguf
+*.pt
+*.pth
+*.bin
+.env.*
+!.env.example
+/results/**/raw/
+*.log.gz
+*.bak
+*.before_*
+/.cdb_p1_backup_*/
+/p3_state_machine_backup/
+/cdb_*_results
