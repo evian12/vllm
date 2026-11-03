@@ -174,3 +174,26 @@ def select_ready_request_ids(
             if len(selected) == available:
                 break
     return tuple(selected)
+
+
+
+def can_admit_prefill_tokens(
+    planned_tokens: int,
+    request_tokens: int,
+    token_limit: int | None,
+    max_token_budget: int,
+) -> bool:
+    """Check a mixed Draft forward's packed prefill/decode token budget."""
+    values = {
+        "planned_tokens": planned_tokens,
+        "request_tokens": request_tokens,
+        "max_token_budget": max_token_budget,
+    }
+    if token_limit is not None:
+        values["token_limit"] = token_limit
+    for name, value in values.items():
+        if type(value) is not int or value < 0:
+            raise ValueError(f"Invalid {name}: {value!r}")
+    if request_tokens > max_token_budget:
+        return False
+    return token_limit is None or planned_tokens + request_tokens <= token_limit
