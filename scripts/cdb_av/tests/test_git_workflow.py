@@ -33,6 +33,10 @@ class GitWorkflowTests(unittest.TestCase):
         self.assertIsNotNone(workflow.unsafe_path(".env"))
         self.assertIsNotNone(workflow.unsafe_path(".env.production"))
 
+    def test_reject_path_traversal(self):
+        self.assertIsNotNone(workflow.unsafe_path("../secrets.txt"))
+        self.assertIsNotNone(workflow.unsafe_path("/tmp/private.txt"))
+
     def test_allow_reproducibility_files(self):
         for name in ("AGENTS.md", "scripts/cdb_av/run_512_stress.sh",
                      "results/experiment/summary.csv", "results/experiment/summary.json",
