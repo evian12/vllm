@@ -32,6 +32,8 @@ select_ready_request_ids = _config.select_ready_request_ids
 can_admit_prefill_tokens = _config.can_admit_prefill_tokens
 can_verify_ready_tokens = _config.can_verify_ready_tokens
 validate_draft_worker_status = _config.validate_draft_worker_status
+validate_draft_open_ack = _config.validate_draft_open_ack
+validate_draft_step_status = _config.validate_draft_step_status
 validate_server_k_cap = _config.validate_server_k_cap
 validate_worker_reset_ids = _config.validate_worker_reset_ids
 validate_exclusive_kv_ownership = _config.validate_exclusive_kv_ownership
@@ -363,3 +365,83 @@ def test_cdb_kv_ownership_rejects_overlap_and_shared_pages(
 ):
     with pytest.raises(ValueError, match=message):
         validate_exclusive_kv_ownership(states, formal)
+
+
+
+def test_worker_open_ack_matches_window_capacity_and_k():
+    validate_draft_open_ack(
+        {
+            "opened": True,
+            "window": 3,
+            "horizon": 8,
+            "capacity": 4,
+            "max_k": 8,
+        },
+        expected_window=3,
+        horizon=8,
+        capacity=4,
+        max_k=8,
+    )
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("opened", False),
+        ("window", 2),
+        ("horizon", 4),
+        ("capacity", 2),
+        ("max_k", 4),
+    ],
+)
+def test_worker_open_ack_rejects_protocol_mismatch(field, value):
+    ack = {
+        "opened": True,
+        "window": 3,
+        "horizon": 8,
+        "capacity": 4,
+        "max_k": 8,
+    }
+    ack[field] = value
+    with pytest.raises(ValueError, match=field):
+        validate_draft_open_ack(ack, 3, 8, 4, 8)
+
+
+def test_worker_draft_step_status_matches_fixed_h_window():
+    validate_draft_step_status(
+        {
+            "window": 3,
+            "steps_completed": 4,
+            "remaining_steps": 4,
+            "pending": True,
+            "done": False,
+        },
+        expected_window=3,
+        expected_step=4,
+        horizon=8,
+    )
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("window", 2),
+        ("steps_completed", 3),
+        ("remaining_steps", 5),
+        ("pending", False),
+        ("done", True),
+    ],
+)
+def test_worker_draft_step_status_rejects_stale_or_incomplete_state(
+    field, value
+):
+    status = {
+        "window": 3,
+        "steps_completed": 4,
+        "remaining_steps": 4,
+        "pending": True,
+        "done": False,
+    }
+    status[field] = value
+    with pytest.raises(ValueError, match=field):
+        validate_draft_step_status(status, 3, 4, 8)

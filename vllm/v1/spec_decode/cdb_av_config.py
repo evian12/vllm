@@ -262,6 +262,54 @@ def validate_exclusive_kv_ownership(
             )
 
 
+def validate_draft_open_ack(
+    ack, expected_window: int, horizon: int, capacity: int, max_k: int
+) -> None:
+    """Validate the Worker ACK for opening a persistent Draft window."""
+    if not hasattr(ack, "get"):
+        raise ValueError("Worker open ACK must be a mapping")
+    expected = {
+        "opened": True,
+        "window": expected_window,
+        "horizon": horizon,
+        "capacity": capacity,
+        "max_k": max_k,
+    }
+    for key, value in expected.items():
+        if ack.get(key) != value:
+            raise ValueError(
+                f"Worker open ACK mismatch for {key}: "
+                f"expected={value!r}, got={ack.get(key)!r}"
+            )
+
+
+def validate_draft_step_status(
+    status, expected_window: int, expected_step: int, horizon: int
+) -> None:
+    """Validate the Worker response for one fixed-H Draft scheduling step."""
+    if not hasattr(status, "get"):
+        raise ValueError("Worker Draft-step status must be a mapping")
+    if type(expected_window) is not int or expected_window < 1:
+        raise ValueError(f"Invalid expected Draft window: {expected_window!r}")
+    if type(horizon) is not int or not 1 <= horizon <= 64:
+        raise ValueError(f"Invalid Draft horizon: {horizon!r}")
+    if type(expected_step) is not int or not 1 <= expected_step <= horizon:
+        raise ValueError(f"Invalid expected Draft step: {expected_step!r}")
+    expected = {
+        "window": expected_window,
+        "steps_completed": expected_step,
+        "remaining_steps": horizon - expected_step,
+        "pending": True,
+        "done": False,
+    }
+    for key, value in expected.items():
+        if status.get(key) != value:
+            raise ValueError(
+                f"Worker Draft-step status mismatch for {key}: "
+                f"expected={value!r}, got={status.get(key)!r}"
+            )
+
+
 def validate_worker_reset_ids(expected_ids, reported_ids) -> None:
     """Require Worker reset ACKs to cover exactly the CPU-owned Worker IDs."""
     expected = set(expected_ids)
