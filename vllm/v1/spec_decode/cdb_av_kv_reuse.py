@@ -589,6 +589,7 @@ class ReuseDraftSession(PersistentDraftSession):
         return {'prepared': [p['req_id'] for p in plans]}
 
     def prepare(self, plans, requests):
+        self.validate_plan_caps(plans)
         # Keep the byte-level independent audit path unchanged. Production
         # requests without audit leases use the mixed Prefill+Decode path.
         if any(plan.get('audit_blocks') for plan in plans):
