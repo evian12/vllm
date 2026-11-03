@@ -183,6 +183,8 @@ def test_intra_window_refill_continues_after_a_request_becomes_ready(
                 "progress": {"ready-request": 2},
                 "ready_req_ids": ["ready-request"],
                 "active_req_ids": [],
+                "steps_completed": 2,
+                "remaining_steps": 6,
                 "slots": 3,
             }
         if operation == "prepare":
