@@ -426,6 +426,11 @@ class EngineCore:
                 probe["worker_received"],
             )
 
+        if os.getenv("CDB_AV_PERSISTENT", "0") == "1":
+            # Select a bounded Ready subset before native scheduling. All
+            # unselected Ready requests stay frozen in the verification queue.
+            self._cdb_persistent.select_target()
+
         scheduler_output = self.scheduler.schedule()
         if os.getenv("CDB_AV_PERSISTENT", "0") == "1":
             self._cdb_persistent.before_target(scheduler_output)
