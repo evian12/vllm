@@ -173,6 +173,7 @@ def test_intra_window_refill_continues_after_a_request_becomes_ready(
     queue._p3_ready_seen = True
     queue._cdb_admit_limit = None
     queue.carry = {}
+    queue.s = SimpleNamespace(max_num_running_reqs=4)
     calls = []
     plan = {"req_id": "new-request"}
 
