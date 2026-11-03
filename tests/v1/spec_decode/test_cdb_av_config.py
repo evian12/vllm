@@ -29,6 +29,7 @@ get_request_k_cap = _config.get_request_k_cap
 get_window_h = _config.get_window_h
 is_enabled = _config.is_enabled
 select_ready_request_ids = _config.select_ready_request_ids
+can_admit_prefill_tokens = _config.can_admit_prefill_tokens
 
 
 def test_default_window_is_fixed_and_configurable(monkeypatch):
@@ -188,3 +189,27 @@ def test_target_ready_selection_returns_empty_when_ar_uses_capacity():
 def test_target_ready_selection_rejects_invalid_capacity():
     with pytest.raises(ValueError, match="Target running capacity"):
         select_ready_request_ids(["r0"], {"r0"}, set(), -1)
+
+
+
+@pytest.mark.parametrize(
+    ("planned", "request", "limit", "maximum", "expected"),
+    [
+        (0, 8, 8, 8, True),
+        (3, 5, 8, 8, True),
+        (3, 6, 8, 8, False),
+        (0, 9, 9, 8, False),
+        (3, 5, None, 8, True),
+    ],
+)
+def test_mixed_prefill_token_budget(
+    planned, request, limit, maximum, expected
+):
+    assert can_admit_prefill_tokens(
+        planned, request, limit, maximum
+    ) is expected
+
+
+def test_mixed_prefill_token_budget_rejects_negative_values():
+    with pytest.raises(ValueError, match="request_tokens"):
+        can_admit_prefill_tokens(0, -1, 8, 8)
