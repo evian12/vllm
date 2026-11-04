@@ -132,7 +132,7 @@ class RefillQueue:
                         set(self.ready) | set(self.inflight) |
                         set(self.leases))
             eligible = []
-            rejected = {}
+            rejected: dict[str, str] = {}
             for req in self.s.running:
                 rid = req.request_id
                 if req.is_finished() or req.status != RequestStatus.RUNNING:
