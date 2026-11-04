@@ -1,0 +1,47 @@
+{
+  "expected_requests_per_run": 512,
+  "repeats": 3,
+  "mean_output_tps": 138.18554370190455,
+  "stdev_output_tps": 1.3882659821122514,
+  "runs": [
+    {
+      "run": 1,
+      "requests_seen": 512,
+      "completed": 512,
+      "failed": 0,
+      "output_tokens": 65536,
+      "wall_time_s": 475.902,
+      "output_tps": 137.70902412681602,
+      "request_tps": 1.0758517509907501,
+      "e2e_p50_s": 15.008563805837184,
+      "e2e_p95_s": 21.423339222883804,
+      "e2e_p99_s": 23.980624752435833
+    },
+    {
+      "run": 2,
+      "requests_seen": 512,
+      "completed": 512,
+      "failed": 0,
+      "output_tokens": 65536,
+      "wall_time_s": 478.022,
+      "output_tps": 137.09829254720495,
+      "request_tps": 1.0710804105250387,
+      "e2e_p50_s": 14.908406144473702,
+      "e2e_p95_s": 21.891114664683116,
+      "e2e_p99_s": 24.172102155219765
+    },
+    {
+      "run": 3,
+      "requests_seen": 512,
+      "completed": 512,
+      "failed": 0,
+      "output_tokens": 65536,
+      "wall_time_s": 468.954,
+      "output_tps": 139.74931443169265,
+      "request_tps": 1.0917915189975989,
+      "e2e_p50_s": 14.647046335507184,
+      "e2e_p95_s": 21.198547605797646,
+      "e2e_p99_s": 23.512026393432166
+    }
+  ]
+}
