@@ -340,7 +340,12 @@ class GPUModelRunner(
         self.scheduler_config = vllm_config.scheduler_config
         self.speculative_config = vllm_config.speculative_config
         self.cdb_varlen = os.environ.get("CDB_AV_VARLEN", "0") == "1"
-        self._cdb_valid_lengths = None
+        self._cdb_valid_lengths: tuple[int, ...] | None = None
+        self._cdb_context_lengths: list[int] | None = None
+        self._cdb_context_fingerprints: list[str] | None = None
+        self._cdb_pending_draft: dict[str, Any] | None = None
+        self._draft_token_ids: torch.Tensor | None = None
+        self._draft_token_req_ids: list[str] | None = None
         self.cdb_refill = os.environ.get("CDB_AV_REFILL", "0") == "1"
         self.cdb_persistent = os.getenv("CDB_AV_PERSISTENT", "0") == "1"
         if self.cdb_persistent and (not self.cdb_refill or
@@ -3966,7 +3971,7 @@ class GPUModelRunner(
                 "steps_completed": session.steps_completed,
             }
 
-        report = self.drafter.draft_one_step(session)
+        report = cast(Any, self.drafter).draft_one_step(session)
 
         result = {
             "pending": True,
@@ -4067,7 +4072,7 @@ class GPUModelRunner(
 
         from vllm.v1.spec_decode.cdb_av_varlen import CDBDraftResult
 
-        result = self.drafter.finalize_draft(session)
+        result = cast(Any, self.drafter).finalize_draft(session)
         if not isinstance(result, CDBDraftResult):
             raise TypeError("Expected CDBDraftResult")
 
@@ -4400,7 +4405,7 @@ class GPUModelRunner(
                     from vllm.v1.spec_decode.cdb_av_refill import RefillSession
                     session = RefillSession(self.drafter, draft_kwargs)
                 else:
-                    session = self.drafter.begin_draft(**draft_kwargs)
+                    session = cast(Any, self.drafter).begin_draft(**draft_kwargs)
                 self._cdb_pending_draft = {
                     "session": session,
                     "scheduler_output": scheduler_output,
