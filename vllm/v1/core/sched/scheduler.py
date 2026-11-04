@@ -886,7 +886,49 @@ class Scheduler(SchedulerInterface):
         target_running_count = sum(
             req.request_id not in frozen_ids for req in self.running
         )
-        assert target_running_count <= self.max_num_running_reqs
+        if target_running_count > self.max_num_running_reqs:
+            # CDB-AV temporarily excludes Draft/Ready-owned requests from
+            # Target capacity accounting. Preserve the invariant, but include
+            # the complete ownership snapshot so a failure is actionable
+            # instead of surfacing as an opaque AssertionError.
+            running_ids = [req.request_id for req in self.running]
+            running_counts = {}
+            for request_id in running_ids:
+                running_counts[request_id] = running_counts.get(request_id, 0) + 1
+            duplicate_running_ids = {
+                request_id: count
+                for request_id, count in running_counts.items()
+                if count > 1
+            }
+            p2 = getattr(self, "_cdb_p2", None)
+            p2_state = None
+            if p2 is not None:
+                p2_state = {
+                    "leases": sorted(getattr(p2, "leases", {})),
+                    "ready": sorted(getattr(p2, "ready", {})),
+                    "inflight": sorted(getattr(p2, "inflight", {})),
+                    "selected_ready": sorted(
+                        getattr(p2, "_target_selected_ready", set())
+                    ),
+                    "frozen": sorted(frozen_ids),
+                }
+            running_state = [
+                {
+                    "request_id": req.request_id,
+                    "status": str(req.status),
+                    "finished": req.is_finished(),
+                }
+                for req in self.running
+            ]
+            raise AssertionError(
+                "CDB-AV Target running capacity exceeded: "
+                f"target_running_count={target_running_count}, "
+                f"capacity={self.max_num_running_reqs}, "
+                f"running_len={len(self.running)}, "
+                f"unique_running={len(running_counts)}, "
+                f"duplicate_running_ids={duplicate_running_ids}, "
+                f"running_state={running_state}, p2_state={p2_state}"
+            )
         # Since some requests in the RUNNING queue may not be scheduled in
         # this step, the total number of scheduled requests can be smaller than
         # len(self.running).
