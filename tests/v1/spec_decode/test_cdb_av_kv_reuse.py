@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
 """Focused correctness tests for CDB-AV accepted-prefix KV reuse."""
 
+import pytest
+
 from vllm.v1.spec_decode.cdb_av_fingerprint import token_fingerprint
 from vllm.v1.spec_decode.cdb_av_kv_reuse import (
     reuse_span,
