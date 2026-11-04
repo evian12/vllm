@@ -47,6 +47,7 @@ def make_queue(pool):
     queue.inflight = {}
     queue.history_pages = set()
     queue.replayed = set()
+    queue._audit_cleanup_safe = True
     return queue
 
 
@@ -103,6 +104,7 @@ def test_rpc_retries_audit_cleanup_before_next_worker_operation(monkeypatch):
         "r10": [blocks[0]],
         "r11": [blocks[1]],
     }
+    queue._audit_cleanup_safe = False
     worker_calls = []
 
     def base_rpc(self, operation, payload=None):
@@ -125,6 +127,39 @@ def test_rpc_retries_audit_cleanup_before_next_worker_operation(monkeypatch):
     assert worker_calls == ["prepare", "step"]
     assert queue.audit_leases == {}
     assert [block.ref_cnt for block in blocks] == [0, 0]
+
+
+def test_failed_prepare_drops_worker_before_releasing_audit_pages(monkeypatch):
+    pool = FakeBlockPool()
+    queue = make_queue(pool)
+    block = FakeBlock(15)
+    queue.audit_leases = {"r15": [block]}
+    queue._audit_cleanup_safe = False
+    worker_calls = []
+
+    def base_rpc(self, operation, payload=None):
+        worker_calls.append(operation)
+        if operation == "prepare":
+            raise RuntimeError("simulated prepare failure")
+        return {"dropped": payload["ids"]}
+
+    monkeypatch.setattr(PersistentDraftQueue, "rpc", base_rpc)
+
+    with pytest.raises(RuntimeError, match="simulated prepare failure"):
+        queue.rpc("prepare", {"plans": []})
+
+    assert worker_calls == ["prepare"]
+    assert queue.audit_leases == {"r15": [block]}
+    assert block.ref_cnt == 1
+    assert pool.freed == []
+
+    result = queue.rpc("drop", {"ids": ["r15"]})
+
+    assert result == {"dropped": ["r15"]}
+    assert worker_calls == ["prepare", "drop"]
+    assert queue.audit_leases == {}
+    assert block.ref_cnt == 0
+    assert pool.freed == [15]
 
 
 def test_close_retries_cached_lease_cleanup_without_double_free(monkeypatch):
