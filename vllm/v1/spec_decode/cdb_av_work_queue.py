@@ -27,6 +27,7 @@ class DraftWorkItem:
     status: DraftWorkStatus = DraftWorkStatus.PREPARE_REQUIRED
     source: str = "waiting"
     kv_validated: bool = False
+    fingerprint: str | None = None
 
 
 class CDBDraftWorkQueue:
