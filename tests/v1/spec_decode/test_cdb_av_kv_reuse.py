@@ -2,7 +2,10 @@
 """Focused correctness tests for CDB-AV accepted-prefix KV reuse."""
 
 from vllm.v1.spec_decode.cdb_av_fingerprint import token_fingerprint
-from vllm.v1.spec_decode.cdb_av_kv_reuse import reuse_span
+from vllm.v1.spec_decode.cdb_av_kv_reuse import (
+    reuse_span,
+    reuse_span_diagnostic,
+)
 
 
 def make_certificate(old_prefix, drafts, generated):
@@ -130,4 +133,35 @@ def test_empty_generated_sequence_falls_back():
     assert reuse_span(
         old_prefix + drafts[:-1], old_prefix,
         old_prefix, drafts, certificate,
+    ) == (0, "commit_prefix")
+
+
+
+@pytest.mark.parametrize(
+    ("generated", "prefix", "detail"),
+    [
+        ([], [1, 7], "generated_missing_or_empty"),
+        ([6, 9], [1, 6, 9], "accepted_tokens_differ_from_drafts"),
+        ([7, 8, 9, 10], [1, 7, 8, 9, 10],
+         "accepted_count_out_of_range"),
+        ([7, 9], [1, 7], "target_prefix_shorter_than_certificate"),
+        ([7, 9], [1, 7, 8], "target_prefix_diverged_at_2"),
+    ],
+)
+def test_reuse_diagnostic_identifies_commit_prefix_failure(
+    generated, prefix, detail
+):
+    old_prefix = [1]
+    drafts = [7, 8]
+    cached_inputs = old_prefix + drafts[:-1]
+    certificate = make_certificate(old_prefix, drafts, generated)
+
+    result = reuse_span_diagnostic(
+        cached_inputs, prefix, old_prefix, drafts, certificate
+    )
+
+    assert result == (0, "commit_prefix", detail)
+    # Preserve the established public helper contract.
+    assert reuse_span(
+        cached_inputs, prefix, old_prefix, drafts, certificate
     ) == (0, "commit_prefix")
