@@ -476,7 +476,7 @@ class EngineCore:
         queue = getattr(self.scheduler, "_cdb_refill_queue", None)
         if queue is None:
             queue = RefillQueue(self.scheduler)
-            self.scheduler._cdb_refill_queue = queue
+            setattr(self.scheduler, "_cdb_refill_queue", queue)
         self._cdb_window_id = getattr(self, "_cdb_window_id", 0) + 1
         horizon = int(os.getenv("CDB_AV_WINDOW_H", "8"))
         if not 1 <= horizon <= 64:
@@ -496,7 +496,7 @@ class EngineCore:
                 window=self._cdb_window_id,
                 H=horizon,
                 contexts=contexts,
-                capacity=self.scheduler.max_num_running_reqs,
+                capacity=getattr(self.scheduler, "max_num_running_reqs"),
             ),
         )
         if not configured["pending"]:
@@ -591,7 +591,7 @@ class EngineCore:
                         if os.environ.get("CDB_AV_WORK_QUEUE", "0") == "1":
                             status["window_id"] = window_id
 
-                            work_snapshot = self.scheduler.sync_cdb_work_queue(status)
+                            work_snapshot = getattr(self.scheduler, "sync_cdb_work_queue")(status)
 
                             split_logger.info(
                                 "[CDB_WORK_QUEUE_RETURN] window=%d "
@@ -603,7 +603,7 @@ class EngineCore:
                                 work_snapshot["counts"]["PREPARE_REQUIRED"],
                             )
 
-                        decision = self.scheduler.inspect_cdb_draft_step(
+                        decision = getattr(self.scheduler, "inspect_cdb_draft_step")(
                             status, draft_capacity=capacity
                         )
                         split_logger.info(
@@ -617,7 +617,7 @@ class EngineCore:
                             decision["admitted_req_ids"],
                         )
 
-                        eligibility = self.scheduler.inspect_cdb_draft_candidates(
+                        eligibility = getattr(self.scheduler, "inspect_cdb_draft_candidates")(
                             status,
                             draft_capacity=capacity,
                         )
