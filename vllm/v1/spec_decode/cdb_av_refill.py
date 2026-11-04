@@ -7,6 +7,7 @@ its prompt is prefetched by the independent draft model, never by Target here.
 import json
 import os
 import time
+from collections import Counter
 import torch
 from vllm.config import CUDAGraphMode
 from vllm.forward_context import set_forward_context
@@ -44,7 +45,38 @@ _REFILL_SUMMARY_EVENTS = {
 }
 
 
+_LOW_LOG_COUNTS = Counter()
+_LOW_LOG_K = Counter()
+_LOW_LOG_REASONS = Counter()
+_LOW_LOG_REUSE = Counter()
+
+
 def emit(event, **data):
+    # The opt-in performance mode retains cumulative Worker evidence while
+    # avoiding one JSON log record per Target/Draft step. Detailed mode is
+    # unchanged and remains the default for correctness audits.
+    if (os.getenv('CDB_AV_LOW_LOG', '0') == '1'
+            and os.getenv('CDB_AV_REFILL_TRACE', '0') != '1'):
+        if event in _REFILL_SUMMARY_EVENTS:
+            _LOW_LOG_COUNTS[event] += 1
+            _LOW_LOG_COUNTS['__total__'] += 1
+            if event == 'ready':
+                _LOW_LOG_K[data['k_actual']] += 1
+                _LOW_LOG_REASONS[data['reason']] += 1
+            elif event == 'p2_reuse_plan':
+                _LOW_LOG_REUSE['reused_tokens'] += data['reused_tokens']
+                _LOW_LOG_REUSE['prefill_tokens'] += data['prefill_tokens']
+            elif event == 'p2_verified':
+                _LOW_LOG_REUSE['accepted_tokens'] += data['accepted']
+                _LOW_LOG_REUSE['drafted_tokens'] += len(data['drafts'])
+            if _LOW_LOG_COUNTS['__total__'] % 1024 == 0:
+                logger.info('[CDB_AGG] %s', json.dumps(dict(
+                    events=dict(_LOW_LOG_COUNTS),
+                    k_actual=dict(_LOW_LOG_K),
+                    stop_reasons=dict(_LOW_LOG_REASONS),
+                    token_counts=dict(_LOW_LOG_REUSE),
+                )))
+        return
     # Keep request/verification/reuse summaries available by default, while
     # making high-frequency per-forward and per-step diagnostics opt-in.
     # This preserves the counters needed for performance analysis without
