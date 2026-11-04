@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
 """CDB-AV request-level Draft Work Queue.
 
 Control-plane bookkeeping only.
