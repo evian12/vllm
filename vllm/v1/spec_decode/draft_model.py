@@ -201,6 +201,7 @@ class DraftModelProposer(SpecDecodeBaseProposer):
         device: torch.device,
         runner=None,
     ):
+        self._cdb_active_session: CDBDraftSession | None = None
         super().__init__(
             vllm_config=vllm_config,
             device=device,
