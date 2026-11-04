@@ -158,9 +158,11 @@ class RefillQueue:
             item = self.queue.items.get(rid)
             if item is None or rid not in self.leases:
                 continue  # normal running request managed by Target scheduler
-            if current < item.progress or item.status == DraftWorkStatus.READY:
-                if current != item.progress:
-                    raise RuntimeError("Invalid refill progress or Ready reactivation")
+            if (
+                current != item.progress
+                and (current < item.progress or item.status == DraftWorkStatus.READY)
+            ):
+                raise RuntimeError("Invalid refill progress or Ready reactivation")
             item.progress = current
             if rid in status["ready_req_ids"]:
                 item.status = DraftWorkStatus.READY
@@ -184,7 +186,7 @@ class RefillQueue:
                 | set(self.leases)
             )
             eligible = []
-            rejected: dict[str, str] = {}
+            rejected: dict[str, int] = {}
             for req in self.s.running:
                 rid = req.request_id
                 if req.is_finished() or req.status != RequestStatus.RUNNING:
