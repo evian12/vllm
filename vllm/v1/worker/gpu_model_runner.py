@@ -356,14 +356,20 @@ class GPUModelRunner(
         if self.cdb_varlen:
             if os.environ.get("CDB_AV_STEP_MODE", "0") != "1":
                 raise ValueError("CDB_AV_VARLEN requires CDB_AV_STEP_MODE=1")
+            # Experimental split mode: Target may use its own graph path while
+            # the independent Draft proposer remains eager and unpadded.
+            target_graph = os.environ.get("CDB_AV_TARGET_GRAPH", "0") == "1"
+            eager_draft = (self.model_config.enforce_eager or
+                           (target_graph and self.speculative_config is not None
+                            and self.speculative_config.enforce_eager is True))
             if (not self.speculative_config
                     or not self.speculative_config.uses_draft_model()
-                    or not self.model_config.enforce_eager
+                    or not eager_draft
                     or self.scheduler_config.async_scheduling
                     or self.parallel_config.tensor_parallel_size != 1
                     or self.parallel_config.pipeline_parallel_size != 1
                     or self.parallel_config.data_parallel_size != 1):
-                raise ValueError("CDB varlen requires single-GPU synchronous eager draft_model")
+                raise ValueError("CDB varlen requires single-GPU synchronous eager Draft")
         self.observability_config = vllm_config.observability_config
 
         from vllm.model_executor.models.utils import set_cpu_offload_max_bytes
