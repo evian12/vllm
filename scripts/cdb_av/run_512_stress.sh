@@ -89,14 +89,20 @@ python -m compileall -q \
   vllm/v1/engine/core.py \
   vllm/v1/worker/gpu_model_runner.py \
   vllm/v1/spec_decode/cdb_av_config.py \
+  vllm/v1/spec_decode/cdb_av_refill.py \
   vllm/v1/spec_decode/cdb_av_varlen.py \
   vllm/v1/spec_decode/cdb_av_persistent.py \
   vllm/v1/spec_decode/cdb_av_kv_reuse.py
+
+[[ -f tests/v1/spec_decode/test_cdb_av_kv_reuse.py ]] \
+  || die "Missing CDB-AV KV reuse regression tests in isolated source tree"
+python -m pytest -q tests/v1/spec_decode/test_cdb_av_kv_reuse.py
 
 mkdir -p "$RUN_DIR"
 {
   echo "timestamp=$STAMP"
   echo "source_branch=cdb-av-complete-runtime-20261103"
+  echo "optimization_branch=cdb-av/optimize-kv-reuse-20261104"
   echo "source_commit=4a8500ab6799ae3f8f10931df9596e7fa78f8118"
   echo "source_dir=$VLLM_DIR"
   echo "gpu=$GPU"
