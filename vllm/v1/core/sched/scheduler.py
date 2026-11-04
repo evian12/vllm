@@ -1959,7 +1959,7 @@ class Scheduler(SchedulerInterface):
                     if req is None or req.is_finished():
                         continue
 
-                    official_tokens = list(req.prompt_token_ids) + list(
+                    official_tokens = list(req.prompt_token_ids or []) + list(
                         req.output_token_ids
                     )
                     scheduler_fp = token_fingerprint(official_tokens)
