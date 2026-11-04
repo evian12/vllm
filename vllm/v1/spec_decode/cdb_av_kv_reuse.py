@@ -688,6 +688,32 @@ class ReuseDraftQueue(PersistentDraftQueue):
         self.contexts.pop(rid,None);self.carry.pop(rid,None)
         emit('reuse_lease_park',window=self.window,req_id=rid,blocks=[b.block_id for b in blocks])
 
+    def _free_owned_mapping(self, mapping, owner_kind):
+        """Free independently owned block groups without losing partial progress.
+
+        Each mapping entry is an ownership record. Remove it immediately after
+        its own allocator release succeeds, so a later failure cannot cause an
+        already-released group to be freed again during retry/close.
+        """
+        pool = self.s.kv_cache_manager.block_pool
+        for owner, blocks in list(mapping.items()):
+            if any(block.is_null or block.ref_cnt != 1 for block in blocks):
+                raise RuntimeError(
+                    f"Cleanup lost {owner_kind} KV ownership: owner={owner}"
+                )
+            pool.free_blocks(blocks)
+            mapping.pop(owner)
+            emit(
+                "reuse_owned_blocks_release",
+                owner_kind=owner_kind,
+                owner=str(owner),
+                blocks=[block.block_id for block in blocks],
+            )
+
+    def _release_audit_leases(self):
+        """Retryably release audit allocations after the Worker has consumed them."""
+        self._free_owned_mapping(self.audit_leases, "audit")
+
     def discard_cached(self,ids,reason):
         if not ids:return
         ack=self.rpc('drop',{'ids':ids})
@@ -826,8 +852,13 @@ class ReuseDraftQueue(PersistentDraftQueue):
                 self.replay_blocks=[];self.replayed.update(keys)
         if operation=='prepare':
             # Validation RPC copied comparisons to CPU and synchronized before ACK.
-            for bs in self.audit_leases.values():self.s.kv_cache_manager.block_pool.free_blocks(bs)
-            self.audit_leases.clear()
+            # Release each audit owner independently. If one release fails,
+            # successful earlier releases are already removed from the ledger.
+            self._release_audit_leases()
+        elif self.audit_leases:
+            # A prior post-prepare cleanup may have failed. Do not advance the
+            # Worker state machine until the remaining audit leases are released.
+            self._release_audit_leases()
         return result
 
     def close(self):
@@ -836,11 +867,10 @@ class ReuseDraftQueue(PersistentDraftQueue):
             ack=self.rpc('drop',{'ids':ids})
             if ack['dropped']!=ids:raise RuntimeError('Reuse cleanup acknowledgement mismatch')
         for rid in list(self.leases):super().release(rid,'close')
-        for mapping in (self.cached_leases,self.audit_leases):
-            for bs in mapping.values():
-                if any(b.ref_cnt!=1 for b in bs):raise RuntimeError('Cleanup lost KV ownership')
-                self.s.kv_cache_manager.block_pool.free_blocks(bs)
-            mapping.clear()
+        # Release each owner separately and forget it only after a
+        # successful allocator release. A later failure remains retryable.
+        self._free_owned_mapping(self.cached_leases, "cached")
+        self._free_owned_mapping(self.audit_leases, "audit")
         if self.replay_blocks:
             self.s.kv_cache_manager.block_pool.free_blocks(self.replay_blocks)
             self.replay_blocks=[]
