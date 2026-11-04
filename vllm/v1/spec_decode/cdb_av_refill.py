@@ -22,7 +22,10 @@ logger = init_logger(__name__)
 
 
 def emit(event, **data):
-    if os.getenv('CDB_AV_REFILL_TRACE', '1') == '1':
+    # Detailed per-step tracing is intentionally opt-in. Emitting JSON for
+    # every Draft forward/Ready transition perturbs CPU scheduling and can
+    # dominate short-window workloads.
+    if os.getenv('CDB_AV_REFILL_TRACE', '0') == '1':
         logger.info('[CDB_REFILL] %s', json.dumps(dict(event=event, **data)))
 
 
@@ -317,13 +320,20 @@ class RefillSession:
                 max_logits, tokens = logits_fp32.max(dim=-1)
                 log_normalizer = torch.logsumexp(logits_fp32, dim=-1)
                 confidence = (max_logits - log_normalizer).exp()
-                # One batched D2H transfer for all confidences; avoid per-request .item() sync.
-                confidence_values = confidence.detach().cpu().tolist()
+                # Pack the small per-request result before D2H. A single
+                # synchronization is cheaper than separately materializing
+                # confidence.cpu().tolist() and tokens.tolist().
+                packed = torch.stack(
+                    (tokens.to(torch.float64), confidence.to(torch.float64)),
+                    dim=1,
+                ).cpu().tolist()
+                token_values = [int(row[0]) for row in packed]
+                confidence_values = [float(row[1]) for row in packed]
                 stops = confidence_stop_flags(confidence_values, self.threshold)
             else:
                 tokens = logits.argmax(-1)
+                token_values = tokens.tolist()
                 stops = [False] * len(worked)
-            token_values = tokens.tolist()
 
             k_caps = {}
             k_actual = {}
