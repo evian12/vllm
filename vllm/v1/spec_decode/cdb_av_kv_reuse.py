@@ -7,6 +7,8 @@ required before they can become active again. Rejection invalidates actual slots
 """
 import os
 from collections import Counter
+from typing import Any, cast
+
 import torch
 from vllm.v1.request import RequestStatus
 from vllm.v1.spec_decode.cdb_av_persistent import PersistentDraftQueue, PersistentDraftSession
@@ -41,7 +43,7 @@ class ReuseDraftSession(PersistentDraftSession):
     def __init__(self, proposer):
         super().__init__(proposer)
         self.cached = {}
-        self.counters = Counter()
+        self.counters: Counter[str] = Counter()
         self.history = []
 
     def _forward(self, ids, positions, cad, last_indices, req_ids, phase):
@@ -83,11 +85,11 @@ class ReuseDraftSession(PersistentDraftSession):
             raise RuntimeError('Independent same-shape full-history KV replay mismatch')
         return {'exact':True,'checks':checks}
 
-    def layers(self):
+    def layers(self) -> list[tuple[str, torch.Tensor]]:
         context = self.p.vllm_config.compilation_config.static_forward_context
-        result = []
+        result: list[tuple[str, torch.Tensor]] = []
         for name in self.p.attn_layer_names:
-            kv = context[name].kv_cache[0]
+            kv = cast(torch.Tensor, context[name].kv_cache[0])
             if kv.ndim != 5 or kv.shape[0] != 2:
                 raise ValueError('KV reuse currently requires FLASH_ATTN (2,blocks,slots,heads,dim)')
             result.append((name,kv))
@@ -107,7 +109,7 @@ class ReuseDraftSession(PersistentDraftSession):
         for _,kv in self.layers():
             kv[:,b,off] = 0  # assignment into the real tensor, not a sliced copy
 
-    def values(self, blocks, count):
+    def values(self, blocks, count) -> list[torch.Tensor]:
         b = torch.tensor([blocks[x//self.block_size] for x in range(count)],device=self.p.device)
         off = torch.tensor([x%self.block_size for x in range(count)],device=self.p.device)
         return [kv[:,b,off].contiguous() for _,kv in self.layers()]
@@ -134,7 +136,7 @@ class ReuseDraftSession(PersistentDraftSession):
 
         # Validate the whole packed batch before touching GPU state.
         seen_req_ids = set()
-        block_owners = {}
+        block_owners: dict[int, str] = {}
 
         for prefix, start, end, blocks, rid, phase in entries:
             if rid in seen_req_ids:
@@ -155,7 +157,7 @@ class ReuseDraftSession(PersistentDraftSession):
 
         ids_parts = []
         pos_parts = []
-        slots = []
+        slots: list[int] = []
         block_rows = []
         seqs = []
         qlens = []
@@ -390,7 +392,7 @@ class ReuseDraftSession(PersistentDraftSession):
 
                 actual_kv = self.values(blocks, end)
                 ref = self.values(reference, end)
-                layers = []
+                layers: list[dict[str, Any]] = []
 
                 layer_tensors = self.layers()
                 if not len(layer_tensors) == len(actual_kv) == len(ref):
@@ -671,7 +673,9 @@ class ReuseDraftQueue(PersistentDraftQueue):
     def __init__(self,engine):
         super().__init__(engine)
         self.cached_leases={};self.commits={};self.audit_leases={}
-        self.history_pages=set();self.replayed=set();self.replay_blocks=[]
+        self.history_pages: set[int] = set()
+        self.replayed: set[tuple[int, int]] = set()
+        self.replay_blocks = []
         # Allocations whose rollback failed remain explicitly tracked for close().
         self.pending_allocations=[]
         # Audit pages are releasable only after a successful Prepare ACK or
