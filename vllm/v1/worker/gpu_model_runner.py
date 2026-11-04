@@ -3743,9 +3743,11 @@ class GPUModelRunner(
                             )
                         logger.debug(
                             (
-                                "[CDB_STORAGE] batch_size=%d capacity=%d storage_width=%d"
+                                "[CDB_STORAGE] batch_size=%d capacity=%d "
+                                "storage_width=%d"
                                 if self.cdb_varlen
-                                else "[BATCH-ADAPTIVE-K] batch_size=%d selected_k=%d produced_k=%d"
+                                else "[BATCH-ADAPTIVE-K] batch_size=%d selected_k=%d "
+                                "produced_k=%d"
                             ),
                             len(scheduler_output.num_scheduled_tokens),
                             next_k,
