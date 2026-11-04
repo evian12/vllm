@@ -45,13 +45,14 @@ def test_modes_keep_server_limits_and_isolate_cdb_flags(monkeypatch):
     monkeypatch.setenv("CDB_AV_PERSISTENT", "stale")
     args = SimpleNamespace(
         source=Path("/tmp/source"), gpu=1, port=18084,
-        target="/target", draft="/draft", horizon=8, kv_reuse=1,
+        target="/target", draft="/draft", horizon=8, kv_reuse=1, low_log=1,
     )
     for mode in ("cdb", "native-spec", "ar"):
         args.mode = mode
         env = server_environment(args)
         command = server_command(args)
         assert env["CDB_AV_PERSISTENT"] == ("1" if mode == "cdb" else "0")
+        assert env["CDB_AV_LOW_LOG"] == ("1" if mode == "cdb" else "0")
         assert env["CUDA_VISIBLE_DEVICES"] == "1"
         assert env["VLLM_ATTENTION_BACKEND"] == "FLASH_ATTN"
         assert command[command.index("--max-num-seqs") + 1] == "4"
