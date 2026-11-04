@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
 """P2: exclusive Draft pages, persistent members and real Target boundaries.
 
 The scheduler owns KVCacheBlock objects. The worker owns only Draft contents;
