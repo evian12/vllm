@@ -264,7 +264,9 @@ def propose_varlen_steps(
             progress[original_idx] += 1
             actual_lengths[original_idx] = progress[original_idx]
             cap_reached = progress[original_idx] >= lengths[original_idx]
-            low_confidence = hf_dynamic and bool(stop_flags[local_idx])
+            low_confidence = (
+                bool(stop_flags[local_idx]) if stop_flags is not None else False
+            )
             if cap_reached or low_confidence:
                 completed.append(original_idx)
                 ready.append(original_idx)
@@ -278,7 +280,7 @@ def propose_varlen_steps(
                     dict(ready_at=time.monotonic(), req_ids=[ids[i] for i in completed])
                 ),
             )
-        if trace and hf_dynamic:
+        if trace and hf_dynamic and confidence is not None:
             logger.info(
                 "[CDB_HF_CONF] %s",
                 json.dumps(
