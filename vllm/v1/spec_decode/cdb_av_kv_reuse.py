@@ -24,32 +24,60 @@ from vllm.v1.spec_decode.cdb_av_refill import emit
 from vllm.v1.spec_decode.cdb_av_refill_queue import RefillQueue
 
 
-def reuse_span(cached_inputs, prefix, old_prefix, drafts, certificate):
-    """Return safe input prefix length; invalid provenance means full fallback."""
+def reuse_span_diagnostic(cached_inputs, prefix, old_prefix, drafts, certificate):
+    """Return safe input prefix length and a precise fallback diagnostic."""
+    if certificate is None:
+        return 0, "provenance", "missing_certificate"
     if (
-        certificate is None
-        or certificate["source_fp"] != token_fingerprint(old_prefix)
+        certificate["source_fp"] != token_fingerprint(old_prefix)
         or certificate["drafts"] != drafts
     ):
-        return 0, "provenance"
+        return 0, "provenance", "source_fingerprint_or_drafts_mismatch"
+
     generated = certificate["generated"]
+    if not generated:
+        return 0, "commit_prefix", "generated_missing_or_empty"
+
     accepted = len(generated) - 1
-    if (
-        not 0 <= accepted <= len(drafts)
-        or generated[:accepted] != drafts[:accepted]
-        or prefix != old_prefix + generated
-    ):
-        return 0, "commit_prefix"
+    if not 0 <= accepted <= len(drafts):
+        return 0, "commit_prefix", "accepted_count_out_of_range"
+    if generated[:accepted] != drafts[:accepted]:
+        return 0, "commit_prefix", "accepted_tokens_differ_from_drafts"
+
+    # Target may have appended ordinary AR tokens after the certified commit.
+    # Only the prefix covered by the commit certificate must match exactly.
+    certified_prefix = old_prefix + generated
+    if len(prefix) < len(certified_prefix):
+        return 0, "commit_prefix", "target_prefix_shorter_than_certificate"
+    if prefix[: len(certified_prefix)] != certified_prefix:
+        mismatch = next(
+            index
+            for index, (actual, expected) in enumerate(
+                zip(prefix, certified_prefix)
+            )
+            if actual != expected
+        )
+        return 0, "commit_prefix", f"target_prefix_diverged_at_{mismatch}"
+
     # The final predicted candidate has no KV unless separately forwarded.
     if cached_inputs != old_prefix + drafts[:-1]:
-        return 0, "cached_input_lineage"
+        return 0, "cached_input_lineage", "cached_input_lineage"
+
     common = 0
-    for a, b in zip(cached_inputs, prefix[:-1]):
-        if a != b:
+    for actual, expected in zip(cached_inputs, prefix[:-1]):
+        if actual != expected:
             break
         common += 1
     bound = len(old_prefix) + accepted
-    return min(common, bound), None
+    return min(common, bound), None, None
+
+
+def reuse_span(cached_inputs, prefix, old_prefix, drafts, certificate):
+    """Return safe input prefix length; invalid provenance means full fallback."""
+    span, reason, _ = reuse_span_diagnostic(
+        cached_inputs, prefix, old_prefix, drafts, certificate
+    )
+    return span, reason
 
 
 class ReuseDraftSession(PersistentDraftSession):
