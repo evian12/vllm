@@ -162,6 +162,61 @@ def test_failed_prepare_drops_worker_before_releasing_audit_pages(monkeypatch):
     assert pool.freed == [15]
 
 
+def test_reset_keeps_audit_pages_for_the_reset_ownership_transaction(monkeypatch):
+    pool = FakeBlockPool()
+    queue = make_queue(pool)
+    block = FakeBlock(16)
+    queue.audit_leases = {"r16": [block]}
+    queue._audit_cleanup_safe = False
+    worker_calls = []
+
+    def base_rpc(self, operation, payload=None):
+        worker_calls.append(operation)
+        return {"reset": True}
+
+    monkeypatch.setattr(PersistentDraftQueue, "rpc", base_rpc)
+
+    result = queue.rpc("reset")
+
+    assert result == {"reset": True}
+    assert worker_calls == ["reset"]
+    assert queue._audit_cleanup_safe is True
+    # PersistentDraftQueue.reset owns the snapshot and frees these pages
+    # after the reset acknowledgement; the RPC wrapper must not free them.
+    assert queue.audit_leases == {"r16": [block]}
+    assert block.ref_cnt == 1
+    assert pool.freed == []
+
+
+def test_failed_prepare_rejects_partial_drop_before_audit_release(monkeypatch):
+    pool = FakeBlockPool()
+    queue = make_queue(pool)
+    blocks = [FakeBlock(17), FakeBlock(18)]
+    queue.audit_leases = {
+        "r17": [blocks[0]],
+        "r18": [blocks[1]],
+    }
+    queue._audit_cleanup_safe = False
+    worker_calls = []
+
+    def base_rpc(self, operation, payload=None):
+        worker_calls.append(operation)
+        return {"dropped": payload["ids"]}
+
+    monkeypatch.setattr(PersistentDraftQueue, "rpc", base_rpc)
+
+    with pytest.raises(RuntimeError, match="complete Worker Drop"):
+        queue.rpc("drop", {"ids": ["r17"]})
+
+    assert worker_calls == []
+    assert queue.audit_leases == {
+        "r17": [blocks[0]],
+        "r18": [blocks[1]],
+    }
+    assert [block.ref_cnt for block in blocks] == [1, 1]
+    assert pool.freed == []
+
+
 def test_close_retries_cached_lease_cleanup_without_double_free(monkeypatch):
     pool = FakeBlockPool(fail_on_call=2)
     queue = make_queue(pool)
