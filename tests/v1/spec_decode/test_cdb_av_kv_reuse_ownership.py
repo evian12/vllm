@@ -217,6 +217,57 @@ def test_failed_prepare_rejects_partial_drop_before_audit_release(monkeypatch):
     assert pool.freed == []
 
 
+def test_incomplete_worker_drop_ack_keeps_failed_prepare_audit_pages(monkeypatch):
+    pool = FakeBlockPool()
+    queue = make_queue(pool)
+    blocks = [FakeBlock(30), FakeBlock(31)]
+    queue.audit_leases = {
+        "r30": [blocks[0]],
+        "r31": [blocks[1]],
+    }
+    queue._audit_cleanup_safe = False
+    worker_calls = []
+
+    def base_rpc(self, operation, payload=None):
+        worker_calls.append(operation)
+        return {"dropped": ["r30"]}
+
+    monkeypatch.setattr(PersistentDraftQueue, "rpc", base_rpc)
+
+    with pytest.raises(RuntimeError, match="Incomplete Worker Drop acknowledgement"):
+        queue.rpc("drop", {"ids": ["r30", "r31"]})
+
+    assert worker_calls == ["drop"]
+    assert queue._audit_cleanup_safe is False
+    assert set(queue.audit_leases) == {"r30", "r31"}
+    assert [block.ref_cnt for block in blocks] == [1, 1]
+    assert pool.freed == []
+
+
+def test_unacknowledged_worker_reset_keeps_audit_pages(monkeypatch):
+    pool = FakeBlockPool()
+    queue = make_queue(pool)
+    block = FakeBlock(32)
+    queue.audit_leases = {"r32": [block]}
+    queue._audit_cleanup_safe = False
+    worker_calls = []
+
+    def base_rpc(self, operation, payload=None):
+        worker_calls.append(operation)
+        return {"reset": False}
+
+    monkeypatch.setattr(PersistentDraftQueue, "rpc", base_rpc)
+
+    with pytest.raises(RuntimeError, match="Worker Reset did not acknowledge"):
+        queue.rpc("reset")
+
+    assert worker_calls == ["reset"]
+    assert queue._audit_cleanup_safe is False
+    assert queue.audit_leases == {"r32": [block]}
+    assert block.ref_cnt == 1
+    assert pool.freed == []
+
+
 def test_close_retries_cached_lease_cleanup_without_double_free(monkeypatch):
     pool = FakeBlockPool(fail_on_call=2)
     queue = make_queue(pool)
