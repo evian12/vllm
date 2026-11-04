@@ -864,9 +864,27 @@ class ReuseDraftQueue(PersistentDraftQueue):
 
         result=super().rpc(operation,payload)
 
-        # A successful Prepare ACK means the audit forward has completed and
-        # synchronized. Drop/Reset also quiesce partially prepared Worker state.
-        if operation in ('prepare','drop','reset'):
+        # Do not infer Worker quiescence from a transport-level success alone.
+        # Drop must acknowledge every requested ID before failed-Prepare audit
+        # pages can be released. Reset must explicitly confirm completion.
+        if operation == 'drop' and not self._audit_cleanup_safe:
+            expected = set((payload or {}).get('ids', ()))
+            dropped = set(result.get('dropped', ()))
+            if dropped != expected:
+                raise RuntimeError(
+                    'Incomplete Worker Drop acknowledgement for failed '
+                    f'Prepare audit leases: expected={sorted(expected)}, '
+                    f'dropped={sorted(dropped)}'
+                )
+            self._audit_cleanup_safe=True
+        elif operation == 'reset':
+            if not result.get('reset'):
+                raise RuntimeError(
+                    'Worker Reset did not acknowledge completion; audit '
+                    'KV leases remain owned'
+                )
+            self._audit_cleanup_safe=True
+        elif operation == 'prepare':
             self._audit_cleanup_safe=True
 
         if operation=='prepare' and os.getenv('CDB_AV_REUSE_REPLAY','0')=='1':
