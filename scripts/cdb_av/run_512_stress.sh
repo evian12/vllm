@@ -5,6 +5,7 @@ set -Eeuo pipefail
 
 ROOT="$HOME/CDB-AV"
 VLLM_DIR="$ROOT/cdb-av-512-test"
+OPT_SOURCE="${CDB_AV_512_OPT_SOURCE:-$ROOT/cdb-av-optimize}"
 CLIENT="$ROOT/cdb_av_stepper_patch/stress_waiting.py"
 TARGET="/disk14T/yypan/models/Qwen3-8B"
 DRAFT="/disk14T/yypan/models/Qwen3-1.7B"
@@ -14,14 +15,28 @@ N_REQUESTS=512
 CONCURRENCY=16
 MAX_TOKENS=128
 REPEATS=3
+# Capture the ablation switch before clearing inherited CDB_* variables.
+KV_REUSE="${CDB_AV_512_KV_REUSE:-1}"
 STAMP="$(date +%Y%m%d_%H%M%S)"
-RUN_DIR="$ROOT/results/cdb_av_512/$STAMP"
+RUN_DIR="$ROOT/results/cdb_av_512/${STAMP}_kv${KV_REUSE}"
 SERVER_PID=""
 
 die() {
   echo "[ERROR] $*" >&2
   exit 1
 }
+
+[[ "$KV_REUSE" == "0" || "$KV_REUSE" == "1" ]] \
+  || die "CDB_AV_512_KV_REUSE must be 0 or 1, got: $KV_REUSE"
+
+[[ -d "$OPT_SOURCE/.git" ]] \
+  || die "Optimization checkout not found: $OPT_SOURCE"
+OPT_BRANCH="$(git -C "$OPT_SOURCE" rev-parse --abbrev-ref HEAD)"
+OPT_COMMIT="$(git -C "$OPT_SOURCE" rev-parse HEAD)"
+[[ "$OPT_BRANCH" == "cdb-av/optimize-kv-reuse-20261104" ]] \
+  || die "Expected optimization branch cdb-av/optimize-kv-reuse-20261104, got: $OPT_BRANCH"
+[[ -z "$(git -C "$OPT_SOURCE" status --porcelain)" ]] \
+  || die "Optimization checkout is not clean; commit or stash all changes first"
 
 port_pid() {
   ss -lntp 2>/dev/null \
@@ -59,6 +74,16 @@ for key in $(compgen -e | grep '^CDB_' || true); do
 done
 cd "$VLLM_DIR"
 
+# Copy only the reviewed CDB-AV optimization files into the isolated runtime.
+# The source checkout remains untouched; all GPU execution uses VLLM_DIR.
+mkdir -p vllm/v1/spec_decode tests/v1/spec_decode
+cp "$OPT_SOURCE/vllm/v1/spec_decode/cdb_av_refill.py" \
+  vllm/v1/spec_decode/cdb_av_refill.py
+cp "$OPT_SOURCE/vllm/v1/spec_decode/cdb_av_kv_reuse.py" \
+  vllm/v1/spec_decode/cdb_av_kv_reuse.py
+cp "$OPT_SOURCE/tests/v1/spec_decode/test_cdb_av_kv_reuse.py" \
+  tests/v1/spec_decode/test_cdb_av_kv_reuse.py
+
 [[ -d "$TARGET" ]] || die "Target model not found: $TARGET"
 [[ -d "$DRAFT" ]] || die "Draft model not found: $DRAFT"
 [[ -f "$CLIENT" ]] || die "Missing load generator: $CLIENT"
@@ -84,14 +109,21 @@ python -m compileall -q \
   vllm/v1/engine/core.py \
   vllm/v1/worker/gpu_model_runner.py \
   vllm/v1/spec_decode/cdb_av_config.py \
+  vllm/v1/spec_decode/cdb_av_refill.py \
   vllm/v1/spec_decode/cdb_av_varlen.py \
   vllm/v1/spec_decode/cdb_av_persistent.py \
   vllm/v1/spec_decode/cdb_av_kv_reuse.py
+
+[[ -f tests/v1/spec_decode/test_cdb_av_kv_reuse.py ]] \
+  || die "Missing CDB-AV KV reuse regression tests in isolated source tree"
+python -m pytest -q tests/v1/spec_decode/test_cdb_av_kv_reuse.py
 
 mkdir -p "$RUN_DIR"
 {
   echo "timestamp=$STAMP"
   echo "source_branch=cdb-av-complete-runtime-20261103"
+  echo "optimization_branch=$OPT_BRANCH"
+  echo "optimization_commit=$OPT_COMMIT"
   echo "source_commit=4a8500ab6799ae3f8f10931df9596e7fa78f8118"
   echo "source_dir=$VLLM_DIR"
   echo "gpu=$GPU"
@@ -107,7 +139,7 @@ mkdir -p "$RUN_DIR"
   echo "K_max=8"
   echo "K_policy=hf_confidence"
   echo "HF_threshold=0.4"
-  echo "KV_reuse=1"
+  echo "KV_reuse=$KV_REUSE"
   python -c 'import importlib.metadata as m, vllm; print("vllm_version=" + m.version("vllm")); print("vllm_file=" + str(vllm.__file__))'
 } | tee "$RUN_DIR/run_config.txt"
 
@@ -155,7 +187,8 @@ start_server() {
     CDB_AV_VARLEN=1 \
     CDB_AV_SPLIT_RPC=1 \
     CDB_AV_WORK_QUEUE=1 \
-    CDB_AV_KV_REUSE=1 \
+    CDB_AV_KV_REUSE="$KV_REUSE" \
+    CDB_AV_REFILL_TRACE=0 \
     CDB_AV_INTRA_WINDOW=1 \
     CDB_AV_INITIAL_ADMIT=3 \
     CDB_AV_ALLOW_FRESH_WAITING=0 \

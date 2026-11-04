@@ -21,8 +21,38 @@ from vllm.v1.spec_decode.cdb_av_config import (
 logger = init_logger(__name__)
 
 
+_REFILL_SUMMARY_EVENTS = {
+    'k_policy_config',
+    'window_begin',
+    'window_end',
+    'ready',
+    'p2_runtime_config',
+    'p2_target_begin',
+    'target_ready_select',
+    'p2_defer_prefill_budget',
+    'p2_window_begin',
+    'p2_target_commit',
+    'p2_verified',
+    'p2_handoff',
+    'p2_boundary',
+    'p2_reuse_plan',
+    'reuse_fallback',
+    'reuse_prepared',
+    'reuse_pending_prefill',
+    'reuse_cache_consumed',
+    'reuse_lease_release',
+}
+
+
 def emit(event, **data):
-    if os.getenv('CDB_AV_REFILL_TRACE', '1') == '1':
+    # Keep request/verification/reuse summaries available by default, while
+    # making high-frequency per-forward and per-step diagnostics opt-in.
+    # This preserves the counters needed for performance analysis without
+    # serializing every intermediate GPU step into the server log.
+    if (
+        os.getenv('CDB_AV_REFILL_TRACE', '0') == '1'
+        or event in _REFILL_SUMMARY_EVENTS
+    ):
         logger.info('[CDB_REFILL] %s', json.dumps(dict(event=event, **data)))
 
 
@@ -317,13 +347,20 @@ class RefillSession:
                 max_logits, tokens = logits_fp32.max(dim=-1)
                 log_normalizer = torch.logsumexp(logits_fp32, dim=-1)
                 confidence = (max_logits - log_normalizer).exp()
-                # One batched D2H transfer for all confidences; avoid per-request .item() sync.
-                confidence_values = confidence.detach().cpu().tolist()
+                # Pack the small per-request result before D2H. A single
+                # synchronization is cheaper than separately materializing
+                # confidence.cpu().tolist() and tokens.tolist().
+                packed = torch.stack(
+                    (tokens.to(torch.float64), confidence.to(torch.float64)),
+                    dim=1,
+                ).cpu().tolist()
+                token_values = [int(row[0]) for row in packed]
+                confidence_values = [float(row[1]) for row in packed]
                 stops = confidence_stop_flags(confidence_values, self.threshold)
             else:
                 tokens = logits.argmax(-1)
+                token_values = tokens.tolist()
                 stops = [False] * len(worked)
-            token_values = tokens.tolist()
 
             k_caps = {}
             k_actual = {}

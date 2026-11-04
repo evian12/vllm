@@ -17,24 +17,51 @@ from vllm.v1.spec_decode.cdb_av_kv_metrics import kv_segment_errors
 
 
 def reuse_span(cached_inputs, prefix, old_prefix, drafts, certificate):
-    """Return safe input prefix length; invalid provenance means full fallback."""
-    if (certificate is None or certificate['source_fp'] != token_fingerprint(old_prefix)
-            or certificate['drafts'] != drafts):
+    """Return the safe cached-input prefix length.
+
+    Target may have advanced the request with one or more ordinary AR tokens
+    after the certified speculative commit and before this Draft admission.
+    Such append-only growth does not invalidate the already materialized Draft
+    KV prefix. Divergence inside the certified commit still forces a full
+    fallback.
+    """
+    if (
+        certificate is None
+        or certificate.get('source_fp') != token_fingerprint(old_prefix)
+        or certificate.get('drafts') != drafts
+    ):
         return 0, 'provenance'
-    generated = certificate['generated']
-    accepted = len(generated)-1
-    if (not 0 <= accepted <= len(drafts) or generated[:accepted] != drafts[:accepted]
-            or prefix != old_prefix+generated):
+
+    generated = certificate.get('generated')
+    if not isinstance(generated, list) or not generated:
         return 0, 'commit_prefix'
+
+    accepted = len(generated) - 1
+    certified_prefix = old_prefix + generated
+    if (
+        not 0 <= accepted <= len(drafts)
+        or generated[:accepted] != drafts[:accepted]
+        or len(prefix) < len(certified_prefix)
+        or prefix[:len(certified_prefix)] != certified_prefix
+    ):
+        return 0, 'commit_prefix'
+
     # The final predicted candidate has no KV unless separately forwarded.
-    if cached_inputs != old_prefix+drafts[:-1]:
+    # Keep this exact lineage check: only inputs actually forwarded by Draft
+    # can be reused, never the last sampled candidate or an unverified token.
+    if cached_inputs != old_prefix + drafts[:-1]:
         return 0, 'cached_input_lineage'
+
     common = 0
-    for a,b in zip(cached_inputs,prefix[:-1]):
-        if a != b:break
+    for cached_token, current_token in zip(cached_inputs, prefix[:-1]):
+        if cached_token != current_token:
+            break
         common += 1
-    bound = len(old_prefix)+accepted
-    return min(common,bound), None
+
+    # Reuse cannot extend beyond the Target-accepted speculative prefix.
+    # Any later AR suffix is Prefilled normally in the remaining Draft pass.
+    bound = len(old_prefix) + accepted
+    return min(common, bound), None
 
 
 class ReuseDraftSession(PersistentDraftSession):
