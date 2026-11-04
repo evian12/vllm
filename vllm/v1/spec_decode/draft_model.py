@@ -27,6 +27,8 @@ logger = init_logger(__name__)
 
 
 class DraftModelProposer(SpecDecodeBaseProposer):
+    _cdb_active_session: CDBDraftSession | None
+
     # CDB_AV_STEPPER_V1: draft_model-only, original path is the default.
     def propose(self, *args, **kwargs):
         if os.environ.get("CDB_AV_STEP_MODE", "0") != "1":
@@ -205,7 +207,7 @@ class DraftModelProposer(SpecDecodeBaseProposer):
         device: torch.device,
         runner=None,
     ):
-        self._cdb_active_session: CDBDraftSession | None = None
+        self._cdb_active_session = None
         super().__init__(
             vllm_config=vllm_config,
             device=device,
