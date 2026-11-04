@@ -1,0 +1,159 @@
+# SPDX-License-Identifier: Apache-2.0
+"""Failure-path tests for CDB-AV KV lease ownership cleanup."""
+
+from types import SimpleNamespace
+
+import pytest
+
+from vllm.v1.spec_decode.cdb_av_persistent import PersistentDraftQueue
+from vllm.v1.spec_decode.cdb_av_kv_reuse import ReuseDraftQueue
+
+
+class FakeBlock:
+    def __init__(self, block_id):
+        self.block_id = block_id
+        self.ref_cnt = 1
+        self.is_null = False
+
+
+class FakeBlockPool:
+    def __init__(self, fail_on_call=None):
+        self.fail_on_call = fail_on_call
+        self.calls = 0
+        self.freed = []
+
+    def free_blocks(self, blocks):
+        self.calls += 1
+        if self.calls == self.fail_on_call:
+            raise RuntimeError("simulated free failure")
+        blocks = list(blocks)
+        for block in blocks:
+            block.ref_cnt -= 1
+        self.freed.extend(block.block_id for block in blocks)
+
+
+def make_queue(pool):
+    queue = ReuseDraftQueue.__new__(ReuseDraftQueue)
+    queue.s = SimpleNamespace(
+        kv_cache_manager=SimpleNamespace(block_pool=pool)
+    )
+    queue.audit_leases = {}
+    queue.cached_leases = {}
+    queue.leases = {}
+    queue.replay_blocks = []
+    queue.pending_allocations = []
+    queue.commits = {}
+    queue.ready = {}
+    queue.inflight = {}
+    queue.history_pages = set()
+    queue.replayed = set()
+    return queue
+
+
+def test_owned_mapping_cleanup_keeps_only_failed_and_unattempted_owners():
+    pool = FakeBlockPool(fail_on_call=2)
+    queue = make_queue(pool)
+    blocks = [FakeBlock(i) for i in range(3)]
+    queue.audit_leases = {
+        "r0": [blocks[0]],
+        "r1": [blocks[1]],
+        "r2": [blocks[2]],
+    }
+
+    with pytest.raises(RuntimeError, match="simulated free failure"):
+        queue._release_audit_leases()
+
+    assert queue.audit_leases == {
+        "r1": [blocks[1]],
+        "r2": [blocks[2]],
+    }
+    assert blocks[0].ref_cnt == 0
+    assert blocks[1].ref_cnt == 1
+    assert blocks[2].ref_cnt == 1
+    assert pool.freed == [0]
+
+    pool.fail_on_call = None
+    queue._release_audit_leases()
+
+    assert queue.audit_leases == {}
+    assert [block.ref_cnt for block in blocks] == [0, 0, 0]
+    assert pool.freed == [0, 1, 2]
+
+
+def test_owned_mapping_cleanup_rejects_invalid_ownership_without_mutation():
+    pool = FakeBlockPool()
+    queue = make_queue(pool)
+    block = FakeBlock(7)
+    block.ref_cnt = 2
+    queue.audit_leases = {"r7": [block]}
+
+    with pytest.raises(RuntimeError, match="Cleanup lost audit KV ownership"):
+        queue._release_audit_leases()
+
+    assert queue.audit_leases == {"r7": [block]}
+    assert block.ref_cnt == 2
+    assert pool.freed == []
+
+
+def test_rpc_retries_audit_cleanup_before_next_worker_operation(monkeypatch):
+    pool = FakeBlockPool(fail_on_call=2)
+    queue = make_queue(pool)
+    blocks = [FakeBlock(10), FakeBlock(11)]
+    queue.audit_leases = {
+        "r10": [blocks[0]],
+        "r11": [blocks[1]],
+    }
+    worker_calls = []
+
+    def base_rpc(self, operation, payload=None):
+        worker_calls.append(operation)
+        return {"prepared": []} if operation == "prepare" else {"stepped": True}
+
+    monkeypatch.setattr(PersistentDraftQueue, "rpc", base_rpc)
+    monkeypatch.setenv("CDB_AV_REUSE_REPLAY", "0")
+
+    with pytest.raises(RuntimeError, match="simulated free failure"):
+        queue.rpc("prepare", {"plans": []})
+
+    assert worker_calls == ["prepare"]
+    assert list(queue.audit_leases) == ["r11"]
+
+    pool.fail_on_call = None
+    result = queue.rpc("step")
+
+    assert result == {"stepped": True}
+    assert worker_calls == ["prepare", "step"]
+    assert queue.audit_leases == {}
+    assert [block.ref_cnt for block in blocks] == [0, 0]
+
+
+def test_close_retries_cached_lease_cleanup_without_double_free(monkeypatch):
+    pool = FakeBlockPool(fail_on_call=2)
+    queue = make_queue(pool)
+    blocks = [FakeBlock(20), FakeBlock(21), FakeBlock(22)]
+    queue.cached_leases = {
+        "r20": [blocks[0]],
+        "r21": [blocks[1]],
+        "r22": [blocks[2]],
+    }
+
+    monkeypatch.setattr(
+        PersistentDraftQueue,
+        "rpc",
+        lambda self, operation, payload=None: {"dropped": payload["ids"]}
+        if operation == "drop" else {"ok": True},
+    )
+
+    with pytest.raises(RuntimeError, match="simulated free failure"):
+        queue.close()
+
+    assert list(queue.cached_leases) == ["r21", "r22"]
+    assert [block.ref_cnt for block in blocks] == [0, 1, 1]
+    assert pool.freed == [20]
+
+    pool.fail_on_call = None
+    queue.close()
+
+    assert queue.cached_leases == {}
+    assert [block.ref_cnt for block in blocks] == [0, 0, 0]
+    assert pool.freed == [20, 21, 22]
