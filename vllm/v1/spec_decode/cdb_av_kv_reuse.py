@@ -872,9 +872,11 @@ class ReuseDraftQueue(PersistentDraftQueue):
                 self.s.kv_cache_manager.block_pool.free_blocks(self.replay_blocks)
                 self.replay_blocks=[];self.replayed.update(keys)
 
-        if operation in ('prepare','drop','reset') and self.audit_leases:
+        if operation in ('prepare','drop') and self.audit_leases:
             # Release each audit owner independently. If one release fails,
             # successful earlier releases are already removed from the ledger.
+            # Reset owns its full allocation snapshot and frees it atomically
+            # after this RPC returns; do not release its audit pages here.
             self._release_audit_leases()
         return result
 
