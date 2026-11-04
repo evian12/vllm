@@ -343,8 +343,6 @@ class GPUModelRunner(
         self._cdb_context_lengths: list[int] | None = None
         self._cdb_context_fingerprints: list[str] | None = None
         self._cdb_pending_draft: dict[str, Any] | None = None
-        self._draft_token_ids: torch.Tensor | None = None
-        self._draft_token_req_ids: list[str] | None = None
         self.cdb_refill = os.environ.get("CDB_AV_REFILL", "0") == "1"
         self.cdb_persistent = os.getenv("CDB_AV_PERSISTENT", "0") == "1"
         if self.cdb_persistent and (
@@ -3956,7 +3954,7 @@ class GPUModelRunner(
                 if rid not in payload["contexts"]:
                     continue
                 state = self.requests[rid]
-                tokens = list(state.prompt_token_ids) + list(state.output_token_ids)
+                tokens = list(state.prompt_token_ids or []) + list(state.output_token_ids)
                 ctx = dict(
                     context_tokens=len(tokens), fingerprint=token_fingerprint(tokens)
                 )
@@ -4416,7 +4414,8 @@ class GPUModelRunner(
                         k = extra.get("cdb_draft_k", next_k)
                         if type(k) is not int or not 1 <= k <= next_k:
                             raise ValueError(
-                                f"Invalid cdb_draft_k={k} for request {req_id}; max={next_k}"
+                                f"Invalid cdb_draft_k={k} for request "
+                                f"{req_id}; max={next_k}"
                             )
                         lengths.append(k)
                     draft_kwargs["request_ids"] = req_ids
