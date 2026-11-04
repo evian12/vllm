@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """CDB-AV per-request draft state.
 
 Tracks draft execution progress independently of the generator.
