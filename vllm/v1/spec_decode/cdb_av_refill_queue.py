@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
 """Persistent scheduler-side draft work, provenance and exclusive KV leases."""
 
 import os
