@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """CDB-AV draft work planning.
 
 This module describes draft work. It does not grant GPU/KV resources.
