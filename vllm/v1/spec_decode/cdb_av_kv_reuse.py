@@ -674,6 +674,9 @@ class ReuseDraftQueue(PersistentDraftQueue):
         self.history_pages=set();self.replayed=set();self.replay_blocks=[]
         # Allocations whose rollback failed remain explicitly tracked for close().
         self.pending_allocations=[]
+        # Audit pages are releasable only after a successful Prepare ACK or
+        # after Worker Drop/Reset has quiesced any partially prepared members.
+        self._audit_cleanup_safe=True
 
     def release(self,rid,reason):
         if reason!='ready_acknowledged':return super().release(rid,reason)
@@ -835,18 +838,31 @@ class ReuseDraftQueue(PersistentDraftQueue):
             self.contexts[rid]={'context':ctx,'computed':req.num_computed_tokens}
             if audit_blocks:
                 self.audit_leases[rid]=audit_blocks
+                self._audit_cleanup_safe=False
             if commit is not None:
                 self.commits.pop(rid,None)
             plans.append(plan)
         return plans
 
     def rpc(self,operation,payload=None):
-        # A prior post-prepare cleanup may have failed. Retry it before issuing
-        # another Worker operation, so the Worker cannot advance while stale
-        # audit allocations remain in the CPU ownership ledger.
-        if operation!='prepare' and self.audit_leases:
+        # A prior post-prepare cleanup may have failed. Retry it before normal
+        # Worker progress, but never free pages while a failed Prepare may have
+        # left a partially initialized Worker member using them.
+        if operation not in ('prepare','drop','reset') and self.audit_leases:
+            if not self._audit_cleanup_safe:
+                raise RuntimeError(
+                    'Cannot advance Worker while failed Prepare audit leases '
+                    'await Drop/Reset'
+                )
             self._release_audit_leases()
+
         result=super().rpc(operation,payload)
+
+        # A successful Prepare ACK means the audit forward has completed and
+        # synchronized. Drop/Reset also quiesce partially prepared Worker state.
+        if operation in ('prepare','drop','reset'):
+            self._audit_cleanup_safe=True
+
         if operation=='prepare' and os.getenv('CDB_AV_REUSE_REPLAY','0')=='1':
             keys={(p['commit']['k'],p['commit']['accepted']) for p in payload['plans'] if p.get('commit')}
             if keys-self.replayed:
@@ -855,8 +871,8 @@ class ReuseDraftQueue(PersistentDraftQueue):
                 super().rpc('replay',{'mapping':mapping})
                 self.s.kv_cache_manager.block_pool.free_blocks(self.replay_blocks)
                 self.replay_blocks=[];self.replayed.update(keys)
-        if operation=='prepare':
-            # Validation RPC copied comparisons to CPU and synchronized before ACK.
+
+        if operation in ('prepare','drop','reset') and self.audit_leases:
             # Release each audit owner independently. If one release fails,
             # successful earlier releases are already removed from the ledger.
             self._release_audit_leases()
