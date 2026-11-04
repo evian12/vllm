@@ -855,6 +855,12 @@ class ReuseDraftQueue(PersistentDraftQueue):
                     'await Drop/Reset'
                 )
             self._release_audit_leases()
+        if operation=='drop' and self.audit_leases and not self._audit_cleanup_safe:
+            dropping=set((payload or {}).get('ids', ()))
+            if not set(self.audit_leases).issubset(dropping):
+                raise RuntimeError(
+                    'Failed Prepare audit leases require a complete Worker Drop'
+                )
 
         result=super().rpc(operation,payload)
 
