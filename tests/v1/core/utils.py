@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: Copyright contributors to the vLLM project
 
+import os
+
 import torch
 
 from tests.v1.kv_connector.unit.utils import MockKVConfig
@@ -40,7 +42,7 @@ def mock_kv(matched_tokens: int, is_async: bool):
 
 
 def create_scheduler(
-    model: str = "facebook/opt-125m",
+    model: str | None = None,
     max_num_seqs: int = 16,
     max_num_batched_tokens: int = 8192,
     enable_chunked_prefill: bool = True,
@@ -71,6 +73,11 @@ def create_scheduler(
     Returns:
       {class}`Scheduler` instance
     """
+    # Allow offline test runs to use a locally available HF config.
+    # Explicit per-test model arguments always take precedence.
+    if model is None:
+        model = os.environ.get("VLLM_TEST_MODEL", "facebook/opt-125m")
+
     model_config = ModelConfig(
         model=model,
         trust_remote_code=True,
