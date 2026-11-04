@@ -244,6 +244,33 @@ def test_incomplete_worker_drop_ack_keeps_failed_prepare_audit_pages(monkeypatch
     assert pool.freed == []
 
 
+def test_incomplete_worker_prepare_ack_keeps_audit_pages(monkeypatch):
+    pool = FakeBlockPool()
+    queue = make_queue(pool)
+    block = FakeBlock(33)
+    queue.audit_leases = {"r33": [block]}
+    queue._audit_cleanup_safe = False
+    worker_calls = []
+
+    def base_rpc(self, operation, payload=None):
+        worker_calls.append(operation)
+        return {"prepared": []}
+
+    monkeypatch.setattr(PersistentDraftQueue, "rpc", base_rpc)
+
+    with pytest.raises(RuntimeError, match="Incomplete Worker Prepare acknowledgement"):
+        queue.rpc(
+            "prepare",
+            {"plans": [{"req_id": "r33"}]},
+        )
+
+    assert worker_calls == ["prepare"]
+    assert queue._audit_cleanup_safe is False
+    assert queue.audit_leases == {"r33": [block]}
+    assert block.ref_cnt == 1
+    assert pool.freed == []
+
+
 def test_unacknowledged_worker_reset_keeps_audit_pages(monkeypatch):
     pool = FakeBlockPool()
     queue = make_queue(pool)
