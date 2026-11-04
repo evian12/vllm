@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
 """Audit-only numerical metrics; imports torch, never the serving/model stack.
 
 Byte-exact checks remain in the caller and use the original storage dtype.
