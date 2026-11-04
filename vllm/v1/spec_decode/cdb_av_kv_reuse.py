@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
 """Opt-in accepted-prefix reuse on exclusive P2 Draft leases.
 
 A cache token describes an INPUT actually forwarded, not a sampled candidate.
