@@ -455,8 +455,10 @@ class ReuseDraftSession(PersistentDraftSession):
                     segments = kv_segment_errors(a, b, start, end)
                     # KV layout: (K/V, tokens, heads, head_dim).
                     for kv_index, kv_name in enumerate(("K", "V")):
-                        actual = torch.as_tensor(a[kv_index])
-                        reference_kv = torch.as_tensor(b[kv_index])
+                        # Each layer entry is a (K/V, tokens, heads, dim)
+                        # Tensor; indexing the leading K/V axis remains a Tensor.
+                        actual = cast(torch.Tensor, a[kv_index])
+                        reference_kv = cast(torch.Tensor, b[kv_index])
 
                         # Compare the original cached prefix captured
                         # BEFORE incremental preparation.
