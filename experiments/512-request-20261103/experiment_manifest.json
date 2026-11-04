@@ -1,0 +1,88 @@
+{
+  "experiment_id": "CDB-AV-512-20261103",
+  "timestamp": "2026-11-03T18:09:36+08:00",
+  "status": "completed",
+  "repository": "evian12/vllm",
+  "runtime": {
+    "base_branch": "cdb-av-complete-runtime-20261103",
+    "base_commit": "4a8500ab6799ae3f8f10931df9596e7fa78f8118",
+    "isolated_source_dir": "/home/yypan/CDB-AV/cdb-av-512-test",
+    "vllm_version": "0.15.1",
+    "vllm_import_file": "/home/yypan/CDB-AV/cdb-av-512-test/vllm/__init__.py",
+    "tracked_vllm_files_compared": 1779,
+    "identical_files": 1779,
+    "different_files": 0,
+    "missing_files": 0,
+    "comparison_scope": "All Git-tracked files under vllm/ at the runtime base commit; does not cover non-vllm files, generated build artifacts, installed dependencies, or runtime environment.",
+    "source_fingerprint_file_sha256": "d2e9faeff00cd70a32648b3190d26dfcbc999916c6aec5bb86b55c714f26de80"
+  },
+  "runner": {
+    "bundle_commit": "0d00d4de4bad3d4aad9e5a141d37e43fde855dfe",
+    "local_fix": "isolated_import_and_response_validation",
+    "local_patch_sha256": "8a877a46c45174fa069ecf6c283e99527895eb406e519c1bc4c9c2b47f67cd1f",
+    "patch_changes": [
+      "Explicitly set VLLM_ATTENTION_BACKEND=FLASH_ATTN for the isolated service.",
+      "Require all 32 diagnostic requests to return valid completions with nonzero output tokens.",
+      "Require all 16 warmup requests to return valid completions with nonzero output tokens.",
+      "Check service startup log for the FLASH_ATTN backend selection."
+    ],
+    "patch_comparison": "Diff between results/cdb_av_512/20261103_180418/before_backend_fix/run_512_stress.sh and cdb-av-512-test/scripts/cdb_av/run_512_stress.sh."
+  },
+  "workload": {
+    "target_model": "/disk14T/yypan/models/Qwen3-8B",
+    "draft_model": "/disk14T/yypan/models/Qwen3-1.7B",
+    "gpu_index": 1,
+    "service_port": 18083,
+    "requests_per_run": 512,
+    "client_concurrency": 16,
+    "max_output_tokens_per_request": 128,
+    "repeats": 3,
+    "speculative_window_H": 8,
+    "initial_admit": 3,
+    "max_draft_K": 8,
+    "K_policy": "hf_confidence",
+    "hf_confidence_threshold": 0.4,
+    "kv_reuse": true,
+    "attention_backend": "FLASH_ATTN",
+    "arrival_pattern": "not recorded in run_config; do not characterize as constant-rate or Poisson without client submission timestamps",
+    "server_max_num_seqs": "not recorded in the supplied run_config; verify from the exact serve command or server startup log before publication"
+  },
+  "diagnostics": {
+    "diagnostic_requests": 32,
+    "diagnostic_completed": 32,
+    "diagnostic_output_tokens": 4096,
+    "observed_K_actual_range": [
+      1,
+      8
+    ],
+    "low_confidence_early_stop_events": 233,
+    "note": "Diagnostic trace is separate from the three performance runs; detailed trace throughput is not used as the reported performance result."
+  },
+  "results": {
+    "expected_requests_per_run": 512,
+    "repeats": 3,
+    "requests_completed_total": 1536,
+    "requests_failed_total": 0,
+    "output_tokens_per_run": 65536,
+    "output_tokens_total": 196608,
+    "mean_output_tps": 138.18554370190455,
+    "sample_stdev_output_tps": 1.3882659821122514
+  },
+  "source_artifacts": {
+    "result_directory": "results/cdb_av_512/20261103_180936",
+    "run_config": "run_config.txt",
+    "summary": "summary.json",
+    "performance_server_log": "performance_server.log",
+    "runtime_errors_log": "runtime_errors.log",
+    "raw_logs_retained_on_server": true,
+    "raw_logs_uploaded_to_github": false
+  },
+  "provenance_notes": [
+    "Runtime base commit and Runner bundle commit are distinct version identifiers.",
+    "The 1,779-file comparison establishes exact byte equality only for Git-tracked vllm/ files between the runtime base commit and the isolated source tree.",
+    "The complete experiment-time source fingerprint file was not uploaded; only its SHA-256 digest was recorded.",
+    "The local runner patch is identified by its SHA-256 digest; the full patch file was not available in the supplied output.",
+    "Arrival timing and server max_num_seqs are not recorded in run_config.txt and remain unverified here.",
+    "Performance results are observed benchmark results; fair comparison against native vLLM requires matching request arrival traces, concurrency, server settings, and model/runtime conditions."
+  ]
+}
