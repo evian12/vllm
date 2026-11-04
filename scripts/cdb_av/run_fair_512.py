@@ -152,7 +152,9 @@ def server_environment(args: argparse.Namespace) -> dict[str, str]:
         CDB_AV_INTRA_WINDOW="1" if args.mode == "cdb" else "0",
         CDB_AV_LOW_LOG=str(args.low_log if args.mode == "cdb" else 0),
         CDB_AV_K_POLICY="hf_confidence",
-        CDB_AV_HF_THRESHOLD="0.4",
+        CDB_AV_HF_THRESHOLD=str(
+            args.hf_threshold if args.mode == "cdb" else 0.4
+        ),
         CDB_AV_WINDOW_H=str(args.horizon),
         CDB_AV_STEP_MODE="1" if args.mode == "cdb" else "0",
         CDB_AV_VARLEN="1" if args.mode == "cdb" else "0",
@@ -223,12 +225,15 @@ def main() -> None:
     parser.add_argument("--horizon", type=int, choices=(4, 8), default=8)
     parser.add_argument("--kv-reuse", type=int, choices=(0, 1), default=1)
     parser.add_argument("--low-log", type=int, choices=(0, 1), default=0)
+    parser.add_argument("--hf-threshold", type=float, default=0.4)
     parser.add_argument("--target", default="/disk14T/yypan/models/Qwen3-8B")
     parser.add_argument("--draft", default="/disk14T/yypan/models/Qwen3-1.7B")
     args = parser.parse_args()
     args.source = args.source.resolve()
     if min(args.requests, args.concurrency, args.max_tokens, args.repeats) < 1:
         parser.error("request, concurrency, token and repeat counts must be positive")
+    if not 0.0 <= args.hf_threshold <= 1.0:
+        parser.error("HF confidence threshold must be in [0, 1]")
     if git_output(args.source, "status", "--porcelain"):
         raise RuntimeError("Source worktree must be clean")
     if not port_is_free("127.0.0.1", args.port):
@@ -270,6 +275,7 @@ def main() -> None:
         "kv_reuse": args.kv_reuse if args.mode == "cdb" else None,
         "low_log": args.low_log if args.mode == "cdb" else None,
         "k_policy": "hf_confidence" if args.mode == "cdb" else None,
+        "hf_threshold": args.hf_threshold if args.mode == "cdb" else None,
         "k_cap": 8 if args.mode != "ar" else None,
         "requests": args.requests,
         "concurrency": args.concurrency,

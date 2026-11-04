@@ -46,6 +46,7 @@ def test_modes_keep_server_limits_and_isolate_cdb_flags(monkeypatch):
     args = SimpleNamespace(
         source=Path("/tmp/source"), gpu=1, port=18084,
         target="/target", draft="/draft", horizon=8, kv_reuse=1, low_log=1,
+        hf_threshold=0.8,
     )
     for mode in ("cdb", "native-spec", "ar"):
         args.mode = mode
@@ -55,5 +56,8 @@ def test_modes_keep_server_limits_and_isolate_cdb_flags(monkeypatch):
         assert env["CDB_AV_LOW_LOG"] == ("1" if mode == "cdb" else "0")
         assert env["CUDA_VISIBLE_DEVICES"] == "1"
         assert env["VLLM_ATTENTION_BACKEND"] == "FLASH_ATTN"
+        assert env["CDB_AV_HF_THRESHOLD"] == (
+            "0.8" if mode == "cdb" else "0.4"
+        )
         assert command[command.index("--max-num-seqs") + 1] == "4"
         assert ("--speculative-config" in command) == (mode != "ar")
