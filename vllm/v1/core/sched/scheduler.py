@@ -886,6 +886,45 @@ class Scheduler(SchedulerInterface):
         target_running_count = sum(
             req.request_id not in frozen_ids for req in self.running
         )
+        if target_running_count > self.max_num_running_reqs:
+            # Emit a complete, low-frequency snapshot before failing. This
+            # branch is reached only on an invariant violation, so the extra
+            # bookkeeping does not affect the normal scheduling hot path.
+            from collections import Counter
+
+            running_ids = [req.request_id for req in self.running]
+            duplicate_running_ids = sorted(
+                req_id for req_id, count in Counter(running_ids).items()
+                if count > 1
+            )
+            p2_state = None
+            if p2 is not None:
+                p2_state = {
+                    "leases": sorted(getattr(p2, "leases", {})),
+                    "ready": sorted(getattr(p2, "ready", {})),
+                    "inflight": sorted(getattr(p2, "inflight", {})),
+                    "selected_ready": sorted(
+                        getattr(p2, "_target_selected_ready", set())
+                    ),
+                    "frozen": sorted(frozen_ids),
+                    "preempt_protected": sorted(
+                        getattr(p2, "preempt_protected", set())
+                    ),
+                }
+            logger.error(
+                "[CDB_SCHED_INVARIANT] target_running_overflow "
+                "count=%d limit=%d running_ids=%s duplicate_ids=%s "
+                "running_status=%s p2_state=%s",
+                target_running_count,
+                self.max_num_running_reqs,
+                running_ids,
+                duplicate_running_ids,
+                [
+                    (req.request_id, str(getattr(req, "status", None)))
+                    for req in self.running
+                ],
+                p2_state,
+            )
         assert target_running_count <= self.max_num_running_reqs
         # Since some requests in the RUNNING queue may not be scheduled in
         # this step, the total number of scheduled requests can be smaller than
