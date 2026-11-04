@@ -124,6 +124,7 @@ def _fake_req(req_id):
 
 def test_published_ready_backlog_can_be_selected_during_open_window():
     queue = PersistentDraftQueue.__new__(PersistentDraftQueue)
+    queue.window = 1
     queue.leases = {"carry", "current_window_member"}
     # r2 entered Ready before r1, although Scheduler.running orders r1 first.
     queue.ready = {
@@ -151,6 +152,7 @@ def test_published_ready_backlog_can_be_selected_during_open_window():
 
 def test_current_window_members_stay_frozen_until_h():
     queue = PersistentDraftQueue.__new__(PersistentDraftQueue)
+    queue.window = 1
     queue.leases = {"current_window_member"}
     queue.ready = {}
     queue.inflight = {}
@@ -169,6 +171,7 @@ def test_current_window_members_stay_frozen_until_h():
 
 def test_target_ready_selection_respects_remaining_capacity():
     queue = PersistentDraftQueue.__new__(PersistentDraftQueue)
+    queue.window = 1
     queue.leases = {"carry"}
     queue.ready = {
         f"r{i}": {"tokens": [1], "window": 1} for i in range(8)
@@ -245,13 +248,23 @@ def test_intra_window_refill_is_not_suppressed_by_ready(monkeypatch):
     queue._p3_ready_seen = False
     queue._p3_done = False
     queue._cdb_admit_limit = None
+    queue._uses_mixed_prefill = False
+    queue.window = 1
+    queue.leases = {"r1": []}
+    queue.contexts = {}
+    queue.ready = {}
+    queue.inflight = {}
     queue.carry = {}
+    queue.s = SimpleNamespace(max_num_running_reqs=4, requests={})
     calls = []
 
     def rpc(operation, payload=None):
         calls.append((operation, payload))
         if operation == "step":
             return {
+                "window": 1,
+                "pending": True,
+                "done": False,
                 "steps_completed": 1,
                 "progress": {"r1": 1},
                 "ready_req_ids": ["r1"],
@@ -373,7 +386,9 @@ def test_plan_rollback_drops_worker_before_freeing_lease():
     queue.ready = {}
     queue.inflight = {}
     queue.s = SimpleNamespace(
-        kv_cache_manager=SimpleNamespace(block_pool=pool)
+        kv_cache_manager=SimpleNamespace(block_pool=pool),
+        max_num_running_reqs=4,
+        requests={},
     )
     calls = []
 
@@ -449,13 +464,16 @@ def _make_intra_window_rollback_queue(monkeypatch, failure_stage):
     queue._p3_ready_seen = False
     queue._p3_done = False
     queue._cdb_admit_limit = None
+    queue._uses_mixed_prefill = False
     queue.carry = {}
     queue.leases = {}
     queue.contexts = {}
     queue.ready = {}
     queue.inflight = {}
     queue.s = SimpleNamespace(
-        kv_cache_manager=SimpleNamespace(block_pool=pool)
+        kv_cache_manager=SimpleNamespace(block_pool=pool),
+        max_num_running_reqs=4,
+        requests={},
     )
     calls = []
 
@@ -463,11 +481,14 @@ def _make_intra_window_rollback_queue(monkeypatch, failure_stage):
         calls.append((operation, payload))
         if operation == "step":
             return {
+                "window": 1,
+                "pending": True,
+                "done": False,
                 "steps_completed": 1,
                 "progress": {},
                 "ready_req_ids": [],
-                "active_req_ids": ["carry"],
-                "slots": 1,
+                "active_req_ids": [],
+                "slots": 4,
                 "remaining_steps": 7,
             }
         if operation == "prepare" and failure_stage == "prepare":
@@ -519,7 +540,7 @@ def test_ready_backlog_is_drained_in_capacity_bounded_target_batches():
     queue = PersistentDraftQueue.__new__(PersistentDraftQueue)
     queue.window = 1
     queue.leases = set()
-    queue.ready = {f"r{i}": {} for i in range(8)}
+    queue.ready = {f"r{i}": {"tokens": [1], "window": 1} for i in range(8)}
     queue.inflight = {}
     queue._p3_window_open = False
     queue._target_selected_ready = set()
