@@ -16,41 +16,41 @@ from vllm.v1.spec_decode.cdb_av_fingerprint import token_fingerprint
 from vllm.v1.spec_decode.cdb_av_kv_metrics import kv_segment_errors
 
 
-def reuse_span(cached_inputs, prefix, old_prefix, drafts, certificate):
-    """Return the safe cached-input prefix length.
-
-    Target may have advanced the request with one or more ordinary AR tokens
-    after the certified speculative commit and before this Draft admission.
-    Such append-only growth does not invalidate the already materialized Draft
-    KV prefix. Divergence inside the certified commit still forces a full
-    fallback.
-    """
+def reuse_span_diagnostic(cached_inputs, prefix, old_prefix, drafts, certificate):
+    """Return reusable input count, stable fallback reason, and diagnostic detail."""
     if (
         certificate is None
         or certificate.get('source_fp') != token_fingerprint(old_prefix)
         or certificate.get('drafts') != drafts
     ):
-        return 0, 'provenance'
+        return 0, 'provenance', 'source_fingerprint_or_draft_list_mismatch'
 
     generated = certificate.get('generated')
     if not isinstance(generated, list) or not generated:
-        return 0, 'commit_prefix'
+        return 0, 'commit_prefix', 'generated_missing_or_empty'
 
     accepted = len(generated) - 1
+    if not 0 <= accepted <= len(drafts):
+        return 0, 'commit_prefix', 'accepted_count_out_of_range'
+    if generated[:accepted] != drafts[:accepted]:
+        return 0, 'commit_prefix', 'accepted_tokens_differ_from_drafts'
+
     certified_prefix = old_prefix + generated
-    if (
-        not 0 <= accepted <= len(drafts)
-        or generated[:accepted] != drafts[:accepted]
-        or len(prefix) < len(certified_prefix)
-        or prefix[:len(certified_prefix)] != certified_prefix
-    ):
-        return 0, 'commit_prefix'
+    if len(prefix) < len(certified_prefix):
+        return 0, 'commit_prefix', 'target_prefix_shorter_than_certificate'
+    if prefix[:len(certified_prefix)] != certified_prefix:
+        mismatch = next(
+            (i for i, (actual, expected) in enumerate(
+                zip(prefix, certified_prefix)
+            ) if actual != expected),
+            min(len(prefix), len(certified_prefix)),
+        )
+        return 0, 'commit_prefix', f'target_prefix_diverged_at_{mismatch}'
 
     # The final predicted candidate has no KV unless separately forwarded.
-    # Keep this exact lineage check: only inputs actually forwarded by Draft
-    # can be reused, never the last sampled candidate or an unverified token.
+    # Only inputs actually forwarded by Draft can be reused.
     if cached_inputs != old_prefix + drafts[:-1]:
-        return 0, 'cached_input_lineage'
+        return 0, 'cached_input_lineage', 'forwarded_input_sequence_mismatch'
 
     common = 0
     for cached_token, current_token in zip(cached_inputs, prefix[:-1]):
@@ -58,10 +58,17 @@ def reuse_span(cached_inputs, prefix, old_prefix, drafts, certificate):
             break
         common += 1
 
-    # Reuse cannot extend beyond the Target-accepted speculative prefix.
-    # Any later AR suffix is Prefilled normally in the remaining Draft pass.
+    # The final candidate and Target bonus token are not cached Draft inputs.
     bound = len(old_prefix) + accepted
-    return min(common, bound), None
+    return min(common, bound), None, None
+
+
+def reuse_span(cached_inputs, prefix, old_prefix, drafts, certificate):
+    """Backward-compatible two-field interface for KV reuse callers."""
+    reusable, reason, _detail = reuse_span_diagnostic(
+        cached_inputs, prefix, old_prefix, drafts, certificate
+    )
+    return reusable, reason
 
 
 class ReuseDraftSession(PersistentDraftSession):
@@ -834,13 +841,15 @@ class ReuseDraftQueue(PersistentDraftQueue):
                 expected_cached_inputs = (
                     list(commit["old_prefix"]) + list(commit["drafts"][:-1])
                 )
-                reuse_start, reuse_reason = reuse_span(
+                reuse_start, reuse_reason, reuse_detail = reuse_span_diagnostic(
                     expected_cached_inputs,
                     prefix,
                     list(commit["old_prefix"]),
                     list(commit["drafts"]),
                     commit,
                 )
+            else:
+                reuse_detail = "no_prior_commit"
             prefill_cost=len(prefix)-reuse_start
             emit(
                 "p2_reuse_plan",
@@ -849,6 +858,7 @@ class ReuseDraftQueue(PersistentDraftQueue):
                 reused_tokens=reuse_start,
                 prefill_tokens=prefill_cost,
                 reason=reuse_reason,
+                detail=reuse_detail,
             )
             if prefill_cost > self.s.max_num_scheduled_tokens:
                 self.discard_cached([rid] if cached else [], "prefill_token_limit")
