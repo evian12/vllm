@@ -465,11 +465,8 @@ class Scheduler(SchedulerInterface):
                     # The request cannot be scheduled. Frozen CDB Carry
                     # requests are not Target-executable and must never be
                     # selected as preemption victims.
-                    frozen_ids = (
-                        self._cdb_p2.frozen
-                        if getattr(self, "_cdb_p2", None) is not None
-                        else set()
-                    )
+                    p2_queue = getattr(self, "_cdb_p2", None)
+                    frozen_ids = p2_queue.frozen if p2_queue is not None else set()
                     preemptible = [
                         r for r in self.running if r.request_id not in frozen_ids
                     ]
@@ -1703,7 +1700,7 @@ class Scheduler(SchedulerInterface):
             raise RuntimeError("CDB active exceeds Draft capacity")
 
         candidates = []
-        reasons = {}
+        reasons: dict[str, int] = {}
 
         # Running requests not participating in this Draft window.
         for req in self.running:
