@@ -14,14 +14,19 @@ N_REQUESTS=512
 CONCURRENCY=16
 MAX_TOKENS=128
 REPEATS=3
+# Capture the ablation switch before clearing inherited CDB_* variables.
+KV_REUSE="${CDB_AV_512_KV_REUSE:-1}"
 STAMP="$(date +%Y%m%d_%H%M%S)"
-RUN_DIR="$ROOT/results/cdb_av_512/$STAMP"
+RUN_DIR="$ROOT/results/cdb_av_512/${STAMP}_kv${KV_REUSE}"
 SERVER_PID=""
 
 die() {
   echo "[ERROR] $*" >&2
   exit 1
 }
+
+[[ "$KV_REUSE" == "0" || "$KV_REUSE" == "1" ]] \
+  || die "CDB_AV_512_KV_REUSE must be 0 or 1, got: $KV_REUSE"
 
 port_pid() {
   ss -lntp 2>/dev/null \
@@ -107,7 +112,7 @@ mkdir -p "$RUN_DIR"
   echo "K_max=8"
   echo "K_policy=hf_confidence"
   echo "HF_threshold=0.4"
-  echo "KV_reuse=1"
+  echo "KV_reuse=$KV_REUSE"
   python -c 'import importlib.metadata as m, vllm; print("vllm_version=" + m.version("vllm")); print("vllm_file=" + str(vllm.__file__))'
 } | tee "$RUN_DIR/run_config.txt"
 
@@ -155,7 +160,8 @@ start_server() {
     CDB_AV_VARLEN=1 \
     CDB_AV_SPLIT_RPC=1 \
     CDB_AV_WORK_QUEUE=1 \
-    CDB_AV_KV_REUSE=1 \
+    CDB_AV_KV_REUSE="$KV_REUSE" \
+    CDB_AV_REFILL_TRACE=0 \
     CDB_AV_INTRA_WINDOW=1 \
     CDB_AV_INITIAL_ADMIT=3 \
     CDB_AV_ALLOW_FRESH_WAITING=0 \
