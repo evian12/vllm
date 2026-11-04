@@ -841,6 +841,11 @@ class ReuseDraftQueue(PersistentDraftQueue):
         return plans
 
     def rpc(self,operation,payload=None):
+        # A prior post-prepare cleanup may have failed. Retry it before issuing
+        # another Worker operation, so the Worker cannot advance while stale
+        # audit allocations remain in the CPU ownership ledger.
+        if operation!='prepare' and self.audit_leases:
+            self._release_audit_leases()
         result=super().rpc(operation,payload)
         if operation=='prepare' and os.getenv('CDB_AV_REUSE_REPLAY','0')=='1':
             keys={(p['commit']['k'],p['commit']['accepted']) for p in payload['plans'] if p.get('commit')}
@@ -854,10 +859,6 @@ class ReuseDraftQueue(PersistentDraftQueue):
             # Validation RPC copied comparisons to CPU and synchronized before ACK.
             # Release each audit owner independently. If one release fails,
             # successful earlier releases are already removed from the ledger.
-            self._release_audit_leases()
-        elif self.audit_leases:
-            # A prior post-prepare cleanup may have failed. Do not advance the
-            # Worker state machine until the remaining audit leases are released.
             self._release_audit_leases()
         return result
 
