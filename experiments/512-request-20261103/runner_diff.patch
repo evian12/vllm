@@ -1,0 +1,59 @@
+--- results/cdb_av_512/20261103_180418/before_backend_fix/run_512_stress.sh	2026-11-03 18:03:24.762250093 +0800
++++ cdb-av-512-test/scripts/cdb_av/run_512_stress.sh	2026-11-03 18:08:50.717958367 +0800
+@@ -149,6 +149,7 @@
+   env \
+     PYTHONPATH="$VLLM_DIR${PYTHONPATH:+:$PYTHONPATH}" \
+     CUDA_VISIBLE_DEVICES="$GPU" \
++    VLLM_ATTENTION_BACKEND=FLASH_ATTN \
+     CDB_AV_REFILL=1 \
+     CDB_AV_PERSISTENT=1 \
+     CDB_AV_K_POLICY=hf_confidence \
+@@ -199,6 +200,8 @@
+     tail -n 100 "$logfile" >&2 || true
+     die "vLLM health check timed out"
+   }
++  grep -q 'Using FLASH_ATTN attention backend' "$logfile" \
++    || die "Isolated service did not select FLASH_ATTN"
+   echo "[OK] server ready on port $PORT (TRACE_STEPS=$trace)"
+ }
+ 
+@@ -211,6 +214,19 @@
+   --concurrency "$CONCURRENCY" \
+   --max-tokens "$MAX_TOKENS" \
+   2>&1 | tee "$RUN_DIR/diagnostic_client.log"
++python - "$RUN_DIR/diagnostic_client.log" 32 <<'PY'
++import json
++import sys
++from pathlib import Path
++rows = [json.loads(line) for line in Path(sys.argv[1]).read_text().splitlines()
++        if line.startswith('{')]
++expected = int(sys.argv[2])
++completed = sum(row.get('ok') is True for row in rows)
++tokens = sum(row.get('output_tokens', 0) for row in rows)
++if len(rows) != expected or completed != expected or tokens <= 0:
++    raise SystemExit(f'Diagnostic completions invalid: {completed}/{expected}, tokens={tokens}')
++print(f'[OK] diagnostic completions={completed}/{expected}, tokens={tokens}')
++PY
+ grep '\[CDB_HF_CONF\]' "$RUN_DIR/diagnostic_server.log" \
+   > "$RUN_DIR/hf_confidence_trace.log" || true
+ python - "$RUN_DIR/hf_confidence_trace.log" <<'PY'
+@@ -274,6 +290,19 @@
+   --concurrency 16 \
+   --max-tokens "$MAX_TOKENS" \
+   2>&1 | tee "$RUN_DIR/warmup.log"
++python - "$RUN_DIR/warmup.log" 16 <<'PY'
++import json
++import sys
++from pathlib import Path
++rows = [json.loads(line) for line in Path(sys.argv[1]).read_text().splitlines()
++        if line.startswith('{')]
++expected = int(sys.argv[2])
++completed = sum(row.get('ok') is True for row in rows)
++tokens = sum(row.get('output_tokens', 0) for row in rows)
++if len(rows) != expected or completed != expected or tokens <= 0:
++    raise SystemExit(f'Warmup completions invalid: {completed}/{expected}, tokens={tokens}')
++print(f'[OK] warmup completions={completed}/{expected}, tokens={tokens}')
++PY
+ 
+ for ((run=1; run<=REPEATS; run++)); do
+   echo

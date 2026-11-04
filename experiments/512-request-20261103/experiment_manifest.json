@@ -14,7 +14,25 @@
     "different_files": 0,
     "missing_files": 0,
     "comparison_scope": "All Git-tracked files under vllm/ at the runtime base commit; does not cover non-vllm files, generated build artifacts, installed dependencies, or runtime environment.",
-    "source_fingerprint_file_sha256": "d2e9faeff00cd70a32648b3190d26dfcbc999916c6aec5bb86b55c714f26de80"
+    "source_fingerprint_file_sha256": "d2e9faeff00cd70a32648b3190d26dfcbc999916c6aec5bb86b55c714f26de80",
+    "source_fingerprint": {
+      "sha256": "d2e9faeff00cd70a32648b3190d26dfcbc999916c6aec5bb86b55c714f26de80",
+      "total_files": 1786,
+      "git_tracked_runtime_files": 1779,
+      "additional_build_files": 7,
+      "additional_build_file_paths": [
+        "vllm/vllm_flash_attn/__init__.py",
+        "vllm/vllm_flash_attn/flash_attn_interface.py",
+        "vllm/vllm_flash_attn/layers/__init__.py",
+        "vllm/vllm_flash_attn/layers/rotary.py",
+        "vllm/vllm_flash_attn/ops/__init__.py",
+        "vllm/vllm_flash_attn/ops/triton/__init__.py",
+        "vllm/vllm_flash_attn/ops/triton/rotary.py"
+      ],
+      "git_tracked_files_identical": 1779,
+      "git_tracked_files_different": 0,
+      "git_tracked_files_missing": 0
+    }
   },
   "runner": {
     "bundle_commit": "0d00d4de4bad3d4aad9e5a141d37e43fde855dfe",
@@ -44,8 +62,8 @@
     "hf_confidence_threshold": 0.4,
     "kv_reuse": true,
     "attention_backend": "FLASH_ATTN",
-    "arrival_pattern": "not recorded in run_config; do not characterize as constant-rate or Poisson without client submission timestamps",
-    "server_max_num_seqs": "not recorded in the supplied run_config; verify from the exact serve command or server startup log before publication"
+    "arrival_pattern": "Closed-loop concurrency-limited workload. All 512 futures are submitted to a ThreadPoolExecutor; up to 16 workers execute HTTP requests concurrently. Completed workers take queued requests. No fixed-rate or Poisson arrival pacing.",
+    "server_max_num_seqs": 4
   },
   "diagnostics": {
     "diagnostic_requests": 32,
@@ -75,7 +93,9 @@
     "performance_server_log": "performance_server.log",
     "runtime_errors_log": "runtime_errors.log",
     "raw_logs_retained_on_server": true,
-    "raw_logs_uploaded_to_github": false
+    "raw_logs_uploaded_to_github": false,
+    "source_fingerprint_file": "source_fingerprint.txt",
+    "runner_patch_file": "runner_diff.patch"
   },
   "provenance_notes": [
     "Runtime base commit and Runner bundle commit are distinct version identifiers.",
@@ -83,6 +103,10 @@
     "The complete experiment-time source fingerprint file was not uploaded; only its SHA-256 digest was recorded.",
     "The local runner patch is identified by its SHA-256 digest; the full patch file was not available in the supplied output.",
     "Arrival timing and server max_num_seqs are not recorded in run_config.txt and remain unverified here.",
-    "Performance results are observed benchmark results; fair comparison against native vLLM requires matching request arrival traces, concurrency, server settings, and model/runtime conditions."
+    "Performance results are observed benchmark results; fair comparison against native vLLM requires matching request arrival traces, concurrency, server settings, and model/runtime conditions.",
+    "The fingerprint contains 1,779 Git-tracked Runtime files and 7 additional FlashAttention build files copied into the isolated source tree.",
+    "The 7 additional files are build artifacts, not modifications to the 1,779 Git-tracked Runtime files.",
+    "Server startup logs confirm max_num_seqs=4.",
+    "The client submits all request futures to a 16-worker ThreadPoolExecutor; this is a closed-loop concurrency-limited workload, not an open-loop constant-rate or Poisson arrival process."
   ]
 }
