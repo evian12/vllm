@@ -20,3 +20,4 @@ class CDBDraftSession:
     draft_progress: tuple[int, ...] = ()
     active_indices: tuple[int, ...] = ()
     ready_indices: tuple[int, ...] = ()
+    _cdb_state_store: Any | None = field(default=None, repr=False)
