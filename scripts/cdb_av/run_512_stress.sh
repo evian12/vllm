@@ -5,6 +5,7 @@ set -Eeuo pipefail
 
 ROOT="$HOME/CDB-AV"
 VLLM_DIR="$ROOT/cdb-av-512-test"
+OPT_SOURCE="${CDB_AV_512_OPT_SOURCE:-$ROOT/cdb-av-optimize}"
 CLIENT="$ROOT/cdb_av_stepper_patch/stress_waiting.py"
 TARGET="/disk14T/yypan/models/Qwen3-8B"
 DRAFT="/disk14T/yypan/models/Qwen3-1.7B"
@@ -27,6 +28,15 @@ die() {
 
 [[ "$KV_REUSE" == "0" || "$KV_REUSE" == "1" ]] \
   || die "CDB_AV_512_KV_REUSE must be 0 or 1, got: $KV_REUSE"
+
+[[ -d "$OPT_SOURCE/.git" ]] \
+  || die "Optimization checkout not found: $OPT_SOURCE"
+OPT_BRANCH="$(git -C "$OPT_SOURCE" rev-parse --abbrev-ref HEAD)"
+OPT_COMMIT="$(git -C "$OPT_SOURCE" rev-parse HEAD)"
+[[ "$OPT_BRANCH" == "cdb-av/optimize-kv-reuse-20261104" ]] \
+  || die "Expected optimization branch cdb-av/optimize-kv-reuse-20261104, got: $OPT_BRANCH"
+git -C "$OPT_SOURCE" diff --quiet \
+  || die "Optimization checkout has uncommitted tracked changes; commit or stash them first"
 
 port_pid() {
   ss -lntp 2>/dev/null \
@@ -63,6 +73,16 @@ for key in $(compgen -e | grep '^CDB_' || true); do
   unset "$key"
 done
 cd "$VLLM_DIR"
+
+# Copy only the reviewed CDB-AV optimization files into the isolated runtime.
+# The source checkout remains untouched; all GPU execution uses VLLM_DIR.
+mkdir -p vllm/v1/spec_decode tests/v1/spec_decode
+cp "$OPT_SOURCE/vllm/v1/spec_decode/cdb_av_refill.py" \
+  vllm/v1/spec_decode/cdb_av_refill.py
+cp "$OPT_SOURCE/vllm/v1/spec_decode/cdb_av_kv_reuse.py" \
+  vllm/v1/spec_decode/cdb_av_kv_reuse.py
+cp "$OPT_SOURCE/tests/v1/spec_decode/test_cdb_av_kv_reuse.py" \
+  tests/v1/spec_decode/test_cdb_av_kv_reuse.py
 
 [[ -d "$TARGET" ]] || die "Target model not found: $TARGET"
 [[ -d "$DRAFT" ]] || die "Draft model not found: $DRAFT"
@@ -102,7 +122,8 @@ mkdir -p "$RUN_DIR"
 {
   echo "timestamp=$STAMP"
   echo "source_branch=cdb-av-complete-runtime-20261103"
-  echo "optimization_branch=cdb-av/optimize-kv-reuse-20261104"
+  echo "optimization_branch=$OPT_BRANCH"
+  echo "optimization_commit=$OPT_COMMIT"
   echo "source_commit=4a8500ab6799ae3f8f10931df9596e7fa78f8118"
   echo "source_dir=$VLLM_DIR"
   echo "gpu=$GPU"
