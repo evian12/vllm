@@ -121,9 +121,11 @@ def propose_varlen_steps(self, target_token_ids, target_positions, target_hidden
     progress = [0] * b
     actual_lengths = [0] * b
     ready = []
-    previous_ids = None
+    previous_ids: torch.Tensor | None = None
     cad = base
-    reference_logits = [] if getattr(self, '_cdb_capture_logits', False) else None
+    reference_logits: list[tuple[tuple[int, ...], torch.Tensor]] | None = (
+        [] if getattr(self, '_cdb_capture_logits', False) else None
+    )
     if reference_logits is not None:
         self._cdb_varlen_logits = reference_logits
     for step in range(1, max(lengths) + 1):
@@ -164,6 +166,8 @@ def propose_varlen_steps(self, target_token_ids, target_positions, target_hidden
                              inputs_embeds=None)
         hidden = ret[0] if self.model_returns_tuple() else ret
         logits = self.model.compute_logits(hidden[last_indices])
+        if logits is None:
+            raise RuntimeError('CDB Draft model returned no logits')
         if check and not bool(torch.isfinite(logits).all()):
             raise RuntimeError("Non-finite CDB draft logits")
         if reference_logits is not None:
@@ -258,6 +262,8 @@ def validate_fixed_prefix(self, args, kwargs):
     ref.pop('request_ids', None)
     ref.pop('request_draft_lengths', None)
     cad = ref['common_attn_metadata']
+    if cad is None:
+        raise ValueError('CDB prefix oracle requires attention metadata')
     ref['common_attn_metadata'] = cad.replace(**{
         f.name: getattr(cad, f.name).clone() for f in fields(cad)
         if isinstance(getattr(cad, f.name), torch.Tensor)})
@@ -269,7 +275,10 @@ def validate_fixed_prefix(self, args, kwargs):
         return logits
     self.model.compute_logits = capture
     try:
-        reference = SpecDecodeBaseProposer.propose(self, **ref).clone()
+        reference_result = SpecDecodeBaseProposer.propose(self, **ref)
+        if reference_result is None:
+            raise RuntimeError('CDB fixed-prefix reference returned no tokens')
+        reference = reference_result.clone()
     finally:
         self.model.compute_logits = compute_logits
     self._cdb_capture_logits = True
