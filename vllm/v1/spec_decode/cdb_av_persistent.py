@@ -7,6 +7,8 @@ never sees these pages or unverified tokens as part of the official prefix.
 """
 import os
 import time
+from typing import Any
+
 import torch
 
 from vllm.v1.spec_decode.cdb_av_refill import RefillSession, emit
@@ -243,7 +245,10 @@ def worker_rpc(runner, operation, payload):
     if operation == 'p2_boundary':
         return session.boundary()
     if operation == 'p2_replay':
-        return session.replay(payload['mapping'])
+        replay = getattr(session, 'replay', None)
+        if replay is None:
+            raise RuntimeError('KV replay requested without a reuse session')
+        return replay(payload['mapping'])
     if operation == 'p2_drop':
         return session.drop(payload['ids'])
     if operation == 'p2_reset':
@@ -264,7 +269,7 @@ class PersistentDraftQueue:
         self.horizon = int(os.getenv('CDB_AV_WINDOW_H', '2'))
         if not 1 <= self.horizon <= 64:
             raise ValueError('P2 H must be in [1,64]')
-        self._cdb_admit_limit = None
+        self._cdb_admit_limit: int | None = None
         self.s._cdb_p2 = self
 
     @property
@@ -297,7 +302,7 @@ class PersistentDraftQueue:
         # Phase 1: Preflight every CPU-owned allocation.
         # No Worker or CPU ownership state is modified in this phase.
         owned = []
-        seen = {}
+        seen: dict[int, tuple[str, str | int]] = {}
 
         mappings = [
             ("leases", self.leases),
@@ -479,7 +484,7 @@ class PersistentDraftQueue:
              accepted=accepted, fingerprint=record['fingerprint'])
 
     def plans(self):
-        plans = []
+        plans: list[dict[str, Any]] = []
         pool = self.s.kv_cache_manager.block_pool
         for req in self.s.running:
             if self._cdb_admit_limit is not None and len(plans) >= self._cdb_admit_limit:
