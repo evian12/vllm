@@ -60,4 +60,5 @@ def test_modes_keep_server_limits_and_isolate_cdb_flags(monkeypatch):
             "0.8" if mode == "cdb" else "0.4"
         )
         assert command[command.index("--max-num-seqs") + 1] == "4"
+        assert command[command.index("--attention-backend") + 1] == "FLASH_ATTN"
         assert ("--speculative-config" in command) == (mode != "ar")

@@ -125,6 +125,10 @@ def server_command(args: argparse.Namespace) -> list[str]:
         "--no-enable-prefix-caching",
         "--seed",
         "42",
+        # This vLLM version selects the backend through the CLI/config; the
+        # VLLM_ATTENTION_BACKEND environment variable is not authoritative.
+        "--attention-backend",
+        "FLASH_ATTN",
     ]
     if args.mode != "ar":
         command += [
