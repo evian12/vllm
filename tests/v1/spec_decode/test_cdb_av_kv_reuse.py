@@ -47,6 +47,9 @@ def test_reuse_survives_single_ar_token_growth():
     cached_inputs = old_prefix + drafts[:-1]
     prefix = old_prefix + generated + [10]
 
+    # With K=2, Draft forwarded only old_prefix + drafts[:-1].
+    # The second cached Draft input does not exist, so reuse is bounded
+    # by the three materialized input tokens, not old_prefix length + K.
     assert reuse_span(
         cached_inputs, prefix, old_prefix, drafts,
         make_certificate(old_prefix, drafts, generated),
