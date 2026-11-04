@@ -158,9 +158,8 @@ class RefillQueue:
             item = self.queue.items.get(rid)
             if item is None or rid not in self.leases:
                 continue  # normal running request managed by Target scheduler
-            if (
-                current != item.progress
-                and (current < item.progress or item.status == DraftWorkStatus.READY)
+            if current != item.progress and (
+                current < item.progress or item.status == DraftWorkStatus.READY
             ):
                 raise RuntimeError("Invalid refill progress or Ready reactivation")
             item.progress = current

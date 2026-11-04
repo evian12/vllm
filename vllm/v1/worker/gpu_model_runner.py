@@ -3954,7 +3954,9 @@ class GPUModelRunner(
                 if rid not in payload["contexts"]:
                     continue
                 state = self.requests[rid]
-                tokens = list(state.prompt_token_ids or []) + list(state.output_token_ids)
+                tokens = list(state.prompt_token_ids or []) + list(
+                    state.output_token_ids
+                )
                 ctx = dict(
                     context_tokens=len(tokens), fingerprint=token_fingerprint(tokens)
                 )
