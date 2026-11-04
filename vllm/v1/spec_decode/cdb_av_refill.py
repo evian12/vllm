@@ -109,8 +109,14 @@ class RefillSession:
         positions = p._get_positions(n).clone()
         request_ids = kw['request_ids']
         q = base.query_start_loc_cpu.tolist()
-        rows, chunks, sample_indices, offset = [], [], [], 0
-        block_rows, seqs, qlens, slots = [], [], [], []
+        rows: list[str] = []
+        chunks: list[int] = []
+        sample_indices: list[int] = []
+        offset = 0
+        block_rows: list[list[int]] = []
+        seqs: list[int] = []
+        qlens: list[int] = []
+        slots: list[int] = []
         last_cpu = last.cpu().tolist()
         for i, rid in enumerate(request_ids):
             ctx = self.contexts.get(rid)
