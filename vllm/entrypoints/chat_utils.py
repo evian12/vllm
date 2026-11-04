@@ -1244,11 +1244,19 @@ _RefusalParser = partial(cast, ChatCompletionContentPartRefusalParam)
 _PILImageParser = partial(cast, CustomChatCompletionContentPILImageParam)
 _ThinkParser = partial(cast, CustomThinkCompletionContentParam)
 # Need to validate url objects
-_ImageParser = TypeAdapter(ChatCompletionContentPartImageParam).validate_python
-_AudioParser = TypeAdapter(ChatCompletionContentPartAudioParam).validate_python
-_VideoParser = TypeAdapter(ChatCompletionContentPartVideoParam).validate_python
+_ImageParser: Callable[..., Any] = TypeAdapter(
+    ChatCompletionContentPartImageParam
+).validate_python
+_AudioParser: Callable[..., Any] = TypeAdapter(
+    ChatCompletionContentPartAudioParam
+).validate_python
+_VideoParser: Callable[..., Any] = TypeAdapter(
+    ChatCompletionContentPartVideoParam
+).validate_python
 
-_ResponsesInputImageParser = TypeAdapter(ResponseInputImageParam).validate_python
+_ResponsesInputImageParser: Callable[..., Any] = TypeAdapter(
+    ResponseInputImageParam
+).validate_python
 _ContentPart: TypeAlias = str | dict[str, str] | InputAudio | PILImage
 
 # Define a mapping from part types to their corresponding parsing functions.

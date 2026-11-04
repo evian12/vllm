@@ -1,11 +1,14 @@
 # SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
 """CDB-AV provisional Draft step session.
 
 Supports fixed membership or shrinking varlen membership; no new admission.
 Not a cross-target-forward Carry object. Generator captures mutable model buffers.
 """
+
+from collections.abc import Generator
 from dataclasses import dataclass, field
-from typing import Any, Generator
+from typing import Any
 
 
 @dataclass
@@ -20,3 +23,4 @@ class CDBDraftSession:
     draft_progress: tuple[int, ...] = ()
     active_indices: tuple[int, ...] = ()
     ready_indices: tuple[int, ...] = ()
+    _cdb_state_store: Any | None = field(default=None, repr=False)

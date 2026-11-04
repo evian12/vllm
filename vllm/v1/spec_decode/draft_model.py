@@ -2,8 +2,6 @@
 # SPDX-FileCopyrightText: Copyright contributors to the vLLM project
 import os  # CDB_AV_STEPPER_V1
 from typing import Any
-from vllm.v1.spec_decode.cdb_av_step_session import CDBDraftSession
-from vllm.v1.spec_decode.cdb_av_varlen import propose_varlen_steps
 
 import torch
 
@@ -17,23 +15,30 @@ from vllm.v1.attention.backends.utils import (
     CommonAttentionMetadata,
     extend_all_queries_by_1,
 )
-from vllm.v1.spec_decode.eagle import PADDING_SLOT_ID, SpecDecodeBaseProposer
 from vllm.v1.spec_decode.cdb_av_state import (
-    DraftStateStore,
     DraftPhase,
+    DraftStateStore,
 )
+from vllm.v1.spec_decode.cdb_av_step_session import CDBDraftSession
+from vllm.v1.spec_decode.cdb_av_varlen import propose_varlen_steps
+from vllm.v1.spec_decode.eagle import PADDING_SLOT_ID, SpecDecodeBaseProposer
 
 logger = init_logger(__name__)
 
 
 class DraftModelProposer(SpecDecodeBaseProposer):
+    _cdb_active_session: CDBDraftSession | None
+
     # CDB_AV_STEPPER_V1: draft_model-only, original path is the default.
     def propose(self, *args, **kwargs):
         if os.environ.get("CDB_AV_STEP_MODE", "0") != "1":
             return super().propose(*args, **kwargs)
-        if (os.environ.get("CDB_AV_VARLEN", "0") == "1"
-                and os.environ.get("CDB_AV_VALIDATE_PREFIX", "0") == "1"):
+        if (
+            os.environ.get("CDB_AV_VARLEN", "0") == "1"
+            and os.environ.get("CDB_AV_VALIDATE_PREFIX", "0") == "1"
+        ):
             from vllm.v1.spec_decode.cdb_av_varlen import validate_fixed_prefix
+
             return validate_fixed_prefix(self, args, kwargs)
         session = self.begin_draft(*args, **kwargs)
 
@@ -127,10 +132,7 @@ class DraftModelProposer(SpecDecodeBaseProposer):
                     completed=original_idx in completed,
                 )
 
-                if (
-                    state.progress
-                    != report["actual_draft_lengths"][original_idx]
-                ):
+                if state.progress != report["actual_draft_lengths"][original_idx]:
                     raise RuntimeError("CDB state progress mismatch")
 
         if "request_ids" in report:
@@ -138,13 +140,17 @@ class DraftModelProposer(SpecDecodeBaseProposer):
             session.request_draft_lengths = report["request_draft_lengths"]
             session.draft_progress = report["draft_progress"]
             session.active_indices = tuple(
-                i for i in report["active_indices"]
-                if report["draft_progress"][i] < report["request_draft_lengths"][i])
+                i
+                for i in report["active_indices"]
+                if report["draft_progress"][i] < report["request_draft_lengths"][i]
+            )
             session.ready_indices = report["ready_indices"]
         if os.environ.get("CDB_AV_TRACE_STEPS", "0") == "1":
             logger.info(
                 "[CDB_STEP] step=%d logical_batch=%d input_rows=%d",
-                step, report["logical_batch"], report["input_rows"]
+                step,
+                report["logical_batch"],
+                report["input_rows"],
             )
         return report
 
@@ -201,6 +207,7 @@ class DraftModelProposer(SpecDecodeBaseProposer):
         device: torch.device,
         runner=None,
     ):
+        self._cdb_active_session = None
         super().__init__(
             vllm_config=vllm_config,
             device=device,

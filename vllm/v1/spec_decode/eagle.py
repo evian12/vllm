@@ -290,10 +290,14 @@ class SpecDecodeBaseProposer:
         | None = None,
         num_speculative_tokens: int | None = None,
     ) -> torch.Tensor:
-        cdb_av_probe_enabled = os.getenv("CDB_AV_TRACE_DRAFT", "0") == "1"  # CDB_AV_DRAFT_PROBE_v2
+        cdb_av_probe_enabled = (
+            os.getenv("CDB_AV_TRACE_DRAFT", "0") == "1"
+        )  # CDB_AV_DRAFT_PROBE_v2
         cdb_av_forward_count = 0
         if cdb_av_probe_enabled:
-            logger.info("[CDB_AV] propose_begin batch=%d", common_attn_metadata.batch_size())
+            logger.info(
+                "[CDB_AV] propose_begin batch=%d", common_attn_metadata.batch_size()
+            )
         draft_k = (
             self.num_speculative_tokens
             if num_speculative_tokens is None
@@ -302,8 +306,7 @@ class SpecDecodeBaseProposer:
 
         if not 1 <= draft_k <= self.num_speculative_tokens:
             raise ValueError(
-                f"Invalid draft_k={draft_k}, "
-                f"maximum={self.num_speculative_tokens}"
+                f"Invalid draft_k={draft_k}, maximum={self.num_speculative_tokens}"
             )
         batch_size = common_attn_metadata.batch_size()
 
@@ -410,8 +413,11 @@ class SpecDecodeBaseProposer:
                 cdb_av_input = model_kwargs.get("input_ids")
                 if cdb_av_input is None:
                     cdb_av_input = model_kwargs.get("inputs_embeds")
-                logger.info("[CDB_AV] draft_forward_returned ordinal=%d input_rows=%s",
-                            cdb_av_forward_count, None if cdb_av_input is None else cdb_av_input.shape[0])
+                logger.info(
+                    "[CDB_AV] draft_forward_returned ordinal=%d input_rows=%s",
+                    cdb_av_forward_count,
+                    None if cdb_av_input is None else cdb_av_input.shape[0],
+                )
             if not self.model_returns_tuple():
                 last_hidden_states = ret_hidden_states
                 hidden_states = last_hidden_states
@@ -616,8 +622,11 @@ class SpecDecodeBaseProposer:
                     cdb_av_input = model_kwargs.get("input_ids")
                     if cdb_av_input is None:
                         cdb_av_input = model_kwargs.get("inputs_embeds")
-                    logger.info("[CDB_AV] draft_forward_returned ordinal=%d input_rows=%s",
-                                cdb_av_forward_count, None if cdb_av_input is None else cdb_av_input.shape[0])
+                    logger.info(
+                        "[CDB_AV] draft_forward_returned ordinal=%d input_rows=%s",
+                        cdb_av_forward_count,
+                        None if cdb_av_input is None else cdb_av_input.shape[0],
+                    )
                 if not self.model_returns_tuple():
                     last_hidden_states = ret_hidden_states
                     hidden_states = ret_hidden_states
@@ -632,6 +641,7 @@ class SpecDecodeBaseProposer:
         # [batch_size, num_speculative_tokens]
         draft_token_ids = torch.stack(draft_token_ids_list, dim=1)
         return draft_token_ids
+
     # CDB_AV_STEPPER_V1: isolated draft_model-only generator; no refill/carry.
     def _cdb_propose_steps(
         self,
@@ -653,10 +663,14 @@ class SpecDecodeBaseProposer:
         | None = None,
         num_speculative_tokens: int | None = None,
     ) -> torch.Tensor:
-        cdb_av_probe_enabled = os.getenv("CDB_AV_TRACE_DRAFT", "0") == "1"  # CDB_AV_DRAFT_PROBE_v2
+        cdb_av_probe_enabled = (
+            os.getenv("CDB_AV_TRACE_DRAFT", "0") == "1"
+        )  # CDB_AV_DRAFT_PROBE_v2
         cdb_av_forward_count = 0
         if cdb_av_probe_enabled:
-            logger.info("[CDB_AV] propose_begin batch=%d", common_attn_metadata.batch_size())
+            logger.info(
+                "[CDB_AV] propose_begin batch=%d", common_attn_metadata.batch_size()
+            )
         draft_k = (
             self.num_speculative_tokens
             if num_speculative_tokens is None
@@ -665,8 +679,7 @@ class SpecDecodeBaseProposer:
 
         if not 1 <= draft_k <= self.num_speculative_tokens:
             raise ValueError(
-                f"Invalid draft_k={draft_k}, "
-                f"maximum={self.num_speculative_tokens}"
+                f"Invalid draft_k={draft_k}, maximum={self.num_speculative_tokens}"
             )
         batch_size = common_attn_metadata.batch_size()
 
@@ -773,8 +786,11 @@ class SpecDecodeBaseProposer:
                 cdb_av_input = model_kwargs.get("input_ids")
                 if cdb_av_input is None:
                     cdb_av_input = model_kwargs.get("inputs_embeds")
-                logger.info("[CDB_AV] draft_forward_returned ordinal=%d input_rows=%s",
-                            cdb_av_forward_count, None if cdb_av_input is None else cdb_av_input.shape[0])
+                logger.info(
+                    "[CDB_AV] draft_forward_returned ordinal=%d input_rows=%s",
+                    cdb_av_forward_count,
+                    None if cdb_av_input is None else cdb_av_input.shape[0],
+                )
             if not self.model_returns_tuple():
                 last_hidden_states = ret_hidden_states
                 hidden_states = last_hidden_states
@@ -787,7 +803,12 @@ class SpecDecodeBaseProposer:
         # Early exit if there is only one draft token to be generated.
         if draft_k == 1:
             draft_token_ids = logits.argmax(dim=-1)
-            yield {"step": 1, "input_rows": int(num_input_tokens), "logical_batch": int(batch_size), "draft_token_ids": draft_token_ids}  # CDB_AV_STEPPER_V1
+            yield {
+                "step": 1,
+                "input_rows": int(num_input_tokens),
+                "logical_batch": int(batch_size),
+                "draft_token_ids": draft_token_ids,
+            }  # CDB_AV_STEPPER_V1
             return draft_token_ids.view(-1, 1)
 
         if self.uses_mrope:
@@ -818,7 +839,12 @@ class SpecDecodeBaseProposer:
             return torch.cat(draft_token_ids_list, dim=1)
 
         draft_token_ids = logits.argmax(dim=-1)
-        yield {"step": 1, "input_rows": int(num_input_tokens), "logical_batch": int(batch_size), "draft_token_ids": draft_token_ids}  # CDB_AV_STEPPER_V1
+        yield {
+            "step": 1,
+            "input_rows": int(num_input_tokens),
+            "logical_batch": int(batch_size),
+            "draft_token_ids": draft_token_ids,
+        }  # CDB_AV_STEPPER_V1
 
         if self.allowed_attn_types is not None and not isinstance(
             attn_metadata, self.allowed_attn_types
@@ -981,8 +1007,11 @@ class SpecDecodeBaseProposer:
                     cdb_av_input = model_kwargs.get("input_ids")
                     if cdb_av_input is None:
                         cdb_av_input = model_kwargs.get("inputs_embeds")
-                    logger.info("[CDB_AV] draft_forward_returned ordinal=%d input_rows=%s",
-                                cdb_av_forward_count, None if cdb_av_input is None else cdb_av_input.shape[0])
+                    logger.info(
+                        "[CDB_AV] draft_forward_returned ordinal=%d input_rows=%s",
+                        cdb_av_forward_count,
+                        None if cdb_av_input is None else cdb_av_input.shape[0],
+                    )
                 if not self.model_returns_tuple():
                     last_hidden_states = ret_hidden_states
                     hidden_states = ret_hidden_states
@@ -993,12 +1022,16 @@ class SpecDecodeBaseProposer:
             logits = self.model.compute_logits(last_hidden_states[:batch_size])
             draft_token_ids = logits.argmax(dim=-1)
             draft_token_ids_list.append(draft_token_ids)
-            yield {"step": token_index + 2, "input_rows": int(input_batch_size), "logical_batch": int(batch_size), "draft_token_ids": draft_token_ids}  # CDB_AV_STEPPER_V1
+            yield {
+                "step": token_index + 2,
+                "input_rows": int(input_batch_size),
+                "logical_batch": int(batch_size),
+                "draft_token_ids": draft_token_ids,
+            }  # CDB_AV_STEPPER_V1
 
         # [batch_size, num_speculative_tokens]
         draft_token_ids = torch.stack(draft_token_ids_list, dim=1)
         return draft_token_ids
-
 
     def set_inputs_first_pass(
         self,

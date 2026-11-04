@@ -378,15 +378,19 @@ class EngineCore:
         # Check for any requests remaining in the scheduler - unfinished,
         # or finished and not yet removed from the batch.
         import os
+
         if os.getenv("CDB_AV_PERF_DIR"):
             from cdb_perf_probe import install
+
             install(self)
         if os.getenv("CDB_AV_PERSISTENT", "0") == "1":
             if not hasattr(self, "_cdb_persistent"):
                 from vllm.v1.spec_decode.cdb_av_persistent import PersistentDraftQueue
+
                 cls = PersistentDraftQueue
                 if os.getenv("CDB_AV_KV_REUSE", "0") == "1":
                     from vllm.v1.spec_decode.cdb_av_kv_reuse import ReuseDraftQueue
+
                     cls = ReuseDraftQueue
                 self._cdb_persistent = cls(self)
             self._cdb_persistent.reconcile()
@@ -395,6 +399,7 @@ class EngineCore:
         # CDB-AV: diagnostic Executor -> Worker call.
         # Does not execute a Draft forward or mutate Scheduler state.
         import os
+
         if os.environ.get("CDB_AV_RPC_PROBE", "0") == "1":
             from vllm.v1.executor.uniproc_executor import UniProcExecutor
 
@@ -420,6 +425,7 @@ class EngineCore:
                 raise RuntimeError("CDB RPC probe mismatch")
 
             import logging
+
             logging.getLogger("vllm.cdb_av.rpc").info(
                 "[CDB_RPC_RETURN] step_id=%d worker_received=%s",
                 probe_id,
@@ -433,8 +439,10 @@ class EngineCore:
         # CDB-AV: observe actual vLLM Scheduler admission.
         # This is NOT an independent Draft KV allocation.
         import os
+
         if os.environ.get("CDB_AV_SCHED_TRACE") == "1":
             import logging
+
             logging.getLogger("vllm.cdb_av.scheduler").info(
                 "[CDB_SCHED] scheduled=%s total_tokens=%d",
                 dict(scheduler_output.num_scheduled_tokens),
@@ -462,21 +470,36 @@ class EngineCore:
     def _cdb_refill_post_step(self):
         from vllm.v1.executor.uniproc_executor import UniProcExecutor
         from vllm.v1.spec_decode.cdb_av_refill_queue import RefillQueue
+
         if not isinstance(self.model_executor, UniProcExecutor):
             raise RuntimeError("Refill requires UniProcExecutor")
-        if not hasattr(self.scheduler, "_cdb_refill_queue"):
-            self.scheduler._cdb_refill_queue = RefillQueue(self.scheduler)
-        queue = self.scheduler._cdb_refill_queue
+        scheduler = cast(Any, self.scheduler)
+        queue = getattr(scheduler, "_cdb_refill_queue", None)
+        if queue is None:
+            queue = RefillQueue(self.scheduler)
+            scheduler._cdb_refill_queue = queue
         self._cdb_window_id = getattr(self, "_cdb_window_id", 0) + 1
         horizon = int(os.getenv("CDB_AV_WINDOW_H", "8"))
         if not 1 <= horizon <= 64:
             raise ValueError("Refill H must be in [1,64]")
+
         def rpc(operation, payload=None):
-            return self.model_executor.collective_rpc("cdb_refill_rpc",
-                args=(operation, payload or {}), single_value=True)
+            return cast(Any, self.model_executor).collective_rpc(
+                "cdb_refill_rpc",
+                args=(operation, payload or {}),
+                single_value=True,
+            )
+
         contexts = queue.begin(self._cdb_window_id)
-        configured = rpc("configure", dict(window=self._cdb_window_id,H=horizon,
-            contexts=contexts,capacity=self.scheduler.max_num_running_reqs))
+        configured = rpc(
+            "configure",
+            dict(
+                window=self._cdb_window_id,
+                H=horizon,
+                contexts=contexts,
+                capacity=scheduler.max_num_running_reqs,
+            ),
+        )
         if not configured["pending"]:
             return
         p1_virtual_h = os.getenv("CDB_P1_VIRTUAL_H", "0") == "1"
@@ -490,8 +513,11 @@ class EngineCore:
             status = rpc("step")
             total_steps += 1
             queue.step(status)
-            plans = (queue.select(status) if status["remaining_steps"]
-                     and not p1_virtual_h else [])
+            plans = (
+                queue.select(status)
+                if status["remaining_steps"] and not p1_virtual_h
+                else []
+            )
             if plans:
                 response = rpc("admit", dict(plans=plans))
                 if response["prepared"] != [p["req_id"] for p in plans]:
@@ -522,8 +548,9 @@ class EngineCore:
             # Target has already been committed by update_from_output().
             # No other Target forward may interleave with this sequence.
             if os.environ.get("CDB_AV_SPLIT_RPC", "0") == "1":
-                from vllm.v1.executor.uniproc_executor import UniProcExecutor
                 import logging
+
+                from vllm.v1.executor.uniproc_executor import UniProcExecutor
 
                 if not isinstance(self.model_executor, UniProcExecutor):
                     raise RuntimeError(
@@ -533,9 +560,7 @@ class EngineCore:
                 split_logger = logging.getLogger("vllm.cdb_av.split")
                 had_pending = False
 
-                self._cdb_window_id = (
-                    getattr(self, "_cdb_window_id", 0) + 1
-                )
+                self._cdb_window_id = getattr(self, "_cdb_window_id", 0) + 1
                 window_id = self._cdb_window_id
 
                 for rpc_index in range(128):
@@ -553,8 +578,7 @@ class EngineCore:
 
                     had_pending = True
                     split_logger.info(
-                        "[CDB_DRAFT_RPC_RETURN] rpc=%d "
-                        "step=%d done=%s",
+                        "[CDB_DRAFT_RPC_RETURN] rpc=%d step=%d done=%s",
                         rpc_index + 1,
                         status["steps_completed"],
                         status["done"],
@@ -564,17 +588,12 @@ class EngineCore:
                         os.environ.get("CDB_AV_ADMISSION_TRACE", "0") == "1"
                         and "request_ids" in status
                     ):
-                        capacity = int(
-                            os.environ.get("CDB_AV_DRAFT_CAPACITY", "4")
-                        )
-                        if (
-                            os.environ.get("CDB_AV_WORK_QUEUE", "0") == "1"
-                        ):
+                        scheduler = cast(Any, self.scheduler)
+                        capacity = int(os.environ.get("CDB_AV_DRAFT_CAPACITY", "4"))
+                        if os.environ.get("CDB_AV_WORK_QUEUE", "0") == "1":
                             status["window_id"] = window_id
 
-                            work_snapshot = (
-                                self.scheduler.sync_cdb_work_queue(status)
-                            )
+                            work_snapshot = scheduler.sync_cdb_work_queue(status)
 
                             split_logger.info(
                                 "[CDB_WORK_QUEUE_RETURN] window=%d "
@@ -586,7 +605,7 @@ class EngineCore:
                                 work_snapshot["counts"]["PREPARE_REQUIRED"],
                             )
 
-                        decision = self.scheduler.inspect_cdb_draft_step(
+                        decision = scheduler.inspect_cdb_draft_step(
                             status, draft_capacity=capacity
                         )
                         split_logger.info(
@@ -600,11 +619,9 @@ class EngineCore:
                             decision["admitted_req_ids"],
                         )
 
-                        eligibility = (
-                            self.scheduler.inspect_cdb_draft_candidates(
-                                status,
-                                draft_capacity=capacity,
-                            )
+                        eligibility = scheduler.inspect_cdb_draft_candidates(
+                            status,
+                            draft_capacity=capacity,
                         )
 
                         split_logger.info(
@@ -632,9 +649,7 @@ class EngineCore:
                         )
                         break
                 else:
-                    raise RuntimeError(
-                        "CDB Draft exceeded maximum RPC step count"
-                    )
+                    raise RuntimeError("CDB Draft exceeded maximum RPC step count")
 
             # Take the draft token ids.
             draft_token_ids = self.model_executor.take_draft_token_ids()
