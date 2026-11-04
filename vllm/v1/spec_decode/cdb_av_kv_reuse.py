@@ -454,8 +454,8 @@ class ReuseDraftSession(PersistentDraftSession):
                     segments = kv_segment_errors(a, b, start, end)
                     # KV layout: (K/V, tokens, heads, head_dim).
                     for kv_index, kv_name in enumerate(("K", "V")):
-                        actual = a[kv_index]
-                        reference_kv = b[kv_index]
+                        actual = cast(torch.Tensor, a[kv_index])
+                        reference_kv = cast(torch.Tensor, b[kv_index])
 
                         # Compare the original cached prefix captured
                         # BEFORE incremental preparation.
@@ -906,7 +906,7 @@ class ReuseDraftQueue(PersistentDraftQueue):
                 self.pending_allocations.append(list(blocks))
 
     def plans(self):
-        plans = []
+        plans: list[dict[str, Any]] = []
         pool = self.s.kv_cache_manager.block_pool
         for req in self.s.running:
             if (
@@ -1060,12 +1060,14 @@ class ReuseDraftQueue(PersistentDraftQueue):
                 )
             self._audit_cleanup_safe = True
         elif operation == "prepare":
-            expected = [plan["req_id"] for plan in (payload or {}).get("plans", ())]
+            expected_prepared = [
+                plan["req_id"] for plan in (payload or {}).get("plans", ())
+            ]
             prepared = result.get("prepared")
-            if prepared != expected:
+            if prepared != expected_prepared:
                 raise RuntimeError(
                     "Incomplete Worker Prepare acknowledgement: "
-                    f"expected={expected}, prepared={prepared}"
+                    f"expected={expected_prepared}, prepared={prepared}"
                 )
             self._audit_cleanup_safe = True
 
