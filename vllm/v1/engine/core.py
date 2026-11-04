@@ -588,6 +588,7 @@ class EngineCore:
                         os.environ.get("CDB_AV_ADMISSION_TRACE", "0") == "1"
                         and "request_ids" in status
                     ):
+                        scheduler = cast(Any, self.scheduler)
                         capacity = int(os.environ.get("CDB_AV_DRAFT_CAPACITY", "4"))
                         if os.environ.get("CDB_AV_WORK_QUEUE", "0") == "1":
                             status["window_id"] = window_id
