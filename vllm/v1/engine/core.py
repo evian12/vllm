@@ -464,19 +464,25 @@ class EngineCore:
         from vllm.v1.spec_decode.cdb_av_refill_queue import RefillQueue
         if not isinstance(self.model_executor, UniProcExecutor):
             raise RuntimeError("Refill requires UniProcExecutor")
-        if not hasattr(self.scheduler, "_cdb_refill_queue"):
-            self.scheduler._cdb_refill_queue = RefillQueue(self.scheduler)
-        queue = self.scheduler._cdb_refill_queue
+        queue = getattr(self.scheduler, "_cdb_refill_queue", None)
+        if queue is None:
+            queue = RefillQueue(self.scheduler)
+            setattr(self.scheduler, "_cdb_refill_queue", queue)
         self._cdb_window_id = getattr(self, "_cdb_window_id", 0) + 1
         horizon = int(os.getenv("CDB_AV_WINDOW_H", "8"))
         if not 1 <= horizon <= 64:
             raise ValueError("Refill H must be in [1,64]")
         def rpc(operation, payload=None):
-            return self.model_executor.collective_rpc("cdb_refill_rpc",
-                args=(operation, payload or {}), single_value=True)
+            return cast(Any, self.model_executor).collective_rpc(
+                "cdb_refill_rpc",
+                args=(operation, payload or {}),
+                single_value=True,
+            )
         contexts = queue.begin(self._cdb_window_id)
         configured = rpc("configure", dict(window=self._cdb_window_id,H=horizon,
-            contexts=contexts,capacity=self.scheduler.max_num_running_reqs))
+            contexts=contexts,
+            capacity=getattr(self.scheduler, "max_num_running_reqs"),
+        ))
         if not configured["pending"]:
             return
         p1_virtual_h = os.getenv("CDB_P1_VIRTUAL_H", "0") == "1"
@@ -573,7 +579,7 @@ class EngineCore:
                             status["window_id"] = window_id
 
                             work_snapshot = (
-                                self.scheduler.sync_cdb_work_queue(status)
+                                getattr(self.scheduler, "sync_cdb_work_queue")(status)
                             )
 
                             split_logger.info(
@@ -586,7 +592,7 @@ class EngineCore:
                                 work_snapshot["counts"]["PREPARE_REQUIRED"],
                             )
 
-                        decision = self.scheduler.inspect_cdb_draft_step(
+                        decision = getattr(self.scheduler, "inspect_cdb_draft_step")(
                             status, draft_capacity=capacity
                         )
                         split_logger.info(
@@ -601,7 +607,7 @@ class EngineCore:
                         )
 
                         eligibility = (
-                            self.scheduler.inspect_cdb_draft_candidates(
+                            getattr(self.scheduler, "inspect_cdb_draft_candidates")(
                                 status,
                                 draft_capacity=capacity,
                             )
