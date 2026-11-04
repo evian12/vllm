@@ -65,7 +65,7 @@ INVOCATION_TYPES: list[tuple[RequestType, tuple[GetHandlerFn, EndpointFn]]] = [
 ]
 
 # NOTE: Construct the TypeAdapters only once
-INVOCATION_VALIDATORS = [
+INVOCATION_VALIDATORS: list[Any] = [
     (pydantic.TypeAdapter(request_type), (get_handler, endpoint))
     for request_type, (get_handler, endpoint) in INVOCATION_TYPES
 ]
