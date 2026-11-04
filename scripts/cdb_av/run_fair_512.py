@@ -91,6 +91,14 @@ def gpu_used_mib(gpu: int) -> int:
     return int(result.strip())
 
 
+def save_metrics(port: int, path: Path) -> None:
+    """Snapshot vLLM histograms between client runs, outside measured wall time."""
+    with urllib.request.urlopen(
+        f"http://127.0.0.1:{port}/metrics", timeout=5
+    ) as response:
+        path.write_bytes(response.read())
+
+
 def server_command(args: argparse.Namespace) -> list[str]:
     command = [
         sys.executable,
@@ -138,10 +146,12 @@ def server_environment(args: argparse.Namespace) -> dict[str, str]:
         CUDA_VISIBLE_DEVICES=str(args.gpu),
         PYTHONPATH=str(args.source),
         VLLM_ATTENTION_BACKEND="FLASH_ATTN",
+        VLLM_LOGGING_LEVEL=args.logging_level,
         CDB_AV_REFILL="1" if args.mode == "cdb" else "0",
         CDB_AV_PERSISTENT="1" if args.mode == "cdb" else "0",
         CDB_AV_KV_REUSE=str(args.kv_reuse if args.mode == "cdb" else 0),
         CDB_AV_INTRA_WINDOW="1" if args.mode == "cdb" else "0",
+        CDB_AV_PACK_METADATA=str(args.pack_metadata if args.mode == "cdb" else 0),
         CDB_AV_K_POLICY="hf_confidence",
         CDB_AV_HF_THRESHOLD="0.4",
         CDB_AV_WINDOW_H=str(args.horizon),
@@ -213,6 +223,8 @@ def main() -> None:
     parser.add_argument("--warmup", type=int, default=16)
     parser.add_argument("--horizon", type=int, choices=(4, 8), default=8)
     parser.add_argument("--kv-reuse", type=int, choices=(0, 1), default=1)
+    parser.add_argument("--pack-metadata", type=int, choices=(0, 1), default=0)
+    parser.add_argument("--logging-level", choices=("INFO", "WARNING"), default="INFO")
     parser.add_argument("--target", default="/disk14T/yypan/models/Qwen3-8B")
     parser.add_argument("--draft", default="/disk14T/yypan/models/Qwen3-1.7B")
     args = parser.parse_args()
@@ -254,10 +266,12 @@ def main() -> None:
         "gpu": args.gpu,
         "port": args.port,
         "backend": "FLASH_ATTN",
+        "logging_level": args.logging_level,
         "target": args.target,
         "draft": args.draft if args.mode != "ar" else None,
         "horizon": args.horizon if args.mode == "cdb" else None,
         "kv_reuse": args.kv_reuse if args.mode == "cdb" else None,
+        "pack_metadata": args.pack_metadata if args.mode == "cdb" else None,
         "k_policy": "hf_confidence" if args.mode == "cdb" else None,
         "k_cap": 8 if args.mode != "ar" else None,
         "requests": args.requests,
@@ -268,7 +282,7 @@ def main() -> None:
         "server_command": command,
         "server_environment": {
             key: value for key, value in env.items()
-            if key.startswith("CDB_") or key in ("CUDA_VISIBLE_DEVICES", "PYTHONPATH", "VLLM_ATTENTION_BACKEND")
+            if key.startswith("CDB_") or key in ("CUDA_VISIBLE_DEVICES", "PYTHONPATH", "VLLM_ATTENTION_BACKEND", "VLLM_LOGGING_LEVEL")
         },
     }
     (args.result_dir / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
@@ -292,6 +306,7 @@ def main() -> None:
                     "warmup",
                     args.warmup,
                 )
+                save_metrics(args.port, args.result_dir / "metrics_after_warmup.prom")
             runs = []
             for index in range(1, args.repeats + 1):
                 result = run_client(
@@ -302,6 +317,10 @@ def main() -> None:
                 )
                 result["run"] = index
                 runs.append(result)
+                save_metrics(
+                    args.port,
+                    args.result_dir / f"metrics_after_run_{index}.prom",
+                )
                 (args.result_dir / "progress.json").write_text(
                     json.dumps(runs, indent=2) + "\n"
                 )

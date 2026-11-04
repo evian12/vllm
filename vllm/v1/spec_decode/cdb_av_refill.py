@@ -98,10 +98,24 @@ class RefillSession:
     def _metadata(self, blocks, seqs, qlens, slots):
         dev = self.p.device
         width = max(len(b) for b in blocks)
-        bt = torch.zeros((len(blocks), width), dtype=torch.int32, device=dev)
-        for i, row in enumerate(blocks):
-            bt[i, :len(row)] = torch.tensor(row, dtype=torch.int32, device=dev)
-        qcpu = torch.tensor([0] + list(torch.tensor(qlens).cumsum(0).tolist()), dtype=torch.int32)
+        if os.getenv("CDB_AV_PACK_METADATA", "0") == "1":
+            # Materialize the ragged block table once on CPU, then copy it in
+            # one transfer. The legacy path launches a GPU fill and one slice
+            # assignment per request on every Draft step.
+            bt = torch.tensor(
+                [list(row) + [0] * (width - len(row)) for row in blocks],
+                dtype=torch.int32,
+                device=dev,
+            )
+            offsets = [0]
+            for length in qlens:
+                offsets.append(offsets[-1] + length)
+            qcpu = torch.tensor(offsets, dtype=torch.int32)
+        else:
+            bt = torch.zeros((len(blocks), width), dtype=torch.int32, device=dev)
+            for i, row in enumerate(blocks):
+                bt[i, :len(row)] = torch.tensor(row, dtype=torch.int32, device=dev)
+            qcpu = torch.tensor([0] + list(torch.tensor(qlens).cumsum(0).tolist()), dtype=torch.int32)
         return CommonAttentionMetadata(query_start_loc=qcpu.to(dev), query_start_loc_cpu=qcpu,
             seq_lens=torch.tensor(seqs, dtype=torch.int32, device=dev),
             num_reqs=len(blocks), num_actual_tokens=sum(qlens), max_query_len=max(qlens),
