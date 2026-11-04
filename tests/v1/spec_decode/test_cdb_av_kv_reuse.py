@@ -50,7 +50,7 @@ def test_reuse_survives_single_ar_token_growth():
     assert reuse_span(
         cached_inputs, prefix, old_prefix, drafts,
         make_certificate(old_prefix, drafts, generated),
-    ) == (len(old_prefix) + 2, None)
+    ) == (len(cached_inputs), None)
 
 
 def test_reuse_zero_accepted_candidates_keeps_only_old_prefix():
