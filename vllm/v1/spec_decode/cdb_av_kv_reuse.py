@@ -885,6 +885,15 @@ class ReuseDraftQueue(PersistentDraftQueue):
                 )
             self._audit_cleanup_safe=True
         elif operation == 'prepare':
+            expected = [
+                plan['req_id'] for plan in (payload or {}).get('plans', ())
+            ]
+            prepared = result.get('prepared')
+            if prepared != expected:
+                raise RuntimeError(
+                    'Incomplete Worker Prepare acknowledgement: '
+                    f'expected={expected}, prepared={prepared}'
+                )
             self._audit_cleanup_safe=True
 
         if operation=='prepare' and os.getenv('CDB_AV_REUSE_REPLAY','0')=='1':
