@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
 """Failure-path tests for CDB-AV KV lease ownership cleanup."""
 
 from types import SimpleNamespace
