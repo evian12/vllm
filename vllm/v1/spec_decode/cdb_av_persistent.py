@@ -265,11 +265,11 @@ class PersistentDraftSession(RefillSession):
         ids.update(self.kv_snapshots)
         ids.update(self.active)
         ids.update(getattr(self, "cached", {}).keys())
-        ids = sorted(ids)
+        drop_ids = sorted(ids)
 
         # Synchronize CUDA before discarding Worker ownership.
-        ack = self.drop(ids)
-        if ack["dropped"] != ids:
+        ack = self.drop(drop_ids)
+        if ack["dropped"] != drop_ids:
             raise RuntimeError("P2 Worker reset acknowledgement mismatch")
 
         self.pending_prefill.clear()
