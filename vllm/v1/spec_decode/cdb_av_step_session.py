@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
 """CDB-AV provisional Draft step session.
 
 Supports fixed membership or shrinking varlen membership; no new admission.
