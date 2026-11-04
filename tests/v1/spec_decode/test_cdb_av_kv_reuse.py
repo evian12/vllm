@@ -53,6 +53,34 @@ def test_reuse_survives_single_ar_token_growth():
     ) == (len(old_prefix) + 2, None)
 
 
+def test_reuse_zero_accepted_candidates_keeps_only_old_prefix():
+    old_prefix = [1, 2, 3]
+    drafts = [10, 11, 12]
+    generated = [99]
+    cached_inputs = old_prefix + drafts[:-1]
+    prefix = old_prefix + generated + [100]
+
+    assert reuse_span(
+        cached_inputs, prefix, old_prefix, drafts,
+        make_certificate(old_prefix, drafts, generated),
+    ) == (len(old_prefix), None)
+
+
+def test_reuse_full_acceptance_is_bounded_by_materialized_inputs():
+    old_prefix = [1, 2, 3]
+    drafts = [10, 11, 12]
+    generated = drafts + [99]
+    cached_inputs = old_prefix + drafts[:-1]
+    prefix = old_prefix + generated
+
+    # Draft has materialized K-1 candidate inputs; the last candidate and
+    # Target bonus token are not part of this cached input lineage.
+    assert reuse_span(
+        cached_inputs, prefix, old_prefix, drafts,
+        make_certificate(old_prefix, drafts, generated),
+    ) == (len(old_prefix) + len(drafts) - 1, None)
+
+
 def test_divergence_inside_certified_commit_falls_back():
     old_prefix = [1, 2, 3]
     drafts = [10, 11, 12]
