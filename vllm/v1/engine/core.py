@@ -477,7 +477,7 @@ class EngineCore:
         queue = getattr(scheduler, "_cdb_refill_queue", None)
         if queue is None:
             queue = RefillQueue(self.scheduler)
-            setattr(scheduler, "_cdb_refill_queue", queue)
+            scheduler._cdb_refill_queue = queue
         self._cdb_window_id = getattr(self, "_cdb_window_id", 0) + 1
         horizon = int(os.getenv("CDB_AV_WINDOW_H", "8"))
         if not 1 <= horizon <= 64:

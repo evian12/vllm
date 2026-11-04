@@ -16,9 +16,7 @@ logger = init_logger(__name__)
 
 
 router = APIRouter()
-PydanticVllmConfig: pydantic.TypeAdapter[VllmConfig] = pydantic.TypeAdapter(
-    VllmConfig
-)
+PydanticVllmConfig: pydantic.TypeAdapter[VllmConfig] = pydantic.TypeAdapter(VllmConfig)
 
 
 def _get_vllm_env_vars():
