@@ -709,6 +709,18 @@ class ReuseDraftQueue(PersistentDraftQueue):
         self.history_pages=set();self.replayed=set();self.replay_blocks=[]
         # Allocations whose rollback failed remain explicitly tracked for close().
         self.pending_allocations=[]
+        # A failed Worker Prepare may still reference audit pages until Drop/Reset ACK.
+        self._audit_cleanup_safe = True
+        self._audit_staged = False
+
+    def _release_audit_leases(self):
+        """Release each audit owner after Worker quiescence; retain failed owners."""
+        pool = self.s.kv_cache_manager.block_pool
+        for rid, blocks in list(self.audit_leases.items()):
+            if any(block.is_null or block.ref_cnt != 1 for block in blocks):
+                raise RuntimeError(f"Cleanup lost audit KV ownership: owner={rid}")
+            pool.free_blocks(blocks)
+            self.audit_leases.pop(rid)
 
     def release(self,rid,reason):
         if reason!='ready_acknowledged':return super().release(rid,reason)
@@ -938,6 +950,7 @@ class ReuseDraftQueue(PersistentDraftQueue):
             self.contexts[rid]={'context':ctx,'computed':req.num_computed_tokens}
             if audit_blocks:
                 self.audit_leases[rid]=audit_blocks
+                self._audit_staged = True
             if commit is not None:
                 self.commits.pop(rid,None)
             plans.append(plan)
@@ -945,7 +958,53 @@ class ReuseDraftQueue(PersistentDraftQueue):
         return plans
 
     def rpc(self,operation,payload=None):
+        staged = getattr(self, '_audit_staged', False)
+        if operation == 'open' and staged:
+            # Plans allocate audit pages before the new Worker window opens.
+            # They are not yet visible to the Worker and must remain staged.
+            pass
+        elif operation not in ('prepare', 'drop', 'reset') and self.audit_leases:
+            if staged or not self._audit_cleanup_safe:
+                raise RuntimeError(
+                    'Cannot advance Worker while audit leases await Prepare/Drop/Reset'
+                )
+            self._release_audit_leases()
+        if operation == 'drop' and self.audit_leases and (
+            staged or not self._audit_cleanup_safe
+        ):
+            dropping = set((payload or {}).get('ids', ()))
+            if not set(self.audit_leases).issubset(dropping):
+                raise RuntimeError('Failed Prepare audit leases require a complete Worker Drop')
+
+        if operation == 'prepare' and self.audit_leases:
+            self._audit_staged = False
+            self._audit_cleanup_safe = False
         result=super().rpc(operation,payload)
+        if operation == 'prepare':
+            expected = [plan['req_id'] for plan in (payload or {}).get('plans', ())]
+            if result.get('prepared') != expected:
+                raise RuntimeError(
+                    f'Incomplete Worker Prepare acknowledgement: expected={expected}, '
+                    f'prepared={result.get("prepared")}'
+                )
+            self._audit_cleanup_safe = True
+            self._audit_staged = False
+        elif operation == 'drop' and (staged or not self._audit_cleanup_safe):
+            expected = set((payload or {}).get('ids', ()))
+            dropped = set(result.get('dropped', ()))
+            if dropped != expected:
+                raise RuntimeError(
+                    f'Incomplete Worker Drop acknowledgement for failed Prepare '
+                    f'audit leases: expected={sorted(expected)}, dropped={sorted(dropped)}'
+                )
+            self._audit_cleanup_safe = True
+            self._audit_staged = False
+        elif operation == 'reset':
+            if not result.get('reset'):
+                raise RuntimeError('Worker Reset did not acknowledge completion; audit KV leases remain owned')
+            self._audit_cleanup_safe = True
+            self._audit_staged = False
+
         if operation=='prepare' and os.getenv('CDB_AV_REUSE_REPLAY','0')=='1':
             keys={(p['commit']['k'],p['commit']['accepted']) for p in payload['plans'] if p.get('commit')}
             if keys-self.replayed:
@@ -954,20 +1013,9 @@ class ReuseDraftQueue(PersistentDraftQueue):
                 super().rpc('replay',{'mapping':mapping})
                 self.s.kv_cache_manager.block_pool.free_blocks(self.replay_blocks)
                 self.replay_blocks=[];self.replayed.update(keys)
-        if operation == "prepare":
-            # Validation RPC copied comparisons to CPU and synchronized before ACK.
-            # Remove each ownership record only after its allocation is freed, so
-            # a later failure leaves the remaining leases accurately tracked.
-            pool = self.s.kv_cache_manager.block_pool
-            for rid, blocks in list(self.audit_leases.items()):
-                if any(
-                    block.is_null or block.ref_cnt != 1 for block in blocks
-                ):
-                    raise RuntimeError(
-                        f"P2 audit lease ownership lost for {rid}"
-                    )
-                pool.free_blocks(blocks)
-                self.audit_leases.pop(rid)
+        if operation in ('prepare', 'drop') and self.audit_leases:
+            # Reset owns its allocation snapshot; it releases pages after ACK.
+            self._release_audit_leases()
         return result
 
     def close(self):
