@@ -2,6 +2,7 @@
 # SPDX-FileCopyrightText: Copyright contributors to the vLLM project
 import dataclasses
 from unittest.mock import Mock
+import os
 
 import pytest
 import torch
@@ -1560,7 +1561,7 @@ def test_memory_leak():
 
 
 def create_scheduler_with_priority(
-    model: str = "facebook/opt-125m",
+    model: str | None = None,
     max_num_seqs: int = 16,
     max_num_batched_tokens: int = 8192,
     enable_prefix_caching: bool = False,
@@ -1587,6 +1588,11 @@ def create_scheduler_with_priority(
     Returns:
       {class}`Scheduler` instance with priority scheduling
     """
+    # Allow offline test runs to use a locally available HF config.
+    # Explicit per-test model arguments always take precedence.
+    if model is None:
+        model = os.environ.get("VLLM_TEST_MODEL", "facebook/opt-125m")
+
     model_config = ModelConfig(
         model=model,
         trust_remote_code=True,
