@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
 """CDB-AV committed-context epoch tracking.
 
 Logical epochs only. Does not own GPU KV or perform verification.
