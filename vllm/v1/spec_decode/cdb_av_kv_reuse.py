@@ -441,8 +441,8 @@ class ReuseDraftSession(PersistentDraftSession):
                     "reuse_reference_full",
                 )
 
-                actual_kv = self.values(blocks, end)
-                ref = self.values(reference, end)
+                actual_kv: list[torch.Tensor] = self.values(blocks, end)
+                ref: list[torch.Tensor] = self.values(reference, end)
                 layers: list[dict[str, Any]] = []
 
                 layer_tensors = self.layers()
@@ -455,8 +455,8 @@ class ReuseDraftSession(PersistentDraftSession):
                     segments = kv_segment_errors(a, b, start, end)
                     # KV layout: (K/V, tokens, heads, head_dim).
                     for kv_index, kv_name in enumerate(("K", "V")):
-                        actual = cast(torch.Tensor, a[kv_index])
-                        reference_kv = cast(torch.Tensor, b[kv_index])
+                        actual = torch.as_tensor(a[kv_index])
+                        reference_kv = torch.as_tensor(b[kv_index])
 
                         # Compare the original cached prefix captured
                         # BEFORE incremental preparation.
