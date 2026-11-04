@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Copyright contributors to the vLLM project
 """Shrinking, synchronous draft_model sessions. No refill or cross-forward carry."""
 
 import json
