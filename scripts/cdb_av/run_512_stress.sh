@@ -35,8 +35,8 @@ OPT_BRANCH="$(git -C "$OPT_SOURCE" rev-parse --abbrev-ref HEAD)"
 OPT_COMMIT="$(git -C "$OPT_SOURCE" rev-parse HEAD)"
 [[ "$OPT_BRANCH" == "cdb-av/optimize-kv-reuse-20261104" ]] \
   || die "Expected optimization branch cdb-av/optimize-kv-reuse-20261104, got: $OPT_BRANCH"
-git -C "$OPT_SOURCE" diff --quiet \
-  || die "Optimization checkout has uncommitted tracked changes; commit or stash them first"
+[[ -z "$(git -C "$OPT_SOURCE" status --porcelain)" ]] \
+  || die "Optimization checkout is not clean; commit or stash all changes first"
 
 port_pid() {
   ss -lntp 2>/dev/null \
