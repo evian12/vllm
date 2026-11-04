@@ -1,11 +1,10 @@
-import json
-import os
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: Copyright contributors to the vLLM project
-
 import functools
 import gc
 import itertools
+import json
+import os
 import threading
 import time
 from collections import defaultdict
@@ -348,27 +347,34 @@ class GPUModelRunner(
         self._draft_token_req_ids: list[str] | None = None
         self.cdb_refill = os.environ.get("CDB_AV_REFILL", "0") == "1"
         self.cdb_persistent = os.getenv("CDB_AV_PERSISTENT", "0") == "1"
-        if self.cdb_persistent and (not self.cdb_refill or
-                os.getenv("CDB_AV_ALLOW_FRESH_WAITING", "0") != "0" or
-                os.getenv("CDB_P1_VIRTUAL_H", "0") != "0"):
+        if self.cdb_persistent and (
+            not self.cdb_refill
+            or os.getenv("CDB_AV_ALLOW_FRESH_WAITING", "0") != "0"
+            or os.getenv("CDB_P1_VIRTUAL_H", "0") != "0"
+        ):
             raise ValueError("P2 requires REFILL=1, Fresh Waiting OFF, virtual H OFF")
         if self.cdb_refill:
-            if not self.cdb_varlen or any(os.getenv(k) != "1" for k in
-                    ("CDB_AV_SPLIT_RPC", "CDB_AV_WORK_QUEUE")):
+            if not self.cdb_varlen or any(
+                os.getenv(k) != "1" for k in ("CDB_AV_SPLIT_RPC", "CDB_AV_WORK_QUEUE")
+            ):
                 raise ValueError("Refill requires VARLEN, SPLIT_RPC and WORK_QUEUE")
             if self.cache_config.enable_prefix_caching or self.lora_config is not None:
                 raise ValueError("Refill v1 requires no prefix caching or LoRA")
         if self.cdb_varlen:
             if os.environ.get("CDB_AV_STEP_MODE", "0") != "1":
                 raise ValueError("CDB_AV_VARLEN requires CDB_AV_STEP_MODE=1")
-            if (not self.speculative_config
-                    or not self.speculative_config.uses_draft_model()
-                    or not self.model_config.enforce_eager
-                    or self.scheduler_config.async_scheduling
-                    or self.parallel_config.tensor_parallel_size != 1
-                    or self.parallel_config.pipeline_parallel_size != 1
-                    or self.parallel_config.data_parallel_size != 1):
-                raise ValueError("CDB varlen requires single-GPU synchronous eager draft_model")
+            if (
+                not self.speculative_config
+                or not self.speculative_config.uses_draft_model()
+                or not self.model_config.enforce_eager
+                or self.scheduler_config.async_scheduling
+                or self.parallel_config.tensor_parallel_size != 1
+                or self.parallel_config.pipeline_parallel_size != 1
+                or self.parallel_config.data_parallel_size != 1
+            ):
+                raise ValueError(
+                    "CDB varlen requires single-GPU synchronous eager draft_model"
+                )
         self.observability_config = vllm_config.observability_config
 
         from vllm.model_executor.models.utils import set_cpu_offload_max_bytes
@@ -3666,9 +3672,7 @@ class GPUModelRunner(
         )
 
         if getattr(self, "_cdb_pending_draft", None) is not None:
-            raise RuntimeError(
-                "Cannot start Target sampling with pending CDB Draft"
-            )
+            raise RuntimeError("Cannot start Target sampling with pending CDB Draft")
         self._draft_token_ids = None
         self._draft_token_req_ids = None
         self._cdb_valid_lengths = None
@@ -3684,8 +3688,7 @@ class GPUModelRunner(
                 next_k = scheduled_k
             if not 1 <= next_k <= self.num_spec_tokens:
                 raise ValueError(
-                    f"Invalid runtime K={next_k}, "
-                    f"maximum={self.num_spec_tokens}"
+                    f"Invalid runtime K={next_k}, maximum={self.num_spec_tokens}"
                 )
 
         def propose_draft_token_ids(sampled_token_ids):
@@ -3711,16 +3714,22 @@ class GPUModelRunner(
 
                 if self.cdb_varlen:
                     from vllm.v1.spec_decode.cdb_av_varlen import CDBDraftResult
+
                     if not isinstance(self._draft_token_ids, CDBDraftResult):
-                        raise TypeError("CDB varlen requires tokens with explicit valid lengths")
+                        raise TypeError(
+                            "CDB varlen requires tokens with explicit valid lengths"
+                        )
                     result = self._draft_token_ids
                     if result.request_ids != tuple(self.input_batch.req_ids):
                         raise RuntimeError("CDB output request IDs were reordered")
                     self._cdb_valid_lengths = result.valid_lengths
                     self._draft_token_ids = result.token_ids
                 # Ordinary draft_model currently requires a padded GPU batch.
-                if (spec_config is not None and spec_config.uses_draft_model()
-                        and not isinstance(self._draft_token_ids, torch.Tensor)):
+                if (
+                    spec_config is not None
+                    and spec_config.uses_draft_model()
+                    and not isinstance(self._draft_token_ids, torch.Tensor)
+                ):
                     raise TypeError(
                         "draft_model must return a 2D Tensor [batch_size, K]"
                     )
@@ -3735,15 +3744,18 @@ class GPUModelRunner(
                                 f"but scheduler selected K={next_k}"
                             )
                         logger.debug(
-                            ("[CDB_STORAGE] batch_size=%d capacity=%d storage_width=%d"
-                             if self.cdb_varlen else
-                             "[BATCH-ADAPTIVE-K] batch_size=%d selected_k=%d produced_k=%d"),
+                            (
+                                "[CDB_STORAGE] batch_size=%d capacity=%d storage_width=%d"
+                                if self.cdb_varlen
+                                else "[BATCH-ADAPTIVE-K] batch_size=%d selected_k=%d produced_k=%d"
+                            ),
                             len(scheduler_output.num_scheduled_tokens),
                             next_k,
                             produced_k,
                         )
                     self.prev_num_spec_tokens = produced_k
                 self._copy_draft_token_ids_to_cpu(scheduler_output)
+
         propose_drafts_after_bookkeeping = False
         if spec_config is not None and not self.cdb_persistent:
             input_fits_in_drafter = spec_decode_common_attn_metadata is not None and (
@@ -3807,11 +3819,26 @@ class GPUModelRunner(
                 drafts = scheduler_output.scheduled_spec_decode_tokens.get(req_id, [])
                 if drafts and row:
                     accepted = len(row) - 1
-                    if not 0 <= accepted <= len(drafts) or row[:accepted] != drafts[:accepted]:
-                        raise RuntimeError("CDB verification accepted-prefix alignment failure")
-                    logger.info("[CDB_VERIFY] %s", json.dumps(dict(
-                        req_id=req_id, drafts=drafts, sampled=row, accepted=accepted,
-                        rejected=len(drafts)-accepted, bonus_or_fallback=row[-1])))
+                    if (
+                        not 0 <= accepted <= len(drafts)
+                        or row[:accepted] != drafts[:accepted]
+                    ):
+                        raise RuntimeError(
+                            "CDB verification accepted-prefix alignment failure"
+                        )
+                    logger.info(
+                        "[CDB_VERIFY] %s",
+                        json.dumps(
+                            dict(
+                                req_id=req_id,
+                                drafts=drafts,
+                                sampled=row,
+                                accepted=accepted,
+                                rejected=len(drafts) - accepted,
+                                bonus_or_fallback=row[-1],
+                            )
+                        ),
+                    )
 
         if propose_drafts_after_bookkeeping:
             # ngram and other speculative decoding methods use the sampled
@@ -3828,21 +3855,18 @@ class GPUModelRunner(
             from vllm.v1.spec_decode.cdb_av_fingerprint import (
                 token_fingerprint,
             )
+
             cdb_lengths = []
             cdb_fingerprints = []
             for cdb_req_id in self._draft_token_req_ids:
                 cdb_state = self.requests.get(cdb_req_id)
                 if cdb_state is None:
-                    raise RuntimeError(
-                        f"CDB context missing request: {cdb_req_id}"
-                    )
+                    raise RuntimeError(f"CDB context missing request: {cdb_req_id}")
                 cdb_lengths.append(
-                    len(cdb_state.prompt_token_ids)
-                    + len(cdb_state.output_token_ids)
+                    len(cdb_state.prompt_token_ids) + len(cdb_state.output_token_ids)
                 )
-                tokens = (
-                    list(cdb_state.prompt_token_ids)
-                    + list(cdb_state.output_token_ids)
+                tokens = list(cdb_state.prompt_token_ids) + list(
+                    cdb_state.output_token_ids
                 )
                 cdb_fingerprints.append(token_fingerprint(tokens))
             self._cdb_context_lengths = cdb_lengths
@@ -3918,6 +3942,7 @@ class GPUModelRunner(
             if not self.cdb_persistent:
                 raise RuntimeError("P2 RPC requires CDB_AV_PERSISTENT=1")
             from vllm.v1.spec_decode.cdb_av_persistent import worker_rpc
+
             return worker_rpc(self, operation, payload)
         pending = getattr(self, "_cdb_pending_draft", None)
         if pending is None:
@@ -3925,25 +3950,35 @@ class GPUModelRunner(
         session = pending["session"]
         if operation == "configure":
             from vllm.v1.spec_decode.cdb_av_fingerprint import token_fingerprint
+
             contexts = {}
             for rid in pending["request_ids"]:
                 if rid not in payload["contexts"]:
                     continue
                 state = self.requests[rid]
                 tokens = list(state.prompt_token_ids) + list(state.output_token_ids)
-                ctx = dict(context_tokens=len(tokens),fingerprint=token_fingerprint(tokens))
+                ctx = dict(
+                    context_tokens=len(tokens), fingerprint=token_fingerprint(tokens)
+                )
                 if ctx != payload["contexts"][rid]:
-                    raise RuntimeError("Refill Worker/Scheduler committed context mismatch")
+                    raise RuntimeError(
+                        "Refill Worker/Scheduler committed context mismatch"
+                    )
                 contexts[rid] = ctx
             if not contexts:
                 self._cdb_pending_draft = None
                 self._draft_token_req_ids = None
                 return {"pending": False}
-            session.configure(payload["window"],payload["H"],contexts,payload["capacity"])
+            session.configure(
+                payload["window"], payload["H"], contexts, payload["capacity"]
+            )
             return {"pending": True}
         if operation == "admit":
             session.admit(payload["plans"])
-            return {"pending": True, "prepared": [p["req_id"] for p in payload["plans"]]}
+            return {
+                "pending": True,
+                "prepared": [p["req_id"] for p in payload["plans"]],
+            }
         if operation == "step":
             return session.step()
         if operation == "resume_virtual_h":
@@ -3993,16 +4028,11 @@ class GPUModelRunner(
             if len(set(req_ids)) != len(req_ids):
                 raise RuntimeError("CDB Step Result duplicate request IDs")
 
-            if any(
-                not 0 <= current <= cap
-                for current, cap in zip(progress, caps)
-            ):
+            if any(not 0 <= current <= cap for current, cap in zip(progress, caps)):
                 raise RuntimeError("CDB Step Result invalid progress")
 
             worked_indices = [int(x) for x in report["active_indices"]]
-            completed_indices = [
-                int(x) for x in report["completed_indices"]
-            ]
+            completed_indices = [int(x) for x in report["completed_indices"]]
 
             if len(set(worked_indices)) != len(worked_indices):
                 raise RuntimeError("CDB duplicate worked indices")
@@ -4022,20 +4052,12 @@ class GPUModelRunner(
                 raise RuntimeError("CDB ready index out of range")
 
             ready_set = set(ready_indices)
-            remaining = [
-                req_ids[i]
-                for i in range(len(req_ids))
-                if i not in ready_set
-            ]
+            remaining = [req_ids[i] for i in range(len(req_ids)) if i not in ready_set]
             ready = [req_ids[i] for i in ready_indices]
 
             result["request_ids"] = req_ids
-            result["worked_req_ids"] = [
-                req_ids[i] for i in worked_indices
-            ]
-            result["newly_completed_req_ids"] = [
-                req_ids[i] for i in completed_indices
-            ]
+            result["worked_req_ids"] = [req_ids[i] for i in worked_indices]
+            result["newly_completed_req_ids"] = [req_ids[i] for i in completed_indices]
             result["active_req_ids"] = remaining
             result["ready_req_ids"] = ready
             result["request_progress"] = {
@@ -4044,8 +4066,7 @@ class GPUModelRunner(
             }
 
             logger.info(
-                "[CDB_STEP_RESULT] worked=%s active=%s "
-                "ready=%s newly_completed=%s",
+                "[CDB_STEP_RESULT] worked=%s active=%s ready=%s newly_completed=%s",
                 result["worked_req_ids"],
                 remaining,
                 ready,
@@ -4089,9 +4110,7 @@ class GPUModelRunner(
         self._cdb_valid_lengths = result.valid_lengths
         self.prev_num_spec_tokens = expected_k
 
-        self._copy_draft_token_ids_to_cpu(
-            pending["scheduler_output"]
-        )
+        self._copy_draft_token_ids_to_cpu(pending["scheduler_output"])
 
         self._cdb_pending_draft = None
 
@@ -4118,9 +4137,7 @@ class GPUModelRunner(
             req_ids,
             draft_token_ids,
             source_context_tokens=source_lengths,
-            context_fingerprints=getattr(
-                self, "_cdb_context_fingerprints", None
-            ),
+            context_fingerprints=getattr(self, "_cdb_context_fingerprints", None),
         )
 
     def _copy_draft_token_ids_to_cpu(
@@ -4167,13 +4184,22 @@ class GPUModelRunner(
         self.draft_token_ids_event.synchronize()
         assert isinstance(self._draft_token_ids, torch.Tensor)
         actual_k = self._draft_token_ids.shape[1]
-        rows = self.draft_token_ids_cpu[:len(req_ids), :actual_k].tolist()
+        rows = self.draft_token_ids_cpu[: len(req_ids), :actual_k].tolist()
         if self._cdb_valid_lengths is not None:
             from vllm.v1.spec_decode.cdb_av_varlen import ragged_rows
+
             rows = ragged_rows(rows, self._cdb_valid_lengths)
             if os.environ.get("CDB_AV_TRACE_STEPS", "0") == "1":
-                logger.info("[CDB_HANDOFF] %s", json.dumps(dict(
-                    req_ids=req_ids, lengths=[len(row) for row in rows], tokens=rows)))
+                logger.info(
+                    "[CDB_HANDOFF] %s",
+                    json.dumps(
+                        dict(
+                            req_ids=req_ids,
+                            lengths=[len(row) for row in rows],
+                            tokens=rows,
+                        )
+                    ),
+                )
         return rows, req_ids
 
     def _copy_valid_sampled_token_count(
@@ -4389,7 +4415,9 @@ class GPUModelRunner(
                         extra = params.extra_args or {} if params is not None else {}
                         k = extra.get("cdb_draft_k", next_k)
                         if type(k) is not int or not 1 <= k <= next_k:
-                            raise ValueError(f"Invalid cdb_draft_k={k} for request {req_id}; max={next_k}")
+                            raise ValueError(
+                                f"Invalid cdb_draft_k={k} for request {req_id}; max={next_k}"
+                            )
                         lengths.append(k)
                     draft_kwargs["request_ids"] = req_ids
                     draft_kwargs["request_draft_lengths"] = lengths
@@ -4403,6 +4431,7 @@ class GPUModelRunner(
 
                 if self.cdb_refill:
                     from vllm.v1.spec_decode.cdb_av_refill import RefillSession
+
                     session = RefillSession(self.drafter, draft_kwargs)
                 else:
                     session = cast(Any, self.drafter).begin_draft(**draft_kwargs)

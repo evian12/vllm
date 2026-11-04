@@ -79,9 +79,7 @@ class CDBDraftWorkQueue:
                     DraftWorkStatus.ACTIVE,
                     DraftWorkStatus.CARRY,
                 ):
-                    raise RuntimeError(
-                        f"Context changed during active Draft: {req_id}"
-                    )
+                    raise RuntimeError(f"Context changed during active Draft: {req_id}")
 
                 existing.status = DraftWorkStatus.STALE
                 existing.kv_validated = False
@@ -140,9 +138,7 @@ class CDBDraftWorkQueue:
                 source="running",
             )
             if item.status == DraftWorkStatus.STALE:
-                raise RuntimeError(
-                    f"Cannot sync stale Draft work item: {req_id}"
-                )
+                raise RuntimeError(f"Cannot sync stale Draft work item: {req_id}")
 
             if item.k_cap != cap:
                 raise RuntimeError("Draft K changed inside a window")
@@ -151,9 +147,7 @@ class CDBDraftWorkQueue:
 
             item.progress = current
             item.status = (
-                DraftWorkStatus.READY
-                if req_id in ready
-                else DraftWorkStatus.ACTIVE
+                DraftWorkStatus.READY if req_id in ready else DraftWorkStatus.ACTIVE
             )
 
             # Real GPU execution occurred, but independent Draft KV
@@ -164,10 +158,7 @@ class CDBDraftWorkQueue:
         self.items.pop(req_id, None)
 
     def snapshot(self) -> dict:
-        counts = {
-            status.value: 0
-            for status in DraftWorkStatus
-        }
+        counts = {status.value: 0 for status in DraftWorkStatus}
 
         for item in self.items.values():
             counts[item.status.value] += 1

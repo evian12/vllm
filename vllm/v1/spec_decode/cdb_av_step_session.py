@@ -4,8 +4,10 @@
 Supports fixed membership or shrinking varlen membership; no new admission.
 Not a cross-target-forward Carry object. Generator captures mutable model buffers.
 """
+
+from collections.abc import Generator
 from dataclasses import dataclass, field
-from typing import Any, Generator
+from typing import Any
 
 
 @dataclass
