@@ -191,6 +191,8 @@ def propose_varlen_steps(
                 block_size,
             )
             num_tokens = len(active)
+            if previous_ids is None:
+                raise RuntimeError('CDB varlen step lost the previous-token vector')
             self.input_ids[:num_tokens] = previous_ids.index_select(0, original).int()
             self._set_positions(num_tokens, current_positions)
             last_indices = torch.arange(num_tokens, device=positions.device)
