@@ -147,6 +147,164 @@ class RefillSession:
             slot_mapping=torch.tensor(slots, dtype=torch.int64, device=dev), causal=True,
             _seq_lens_cpu=None, _num_computed_tokens_cpu=None)
 
+    def _decode_graph_key(self, cad, n):
+        """Only pure one-token Decode is eligible; Prefill remains eager."""
+        if (n != cad.num_reqs or cad.num_actual_tokens != n
+                or cad.max_query_len != 1 or n > self.capacity):
+            return None
+        required = max(cad.max_seq_len,
+                       cad.block_table_tensor.shape[1] * self.block_size)
+        bucket = max(self.block_size, 1 << (required - 1).bit_length())
+        if bucket > self.p.max_model_len:
+            return None
+        return n, bucket
+
+    def _decode_graph_storage(self):
+        """Identify every model/cache buffer whose address a capture retains."""
+        p = self.p
+        layers = p.vllm_config.compilation_config.static_forward_context
+        return (p.input_ids.data_ptr(), p._get_positions(1).data_ptr(),
+                p._slot_mapping_buffer.data_ptr(),
+                *(layers[name].kv_cache[0].data_ptr()
+                  for name in p.attn_layer_names))
+
+    def _decode_graph_forward(self, cad, n, key):
+        """Replay a Draft-only graph with persistent, request-independent buffers.
+
+        The graph stores pointers to these buffers, never request-specific KV
+        pages. Before each replay, copy the current row mapping and slot IDs.
+        First capture uses the same live input and owned KV slots as its replay.
+        """
+        p = self.p
+        cache = getattr(p, '_cdb_decode_graphs', None)
+        storage = self._decode_graph_storage()
+        if (cache is None
+                or getattr(p, '_cdb_decode_graph_storage', None) != storage):
+            # A Worker wake/reset may replace the model buffers or Draft KV.
+            # Discard captures before they can reference the old allocation.
+            cache = p._cdb_decode_graphs = {}
+            p._cdb_decode_graph_storage = storage
+        entry = cache.get(key)
+        if entry is None:
+            _, bucket = key
+            width = (bucket + self.block_size - 1) // self.block_size
+            query_cpu = torch.arange(n + 1, dtype=torch.int32)
+            static_cad = CommonAttentionMetadata(
+                query_start_loc=query_cpu.to(p.device),
+                query_start_loc_cpu=query_cpu,
+                seq_lens=torch.empty(n, dtype=torch.int32, device=p.device),
+                num_reqs=n, num_actual_tokens=n, max_query_len=1,
+                max_seq_len=bucket,
+                block_table_tensor=torch.zeros(
+                    (n, width), dtype=torch.int32, device=p.device),
+                slot_mapping=torch.empty(n, dtype=torch.int64, device=p.device),
+                causal=True, _seq_lens_cpu=None,
+                _num_computed_tokens_cpu=None,
+            )
+            metadata = self.builder.build_for_drafting(
+                static_cad, draft_index=0)
+            per_layer = {name: metadata for name in p.attn_layer_names}
+            entry = dict(cad=static_cad, per_layer=per_layer)
+        else:
+            static_cad = entry['cad']
+
+        width = cad.block_table_tensor.shape[1]
+        static_cad.block_table_tensor.zero_()
+        static_cad.block_table_tensor[:, :width].copy_(cad.block_table_tensor)
+        static_cad.seq_lens.copy_(cad.seq_lens)
+        static_cad.slot_mapping.copy_(cad.slot_mapping)
+
+        if key not in cache:
+            # Capture only after all live metadata and input buffers are valid.
+            # The next replay performs the current forward with those values.
+            torch.cuda.synchronize(p.device)
+            graph = torch.cuda.CUDAGraph()
+            with torch.cuda.graph(graph):
+                with set_forward_context(
+                    entry['per_layer'], p.vllm_config, num_tokens=n,
+                    cudagraph_runtime_mode=CUDAGraphMode.NONE,
+                    slot_mapping=p._get_slot_mapping(
+                        n, static_cad.slot_mapping),
+                ):
+                    ret = p.model(input_ids=p.input_ids[:n],
+                                  positions=p._get_positions(n),
+                                  inputs_embeds=None)
+            entry['graph'] = graph
+            entry['hidden'] = ret[0] if p.model_returns_tuple() else ret
+            cache[key] = entry
+            action = 'capture'
+        else:
+            action = 'replay'
+        entry['graph'].replay()
+        if os.getenv('CDB_AV_TRACE_GRAPH', '0') == '1':
+            logger.info('[CDB_DRAFT_GRAPH] %s', json.dumps(dict(
+                action=action, rows=n, seq_bucket=key[1])))
+        logits = p.model.compute_logits(entry['hidden'])
+        if os.getenv('CDB_AV_DRAFT_GRAPH_VALIDATE', '0') == '1':
+            # Diagnostic only. The eager replay writes the same owned slots;
+            # compare them before allowing a later Draft step to observe them.
+            slot = static_cad.slot_mapping
+            block = torch.div(slot, self.block_size, rounding_mode='floor')
+            offset = slot.remainder(self.block_size)
+            layers = p.vllm_config.compilation_config.static_forward_context
+            graph_kv = [layers[name].kv_cache[0][:, block, offset].clone()
+                        for name in p.attn_layer_names]
+            with set_forward_context(
+                entry['per_layer'], p.vllm_config, num_tokens=n,
+                cudagraph_runtime_mode=CUDAGraphMode.NONE,
+                slot_mapping=p._get_slot_mapping(n, static_cad.slot_mapping),
+            ):
+                eager_ret = p.model(input_ids=p.input_ids[:n],
+                                    positions=p._get_positions(n),
+                                    inputs_embeds=None)
+            eager_hidden = (eager_ret[0] if p.model_returns_tuple()
+                            else eager_ret)
+            eager_logits = p.model.compute_logits(eager_hidden)
+            kv_exact = all(torch.equal(before,
+                layers[name].kv_cache[0][:, block, offset])
+                for name, before in zip(p.attn_layer_names, graph_kv))
+            token_exact = torch.equal(logits.argmax(-1),
+                                      eager_logits.argmax(-1))
+            logits_close = torch.allclose(logits, eager_logits,
+                                          rtol=1e-3, atol=1e-3)
+            max_abs = (logits - eager_logits).abs().max().item()
+            # Also compare against the original eager path, whose metadata
+            # uses the live (unbucketed) sequence length and block width.
+            dynamic_metadata = self.builder.build_for_drafting(
+                cad, draft_index=0)
+            with set_forward_context(
+                {name: dynamic_metadata for name in p.attn_layer_names},
+                p.vllm_config, num_tokens=n,
+                cudagraph_runtime_mode=CUDAGraphMode.NONE,
+                slot_mapping=p._get_slot_mapping(n, cad.slot_mapping),
+            ):
+                dynamic_ret = p.model(input_ids=p.input_ids[:n],
+                                      positions=p._get_positions(n),
+                                      inputs_embeds=None)
+            dynamic_hidden = (dynamic_ret[0] if p.model_returns_tuple()
+                              else dynamic_ret)
+            dynamic_logits = p.model.compute_logits(dynamic_hidden)
+            dynamic_token_exact = torch.equal(
+                logits.argmax(-1), dynamic_logits.argmax(-1))
+            dynamic_kv_exact = all(torch.equal(before,
+                layers[name].kv_cache[0][:, block, offset])
+                for name, before in zip(p.attn_layer_names, graph_kv))
+            dynamic_max_abs = (logits - dynamic_logits).abs().max().item()
+            # The diagnostic forwards wrote these slots; return them to the
+            # graph result so subsequent Draft steps observe the tested path.
+            for name, before in zip(p.attn_layer_names, graph_kv):
+                layers[name].kv_cache[0][:, block, offset] = before
+            logger.info('[CDB_DRAFT_GRAPH_VALIDATE] %s', json.dumps(dict(
+                action=action, rows=n, seq_bucket=key[1],
+                kv_exact=kv_exact, token_exact=token_exact,
+                logits_close=logits_close, max_abs=max_abs,
+                dynamic_token_exact=dynamic_token_exact,
+                dynamic_kv_exact=dynamic_kv_exact,
+                dynamic_max_abs=dynamic_max_abs)))
+            if not (kv_exact and token_exact and logits_close):
+                raise RuntimeError('Draft Decode Graph/eager validation mismatch')
+        return logits
+
     def _forward(self, ids, positions, cad, last_indices, req_ids, phase):
         p = self.p
         n = ids.numel()
@@ -163,14 +321,24 @@ class RefillSession:
             raise RuntimeError('Refill requires eager, no graph padding')
         p.input_ids[:n] = ids
         p._set_positions(n, positions)
-        metadata = self.builder.build_for_drafting(cad, draft_index=0)
-        per_layer = {name: metadata for name in p.attn_layer_names}
-        with set_forward_context(per_layer, p.vllm_config, num_tokens=n,
-                cudagraph_runtime_mode=CUDAGraphMode.NONE,
-                slot_mapping=p._get_slot_mapping(n, cad.slot_mapping)):
-            ret = p.model(input_ids=p.input_ids[:n], positions=p._get_positions(n), inputs_embeds=None)
-        hidden = ret[0] if p.model_returns_tuple() else ret
-        logits = None if last_indices is None else p.model.compute_logits(hidden[last_indices])
+        # A pure Decode step appends one row per worked request in order, so
+        # its last_indices are exactly 0..n-1. Mixed Prefill keeps eager's
+        # explicit indexing and cannot enter this graph path.
+        graph_key = (self._decode_graph_key(cad, n)
+                     if (os.getenv('CDB_AV_DRAFT_DECODE_GRAPH', '0') == '1'
+                         and phase == 'decode' and last_indices is not None)
+                     else None)
+        if graph_key is not None:
+            logits = self._decode_graph_forward(cad, n, graph_key)
+        else:
+            metadata = self.builder.build_for_drafting(cad, draft_index=0)
+            per_layer = {name: metadata for name in p.attn_layer_names}
+            with set_forward_context(per_layer, p.vllm_config, num_tokens=n,
+                    cudagraph_runtime_mode=CUDAGraphMode.NONE,
+                    slot_mapping=p._get_slot_mapping(n, cad.slot_mapping)):
+                ret = p.model(input_ids=p.input_ids[:n], positions=p._get_positions(n), inputs_embeds=None)
+            hidden = ret[0] if p.model_returns_tuple() else ret
+            logits = None if last_indices is None else p.model.compute_logits(hidden[last_indices])
         self.forward_count += 1
         self.row_sum += len(req_ids)
         if os.getenv('CDB_AV_VALIDATE_METADATA') == '1':
