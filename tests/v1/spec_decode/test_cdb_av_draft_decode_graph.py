@@ -81,6 +81,26 @@ def test_mixed_graph_key_requires_exact_one_or_two_token_layout(
     assert session._mixed_graph_key(cad, n) == expected
 
 
+def test_dynamic_mixed_graph_key_shares_permuted_query_layouts():
+    session = RefillSession.__new__(RefillSession)
+    session.capacity = 4
+    session.block_size = 16
+    session.p = SimpleNamespace(max_model_len=1024)
+    keys = []
+    for qlens in ((1, 1, 2), (1, 2, 1), (2, 1, 1)):
+        starts = [0]
+        for qlen in qlens:
+            starts.append(starts[-1] + qlen)
+        cad = SimpleNamespace(
+            num_reqs=3, num_actual_tokens=4, max_query_len=2,
+            max_seq_len=48,
+            query_start_loc_cpu=torch.tensor(starts, dtype=torch.int32),
+            block_table_tensor=SimpleNamespace(shape=(3, 3)),
+        )
+        keys.append(session._mixed_graph_key(cad, 4, dynamic=True))
+    assert keys == [(4, 64, 3, 'dynamic2')] * 3
+
+
 @pytest.mark.parametrize(
     ("phase", "has_logits", "expected"),
     [
