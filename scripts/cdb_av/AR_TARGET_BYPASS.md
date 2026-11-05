@@ -48,3 +48,17 @@ smoke4_safe and pair32_safe/summary.json. Worktree FLASH_ATTN artifacts link to
 the same binaries as the prior worktree; no dependencies were installed.
 First startup lacked these links; that failure is preserved under smoke4/.
 GPU was released after each suite, and the original18082 service was untouched.
+
+
+## 512-request follow-up (same code commit 674c39034d941ad3569813c1229e1d5d3e03b58c)
+
+One OFF->ON paired run,512 requests,16 concurrency,128 output tokens each,
+other settings identical to the32-request suite. Both512/512,65536 outputs.
+OFF181.216 TPS,P50 11.528s,P95 13.797s;ON185.756 TPS,P50 11.123s,P95 13.406s.
+Gain+2.51% is one pair only; reverse repetitions remain required. OFF/ON
+candidate verification counts17165/17757,drafted tokens41302/42942,accepted
+29401/30255 (Prometheus totals include warmup). Different work/acceptance
+trajectories prevent attributing the whole gain to CPU overhead removal.
+Full config and metrics reside in pair512/;512_commit.txt records the tested
+code,512_source.patch is empty. GPU1 returned to15MiB/0%,18084 closed,
+original18082 process1682417 remained running. Candidate remains default OFF.
