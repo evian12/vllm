@@ -438,6 +438,21 @@ class PersistentDraftQueue:
         """All P2-owned/in-flight requests whose state must survive preemption."""
         return set(self.leases) | set(self.ready) | set(self.inflight)
 
+    def can_bypass_ar_target(self):
+        from vllm.v1.spec_decode.cdb_av_config import can_bypass_ar_target
+        rows = [(req.request_id,
+                 req.status == RequestStatus.RUNNING
+                 and not req.is_finished() and bool(req.num_output_tokens)
+                 and not req.spec_token_ids
+                 and req.num_computed_tokens == req.num_tokens - 1)
+                for req in self.s.running]
+        return can_bypass_ar_target(
+            window_open=getattr(self, '_p3_window_open', False),
+            steps=getattr(self, '_p3_steps', 0), horizon=self.horizon,
+            leased_ids=self.leases, ready_ids=self.ready,
+            inflight_ids=self.inflight, waiting_count=len(self.s.waiting),
+            running_rows=rows)
+
     def begin_target_schedule(self, token_budget=None):
         """Select published Ready work within Target request/token capacity.
 

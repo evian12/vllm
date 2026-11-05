@@ -426,6 +426,17 @@ class EngineCore:
                 probe["worker_received"],
             )
 
+        if (os.getenv('CDB_AV_AR_TARGET_BYPASS', '0') == '1'
+                and os.getenv('CDB_AV_PERSISTENT', '0') == '1'
+                and self._cdb_persistent.can_bypass_ar_target()):
+            # No Scheduler output has been built/mutated. The usual post_step
+            # still advances Draft and releases Ready only at the fixed H.
+            self._process_aborts_queue()
+            from vllm.v1.spec_decode.cdb_av_refill import emit
+            emit('p2_ar_target_bypass', window=self._cdb_persistent.window,
+                 step=self._cdb_persistent._p3_steps)
+            return {}, False
+
         scheduler_output = self.scheduler.schedule()
         if os.getenv("CDB_AV_PERSISTENT", "0") == "1":
             self._cdb_persistent.before_target(scheduler_output)

@@ -428,3 +428,22 @@ def validate_server_k_cap(cap, max_k: int) -> int:
             f"Draft K cap must be an integer in [1, {max_k}], got {cap!r}"
         )
     return cap
+
+
+def can_bypass_ar_target(*, window_open, steps, horizon, leased_ids,
+                         ready_ids, inflight_ids, waiting_count,
+                         running_rows):
+    """Conservative stage bypass; rows are (request ID, AR-ready boolean).
+
+    Never bypass a possible Prefill or published verification. H continues
+    advancing through the ordinary Draft post_step hook, including idle ticks.
+    """
+    if (not window_open or not 0 < steps < horizon or not leased_ids
+            or ready_ids or inflight_ids or not running_rows):
+        return False
+    ids = [rid for rid, _ in running_rows]
+    if len(set(ids)) != len(ids) or not set(leased_ids).issubset(ids):
+        return False
+    if waiting_count:
+        return False
+    return all(ar_ready for _, ar_ready in running_rows)

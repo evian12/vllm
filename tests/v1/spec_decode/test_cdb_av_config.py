@@ -542,3 +542,20 @@ def test_expected_worker_ids_includes_parked_cached_ready():
         {"ready"},
         kv_reuse=True,
     ) == {"carry", "ready"}
+
+
+@pytest.mark.parametrize('changes,expected', [
+    ({}, True), ({'window_open': False}, False), ({'steps': 0}, False),
+    ({'steps': 8}, False), ({'leased_ids': []}, False),
+    ({'ready_ids': ['a']}, False), ({'inflight_ids': ['a']}, False),
+    ({'waiting_count': 1}, False),
+    ({'running_rows': [('a', False), ('b', True)]}, False),
+    ({'running_rows': [('a', True), ('a', True)]}, False),
+    ({'leased_ids': ['missing']}, False), ({'running_rows': []}, False),
+])
+def test_ar_only_target_stage_bypass(changes, expected):
+    args = dict(window_open=True, steps=1, horizon=8, leased_ids=['a'],
+                ready_ids=[], inflight_ids=[], waiting_count=0,
+                running_rows=[('a', True), ('b', True)])
+    args.update(changes)
+    assert _config.can_bypass_ar_target(**args) is expected
