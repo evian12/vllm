@@ -378,7 +378,15 @@ class PersistentDraftQueue:
                 "CDB-AV persistent mode requires num_speculative_tokens >= 1"
             )
         self.acceptance_replay = None
-        if os.getenv("CDB_AV_K_POLICY", "manual").strip().lower() == "replay_acceptance":
+        self.request_average = None
+        k_policy = os.getenv("CDB_AV_K_POLICY", "manual").strip().lower()
+        if k_policy == "request_avg_acceptance":
+            from vllm.v1.spec_decode.cdb_av_request_average import RequestAverageK
+            path = os.getenv("CDB_AV_REQUEST_AVG_FILE")
+            if not path:
+                raise ValueError("CDB_AV_REQUEST_AVG_FILE is required")
+            self.request_average = RequestAverageK.from_jsonl(path, self.max_k)
+        if k_policy == "replay_acceptance":
             from vllm.v1.spec_decode.cdb_av_acceptance import AcceptanceReplay
             path = os.getenv("CDB_AV_ACCEPT_REPLAY_FILE")
             if not path:
@@ -911,8 +919,20 @@ class PersistentDraftQueue:
              trace_key=(req.sampling_params.extra_args or {}).get('cdb_trace_key'))
 
     def resolve_k_cap(self, req, context):
-        """Use a prior exact-prefix observation or fall back to online HF."""
+        """Resolve diagnostic historical K, with online HF on a missing match."""
         from vllm.v1.spec_decode.cdb_av_config import get_request_k_cap
+        if self.request_average is not None:
+            extra = req.sampling_params.extra_args or {}
+            fingerprint = token_fingerprint(req.prompt_token_ids)
+            decision = self.request_average.resolve(
+                extra.get('cdb_trace_key'), fingerprint)
+            emit('k_request_average_decision', req_id=req.request_id,
+                 trace_key=extra.get('cdb_trace_key'),
+                 prompt_fingerprint=fingerprint, cap=decision.cap,
+                 source=decision.source, mean_accepted=decision.mean_accepted,
+                 verified_count=decision.verified_count)
+            return decision.cap, ('request_average' if decision.source ==
+                                  'request_average' else 'hf_fallback')
         if self.acceptance_replay is None:
             return get_request_k_cap(req.sampling_params.extra_args, self.max_k), 'configured'
         extra = req.sampling_params.extra_args or {}

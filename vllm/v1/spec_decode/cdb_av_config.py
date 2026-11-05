@@ -75,17 +75,19 @@ def get_request_k_cap(extra_args, max_k: int) -> int:
         raise ValueError("SamplingParams.extra_args must be a mapping")
 
     policy = os.getenv("CDB_AV_K_POLICY", "manual").strip().lower()
-    if policy not in ("manual", "hf_confidence", "replay_acceptance"):
+    if policy not in ("manual", "hf_confidence", "replay_acceptance",
+                      "request_avg_acceptance"):
         raise ValueError(
             "CDB_AV_K_POLICY must be 'manual', 'hf_confidence', or "
-            "'replay_acceptance', "
+            "'replay_acceptance', or 'request_avg_acceptance', "
             f"got {policy!r}"
         )
 
     # HF-confidence mode owns the request-level stopping decision. A client
     # may still send stale cdb_draft_k values (e.g. the old 1/2/3/4 cycle);
     # ignore them and let confidence choose actual K up to the server limit.
-    if policy in ("hf_confidence", "replay_acceptance"):
+    if policy in ("hf_confidence", "replay_acceptance",
+                  "request_avg_acceptance"):
         return max_k
 
     cap = extra_args.get("cdb_draft_k", max_k)

@@ -36,6 +36,7 @@ _REFILL_SUMMARY_EVENTS = {
     'p2_target_commit',
     'p2_verified',
     'k_replay_decision',
+    'k_request_average_decision',
     'p2_handoff',
     'p2_boundary',
     'p2_reuse_plan',
@@ -72,7 +73,7 @@ def emit(event, **data):
             elif event == 'p2_verified':
                 _LOW_LOG_REUSE['accepted_tokens'] += data['accepted']
                 _LOW_LOG_REUSE['drafted_tokens'] += len(data['drafts'])
-            elif event == 'k_replay_decision':
+            elif event in ('k_replay_decision', 'k_request_average_decision'):
                 _LOW_LOG_REPLAY[data['source']] += 1
             if _LOW_LOG_COUNTS['__total__'] % 1024 == 0:
                 logger.info('[CDB_AGG] %s', json.dumps(dict(
@@ -113,7 +114,8 @@ class RefillSession:
         self.block_size = self.builder.kv_cache_spec.block_size
         self.policy = os.getenv('CDB_AV_K_POLICY', 'manual').strip().lower()
         self.threshold = float(os.getenv('CDB_AV_HF_THRESHOLD', '0.4'))
-        if self.policy not in ('manual', 'hf_confidence', 'replay_acceptance') or not 0 <= self.threshold <= 1:
+        if self.policy not in ('manual', 'hf_confidence', 'replay_acceptance',
+                               'request_avg_acceptance') or not 0 <= self.threshold <= 1:
             raise ValueError('Invalid refill stopping policy')
         emit(
             'k_policy_config',
@@ -547,8 +549,10 @@ class RefillSession:
             confidence_values = None
             need_confidence = (
                 self.policy == 'hf_confidence'
-                or (self.policy == 'replay_acceptance' and any(
-                    self.members[rid].get('k_source') != 'replay'
+                or (self.policy in ('replay_acceptance',
+                                    'request_avg_acceptance') and any(
+                    self.members[rid].get('k_source') not in
+                    ('replay', 'request_average')
                     for rid in worked
                 ))
             )
@@ -582,7 +586,7 @@ class RefillSession:
                 zip(worked, token_values, stops)
             ):
                 m = self.members[rid]
-                if self.policy == 'replay_acceptance':
+                if self.policy in ('replay_acceptance', 'request_avg_acceptance'):
                     stop = should_stop(self.policy, m.get('k_source', 'hf_fallback'), stop)
                 if m['ready']:
                     raise RuntimeError('Completed request reactivated')
@@ -619,13 +623,16 @@ class RefillSession:
                         ),
                         threshold=(self.threshold if
                                    (self.policy == 'hf_confidence' or
-                                    (self.policy == 'replay_acceptance' and
-                                     m.get('k_source') != 'replay'))
+                                    (self.policy in ('replay_acceptance',
+                                                     'request_avg_acceptance') and
+                                     m.get('k_source') not in
+                                     ('replay', 'request_average')))
                                    else None),
                     )
 
             if (
-                self.policy in ('hf_confidence', 'replay_acceptance')
+                self.policy in ('hf_confidence', 'replay_acceptance',
+                                'request_avg_acceptance')
                 and os.getenv('CDB_AV_TRACE_STEPS', '0') == '1'
             ):
                 logger.info(

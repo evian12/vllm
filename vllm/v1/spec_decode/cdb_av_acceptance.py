@@ -37,6 +37,8 @@ def should_stop(policy: str, k_source: str, confidence_stop: bool) -> bool:
     """A matched replay uses its fixed cap; unmatched contexts use HF."""
     if policy == "replay_acceptance" and k_source == "replay":
         return False
+    if policy == "request_avg_acceptance" and k_source == "request_average":
+        return False
     return confidence_stop
 
 
