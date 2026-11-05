@@ -2,6 +2,7 @@
 """Protocol checks for the paired 512-request load generator."""
 
 import io
+import hashlib
 import json
 import unittest
 from unittest.mock import patch
@@ -13,7 +14,10 @@ class StressClientProtocolTests(unittest.TestCase):
     def test_dry_run_carries_stable_request_id_and_k_cap(self):
         row = client.send_request(3, 18084, 32, "paired", dry_run=True)
         self.assertEqual(row["payload"]["request_id"], "p0_paired_3")
-        self.assertEqual(row["payload"]["vllm_xargs"], {"cdb_draft_k": 8})
+        self.assertEqual(row["payload"]["vllm_xargs"], {
+            "cdb_draft_k": 8,
+            "cdb_trace_key": "stress512:3",
+        })
         self.assertEqual(row["requested_K"], 8)
         self.assertIsNone(row["effective_K"])
         self.assertIsNone(row["actual_draft_steps"])
@@ -39,6 +43,7 @@ class StressClientProtocolTests(unittest.TestCase):
             row = client.send_request(0, 18084, 32, "paired")
         self.assertTrue(row["ok"])
         self.assertEqual(row["output_tokens"], 32)
+        self.assertEqual(row["output_sha256"], hashlib.sha256(b"answer").hexdigest())
         self.assertEqual(row["response_id"], response["id"])
         self.assertLessEqual(row["started_at"], row["completed_at"])
 

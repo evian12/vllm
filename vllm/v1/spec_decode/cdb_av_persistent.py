@@ -130,6 +130,7 @@ class PersistentDraftSession(RefillSession):
             self.members[rid] = dict(req_id=rid, source='target_first',
                 context_tokens=len(prefix), fingerprint=plan['fingerprint'],
                 cap=plan['cap'], progress=0, tokens=[], blocks=blocks,
+                k_source=plan.get('k_source', 'configured'),
                 next_position=count, next_token=prefix[-1], ready=False, ready_at=None,
                 origin_window=self.window)
             self.active.append(rid)
@@ -376,6 +377,15 @@ class PersistentDraftQueue:
             raise ValueError(
                 "CDB-AV persistent mode requires num_speculative_tokens >= 1"
             )
+        self.acceptance_replay = None
+        if os.getenv("CDB_AV_K_POLICY", "manual").strip().lower() == "replay_acceptance":
+            from vllm.v1.spec_decode.cdb_av_acceptance import AcceptanceReplay
+            path = os.getenv("CDB_AV_ACCEPT_REPLAY_FILE")
+            if not path:
+                raise ValueError(
+                    "CDB_AV_ACCEPT_REPLAY_FILE is required for replay_acceptance"
+                )
+            self.acceptance_replay = AcceptanceReplay.from_jsonl(path, self.max_k)
         emit(
             "p2_runtime_config",
             H=self.horizon,
@@ -896,7 +906,24 @@ class PersistentDraftQueue:
             return
         emit('p2_verified', target_epoch=self.target_epoch, req_id=req.request_id,
              window=record['window'], drafts=drafts, generated=generated,
-             accepted=accepted, fingerprint=record['fingerprint'])
+             accepted=accepted, fingerprint=record['fingerprint'],
+             context_tokens=record['context_tokens'],
+             trace_key=(req.sampling_params.extra_args or {}).get('cdb_trace_key'))
+
+    def resolve_k_cap(self, req, context):
+        """Use a prior exact-prefix observation or fall back to online HF."""
+        from vllm.v1.spec_decode.cdb_av_config import get_request_k_cap
+        if self.acceptance_replay is None:
+            return get_request_k_cap(req.sampling_params.extra_args, self.max_k), 'configured'
+        extra = req.sampling_params.extra_args or {}
+        decision = self.acceptance_replay.resolve(
+            extra.get('cdb_trace_key'), context['fingerprint'],
+            context['context_tokens'], self.max_k)
+        emit('k_replay_decision', req_id=req.request_id,
+             trace_key=extra.get('cdb_trace_key'),
+             fingerprint=context['fingerprint'], cap=decision.cap,
+             source=decision.source, censored=decision.censored)
+        return decision.cap, ('replay' if decision.source == 'replay' else 'hf_fallback')
 
     def plans(self):
         plans = []
@@ -920,9 +947,8 @@ class PersistentDraftQueue:
                     reason=reason,
                 )
                 continue
-            params = req.sampling_params
-            from vllm.v1.spec_decode.cdb_av_config import get_request_k_cap
-            cap = get_request_k_cap(params.extra_args, self.max_k)
+            ctx = RefillQueue.context(req) if self.acceptance_replay else None
+            cap, k_source = self.resolve_k_cap(req, ctx)
             from vllm.v1.spec_decode.cdb_av_config import (
                 can_verify_ready_tokens,
             )
@@ -946,7 +972,8 @@ class PersistentDraftQueue:
             # native Target-only generation, never a fabricated Draft context.
             if pool.get_num_free_blocks() < nblocks + self.s.max_num_running_reqs*2:
                 continue
-            ctx = RefillQueue.context(req)
+            if ctx is None:
+                ctx = RefillQueue.context(req)
             prefix = list(req.prompt_token_ids) + list(req.output_token_ids)
             prefill_cost = (
                 ctx["context_tokens"]
@@ -993,6 +1020,7 @@ class PersistentDraftQueue:
                     req_id=rid,
                     prefix=prefix,
                     cap=cap,
+                    k_source=k_source,
                     blocks=[block.block_id for block in blocks],
                     **ctx,
                 )

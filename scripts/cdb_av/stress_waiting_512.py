@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 import argparse
 import asyncio
+import hashlib
 import json
 import time
 import urllib.request
@@ -43,7 +44,10 @@ def build_payload(index, max_tokens, request_id=None):
         "temperature": 0,
         "stream": False,
         "vllm_xargs": {
-            "cdb_draft_k": 8
+            "cdb_draft_k": 8,
+            # Stable across repeated runs; the context fingerprint still has
+            # to match before any historical acceptance can be replayed.
+            "cdb_trace_key": f"stress512:{index}",
         },
     }
 
@@ -102,6 +106,9 @@ def send_request(index, port, max_tokens, run_id=None, dry_run=False):
             "started_at": started,
             "completed_at": time.monotonic(),
             "output_tokens": usage.get("completion_tokens", 0),
+            "output_sha256": hashlib.sha256(
+                choices[0]["text"].encode("utf-8")
+            ).hexdigest(),
             "response_id": result.get("id"),
             "generation_finish_reason": choices[0].get("finish_reason"),
         }

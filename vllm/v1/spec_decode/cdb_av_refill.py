@@ -14,6 +14,7 @@ from vllm.forward_context import set_forward_context
 from vllm.logger import init_logger
 from vllm.v1.attention.backend import CommonAttentionMetadata
 from vllm.v1.spec_decode.cdb_av_fingerprint import token_fingerprint
+from vllm.v1.spec_decode.cdb_av_acceptance import should_stop
 from vllm.v1.spec_decode.cdb_av_config import (
     confidence_stop_flags,
     get_k_stop_reason,
@@ -34,6 +35,7 @@ _REFILL_SUMMARY_EVENTS = {
     'p2_window_begin',
     'p2_target_commit',
     'p2_verified',
+    'k_replay_decision',
     'p2_handoff',
     'p2_boundary',
     'p2_reuse_plan',
@@ -49,6 +51,7 @@ _LOW_LOG_COUNTS = Counter()
 _LOW_LOG_K = Counter()
 _LOW_LOG_REASONS = Counter()
 _LOW_LOG_REUSE = Counter()
+_LOW_LOG_REPLAY = Counter()
 
 
 def emit(event, **data):
@@ -69,12 +72,15 @@ def emit(event, **data):
             elif event == 'p2_verified':
                 _LOW_LOG_REUSE['accepted_tokens'] += data['accepted']
                 _LOW_LOG_REUSE['drafted_tokens'] += len(data['drafts'])
+            elif event == 'k_replay_decision':
+                _LOW_LOG_REPLAY[data['source']] += 1
             if _LOW_LOG_COUNTS['__total__'] % 1024 == 0:
                 logger.info('[CDB_AGG] %s', json.dumps(dict(
                     events=dict(_LOW_LOG_COUNTS),
                     k_actual=dict(_LOW_LOG_K),
                     stop_reasons=dict(_LOW_LOG_REASONS),
                     token_counts=dict(_LOW_LOG_REUSE),
+                    replay=dict(_LOW_LOG_REPLAY),
                 )))
         return
     # Keep request/verification/reuse summaries available by default, while
@@ -107,7 +113,7 @@ class RefillSession:
         self.block_size = self.builder.kv_cache_spec.block_size
         self.policy = os.getenv('CDB_AV_K_POLICY', 'manual').strip().lower()
         self.threshold = float(os.getenv('CDB_AV_HF_THRESHOLD', '0.4'))
-        if self.policy not in ('manual', 'hf_confidence') or not 0 <= self.threshold <= 1:
+        if self.policy not in ('manual', 'hf_confidence', 'replay_acceptance') or not 0 <= self.threshold <= 1:
             raise ValueError('Invalid refill stopping policy')
         emit(
             'k_policy_config',
@@ -371,7 +377,14 @@ class RefillSession:
                 raise RuntimeError('Draft logits/request alignment mismatch')
 
             confidence_values = None
-            if self.policy == 'hf_confidence':
+            need_confidence = (
+                self.policy == 'hf_confidence'
+                or (self.policy == 'replay_acceptance' and any(
+                    self.members[rid].get('k_source') != 'replay'
+                    for rid in worked
+                ))
+            )
+            if need_confidence:
                 # The confidence of the greedy token is exp(max(logits) -
                 # logsumexp(logits)). Avoid materializing a full log_softmax
                 # tensor for every vocabulary row.
@@ -401,6 +414,8 @@ class RefillSession:
                 zip(worked, token_values, stops)
             ):
                 m = self.members[rid]
+                if self.policy == 'replay_acceptance':
+                    stop = should_stop(self.policy, m.get('k_source', 'hf_fallback'), stop)
                 if m['ready']:
                     raise RuntimeError('Completed request reactivated')
                 # Retain the sampled candidate before evaluating the stop rule.
@@ -427,20 +442,22 @@ class RefillSession:
                         fingerprint=m['fingerprint'],
                         source=m['source'],
                         reason=reason,
+                        k_source=m.get('k_source', 'configured'),
                         k_cap=m['cap'],
                         k_actual=m['progress'],
                         confidence=(
                             None if confidence_values is None
                             else confidence_values[index]
                         ),
-                        threshold=(
-                            self.threshold if self.policy == 'hf_confidence'
-                            else None
-                        ),
+                        threshold=(self.threshold if
+                                   (self.policy == 'hf_confidence' or
+                                    (self.policy == 'replay_acceptance' and
+                                     m.get('k_source') != 'replay'))
+                                   else None),
                     )
 
             if (
-                self.policy == 'hf_confidence'
+                self.policy in ('hf_confidence', 'replay_acceptance')
                 and os.getenv('CDB_AV_TRACE_STEPS', '0') == '1'
             ):
                 logger.info(

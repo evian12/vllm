@@ -382,6 +382,7 @@ class ReuseDraftSession(PersistentDraftSession):
                 context_tokens=len(prefix),
                 fingerprint=plan["fingerprint"],
                 cap=plan["cap"],
+                k_source=plan.get("k_source", "configured"),
                 progress=0,
                 tokens=[],
                 blocks=blocks,
@@ -606,7 +607,8 @@ class ReuseDraftSession(PersistentDraftSession):
             member = dict(
                 req_id=rid, source='target_first',
                 context_tokens=len(prefix), fingerprint=plan['fingerprint'],
-                cap=plan['cap'], progress=0, tokens=[], blocks=blocks,
+                cap=plan['cap'], k_source=plan.get('k_source', 'configured'),
+                progress=0, tokens=[], blocks=blocks,
                 next_position=end - 1, next_token=prefix[-1],
                 ready=False, ready_at=None, origin_window=self.window,
                 prefix=prefix, kv_inputs=list(prefix[:start]),
@@ -819,9 +821,8 @@ class ReuseDraftQueue(PersistentDraftQueue):
                     reason=reason,
                 )
                 continue
-            params=req.sampling_params
-            from vllm.v1.spec_decode.cdb_av_config import get_request_k_cap
-            cap = get_request_k_cap(params.extra_args, self.max_k)
+            ctx = RefillQueue.context(req) if self.acceptance_replay else None
+            cap, k_source = self.resolve_k_cap(req, ctx)
             cached=self.cached_leases.get(rid,[])
             from vllm.v1.spec_decode.cdb_av_config import (
                 can_verify_ready_tokens,
@@ -844,7 +845,8 @@ class ReuseDraftQueue(PersistentDraftQueue):
             if req.num_tokens+cap>=self.s.max_model_len:
                 self.discard_cached([rid] if cached else [],'length_limit');continue
 
-            ctx=RefillQueue.context(req)
+            if ctx is None:
+                ctx=RefillQueue.context(req)
             prefix=list(req.prompt_token_ids)+list(req.output_token_ids)
             commit=self.commits.get(rid) if cached else None
             reuse_start=0
@@ -930,7 +932,7 @@ class ReuseDraftQueue(PersistentDraftQueue):
                         raise RuntimeError('P2 allocator returned an incomplete audit lease')
                     if any(b.ref_cnt!=1 or b.is_null for b in audit_blocks):
                         raise RuntimeError('P2 audit lease not exclusive')
-                plan=dict(req_id=rid,prefix=prefix,cap=cap,
+                plan=dict(req_id=rid,prefix=prefix,cap=cap,k_source=k_source,
                     blocks=[b.block_id for b in blocks],
                     audit_blocks=[b.block_id for b in audit_blocks],
                     reuse=bool(cached),commit=commit,**ctx)
