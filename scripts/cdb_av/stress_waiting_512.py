@@ -29,7 +29,8 @@ PROMPTS = [
 ]
 
 
-def build_payload(index, max_tokens, request_id=None):
+def build_payload(index, max_tokens, request_id=None, draft_k=8,
+                  capture_token_ids=False):
     """Build raw HTTP JSON; SDK-only extra_body is not a wire field."""
     prompt = PROMPTS[index % len(PROMPTS)]
     prompt = prompt + "\n" + (
@@ -44,7 +45,7 @@ def build_payload(index, max_tokens, request_id=None):
         "temperature": 0,
         "stream": False,
         "vllm_xargs": {
-            "cdb_draft_k": 8,
+            "cdb_draft_k": draft_k,
             # Stable across repeated runs; the context fingerprint still has
             # to match before any historical acceptance can be replayed.
             "cdb_trace_key": f"stress512:{index}",
@@ -53,14 +54,19 @@ def build_payload(index, max_tokens, request_id=None):
 
     if request_id is not None:
         payload["request_id"] = request_id
+    if capture_token_ids:
+        payload["return_token_ids"] = True
     return payload
 
 
-def send_request(index, port, max_tokens, run_id=None, dry_run=False):
+def send_request(index, port, max_tokens, run_id=None, dry_run=False,
+                 draft_k=8, capture_token_ids=False):
     request_id = f"p0_{run_id or uuid.uuid4().hex}_{index}"
-    payload = build_payload(index, max_tokens, request_id)
+    payload = build_payload(index, max_tokens, request_id, draft_k,
+                            capture_token_ids)
     evidence = {
         "client_request_id": request_id,
+        "trace_key": payload["vllm_xargs"]["cdb_trace_key"],
         "requested_K": payload["vllm_xargs"]["cdb_draft_k"],
         # The completion API has no Worker Draft telemetry. Never infer these
         # from requested_K, output length, or Target finish_reason.
@@ -94,6 +100,18 @@ def send_request(index, port, max_tokens, run_id=None, dry_run=False):
                 or not isinstance(usage, dict)
                 or not isinstance(usage.get("completion_tokens"), int)):
             raise ValueError(f"Invalid completion response: {str(result)[:500]}")
+        token_evidence = {}
+        if capture_token_ids:
+            prompt_ids = choices[0].get("prompt_token_ids")
+            output_ids = choices[0].get("token_ids")
+            if (not isinstance(prompt_ids, list) or not prompt_ids
+                    or not isinstance(output_ids, list)
+                    or len(output_ids) != usage["completion_tokens"]
+                    or any(type(token) is not int or token < 0
+                           for token in prompt_ids + output_ids)):
+                raise ValueError("Invalid exact token-ID evidence in completion")
+            token_evidence = dict(prompt_token_ids=prompt_ids,
+                                  generated_token_ids=output_ids)
 
         elapsed = time.monotonic() - started
 
@@ -111,6 +129,7 @@ def send_request(index, port, max_tokens, run_id=None, dry_run=False):
             ).hexdigest(),
             "response_id": result.get("id"),
             "generation_finish_reason": choices[0].get("finish_reason"),
+            **token_evidence,
         }
 
     except Exception as exc:
@@ -134,15 +153,23 @@ async def main():
     parser.add_argument("--max-tokens", type=int, default=128)
     parser.add_argument("--run-id", default=None,
                         help="Stable request-ID prefix for paired experiments")
+    parser.add_argument("--draft-k", type=int, default=8,
+                        help="Client cap for manual-K reference collection")
+    parser.add_argument("--capture-token-ids", action="store_true",
+                        help="Retain exact prompt/output token IDs for trace expansion")
     parser.add_argument("--dry-run", action="store_true",
                         help="Print request payloads without contacting any server")
     args = parser.parse_args()
     if min(args.requests, args.concurrency, args.max_tokens) < 1:
         parser.error("requests, concurrency and max-tokens must be positive")
+    if not 1 <= args.draft_k <= 8:
+        parser.error("draft-k must be in [1, 8]")
     run_id = args.run_id or uuid.uuid4().hex
     if args.dry_run:
         for i in range(args.requests):
-            print(json.dumps(send_request(i, args.port, args.max_tokens, run_id, True), ensure_ascii=False))
+            print(json.dumps(send_request(i, args.port, args.max_tokens,
+                                          run_id, True, args.draft_k,
+                                          args.capture_token_ids), ensure_ascii=False))
         return
 
     started = time.monotonic()
@@ -152,7 +179,8 @@ async def main():
         futures = [
             loop.run_in_executor(
                 pool, send_request,
-                i, args.port, args.max_tokens, run_id
+                i, args.port, args.max_tokens, run_id, False,
+                args.draft_k, args.capture_token_ids
             )
             for i in range(args.requests)
         ]

@@ -47,6 +47,33 @@ class StressClientProtocolTests(unittest.TestCase):
         self.assertEqual(row["response_id"], response["id"])
         self.assertLessEqual(row["started_at"], row["completed_at"])
 
+    def test_opt_in_exact_token_ids_and_manual_cap(self):
+        response = {
+            "id": "cmpl-p0_reference_0",
+            "choices": [{"text": "answer", "finish_reason": "length",
+                         "prompt_token_ids": [11, 12], "token_ids": [13, 14]}],
+            "usage": {"completion_tokens": 2},
+        }
+        with patch.object(client.urllib.request, "urlopen",
+                          return_value=io.BytesIO(json.dumps(response).encode())):
+            row = client.send_request(0, 18084, 2, "reference", False, 4, True)
+        self.assertTrue(row["ok"])
+        self.assertEqual(row["requested_K"], 4)
+        self.assertEqual(row["prompt_token_ids"], [11, 12])
+        self.assertEqual(row["generated_token_ids"], [13, 14])
+
+    def test_missing_exact_token_ids_fails_trace_collection(self):
+        response = {
+            "id": "cmpl-p0_reference_0",
+            "choices": [{"text": "answer", "finish_reason": "length"}],
+            "usage": {"completion_tokens": 2},
+        }
+        with patch.object(client.urllib.request, "urlopen",
+                          return_value=io.BytesIO(json.dumps(response).encode())):
+            row = client.send_request(0, 18084, 2, "reference", False, 4, True)
+        self.assertFalse(row["ok"])
+        self.assertIn("token-ID evidence", row["error"])
+
 
 if __name__ == "__main__":
     unittest.main()

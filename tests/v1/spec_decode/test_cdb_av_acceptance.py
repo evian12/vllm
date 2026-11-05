@@ -77,3 +77,52 @@ def test_server_log_parser_keeps_only_keyed_verified_rows():
     assert list(parser.extract_records(lines)) == [dict(
         trace_key="stress512:0", fingerprint="d" * 32,
         context_tokens=12, observed_k=3, accepted=2)]
+
+
+def test_expand_only_true_accepted_prefixes():
+    from vllm.v1.spec_decode.cdb_av_fingerprint import token_fingerprint
+
+    script = SOURCE.parents[3] / "scripts/cdb_av/build_acceptance_replay.py"
+    loader = importlib.util.spec_from_file_location("cdb_accept_dense_test", script)
+    parser = importlib.util.module_from_spec(loader)
+    loader.loader.exec_module(parser)
+    prefix = [10, 11, 12]
+    output = [21, 22, 99, 30]
+    record = dict(trace_key="stress512:0",
+                  fingerprint=token_fingerprint(prefix),
+                  context_tokens=3, observed_k=4, accepted=2,
+                  drafts=[21, 22, 23, 24], generated=[21, 22, 99])
+    rows = list(parser.expand_accepted_prefixes(
+        [record], {"stress512:0": prefix + output}))
+    assert [(x["context_tokens"], x["accepted"], x["observed_k"],
+             x["drafts"], x["derived_shift"]) for x in rows] == [
+        (3, 2, 4, [21, 22, 23, 24], 0),
+        (4, 1, 3, [22, 23, 24], 1),
+        (5, 0, 2, [23, 24], 2),
+    ]
+    assert [x["fingerprint"] for x in rows] == [
+        token_fingerprint((prefix + output)[:n]) for n in (3, 4, 5)]
+    assert [module.conservative_replay_cap(
+        x["accepted"], x["observed_k"], 8) for x in rows] == [3, 2, 1]
+
+    with pytest.raises(ValueError, match="accepted-prefix mismatch"):
+        list(parser.expand_accepted_prefixes(
+            [record], {"stress512:0": prefix + [21, 50, 99]}))
+
+
+def test_expand_full_accept_stays_censored():
+    from vllm.v1.spec_decode.cdb_av_fingerprint import token_fingerprint
+
+    script = SOURCE.parents[3] / "scripts/cdb_av/build_acceptance_replay.py"
+    loader = importlib.util.spec_from_file_location("cdb_accept_censored_test", script)
+    parser = importlib.util.module_from_spec(loader)
+    loader.loader.exec_module(parser)
+    record = dict(trace_key="one", fingerprint=token_fingerprint([5]),
+                  context_tokens=1, observed_k=2, accepted=2,
+                  drafts=[6, 7], generated=[6, 7, 8])
+    rows = list(parser.expand_accepted_prefixes([record], {"one": [5, 6, 7, 8]}))
+    assert [(x["accepted"], x["observed_k"]) for x in rows] == [(2, 2), (1, 1)]
+    # The API may stop at max_tokens after only one of the accepted tokens.
+    limited = list(parser.expand_accepted_prefixes(
+        [record], {"one": [5, 6]}))
+    assert [x["derived_shift"] for x in limited] == [0, 1]
