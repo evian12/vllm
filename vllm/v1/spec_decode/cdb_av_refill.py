@@ -150,7 +150,7 @@ class RefillSession:
             _seq_lens_cpu=None, _num_computed_tokens_cpu=None)
 
     def _decode_graph_key(self, cad, n):
-        """Only pure one-token Decode is eligible; Prefill remains eager."""
+        """Only one-token-per-request rows are eligible for the Draft graph."""
         if (n != cad.num_reqs or cad.num_actual_tokens != n
                 or cad.max_query_len != 1 or n > self.capacity):
             return None
@@ -170,7 +170,14 @@ class RefillSession:
                 *(layers[name].kv_cache[0].data_ptr()
                   for name in p.attn_layer_names))
 
-    def _decode_graph_forward(self, cad, n, key):
+    @staticmethod
+    def _graph_phase_eligible(phase, last_indices):
+        # Mixed Prefill joins the same capture only when every request has one
+        # query token. _decode_graph_key enforces this shape separately.
+        return (last_indices is not None and phase in
+                ('decode', 'mixed_prefill_decode', 'mixed_prefill'))
+
+    def _decode_graph_forward(self, cad, n, key, phase='decode'):
         """Replay a Draft-only graph with persistent, request-independent buffers.
 
         The graph stores pointers to these buffers, never request-specific KV
@@ -240,7 +247,7 @@ class RefillSession:
         entry['graph'].replay()
         if os.getenv('CDB_AV_TRACE_GRAPH', '0') == '1':
             logger.info('[CDB_DRAFT_GRAPH] %s', json.dumps(dict(
-                action=action, rows=n, seq_bucket=key[1])))
+                action=action, phase=phase, rows=n, seq_bucket=key[1])))
         logits = p.model.compute_logits(entry['hidden'])
         if os.getenv('CDB_AV_DRAFT_GRAPH_VALIDATE', '0') == '1':
             # Diagnostic only. The eager replay writes the same owned slots;
@@ -297,7 +304,7 @@ class RefillSession:
             for name, before in zip(p.attn_layer_names, graph_kv):
                 layers[name].kv_cache[0][:, block, offset] = before
             logger.info('[CDB_DRAFT_GRAPH_VALIDATE] %s', json.dumps(dict(
-                action=action, rows=n, seq_bucket=key[1],
+                action=action, phase=phase, rows=n, seq_bucket=key[1],
                 kv_exact=kv_exact, token_exact=token_exact,
                 logits_close=logits_close, max_abs=max_abs,
                 dynamic_token_exact=dynamic_token_exact,
@@ -323,15 +330,15 @@ class RefillSession:
             raise RuntimeError('Refill requires eager, no graph padding')
         p.input_ids[:n] = ids
         p._set_positions(n, positions)
-        # A pure Decode step appends one row per worked request in order, so
-        # its last_indices are exactly 0..n-1. Mixed Prefill keeps eager's
-        # explicit indexing and cannot enter this graph path.
+        # Decode and single-query mixed Prefill share the exact-row graph.
+        # Ragged or multi-token Prefill retains eager attention metadata.
         graph_key = (self._decode_graph_key(cad, n)
                      if (os.getenv('CDB_AV_DRAFT_DECODE_GRAPH', '0') == '1'
-                         and phase == 'decode' and last_indices is not None)
+                         and self._graph_phase_eligible(phase, last_indices))
                      else None)
         if graph_key is not None:
-            logits = self._decode_graph_forward(cad, n, graph_key)
+            logits = self._decode_graph_forward(
+                cad, n, graph_key, phase=phase)
         else:
             metadata = self.builder.build_for_drafting(cad, draft_index=0)
             per_layer = {name: metadata for name in p.attn_layer_names}

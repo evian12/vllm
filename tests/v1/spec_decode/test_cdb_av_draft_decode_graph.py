@@ -47,3 +47,23 @@ def test_decode_graph_storage_detects_reallocated_kv():
     assert original == session._decode_graph_storage()
     layer.kv_cache[0] = torch.ones(3, 3)
     assert original != session._decode_graph_storage()
+
+
+@pytest.mark.parametrize(
+    ("phase", "has_logits", "expected"),
+    [
+        ("decode", True, True),
+        ("decode", False, False),
+        ("mixed_prefill_decode", True, True),
+        ("mixed_prefill", True, True),
+        ("mixed_prefill", False, False),
+        ("reuse_batch_prefill", False, False),
+        ("p2_prepare", False, False),
+        ("reuse_shape_replay", False, False),
+    ],
+)
+def test_graph_phase_is_limited_to_decode_and_one_token_kv_fill(
+    phase, has_logits, expected,
+):
+    sentinel = object() if has_logits else None
+    assert RefillSession._graph_phase_eligible(phase, sentinel) is expected
