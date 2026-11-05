@@ -50,6 +50,38 @@ def test_decode_graph_storage_detects_reallocated_kv():
 
 
 @pytest.mark.parametrize(
+    ("qlens", "max_seq", "expected"),
+    [
+        ((1, 1, 1, 2), 120, (5, 128, (1, 1, 1, 2))),
+        ((1, 1, 2, 2), 130, (6, 256, (1, 1, 2, 2))),
+        ((1, 2), 20, (3, 32, (1, 2))),
+        ((1, 1, 1, 1), 20, None),
+        ((1, 3), 20, None),
+        ((2, 2, 2, 2, 1), 20, None),
+    ],
+)
+def test_mixed_graph_key_requires_exact_one_or_two_token_layout(
+    qlens, max_seq, expected,
+):
+    session = RefillSession.__new__(RefillSession)
+    session.capacity = 4
+    session.block_size = 16
+    session.p = SimpleNamespace(max_model_len=1024)
+    starts = [0]
+    for qlen in qlens:
+        starts.append(starts[-1] + qlen)
+    n = starts[-1]
+    cad = SimpleNamespace(
+        num_reqs=len(qlens), num_actual_tokens=n,
+        max_query_len=max(qlens), max_seq_len=max_seq,
+        query_start_loc_cpu=torch.tensor(starts, dtype=torch.int32),
+        block_table_tensor=SimpleNamespace(
+            shape=(len(qlens), (max_seq + 15) // 16)),
+    )
+    assert session._mixed_graph_key(cad, n) == expected
+
+
+@pytest.mark.parametrize(
     ("phase", "has_logits", "expected"),
     [
         ("decode", True, True),

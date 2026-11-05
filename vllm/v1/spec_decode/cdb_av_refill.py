@@ -161,6 +161,24 @@ class RefillSession:
             return None
         return n, bucket
 
+    def _mixed_graph_key(self, cad, n):
+        """Exact query layout for the common one/two-token mixed batch."""
+        if (cad.num_reqs > self.capacity or n != cad.num_actual_tokens
+                or cad.max_query_len != 2 or n > 2 * self.capacity):
+            return None
+        starts = cad.query_start_loc_cpu.tolist()
+        if len(starts) != cad.num_reqs + 1 or starts[0] != 0 or starts[-1] != n:
+            return None
+        qlens = tuple(end - start for start, end in zip(starts, starts[1:]))
+        if not all(1 <= qlen <= 2 for qlen in qlens):
+            return None
+        required = max(cad.max_seq_len,
+                       cad.block_table_tensor.shape[1] * self.block_size)
+        bucket = max(self.block_size, 1 << (required - 1).bit_length())
+        if bucket > self.p.max_model_len:
+            return None
+        return n, bucket, qlens
+
     def _decode_graph_storage(self):
         """Identify every model/cache buffer whose address a capture retains."""
         p = self.p
@@ -195,17 +213,25 @@ class RefillSession:
             p._cdb_decode_graph_storage = storage
         entry = cache.get(key)
         if entry is None:
-            _, bucket = key
+            bucket = key[1]
+            qlens = key[2] if len(key) == 3 else (1,) * n
+            num_reqs = len(qlens)
             width = (bucket + self.block_size - 1) // self.block_size
-            query_cpu = torch.arange(n + 1, dtype=torch.int32)
+            query_cpu = torch.tensor(
+                [0] + list(torch.tensor(qlens).cumsum(0).tolist()),
+                dtype=torch.int32)
+            last_indices = torch.tensor(
+                [end - 1 for end in query_cpu[1:].tolist()],
+                dtype=torch.long, device=p.device)
             static_cad = CommonAttentionMetadata(
                 query_start_loc=query_cpu.to(p.device),
                 query_start_loc_cpu=query_cpu,
-                seq_lens=torch.empty(n, dtype=torch.int32, device=p.device),
-                num_reqs=n, num_actual_tokens=n, max_query_len=1,
+                seq_lens=torch.empty(num_reqs, dtype=torch.int32, device=p.device),
+                num_reqs=num_reqs, num_actual_tokens=n,
+                max_query_len=max(qlens),
                 max_seq_len=bucket,
                 block_table_tensor=torch.zeros(
-                    (n, width), dtype=torch.int32, device=p.device),
+                    (num_reqs, width), dtype=torch.int32, device=p.device),
                 slot_mapping=torch.empty(n, dtype=torch.int64, device=p.device),
                 causal=True, _seq_lens_cpu=None,
                 _num_computed_tokens_cpu=None,
@@ -213,7 +239,8 @@ class RefillSession:
             metadata = self.builder.build_for_drafting(
                 static_cad, draft_index=0)
             per_layer = {name: metadata for name in p.attn_layer_names}
-            entry = dict(cad=static_cad, per_layer=per_layer)
+            entry = dict(cad=static_cad, per_layer=per_layer,
+                         last_indices=last_indices)
         else:
             static_cad = entry['cad']
 
@@ -247,8 +274,12 @@ class RefillSession:
         entry['graph'].replay()
         if os.getenv('CDB_AV_TRACE_GRAPH', '0') == '1':
             logger.info('[CDB_DRAFT_GRAPH] %s', json.dumps(dict(
-                action=action, phase=phase, rows=n, seq_bucket=key[1])))
-        logits = p.model.compute_logits(entry['hidden'])
+                action=action, phase=phase, rows=n, seq_bucket=key[1],
+                query_lengths=key[2] if len(key) == 3 else None)))
+        hidden = entry['hidden']
+        if len(key) == 3:
+            hidden = hidden[entry['last_indices']]
+        logits = p.model.compute_logits(hidden)
         if os.getenv('CDB_AV_DRAFT_GRAPH_VALIDATE', '0') == '1':
             # Diagnostic only. The eager replay writes the same owned slots;
             # compare them before allowing a later Draft step to observe them.
@@ -268,6 +299,8 @@ class RefillSession:
                                     inputs_embeds=None)
             eager_hidden = (eager_ret[0] if p.model_returns_tuple()
                             else eager_ret)
+            if len(key) == 3:
+                eager_hidden = eager_hidden[entry['last_indices']]
             eager_logits = p.model.compute_logits(eager_hidden)
             kv_exact = all(torch.equal(before,
                 layers[name].kv_cache[0][:, block, offset])
@@ -292,6 +325,8 @@ class RefillSession:
                                       inputs_embeds=None)
             dynamic_hidden = (dynamic_ret[0] if p.model_returns_tuple()
                               else dynamic_ret)
+            if len(key) == 3:
+                dynamic_hidden = dynamic_hidden[entry['last_indices']]
             dynamic_logits = p.model.compute_logits(dynamic_hidden)
             dynamic_token_exact = torch.equal(
                 logits.argmax(-1), dynamic_logits.argmax(-1))
@@ -305,6 +340,7 @@ class RefillSession:
                 layers[name].kv_cache[0][:, block, offset] = before
             logger.info('[CDB_DRAFT_GRAPH_VALIDATE] %s', json.dumps(dict(
                 action=action, phase=phase, rows=n, seq_bucket=key[1],
+                query_lengths=key[2] if len(key) == 3 else None,
                 kv_exact=kv_exact, token_exact=token_exact,
                 logits_close=logits_close, max_abs=max_abs,
                 dynamic_token_exact=dynamic_token_exact,
@@ -332,10 +368,25 @@ class RefillSession:
         p._set_positions(n, positions)
         # Decode and single-query mixed Prefill share the exact-row graph.
         # Ragged or multi-token Prefill retains eager attention metadata.
-        graph_key = (self._decode_graph_key(cad, n)
-                     if (os.getenv('CDB_AV_DRAFT_DECODE_GRAPH', '0') == '1'
-                         and self._graph_phase_eligible(phase, last_indices))
-                     else None)
+        graph_key = None
+        if (os.getenv('CDB_AV_DRAFT_DECODE_GRAPH', '0') == '1'
+                and self._graph_phase_eligible(phase, last_indices)):
+            graph_key = self._decode_graph_key(cad, n)
+            if (graph_key is None
+                    and os.getenv('CDB_AV_DRAFT_RAGGED_GRAPH', '0') == '1'):
+                graph_key = self._mixed_graph_key(cad, n)
+                if graph_key is not None:
+                    cache = getattr(p, '_cdb_decode_graphs', {})
+                    if graph_key not in cache:
+                        hits = getattr(p, '_cdb_ragged_graph_hits', None)
+                        if hits is None:
+                            hits = p._cdb_ragged_graph_hits = Counter()
+                        hits[graph_key] += 1
+                        limit = int(os.getenv('CDB_AV_RAGGED_GRAPH_MAX_KEYS', '4'))
+                        min_hits = int(os.getenv('CDB_AV_RAGGED_GRAPH_MIN_HITS', '8'))
+                        captured = sum(len(key) == 3 for key in cache)
+                        if captured >= limit or hits[graph_key] < min_hits:
+                            graph_key = None
         if graph_key is not None:
             logits = self._decode_graph_forward(
                 cad, n, graph_key, phase=phase)
