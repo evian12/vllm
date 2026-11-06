@@ -29,7 +29,10 @@ positions are native speculative lookahead,not proof ofextra committed output.
 Carry16/16 passes44 true cross-Target byte checks,28 Draft layers,407371776 bytes;
 final Lease/Ready/inflight0. Four stream disconnects and4 recovery completions
 pass138 Target comparisons andfinal0. These heavy checks areNOT timing results.
-No safety assertion changed. Runtime performance remains to be established.
+No safety assertion changed. Three paired512 runs:222.394+/-0.926->223.140+/-1.539 tok/s(+0.335%);
+P95 mean11.192->11.205s. No demonstrated throughput benefit;keep default0.
+Target replay coverage improved72.7->90.7% inone9216-call prefix,not a timing
+claim. SeeTARGET_SEQFLOOR_RESULTS_20261106.md/JSON forfull results andlimits.
 Formal timing compares floor0 vs256 onthe same cleancommit withTarget GraphON
 andmixed-query domainON inboth modes,H8/HF0.8/maxK8,maxseq4,maxlen1024,
 Draft query4/cache12/minhits8,Target cache24/minhits8,4 equal HTTPwarmups,

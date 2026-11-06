@@ -1,0 +1,1177 @@
+{
+  "runtime_commit": "019f3d150782025d751d35ac908a18ba3300322f",
+  "performance": {
+    "runs": {
+      "floor0_r1": {
+        "completed": 512,
+        "failed": 0,
+        "output_tokens": 65536,
+        "wall_time_s": 294.082,
+        "output_tps": 222.85,
+        "requests_per_s": 1.7410110105344767,
+        "mean_latency_s": 9.14495061526577,
+        "p50_s": 9.309074667282403,
+        "p95_s": 11.095260600140318,
+        "last_target_counter_prefix": {
+          "fallback_layout": 421,
+          "calls": 9216,
+          "fallback_warmup": 281,
+          "capture": 24,
+          "replay": 6700,
+          "fallback_budget": 1790
+        },
+        "last_cdb_counter_prefix": {
+          "events": {
+            "p2_runtime_config": 1,
+            "__total__": 133120,
+            "target_ready_select": 9272,
+            "p2_target_begin": 9268,
+            "p2_target_commit": 1513,
+            "p2_reuse_plan": 17875,
+            "k_policy_config": 1,
+            "p2_window_begin": 1509,
+            "reuse_pending_prefill": 17875,
+            "ready": 17875,
+            "p2_ar_target_bypass": 2804,
+            "p2_handoff": 17873,
+            "p2_boundary": 1508,
+            "p2_verified": 17873,
+            "reuse_cache_consumed": 17359,
+            "reuse_lease_release": 514
+          },
+          "k_actual": {
+            "1": 8533,
+            "2": 4004,
+            "3": 1920,
+            "4": 943,
+            "8": 1082,
+            "6": 484,
+            "5": 600,
+            "7": 309
+          },
+          "stop_reasons": {
+            "low_confidence": 16793,
+            "max_k": 1082
+          },
+          "token_counts": {
+            "reused_tokens": 1818574,
+            "prefill_tokens": 62158,
+            "accepted_tokens": 30338,
+            "drafted_tokens": 42793
+          },
+          "replay": {}
+        },
+        "server_metrics_include_warmups": {
+          "time_to_first_token_seconds": {
+            "mean": 0.10981473488401072,
+            "count": 516.0
+          },
+          "request_time_per_output_token_seconds": {
+            "mean": 0.07072170947948075,
+            "count": 516.0
+          },
+          "inter_token_latency_seconds": {
+            "mean": 0.13063090867696228,
+            "count": 35402.0
+          },
+          "request_queue_time_seconds": {
+            "mean": 0.062212571005387476,
+            "count": 516.0
+          }
+        }
+      },
+      "floor0_r2": {
+        "completed": 512,
+        "failed": 0,
+        "output_tokens": 65536,
+        "wall_time_s": 296.103,
+        "output_tps": 221.328,
+        "requests_per_s": 1.729128039905033,
+        "mean_latency_s": 9.20957123991866,
+        "p50_s": 9.308608702383935,
+        "p95_s": 11.248714919108897,
+        "last_target_counter_prefix": {
+          "fallback_layout": 439,
+          "calls": 9216,
+          "fallback_warmup": 298,
+          "capture": 24,
+          "replay": 6636,
+          "fallback_budget": 1819
+        },
+        "last_cdb_counter_prefix": {
+          "events": {
+            "p2_runtime_config": 1,
+            "__total__": 133120,
+            "target_ready_select": 9287,
+            "p2_target_begin": 9282,
+            "p2_target_commit": 1511,
+            "p2_reuse_plan": 17881,
+            "k_policy_config": 1,
+            "p2_window_begin": 1507,
+            "reuse_pending_prefill": 17881,
+            "ready": 17877,
+            "p2_ar_target_bypass": 2773,
+            "p2_handoff": 17875,
+            "p2_boundary": 1506,
+            "p2_verified": 17871,
+            "reuse_cache_consumed": 17364,
+            "reuse_lease_release": 503
+          },
+          "k_actual": {
+            "1": 8555,
+            "2": 3875,
+            "3": 2010,
+            "4": 968,
+            "8": 1073,
+            "6": 487,
+            "5": 596,
+            "7": 313
+          },
+          "stop_reasons": {
+            "low_confidence": 16804,
+            "max_k": 1073
+          },
+          "token_counts": {
+            "reused_tokens": 1822582,
+            "prefill_tokens": 62187,
+            "accepted_tokens": 29980,
+            "drafted_tokens": 42875
+          },
+          "replay": {}
+        },
+        "server_metrics_include_warmups": {
+          "time_to_first_token_seconds": {
+            "mean": 0.11776506577351296,
+            "count": 516.0
+          },
+          "request_time_per_output_token_seconds": {
+            "mean": 0.07116109533946625,
+            "count": 516.0
+          },
+          "inter_token_latency_seconds": {
+            "mean": 0.13068526581226772,
+            "count": 35608.0
+          },
+          "request_queue_time_seconds": {
+            "mean": 0.07050005375775834,
+            "count": 516.0
+          }
+        }
+      },
+      "floor0_r3": {
+        "completed": 512,
+        "failed": 0,
+        "output_tokens": 65536,
+        "wall_time_s": 293.878,
+        "output_tps": 223.004,
+        "requests_per_s": 1.7422195604978938,
+        "mean_latency_s": 9.146904067089054,
+        "p50_s": 9.275147043168545,
+        "p95_s": 11.23183779795654,
+        "last_target_counter_prefix": {
+          "fallback_layout": 435,
+          "calls": 9216,
+          "fallback_warmup": 287,
+          "capture": 24,
+          "replay": 6710,
+          "fallback_budget": 1760
+        },
+        "last_cdb_counter_prefix": {
+          "events": {
+            "p2_runtime_config": 1,
+            "__total__": 133120,
+            "target_ready_select": 9277,
+            "p2_target_begin": 9273,
+            "p2_target_commit": 1514,
+            "p2_reuse_plan": 17876,
+            "k_policy_config": 1,
+            "p2_window_begin": 1510,
+            "reuse_pending_prefill": 17875,
+            "ready": 17872,
+            "p2_ar_target_bypass": 2805,
+            "p2_handoff": 17870,
+            "p2_boundary": 1509,
+            "p2_verified": 17870,
+            "reuse_cache_consumed": 17357,
+            "reuse_lease_release": 510
+          },
+          "k_actual": {
+            "1": 8571,
+            "2": 3889,
+            "3": 1973,
+            "4": 993,
+            "7": 315,
+            "8": 1067,
+            "5": 567,
+            "6": 497
+          },
+          "stop_reasons": {
+            "low_confidence": 16805,
+            "max_k": 1067
+          },
+          "token_counts": {
+            "reused_tokens": 1814669,
+            "prefill_tokens": 62248,
+            "accepted_tokens": 30282,
+            "drafted_tokens": 42795
+          },
+          "replay": {}
+        },
+        "server_metrics_include_warmups": {
+          "time_to_first_token_seconds": {
+            "mean": 0.11397257100704104,
+            "count": 516.0
+          },
+          "request_time_per_output_token_seconds": {
+            "mean": 0.07069367554447323,
+            "count": 516.0
+          },
+          "inter_token_latency_seconds": {
+            "mean": 0.1306308690104175,
+            "count": 35391.0
+          },
+          "request_queue_time_seconds": {
+            "mean": 0.06678035135684145,
+            "count": 516.0
+          }
+        }
+      },
+      "floor1_r1": {
+        "completed": 512,
+        "failed": 0,
+        "output_tokens": 65536,
+        "wall_time_s": 294.045,
+        "output_tps": 222.877,
+        "requests_per_s": 1.741230083830706,
+        "mean_latency_s": 9.152533009251783,
+        "p50_s": 9.260352001525462,
+        "p95_s": 11.12921264427714,
+        "last_target_counter_prefix": {
+          "fallback_layout": 423,
+          "calls": 9216,
+          "fallback_warmup": 217,
+          "capture": 24,
+          "replay": 8357,
+          "fallback_budget": 195
+        },
+        "last_cdb_counter_prefix": {
+          "events": {
+            "p2_runtime_config": 1,
+            "__total__": 133120,
+            "target_ready_select": 9238,
+            "p2_target_begin": 9234,
+            "p2_target_commit": 1511,
+            "p2_reuse_plan": 17889,
+            "k_policy_config": 1,
+            "p2_window_begin": 1507,
+            "reuse_pending_prefill": 17889,
+            "ready": 17885,
+            "p2_ar_target_bypass": 2821,
+            "p2_handoff": 17882,
+            "p2_boundary": 1506,
+            "p2_verified": 17881,
+            "reuse_cache_consumed": 17371,
+            "reuse_lease_release": 504
+          },
+          "k_actual": {
+            "1": 8621,
+            "2": 3911,
+            "3": 1948,
+            "4": 945,
+            "8": 1071,
+            "5": 594,
+            "7": 316,
+            "6": 479
+          },
+          "stop_reasons": {
+            "low_confidence": 16814,
+            "max_k": 1071
+          },
+          "token_counts": {
+            "reused_tokens": 1806292,
+            "prefill_tokens": 62106,
+            "accepted_tokens": 30205,
+            "drafted_tokens": 42681
+          },
+          "replay": {}
+        },
+        "server_metrics_include_warmups": {
+          "time_to_first_token_seconds": {
+            "mean": 0.11871297645938489,
+            "count": 516.0
+          },
+          "request_time_per_output_token_seconds": {
+            "mean": 0.07069689866954973,
+            "count": 516.0
+          },
+          "inter_token_latency_seconds": {
+            "mean": 0.13075890954777844,
+            "count": 35359.0
+          },
+          "request_queue_time_seconds": {
+            "mean": 0.06942500804132212,
+            "count": 516.0
+          }
+        }
+      },
+      "floor1_r2": {
+        "completed": 512,
+        "failed": 0,
+        "output_tokens": 65536,
+        "wall_time_s": 295.541,
+        "output_tps": 221.749,
+        "requests_per_s": 1.7324161453064042,
+        "mean_latency_s": 9.189191727229627,
+        "p50_s": 9.271566131152213,
+        "p95_s": 11.401114884484558,
+        "last_target_counter_prefix": {
+          "fallback_layout": 430,
+          "calls": 9216,
+          "fallback_warmup": 216,
+          "capture": 24,
+          "replay": 8337,
+          "fallback_budget": 209
+        },
+        "last_cdb_counter_prefix": {
+          "events": {
+            "p2_runtime_config": 1,
+            "__total__": 132096,
+            "target_ready_select": 9295,
+            "p2_target_begin": 9291,
+            "p2_target_commit": 1508,
+            "p2_reuse_plan": 17712,
+            "k_policy_config": 1,
+            "p2_window_begin": 1504,
+            "reuse_pending_prefill": 17712,
+            "ready": 17709,
+            "p2_ar_target_bypass": 2739,
+            "p2_handoff": 17708,
+            "p2_boundary": 1503,
+            "p2_verified": 17708,
+            "reuse_cache_consumed": 17195,
+            "reuse_lease_release": 510
+          },
+          "k_actual": {
+            "1": 8401,
+            "2": 3936,
+            "3": 1946,
+            "4": 982,
+            "8": 1091,
+            "6": 473,
+            "5": 544,
+            "7": 336
+          },
+          "stop_reasons": {
+            "low_confidence": 16618,
+            "max_k": 1091
+          },
+          "token_counts": {
+            "reused_tokens": 1795962,
+            "prefill_tokens": 62127,
+            "accepted_tokens": 30169,
+            "drafted_tokens": 42676
+          },
+          "replay": {}
+        },
+        "server_metrics_include_warmups": {
+          "time_to_first_token_seconds": {
+            "mean": 0.11123079200123631,
+            "count": 516.0
+          },
+          "request_time_per_output_token_seconds": {
+            "mean": 0.07103939646449785,
+            "count": 516.0
+          },
+          "inter_token_latency_seconds": {
+            "mean": 0.13080496920634077,
+            "count": 35519.0
+          },
+          "request_queue_time_seconds": {
+            "mean": 0.06386712231572227,
+            "count": 516.0
+          }
+        }
+      },
+      "floor1_r3": {
+        "completed": 512,
+        "failed": 0,
+        "output_tokens": 65536,
+        "wall_time_s": 291.539,
+        "output_tps": 224.793,
+        "requests_per_s": 1.7561972840683409,
+        "mean_latency_s": 9.070731494031861,
+        "p50_s": 9.178633174858987,
+        "p95_s": 11.084087450802325,
+        "last_target_counter_prefix": {
+          "fallback_layout": 424,
+          "calls": 9216,
+          "fallback_warmup": 220,
+          "capture": 24,
+          "replay": 8329,
+          "fallback_budget": 219
+        },
+        "last_cdb_counter_prefix": {
+          "events": {
+            "p2_runtime_config": 1,
+            "__total__": 132096,
+            "target_ready_select": 9299,
+            "p2_target_begin": 9295,
+            "p2_target_commit": 1509,
+            "p2_reuse_plan": 17709,
+            "k_policy_config": 1,
+            "p2_window_begin": 1505,
+            "reuse_pending_prefill": 17709,
+            "ready": 17707,
+            "p2_ar_target_bypass": 2743,
+            "p2_handoff": 17706,
+            "p2_boundary": 1504,
+            "p2_verified": 17704,
+            "reuse_cache_consumed": 17193,
+            "reuse_lease_release": 511
+          },
+          "k_actual": {
+            "1": 8383,
+            "2": 3945,
+            "3": 1970,
+            "4": 955,
+            "8": 1099,
+            "6": 494,
+            "5": 551,
+            "7": 310
+          },
+          "stop_reasons": {
+            "low_confidence": 16608,
+            "max_k": 1099
+          },
+          "token_counts": {
+            "reused_tokens": 1791344,
+            "prefill_tokens": 62189,
+            "accepted_tokens": 30190,
+            "drafted_tokens": 42673
+          },
+          "replay": {}
+        },
+        "server_metrics_include_warmups": {
+          "time_to_first_token_seconds": {
+            "mean": 0.1192167133323906,
+            "count": 516.0
+          },
+          "request_time_per_output_token_seconds": {
+            "mean": 0.07005968179168987,
+            "count": 516.0
+          },
+          "inter_token_latency_seconds": {
+            "mean": 0.12906251595315116,
+            "count": 35498.0
+          },
+          "request_queue_time_seconds": {
+            "mean": 0.07130716238965014,
+            "count": 516.0
+          }
+        }
+      }
+    },
+    "groups": {
+      "0": {
+        "repeats": 3,
+        "mean_tps": 222.394,
+        "sample_sd_tps": 0.9263886873229771,
+        "mean_run_p50_s": 9.297610137611628,
+        "mean_run_p95_s": 11.191937772401918
+      },
+      "1": {
+        "repeats": 3,
+        "mean_tps": 223.13966666666667,
+        "sample_sd_tps": 1.5389052385814235,
+        "mean_run_p50_s": 9.236850435845554,
+        "mean_run_p95_s": 11.204804993188008
+      }
+    },
+    "paired_comparisons": {
+      "floor0_r1_vs_floor1_r1": {
+        "output_text_hash_equal": 159,
+        "paired_requests": 512,
+        "tps_change_percent": 0.012115772941445613
+      },
+      "floor0_r2_vs_floor1_r2": {
+        "output_text_hash_equal": 150,
+        "paired_requests": 512,
+        "tps_change_percent": 0.19021542687776005
+      },
+      "floor0_r3_vs_floor1_r3": {
+        "output_text_hash_equal": 169,
+        "paired_requests": 512,
+        "tps_change_percent": 0.8022277627307117
+      }
+    },
+    "mean_tps_change_percent": 0.3352908201959881,
+    "limits": [
+      "Cumulative graph/CDB counters are only their last logged prefixes.",
+      "Text hash inequality does not classify numerical versus logical differences.",
+      "No server GPU Forward timing or floor-run Ready latency is inferred."
+    ]
+  },
+  "nvml": {
+    "runs": {
+      "floor0_r1": {
+        "raw_samples": 295,
+        "retained_samples": 294,
+        "discarded_first_sample": true,
+        "uuid": "GPU-b493bb52-b935-1cf4-47fe-7869125775b9",
+        "first_timestamp": "2026/11/06 20:21:16.456",
+        "last_timestamp": "2026/11/06 20:26:10.568",
+        "gpu_util_percent": {
+          "count": 294,
+          "mean": 76.70748299319727,
+          "sample_sd": 8.26664079037233,
+          "minimum": 46.0,
+          "maximum": 91.0
+        },
+        "power_w": {
+          "count": 294,
+          "mean": 239.86673469387756,
+          "sample_sd": 10.099608052629787,
+          "minimum": 172.12,
+          "maximum": 253.98
+        },
+        "temperature_c": {
+          "count": 294,
+          "mean": 57.40816326530612,
+          "sample_sd": 4.28547049526011,
+          "minimum": 41.0,
+          "maximum": 62.0
+        },
+        "graphics_mhz": {
+          "count": 294,
+          "mean": 2664.591836734694,
+          "sample_sd": 9.749598820513938,
+          "minimum": 2655.0,
+          "maximum": 2685.0
+        },
+        "memory_mhz": {
+          "count": 294,
+          "mean": 10251.0,
+          "sample_sd": 0.0,
+          "minimum": 10251.0,
+          "maximum": 10251.0
+        },
+        "used_memory_mib": {
+          "count": 294,
+          "mean": 22494.04081632653,
+          "sample_sd": 43.83265999922646,
+          "minimum": 22169.0,
+          "maximum": 22513.0
+        }
+      },
+      "floor0_r2": {
+        "raw_samples": 297,
+        "retained_samples": 296,
+        "discarded_first_sample": true,
+        "uuid": "GPU-b493bb52-b935-1cf4-47fe-7869125775b9",
+        "first_timestamp": "2026/11/06 20:38:02.652",
+        "last_timestamp": "2026/11/06 20:42:58.755",
+        "gpu_util_percent": {
+          "count": 296,
+          "mean": 76.79729729729729,
+          "sample_sd": 8.070838453878435,
+          "minimum": 47.0,
+          "maximum": 91.0
+        },
+        "power_w": {
+          "count": 296,
+          "mean": 240.5426689189189,
+          "sample_sd": 7.655137721209966,
+          "minimum": 193.6,
+          "maximum": 254.81
+        },
+        "temperature_c": {
+          "count": 296,
+          "mean": 58.347972972972975,
+          "sample_sd": 2.0511747636736053,
+          "minimum": 49.0,
+          "maximum": 61.0
+        },
+        "graphics_mhz": {
+          "count": 296,
+          "mean": 2661.1824324324325,
+          "sample_sd": 7.395864315850447,
+          "minimum": 2655.0,
+          "maximum": 2670.0
+        },
+        "memory_mhz": {
+          "count": 296,
+          "mean": 10251.0,
+          "sample_sd": 0.0,
+          "minimum": 10251.0,
+          "maximum": 10251.0
+        },
+        "used_memory_mib": {
+          "count": 296,
+          "mean": 22478.114864864863,
+          "sample_sd": 45.56344411152114,
+          "minimum": 22215.0,
+          "maximum": 22501.0
+        }
+      },
+      "floor0_r3": {
+        "raw_samples": 294,
+        "retained_samples": 293,
+        "discarded_first_sample": true,
+        "uuid": "GPU-b493bb52-b935-1cf4-47fe-7869125775b9",
+        "first_timestamp": "2026/11/06 20:43:39.367",
+        "last_timestamp": "2026/11/06 20:48:32.476",
+        "gpu_util_percent": {
+          "count": 293,
+          "mean": 75.97610921501706,
+          "sample_sd": 8.629916261063183,
+          "minimum": 48.0,
+          "maximum": 91.0
+        },
+        "power_w": {
+          "count": 293,
+          "mean": 240.9654948805461,
+          "sample_sd": 8.057573067864825,
+          "minimum": 196.4,
+          "maximum": 255.29
+        },
+        "temperature_c": {
+          "count": 293,
+          "mean": 58.027303754266214,
+          "sample_sd": 2.3391995835464616,
+          "minimum": 49.0,
+          "maximum": 60.0
+        },
+        "graphics_mhz": {
+          "count": 293,
+          "mean": 2670.716723549488,
+          "sample_sd": 3.2050303220241467,
+          "minimum": 2670.0,
+          "maximum": 2685.0
+        },
+        "memory_mhz": {
+          "count": 293,
+          "mean": 10251.0,
+          "sample_sd": 0.0,
+          "minimum": 10251.0,
+          "maximum": 10251.0
+        },
+        "used_memory_mib": {
+          "count": 293,
+          "mean": 22493.62798634812,
+          "sample_sd": 47.62540944748831,
+          "minimum": 22197.0,
+          "maximum": 22515.0
+        }
+      },
+      "floor1_r1": {
+        "raw_samples": 295,
+        "retained_samples": 294,
+        "discarded_first_sample": true,
+        "uuid": "GPU-b493bb52-b935-1cf4-47fe-7869125775b9",
+        "first_timestamp": "2026/11/06 20:26:51.741",
+        "last_timestamp": "2026/11/06 20:31:45.854",
+        "gpu_util_percent": {
+          "count": 294,
+          "mean": 76.71088435374149,
+          "sample_sd": 8.789231926059383,
+          "minimum": 45.0,
+          "maximum": 91.0
+        },
+        "power_w": {
+          "count": 294,
+          "mean": 241.67404761904763,
+          "sample_sd": 9.697790234790487,
+          "minimum": 171.48,
+          "maximum": 257.86
+        },
+        "temperature_c": {
+          "count": 294,
+          "mean": 58.744897959183675,
+          "sample_sd": 2.181106700751726,
+          "minimum": 49.0,
+          "maximum": 61.0
+        },
+        "graphics_mhz": {
+          "count": 294,
+          "mean": 2670.0,
+          "sample_sd": 0.0,
+          "minimum": 2670.0,
+          "maximum": 2670.0
+        },
+        "memory_mhz": {
+          "count": 294,
+          "mean": 10251.0,
+          "sample_sd": 0.0,
+          "minimum": 10251.0,
+          "maximum": 10251.0
+        },
+        "used_memory_mib": {
+          "count": 294,
+          "mean": 22485.04081632653,
+          "sample_sd": 49.85766464893851,
+          "minimum": 22195.0,
+          "maximum": 22505.0
+        }
+      },
+      "floor1_r2": {
+        "raw_samples": 296,
+        "retained_samples": 295,
+        "discarded_first_sample": true,
+        "uuid": "GPU-b493bb52-b935-1cf4-47fe-7869125775b9",
+        "first_timestamp": "2026/11/06 20:32:26.600",
+        "last_timestamp": "2026/11/06 20:37:21.703",
+        "gpu_util_percent": {
+          "count": 295,
+          "mean": 75.68813559322034,
+          "sample_sd": 9.10171331605618,
+          "minimum": 28.0,
+          "maximum": 91.0
+        },
+        "power_w": {
+          "count": 295,
+          "mean": 239.8835593220339,
+          "sample_sd": 8.02919565500598,
+          "minimum": 184.62,
+          "maximum": 254.6
+        },
+        "temperature_c": {
+          "count": 295,
+          "mean": 58.016949152542374,
+          "sample_sd": 1.7889639519049192,
+          "minimum": 50.0,
+          "maximum": 62.0
+        },
+        "graphics_mhz": {
+          "count": 295,
+          "mean": 2661.2542372881358,
+          "sample_sd": 7.4083819515992655,
+          "minimum": 2655.0,
+          "maximum": 2670.0
+        },
+        "memory_mhz": {
+          "count": 295,
+          "mean": 10251.0,
+          "sample_sd": 0.0,
+          "minimum": 10251.0,
+          "maximum": 10251.0
+        },
+        "used_memory_mib": {
+          "count": 295,
+          "mean": 22537.928813559323,
+          "sample_sd": 72.89442335371454,
+          "minimum": 22189.0,
+          "maximum": 22581.0
+        }
+      },
+      "floor1_r3": {
+        "raw_samples": 292,
+        "retained_samples": 291,
+        "discarded_first_sample": true,
+        "uuid": "GPU-b493bb52-b935-1cf4-47fe-7869125775b9",
+        "first_timestamp": "2026/11/06 20:49:13.304",
+        "last_timestamp": "2026/11/06 20:54:04.421",
+        "gpu_util_percent": {
+          "count": 291,
+          "mean": 76.99656357388317,
+          "sample_sd": 8.943692935396907,
+          "minimum": 45.0,
+          "maximum": 91.0
+        },
+        "power_w": {
+          "count": 291,
+          "mean": 242.44828178694158,
+          "sample_sd": 7.006607851827289,
+          "minimum": 198.83,
+          "maximum": 254.94
+        },
+        "temperature_c": {
+          "count": 291,
+          "mean": 58.18556701030928,
+          "sample_sd": 1.984404176575774,
+          "minimum": 50.0,
+          "maximum": 61.0
+        },
+        "graphics_mhz": {
+          "count": 291,
+          "mean": 2670.0,
+          "sample_sd": 0.0,
+          "minimum": 2670.0,
+          "maximum": 2670.0
+        },
+        "memory_mhz": {
+          "count": 291,
+          "mean": 10251.0,
+          "sample_sd": 0.0,
+          "minimum": 10251.0,
+          "maximum": 10251.0
+        },
+        "used_memory_mib": {
+          "count": 291,
+          "mean": 22496.02405498282,
+          "sample_sd": 52.112968523468325,
+          "minimum": 22181.0,
+          "maximum": 22521.0
+        }
+      }
+    },
+    "limits": [
+      "Only client-process sampling; excludes HTTP warmups.",
+      "First hardware averaging interval discarded to reduce warmup contamination.",
+      "NVML utilization is not GPU Forward time or a CPU-overhead percentage.",
+      "Non-finite and unavailable sensors excluded, never replaced with zero."
+    ]
+  },
+  "gpu_audits": {
+    "smoke4": {
+      "kind": "smoke4",
+      "target_checks": 20,
+      "all_exact": true,
+      "layers": [
+        36
+      ],
+      "actual_query_maxima": [
+        2,
+        3,
+        4,
+        5,
+        7,
+        9
+      ],
+      "captured_sequence_bounds": [
+        256
+      ],
+      "actual_max_positions": [
+        50,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        61,
+        62,
+        64,
+        66,
+        67,
+        68,
+        69,
+        72,
+        77,
+        81
+      ],
+      "same_key_actual_sequence_bucket_changes": 2,
+      "completed": 4
+    },
+    "validate32": {
+      "kind": "validate32",
+      "target_checks": 519,
+      "all_exact": true,
+      "layers": [
+        36
+      ],
+      "actual_query_maxima": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "captured_sequence_bounds": [
+        256
+      ],
+      "actual_max_positions": [
+        43,
+        44,
+        49,
+        50,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+        98,
+        99,
+        100,
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107,
+        108,
+        109,
+        110,
+        111,
+        112,
+        113,
+        114,
+        115,
+        116,
+        117,
+        118,
+        119,
+        120,
+        121,
+        122,
+        123,
+        124,
+        125,
+        126,
+        127,
+        128,
+        129,
+        130,
+        131,
+        132,
+        133,
+        134,
+        135,
+        136,
+        137,
+        138,
+        139,
+        140,
+        141,
+        142,
+        143,
+        144,
+        145,
+        146,
+        147,
+        148,
+        149,
+        150,
+        151,
+        152,
+        153,
+        154,
+        155,
+        156,
+        157,
+        158,
+        159,
+        160,
+        161,
+        162,
+        163,
+        164,
+        165,
+        166,
+        167,
+        168,
+        169,
+        170,
+        171,
+        172,
+        173,
+        174,
+        175,
+        176,
+        177,
+        178,
+        179,
+        180,
+        181
+      ],
+      "same_key_actual_sequence_bucket_changes": 137,
+      "completed": 32
+    },
+    "carry16": {
+      "kind": "carry16",
+      "target_checks": 0,
+      "completed": 16,
+      "final_reset": {
+        "event": "p2_reset",
+        "window": 29,
+        "target_epoch": 141,
+        "released_blocks": 0,
+        "live_leases": 0,
+        "ready": 0,
+        "inflight": 0
+      },
+      "carry_checks": 44,
+      "true_target_interleaves": 44,
+      "checked_bytes": 407371776
+    },
+    "cancel_full": {
+      "kind": "cancel_full",
+      "target_checks": 138,
+      "all_exact": true,
+      "layers": [
+        36
+      ],
+      "actual_query_maxima": [
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "captured_sequence_bounds": [
+        256
+      ],
+      "actual_max_positions": [
+        13,
+        15,
+        17,
+        18,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        48,
+        49,
+        50
+      ],
+      "same_key_actual_sequence_bucket_changes": 32,
+      "disconnected": 4,
+      "recovered": 4,
+      "final_reset": {
+        "event": "p2_reset",
+        "window": 138,
+        "target_epoch": 148,
+        "released_blocks": 0,
+        "live_leases": 0,
+        "ready": 0,
+        "inflight": 0
+      }
+    },
+    "boundary": {
+      "kind": "boundary",
+      "target_checks": 10,
+      "all_exact": true,
+      "layers": [
+        36
+      ],
+      "actual_query_maxima": [
+        1,
+        2,
+        3,
+        5,
+        9
+      ],
+      "captured_sequence_bounds": [
+        256,
+        512
+      ],
+      "actual_max_positions": [
+        0,
+        3,
+        6,
+        7,
+        10,
+        12,
+        17,
+        302,
+        311,
+        320
+      ],
+      "same_key_actual_sequence_bucket_changes": 3,
+      "completed": 2,
+      "prompt_tokens": [
+        1,
+        301
+      ]
+    }
+  },
+  "cpu": {
+    "status": "pass",
+    "static_python_files": 2,
+    "static_shell_files": 0,
+    "workflow_tests": 12,
+    "extra_tests": [
+      {
+        "path": "tests/v1/spec_decode/test_cdb_av_target_graph.py",
+        "tests": 63
+      },
+      {
+        "path": "tests/v1/spec_decode/test_cdb_av_config.py",
+        "tests": 130
+      },
+      {
+        "path": "tests/v1/spec_decode/test_cdb_av_draft_decode_graph.py",
+        "tests": 34
+      },
+      {
+        "path": "tests/v1/spec_decode/test_cdb_av_persistent_queue.py",
+        "tests": 23
+      },
+      {
+        "path": "tests/v1/spec_decode/test_cdb_av_kv_reuse_ownership.py",
+        "tests": 11
+      }
+    ],
+    "staged_paths": []
+  },
+  "cleanup": {
+    "timestamp": "2026-11-06T20:56:31+08:00",
+    "gpu3_used_mib": 15,
+    "port18084_listening": false
+  }
+}
