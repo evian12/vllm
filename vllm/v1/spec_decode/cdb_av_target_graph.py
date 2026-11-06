@@ -32,8 +32,16 @@ def validate_scope(*, persistent, refill, eager, async_scheduling,
                          'BF16 persistent refill, TP/PP/DP/DCP1, no prefix/LoRA/quantization')
 
 
-def graph_key(meta, starts, *, n, capacity, max_query, max_model_len, dynamic=False):
+def validate_sequence_floor(floor, max_model_len):
+    if (type(floor) is not int or floor < 0 or floor > max_model_len
+            or (floor and floor & (floor - 1))):
+        raise ValueError('Invalid Target Graph sequence floor')
+
+
+def graph_key(meta, starts, *, n, capacity, max_query, max_model_len,
+              dynamic=False, seq_floor=0):
     """Use the already prepared CPU shadow, never a hot-path D2H reduction."""
+    validate_sequence_floor(seq_floor, max_model_len)
     nr = meta.seq_lens.numel()
     if (not 1 <= nr <= capacity or n != meta.num_actual_tokens
             or len(starts) != nr + 1 or starts[0] != 0 or starts[-1] != n
@@ -50,7 +58,9 @@ def graph_key(meta, starts, *, n, capacity, max_query, max_model_len, dynamic=Fa
             or max(qlens) > max_query or n > capacity * max_query
             or not 1 <= meta.max_seq_len <= max_model_len):
         return None
-    bucket = 1 << (meta.max_seq_len - 1).bit_length()
+    # This scalar is only a launch upper bound. Per-request GPU seq_lens,
+    # positions, query offsets and slots remain their exact live values.
+    bucket = max(seq_floor, 1 << (meta.max_seq_len - 1).bit_length())
     if bucket > max_model_len:
         return None
     # Query1 stays separate for FA2 packed-GQA. Mixed bounds are explicit;
@@ -130,6 +140,8 @@ class TargetFullGraph:
                 or getattr(cfg.model_config, 'enable_sleep_mode', False)):
             raise ValueError('Unsupported Target full Graph size/training domain')
         self.dynamic = os.getenv('CDB_AV_TARGET_GRAPH_DYNAMIC', '0') == '1'
+        self.seq_floor = int(os.getenv('CDB_AV_TARGET_GRAPH_SEQ_FLOOR', '0'))
+        validate_sequence_floor(self.seq_floor, self.max_model_len)
         self.limit = int(os.getenv('CDB_AV_TARGET_GRAPH_MAX_KEYS', '16'))
         self.min_hits = int(os.getenv('CDB_AV_TARGET_GRAPH_MIN_HITS', '8'))
         if not 1 <= self.limit <= 32 or self.min_hits < 1:
@@ -206,7 +218,8 @@ class TargetFullGraph:
         nr = live.seq_lens.numel()
         starts = r.query_start_loc.cpu[:nr + 1].tolist()
         key = graph_key(live, starts, n=n, capacity=self.capacity,
-                        max_query=self.max_query, max_model_len=self.max_model_len, dynamic=self.dynamic)
+                        max_query=self.max_query, max_model_len=self.max_model_len,
+                        dynamic=self.dynamic, seq_floor=self.seq_floor)
         if key is None:
             self._record('fallback_layout')
             return None

@@ -7,7 +7,7 @@ import pytest
 import torch
 
 from vllm.v1.spec_decode.cdb_av_target_graph import (
-    validate_scope, graph_key, clone_metadata, update_metadata, metadata_has_no_planner, query_domain_matches,
+    validate_scope, graph_key, clone_metadata, update_metadata, metadata_has_no_planner, query_domain_matches, validate_sequence_floor,
 )
 
 
@@ -188,3 +188,46 @@ def test_dynamic_mixed_domain_shares_key_across_actual_maxima():
 ])
 def test_bounded_query_domain_preserves_packed_gqa_boundary(captured,actual,bound,expected):
     assert query_domain_matches(captured,actual,bound) is expected
+
+
+@pytest.mark.parametrize('floor', [-1, 3, 255, 2048, True, 256.0])
+def test_sequence_floor_rejects_invalid_config(floor):
+    with pytest.raises(ValueError, match='Target Graph sequence floor'):
+        validate_sequence_floor(floor,1024)
+
+
+@pytest.mark.parametrize('length,bucket', [(1,256),(61,256),(128,256),
+                                        (256,256),(257,512),(1024,1024)])
+def test_sequence_floor_is_only_a_launch_bound(length,bucket):
+    live=metadata((1,1,1) if length==1 else (1,2,3))
+    live.max_seq_len=length
+    live.seq_lens.fill_(length)
+    before={f:getattr(live,f).clone() for f in
+            ('seq_lens','query_start_loc','slot_mapping','block_table')}
+    bounded=graph_key(live,live.query_start_loc.tolist(),n=live.num_actual_tokens,capacity=4,
+        max_query=9,max_model_len=1024,dynamic=True,seq_floor=256)
+    assert bounded[3]==bucket
+    for field,value in before.items():
+        assert torch.equal(getattr(live,field),value)
+    static=clone_metadata(live,bucket,query_bound=bounded[2])
+    update_metadata(static,live,mixed_bound=9)
+    assert static.max_seq_len==bucket
+    assert torch.equal(static.seq_lens,live.seq_lens)
+
+
+def test_sequence_floor_shares_keys_without_changing_default():
+    a,b=metadata(),metadata()
+    b.max_seq_len=129
+    b.seq_lens.fill_(129)
+    def get(m,floor):
+        return graph_key(m,m.query_start_loc.tolist(),n=6,capacity=4,
+            max_query=9,max_model_len=1024,dynamic=True,seq_floor=floor)
+    assert get(a,0)!=get(b,0)
+    assert get(a,256)==get(b,256)
+    assert get(a,0)==graph_key(a,a.query_start_loc.tolist(),n=6,capacity=4,
+        max_query=9,max_model_len=1024,dynamic=True)
+    assert graph_key(a,a.query_start_loc.tolist(),n=6,capacity=4,max_query=9,
+        max_model_len=1000,seq_floor=256)[3]==256
+    too_long=metadata();too_long.max_seq_len=999
+    assert graph_key(too_long,too_long.query_start_loc.tolist(),n=6,capacity=4,
+        max_query=9,max_model_len=1000,seq_floor=256) is None
