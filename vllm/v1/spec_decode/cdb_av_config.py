@@ -447,3 +447,9 @@ def can_bypass_ar_target(*, window_open, steps, horizon, leased_ids,
     if waiting_count:
         return False
     return all(ar_ready for _, ar_ready in running_rows)
+
+
+def validate_target_graph_probe(enabled, *, persistent, refill):
+    # Restrict native Target Graph diagnostics to the checked P2 RPC path.
+    if enabled and not (persistent and refill):
+        raise ValueError('Target graph probe requires persistent refill')

@@ -559,3 +559,16 @@ def test_ar_only_target_stage_bypass(changes, expected):
                 running_rows=[('a', True), ('b', True)])
     args.update(changes)
     assert _config.can_bypass_ar_target(**args) is expected
+
+
+@pytest.mark.parametrize('enabled', [False, True])
+@pytest.mark.parametrize('persistent,refill', [(False, False), (False, True),
+                                              (True, False), (True, True)])
+def test_native_target_graph_probe_scope(enabled, persistent, refill):
+    if enabled and not (persistent and refill):
+        with pytest.raises(ValueError, match='persistent refill'):
+            _config.validate_target_graph_probe(enabled, persistent=persistent,
+                                                refill=refill)
+    else:
+        _config.validate_target_graph_probe(enabled, persistent=persistent,
+                                            refill=refill)

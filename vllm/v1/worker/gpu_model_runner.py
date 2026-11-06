@@ -343,6 +343,10 @@ class GPUModelRunner(
         self._cdb_valid_lengths = None
         self.cdb_refill = os.environ.get("CDB_AV_REFILL", "0") == "1"
         self.cdb_persistent = os.getenv("CDB_AV_PERSISTENT", "0") == "1"
+        from vllm.v1.spec_decode.cdb_av_config import validate_target_graph_probe
+        validate_target_graph_probe(
+            os.getenv('CDB_AV_TARGET_GRAPH_PROBE', '0') == '1',
+            persistent=self.cdb_persistent, refill=self.cdb_refill)
         if self.cdb_persistent and (not self.cdb_refill or
                 os.getenv("CDB_AV_ALLOW_FRESH_WAITING", "0") != "0" or
                 os.getenv("CDB_P1_VIRTUAL_H", "0") != "0"):
@@ -358,7 +362,8 @@ class GPUModelRunner(
                 raise ValueError("CDB_AV_VARLEN requires CDB_AV_STEP_MODE=1")
             if (not self.speculative_config
                     or not self.speculative_config.uses_draft_model()
-                    or not self.model_config.enforce_eager
+                    or (not self.model_config.enforce_eager
+                        and os.getenv('CDB_AV_TARGET_GRAPH_PROBE', '0') != '1')
                     or self.scheduler_config.async_scheduling
                     or self.parallel_config.tensor_parallel_size != 1
                     or self.parallel_config.pipeline_parallel_size != 1
