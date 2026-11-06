@@ -2,7 +2,8 @@
 """Opt-in exact-row whole-Target graphs for synchronous Qwen3/FA2 CDB.
 
 Sampling and commit stay in GPUModelRunner. No native uniform/padding descriptor
-is forged. Exact maximum query length is keyed, including FA2's query=1 domain.
+is forged. Query1 is always separate; mixed maximum query can use an explicit
+opt-in bound while the exact-maximum mode remains available.
 """
 import os
 import json
@@ -31,7 +32,7 @@ def validate_scope(*, persistent, refill, eager, async_scheduling,
                          'BF16 persistent refill, TP/PP/DP/DCP1, no prefix/LoRA/quantization')
 
 
-def graph_key(meta, starts, *, n, capacity, max_query, max_model_len):
+def graph_key(meta, starts, *, n, capacity, max_query, max_model_len, dynamic=False):
     """Use the already prepared CPU shadow, never a hot-path D2H reduction."""
     nr = meta.seq_lens.numel()
     if (not 1 <= nr <= capacity or n != meta.num_actual_tokens
@@ -52,9 +53,11 @@ def graph_key(meta, starts, *, n, capacity, max_query, max_model_len):
     bucket = 1 << (meta.max_seq_len - 1).bit_length()
     if bucket > max_model_len:
         return None
-    # Keep query1 and every other CPU kernel-launch maximum separate. Layout
-    # changes inside the key still update GPU offsets, sequence lengths and KV.
-    return n, nr, meta.max_query_len, bucket, meta.block_table.shape[1], meta.max_num_splits
+    # Query1 stays separate for FA2 packed-GQA. Mixed bounds are explicit;
+    # layouts update GPU offsets, sequence lengths and KV on every replay.
+    query_max = max_query if dynamic and meta.max_query_len > 1 else meta.max_query_len
+    return (n, nr, query_max, bucket, meta.block_table.shape[1],
+            meta.max_num_splits, 'bounded' if dynamic else 'exact')
 
 
 def metadata_has_no_planner(meta):
@@ -67,17 +70,25 @@ def metadata_has_no_planner(meta):
                      'dcp_context_kv_lens')))
 
 
-def clone_metadata(meta, seq_bound):
+def clone_metadata(meta, seq_bound, query_bound=None):
     return replace(meta, max_seq_len=seq_bound,
+                   max_query_len=meta.max_query_len if query_bound is None else query_bound,
                    query_start_loc=meta.query_start_loc.clone(),
                    seq_lens=meta.seq_lens.clone(),
                    block_table=meta.block_table.clone(),
                    slot_mapping=meta.slot_mapping.clone())
 
 
-def update_metadata(static, live):
+def query_domain_matches(captured, actual, mixed_bound=None):
+    if mixed_bound is None:
+        return captured == actual
+    return ((captured == actual == 1)
+            or (captured == mixed_bound and 2 <= actual <= mixed_bound))
+
+
+def update_metadata(static, live, mixed_bound=None):
     if (static.num_actual_tokens != live.num_actual_tokens
-            or static.max_query_len != live.max_query_len
+            or not query_domain_matches(static.max_query_len, live.max_query_len, mixed_bound)
             or static.max_num_splits != live.max_num_splits
             or not 1 <= live.max_seq_len <= static.max_seq_len):
         raise RuntimeError('Target Graph metadata scalar domain changed')
@@ -118,6 +129,7 @@ class TargetFullGraph:
                 or self.max_model_len > 1024 or runner.model.training
                 or getattr(cfg.model_config, 'enable_sleep_mode', False)):
             raise ValueError('Unsupported Target full Graph size/training domain')
+        self.dynamic = os.getenv('CDB_AV_TARGET_GRAPH_DYNAMIC', '0') == '1'
         self.limit = int(os.getenv('CDB_AV_TARGET_GRAPH_MAX_KEYS', '16'))
         self.min_hits = int(os.getenv('CDB_AV_TARGET_GRAPH_MIN_HITS', '8'))
         if not 1 <= self.limit <= 32 or self.min_hits < 1:
@@ -194,7 +206,7 @@ class TargetFullGraph:
         nr = live.seq_lens.numel()
         starts = r.query_start_loc.cpu[:nr + 1].tolist()
         key = graph_key(live, starts, n=n, capacity=self.capacity,
-                        max_query=self.max_query, max_model_len=self.max_model_len)
+                        max_query=self.max_query, max_model_len=self.max_model_len, dynamic=self.dynamic)
         if key is None:
             self._record('fallback_layout')
             return None
@@ -208,11 +220,11 @@ class TargetFullGraph:
             if torch.cuda.mem_get_info(input_ids.device)[0] < 512 * 1024**2:
                 self._record('fallback_memory', key)
                 return None
-            static = clone_metadata(live, key[3])
+            static = clone_metadata(live, key[3], query_bound=key[2])
             entry = dict(meta=static, ids=input_ids.clone(), positions=positions.clone())
         else:
             static = entry['meta']
-            update_metadata(static, live)
+            update_metadata(static, live, mixed_bound=self.max_query if self.dynamic else None)
             entry['ids'].copy_(input_ids)
             entry['positions'].copy_(positions)
         static_metas = {name: static for name in self.layers}

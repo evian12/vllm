@@ -7,7 +7,7 @@ import pytest
 import torch
 
 from vllm.v1.spec_decode.cdb_av_target_graph import (
-    validate_scope, graph_key, clone_metadata, update_metadata, metadata_has_no_planner,
+    validate_scope, graph_key, clone_metadata, update_metadata, metadata_has_no_planner, query_domain_matches,
 )
 
 
@@ -163,3 +163,28 @@ def test_model_replacement_recreates_graph_owner(monkeypatch):
     monkeypatch.setenv('CDB_AV_TARGET_FULL_GRAPH','0')
     assert forward(runner)=='eager'
     assert len(created)==2
+
+
+def test_dynamic_mixed_domain_shares_key_across_actual_maxima():
+    a,b=metadata((3,3,3,3)),metadata((1,1,1,9))
+    def dynamic_key(m):
+        return graph_key(m,m.query_start_loc.tolist(),n=m.num_actual_tokens,
+            capacity=4,max_query=9,max_model_len=1024,dynamic=True)
+    assert key(a)!=key(b)
+    assert dynamic_key(a)==dynamic_key(b)
+    assert dynamic_key(a)[2]==9
+    assert dynamic_key(metadata((1,1,1,1)))[2]==1
+    static=clone_metadata(a,64,query_bound=9)
+    assert a.max_query_len==3 and static.max_query_len==9
+    update_metadata(static,b,mixed_bound=9)
+    assert torch.equal(static.query_start_loc,b.query_start_loc)
+    assert static.max_query_len==9
+
+
+@pytest.mark.parametrize('captured,actual,bound,expected', [
+    (1,1,9,True),(1,2,9,False),(9,1,9,False),
+    (9,2,9,True),(9,9,9,True),(9,10,9,False),
+    (9,2,None,False),(2,2,None,True),(3,2,None,False),(8,2,9,False),
+])
+def test_bounded_query_domain_preserves_packed_gqa_boundary(captured,actual,bound,expected):
+    assert query_domain_matches(captured,actual,bound) is expected
