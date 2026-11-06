@@ -114,6 +114,7 @@ class RefillSession:
         self.row_sum = 0
         self.ready_records = []
         self.graph_query_bound = get_ragged_graph_query_bound()
+        self._profile = Counter()
         self.builder = proposer.attn_metadata_builder or proposer._get_attention_metadata_builder()
         validate_ragged_graph_backend(self.graph_query_bound, self.builder)
         self.block_size = self.builder.kv_cache_spec.block_size
@@ -141,18 +142,25 @@ class RefillSession:
         emit('window_begin', window=window, H=horizon, contexts=contexts)
 
     def _metadata(self, blocks, seqs, qlens, slots):
+        profiling = os.getenv("CDB_AV_PROFILE_DRAFT", "0") == "1"
+        started = time.perf_counter_ns() if profiling else 0
         dev = self.p.device
         width = max(len(b) for b in blocks)
         bt = torch.zeros((len(blocks), width), dtype=torch.int32, device=dev)
         for i, row in enumerate(blocks):
             bt[i, :len(row)] = torch.tensor(row, dtype=torch.int32, device=dev)
         qcpu = torch.tensor([0] + list(torch.tensor(qlens).cumsum(0).tolist()), dtype=torch.int32)
-        return CommonAttentionMetadata(query_start_loc=qcpu.to(dev), query_start_loc_cpu=qcpu,
+        result = CommonAttentionMetadata(query_start_loc=qcpu.to(dev), query_start_loc_cpu=qcpu,
             seq_lens=torch.tensor(seqs, dtype=torch.int32, device=dev),
             num_reqs=len(blocks), num_actual_tokens=sum(qlens), max_query_len=max(qlens),
             max_seq_len=max(seqs), block_table_tensor=bt,
             slot_mapping=torch.tensor(slots, dtype=torch.int64, device=dev), causal=True,
             _seq_lens_cpu=None, _num_computed_tokens_cpu=None)
+
+        if profiling:
+            self._profile['metadata_ns'] += time.perf_counter_ns() - started
+            self._profile['metadata_calls'] += 1
+        return result
 
     def _decode_graph_key(self, cad, n):
         """Only one-token-per-request rows are eligible for the Draft graph."""
@@ -314,6 +322,7 @@ class RefillSession:
         else:
             action = 'replay'
         entry['graph'].replay()
+        self._last_graph_action = action
         if os.getenv('CDB_AV_TRACE_GRAPH', '0') == '1':
             logger.info('[CDB_DRAFT_GRAPH] %s', json.dumps(dict(
                 action=action, phase=phase, rows=n, seq_bucket=key[1],
@@ -410,6 +419,10 @@ class RefillSession:
         return logits
 
     def _forward(self, ids, positions, cad, last_indices, req_ids, phase):
+        profiling = os.getenv("CDB_AV_PROFILE_DRAFT", "0") == "1"
+        started = time.perf_counter_ns() if profiling else 0
+        self._last_forward_phase = phase
+        self._last_graph_action = None
         p = self.p
         n = ids.numel()
         if n <= 0 or len(req_ids) > self.capacity:
@@ -428,8 +441,11 @@ class RefillSession:
         # Decode and single-query mixed Prefill share the exact-row graph.
         # Small ragged Prefill uses gated static buffers; unsupported rows stay eager.
         graph_key = None
+        skip_reason = 'disabled_or_phase'
         if (os.getenv('CDB_AV_DRAFT_DECODE_GRAPH', '0') == '1'
                 and self._graph_phase_eligible(phase, last_indices)):
+            skip_reason = ('query_gt_bound' if cad.max_query_len > self.graph_query_bound
+                           else 'unsupported_layout')
             graph_key = self._decode_graph_key(cad, n)
             if (graph_key is None
                     and os.getenv('CDB_AV_DRAFT_RAGGED_GRAPH', '0') == '1'):
@@ -448,6 +464,8 @@ class RefillSession:
                         min_hits = int(os.getenv('CDB_AV_RAGGED_GRAPH_MIN_HITS', '8'))
                         captured = sum(len(key) >= 3 for key in cache)
                         if captured >= limit or hits[graph_key] < min_hits:
+                            skip_reason = ('cache_budget' if captured >= limit
+                                           else 'frequency_warmup')
                             graph_key = None
         if graph_key is not None:
             logits = self._decode_graph_forward(
@@ -472,6 +490,19 @@ class RefillSession:
         emit('forward', window=self.window, step=self.steps_completed+1,
              phase=phase, req_ids=req_ids, forward_rows=n, logical_active=len(req_ids),
              graph_padding=0)
+        if profiling:
+            duration = time.perf_counter_ns() - started
+            action = self._last_graph_action or 'eager'
+            for key in ('forward', f'forward_{phase}', f'forward_{action}'):
+                self._profile[f'{key}_calls'] += 1
+                self._profile[f'{key}_host_ns'] += duration
+            self._profile[f'query_max_{cad.max_query_len}_calls'] += 1
+            self._profile[f'{action}_query_max_{cad.max_query_len}_calls'] += 1
+            self._profile[f'{action}_logical_rows'] += len(req_ids)
+            self._profile[f'{action}_token_rows'] += n
+            if action == 'eager':
+                self._profile[f'eager_skip_{skip_reason}_calls'] += 1
+                self._profile[f'eager_skip_{skip_reason}_host_ns'] += duration
         return logits
 
     def _initialize(self):
@@ -555,6 +586,8 @@ class RefillSession:
                 kv_valid_upto=count, next_position=m['next_position'], cap=m['cap'])
 
     def step(self):
+        profiling = os.getenv("CDB_AV_PROFILE_DRAFT", "0") == "1"
+        started = time.perf_counter_ns() if profiling else 0
         if self.window is None or self.done:
             raise RuntimeError('Refill step outside configured window')
 
@@ -678,6 +711,7 @@ class RefillSession:
                 ))
             )
             if need_confidence:
+                confidence_started = time.perf_counter_ns() if profiling else 0
                 # The confidence of the greedy token is exp(max(logits) -
                 # logsumexp(logits)). Avoid materializing a full log_softmax
                 # tensor for every vocabulary row.
@@ -691,7 +725,16 @@ class RefillSession:
                 packed = torch.stack(
                     (tokens.to(torch.float64), confidence.to(torch.float64)),
                     dim=1,
-                ).cpu().tolist()
+                )
+                if profiling:
+                    self._profile['confidence_submit_ns'] += time.perf_counter_ns() - confidence_started
+                sync_started = time.perf_counter_ns() if profiling else 0
+                packed = packed.cpu().tolist()
+                if profiling:
+                    duration = time.perf_counter_ns() - sync_started
+                    self._profile['gpu_wait_copy_ns'] += duration
+                    self._profile['gpu_wait_copy_calls'] += 1
+                    self._profile[f'gpu_wait_{self._last_forward_phase}_ns'] += duration
                 token_values = [int(row[0]) for row in packed]
                 confidence_values = [float(row[1]) for row in packed]
                 stops = confidence_stop_flags(confidence_values, self.threshold)
@@ -779,6 +822,12 @@ class RefillSession:
                 and not getattr(self, 'supports_carry', False)
                 and os.getenv('CDB_P1_VIRTUAL_H', '0') != '1'):
             raise RuntimeError('H exhausted with unfinished admitted work')
+        if profiling:
+            self._profile['step_total_ns'] += time.perf_counter_ns() - started
+            self._profile['step_calls'] += 1
+            if self._profile['step_calls'] % 256 == 0:
+                logger.info('[CDB_DRAFT_PROFILE] %s', json.dumps(dict(
+                    window=self.window, cumulative=dict(self._profile))))
         return dict(
             pending=True, done=False, window=self.window,
             steps_completed=self.steps_completed,

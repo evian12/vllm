@@ -6,6 +6,7 @@ Ready caches remain owned but are not scheduler-frozen. A commit certificate is
 required before they can become active again. Rejection invalidates actual slots.
 """
 import os
+import time
 from collections import Counter
 import torch
 from vllm.v1.request import RequestStatus
@@ -135,11 +136,17 @@ class ReuseDraftSession(PersistentDraftSession):
 
     def _clear_slots(self, blocks, start, end):
         if start == end:return
+        profiling = os.getenv('CDB_AV_PROFILE_DRAFT', '0') == '1'
+        started = time.perf_counter_ns() if profiling else 0
         pos = list(range(start,end))
         b = torch.tensor([blocks[x//self.block_size] for x in pos],device=self.p.device)
         off = torch.tensor([x%self.block_size for x in pos],device=self.p.device)
         for _,kv in self.layers():
             kv[:,b,off] = 0  # assignment into the real tensor, not a sliced copy
+        if profiling:
+            self._profile['invalidate_host_ns'] += time.perf_counter_ns() - started
+            self._profile['invalidate_calls'] += 1
+            self._profile['invalidate_tokens'] += end - start
 
     def values(self, blocks, count):
         b = torch.tensor([blocks[x//self.block_size] for x in range(count)],device=self.p.device)
