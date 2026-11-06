@@ -65,3 +65,36 @@ The next isolated native Target probe should enable the supported
 frequencies and padding. Only then evaluate bounded full-graph handling for
 small irregular Target query layouts, retaining sampling outside graph and all
 KV/cancellation assertions. Keep H fixed and preserve backend/model comparability.
+
+
+## Follow-up on the joint dynamic Graph12 configuration
+
+The committed profiler1948e3555a8e34e5acd21cbfbf57d94e5935ddcd ran32/32
+requests successfully in profile32_best/;source was clean. H8/HF0.8 remain fixed.
+Last512 effective Draft steps:step elapsed5.787797s,Forward host4.029960s,
+eager254/3.628974s,replay241/0.061948s,capture17/0.339039s,Metadata0.130292s,
+confidence submit0.205339s,GPU wait/copy1.296229s. Eager max query>2:188;
+eager max query<=2:66. q3=59,q4=37,q5=26 Forward calls. These are GPU Forward
+batches,not individual request-level proposal counts. The workload trajectory
+differs from the earlier profile;this is diagnostic evidence,not a paired
+performance ratio. Confidence submit3.5% andMetadata2.3% of this step prefix
+are host intervals;GPU wait is not exclusively confidence computation.
+
+Target512-call prefix:10.830005s,1997 request rows,5477 token rows;average
+3.900 requests/call. Those Target and Draft prefixes end at different points;
+do not add them as a whole-run decomposition. Remaining short-query eager
+Draft handling and Target full-graph coverage are more substantial candidates
+than scalar packing based on these host measurements.
+
+Executor evidence:uniproc_executor.py collective_rpc(non_block=False) calls
+run_method(self.driver_worker,method,args,kwargs) synchronously in the same
+process. Its wall time includes Worker GPU execution;it is not an IPC/network
+latency measurement. API/Engine communication is a different boundary.
+
+The next bounded Draft candidate is query1..4 dynamic layout with an explicit
+static max-query upper bound4. Never use the first capture layout maximum as
+that bound if later layouts can be longer. Keep request/token counts,query
+starts,positions,exclusive block ownership and output-row gathering accurate,
+then repeat touched-KV/token Graph/eager validation before performance testing.
+Native Target dispatch observations and zero-padding dense captures are now
+recorded in codex/cdb-target-modes-20261106/TARGET_GRAPH_MODES.md.
