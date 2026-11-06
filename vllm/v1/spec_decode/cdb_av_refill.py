@@ -17,6 +17,8 @@ from vllm.v1.spec_decode.cdb_av_fingerprint import token_fingerprint
 from vllm.v1.spec_decode.cdb_av_acceptance import should_stop
 from vllm.v1.spec_decode.cdb_av_config import (
     confidence_stop_flags,
+    get_ragged_graph_query_bound,
+    validate_ragged_graph_backend,
     get_k_stop_reason,
 )
 
@@ -111,7 +113,9 @@ class RefillSession:
         self.forward_count = 0
         self.row_sum = 0
         self.ready_records = []
+        self.graph_query_bound = get_ragged_graph_query_bound()
         self.builder = proposer.attn_metadata_builder or proposer._get_attention_metadata_builder()
+        validate_ragged_graph_backend(self.graph_query_bound, self.builder)
         self.block_size = self.builder.kv_cache_spec.block_size
         self.policy = os.getenv('CDB_AV_K_POLICY', 'manual').strip().lower()
         self.threshold = float(os.getenv('CDB_AV_HF_THRESHOLD', '0.4'))
@@ -162,16 +166,23 @@ class RefillSession:
             return None
         return n, bucket
 
-    def _mixed_graph_key(self, cad, n, dynamic=False):
-        """One/two-token mixed batch, optionally sharing a mutable query layout."""
-        if (cad.num_reqs > self.capacity or n != cad.num_actual_tokens
-                or cad.max_query_len != 2 or n > 2 * self.capacity):
+    def _mixed_graph_key(self, cad, n, dynamic=False, max_query=2):
+        if max_query not in (2, 4):
+            raise ValueError('Draft Graph query bound must be 2 or 4')
+        # The existing exact-layout path retains its original query1/2 scope.
+        limit = max_query if dynamic else 2
+        if (not 1 <= cad.num_reqs <= self.capacity
+                or n != cad.num_actual_tokens
+                or not 2 <= cad.max_query_len <= limit
+                or n > limit * self.capacity):
             return None
         starts = cad.query_start_loc_cpu.tolist()
         if len(starts) != cad.num_reqs + 1 or starts[0] != 0 or starts[-1] != n:
             return None
         qlens = tuple(end - start for start, end in zip(starts, starts[1:]))
-        if not all(1 <= qlen <= 2 for qlen in qlens):
+        if not all(1 <= qlen <= limit for qlen in qlens):
+            return None
+        if max(qlens) != cad.max_query_len:
             return None
         required = max(cad.max_seq_len,
                        cad.block_table_tensor.shape[1] * self.block_size)
@@ -179,8 +190,22 @@ class RefillSession:
         if bucket > self.p.max_model_len:
             return None
         if dynamic:
-            return n, bucket, cad.num_reqs, 'dynamic2'
+            return n, bucket, cad.num_reqs, f'dynamic{limit}'
         return n, bucket, qlens
+
+    @staticmethod
+    def _graph_static_query_bound(key, qlens):
+        if not qlens or min(qlens) < 1 or sum(qlens) != key[0]:
+            raise ValueError('Invalid Graph query layout')
+        if len(key) == 4:
+            if key[3] not in ('dynamic2', 'dynamic4') or len(qlens) != key[2]:
+                raise ValueError('Invalid dynamic Graph query key')
+            bound = 2 if key[3] == 'dynamic2' else 4
+        else:
+            bound = max(qlens)
+        if max(qlens) > bound:
+            raise ValueError('Graph query exceeds captured upper bound')
+        return bound
 
     def _decode_graph_storage(self):
         """Identify every model/cache buffer whose address a capture retains."""
@@ -236,7 +261,7 @@ class RefillSession:
                 query_start_loc_cpu=query_cpu,
                 seq_lens=torch.empty(num_reqs, dtype=torch.int32, device=p.device),
                 num_reqs=num_reqs, num_actual_tokens=n,
-                max_query_len=max(qlens),
+                max_query_len=self._graph_static_query_bound(key, qlens),
                 max_seq_len=bucket,
                 block_table_tensor=torch.zeros(
                     (num_reqs, width), dtype=torch.int32, device=p.device),
@@ -257,7 +282,7 @@ class RefillSession:
         dynamic_layout = len(key) == 4
         if dynamic_layout:
             # FlashAttention reads GPU query offsets at replay time. The key
-            # fixes request/token counts and max_q=2; only the 1/2 layout moves.
+            # fixes request/token counts and the query upper bound; layouts move.
             static_cad.query_start_loc.copy_(cad.query_start_loc)
             static_cad.query_start_loc_cpu.copy_(cad.query_start_loc_cpu)
 
@@ -298,6 +323,7 @@ class RefillSession:
                     if len(key) >= 3 else None),
                 capture_query_lengths=(entry['capture_qlens']
                                        if dynamic_layout else None),
+                static_max_query_len=static_cad.max_query_len,
                 dynamic_layout=dynamic_layout)))
         hidden = entry['hidden']
         if len(key) >= 3:
@@ -372,6 +398,7 @@ class RefillSession:
                     if len(key) >= 3 else None),
                 capture_query_lengths=(entry['capture_qlens']
                                        if dynamic_layout else None),
+                static_max_query_len=static_cad.max_query_len,
                 dynamic_layout=dynamic_layout,
                 kv_exact=kv_exact, token_exact=token_exact,
                 logits_close=logits_close, max_abs=max_abs,
@@ -399,7 +426,7 @@ class RefillSession:
         p.input_ids[:n] = ids
         p._set_positions(n, positions)
         # Decode and single-query mixed Prefill share the exact-row graph.
-        # Ragged or multi-token Prefill retains eager attention metadata.
+        # Small ragged Prefill uses gated static buffers; unsupported rows stay eager.
         graph_key = None
         if (os.getenv('CDB_AV_DRAFT_DECODE_GRAPH', '0') == '1'
                 and self._graph_phase_eligible(phase, last_indices)):
@@ -408,7 +435,8 @@ class RefillSession:
                     and os.getenv('CDB_AV_DRAFT_RAGGED_GRAPH', '0') == '1'):
                 graph_key = self._mixed_graph_key(
                     cad, n,
-                    dynamic=os.getenv('CDB_AV_DRAFT_RAGGED_DYNAMIC', '0') == '1')
+                    dynamic=os.getenv('CDB_AV_DRAFT_RAGGED_DYNAMIC', '0') == '1',
+                    max_query=self.graph_query_bound)
                 if graph_key is not None:
                     cache = getattr(p, '_cdb_decode_graphs', {})
                     if graph_key not in cache:

@@ -119,3 +119,67 @@ def test_graph_phase_is_limited_to_decode_and_one_token_kv_fill(
 ):
     sentinel = object() if has_logits else None
     assert RefillSession._graph_phase_eligible(phase, sentinel) is expected
+
+
+def q4_session_and_metadata(qlens):
+    session = RefillSession.__new__(RefillSession)
+    session.capacity = 4
+    session.block_size = 16
+    session.p = SimpleNamespace(max_model_len=1024)
+    starts = [0]
+    for length in qlens:
+        starts.append(starts[-1] + length)
+    cad = SimpleNamespace(num_reqs=len(qlens), num_actual_tokens=starts[-1],
+                          max_query_len=max(qlens), max_seq_len=48,
+                          query_start_loc_cpu=torch.tensor(starts, dtype=torch.int32),
+                          block_table_tensor=SimpleNamespace(shape=(len(qlens), 3)))
+    return session, cad, starts[-1]
+
+
+def test_q4_graph_reuses_key_across_two_three_four_query_lengths():
+    keys = []
+    for qlens in ((2, 2, 2), (1, 2, 3), (1, 1, 4)):
+        session, cad, n = q4_session_and_metadata(qlens)
+        key = session._mixed_graph_key(cad, n, dynamic=True, max_query=4)
+        keys.append(key)
+        # A first capture whose actual max is2 must already reserve bound4.
+        assert session._graph_static_query_bound(key, qlens) == 4
+    assert keys == [(6, 64, 3, 'dynamic4')] * 3
+
+
+@pytest.mark.parametrize('qlens,expected', [
+    ((4, 4, 4, 4), (16, 64, 4, 'dynamic4')),
+    ((1, 1, 5), None), ((1, 0, 4), None),
+    ((1, 1, 1, 1, 4), None), ((1, 1, 1, 1), None),
+])
+def test_q4_graph_exact_token_capacity_and_layout(qlens, expected):
+    session, cad, n = q4_session_and_metadata(qlens)
+    assert session._mixed_graph_key(cad, n, dynamic=True, max_query=4) == expected
+
+
+def test_default_and_exact_layout_paths_still_reject_query3():
+    session, cad, n = q4_session_and_metadata((1, 1, 3))
+    assert session._mixed_graph_key(cad, n, dynamic=True) is None
+    assert session._mixed_graph_key(cad, n, dynamic=False, max_query=4) is None
+    session, cad, n = q4_session_and_metadata((1, 2))
+    assert session._mixed_graph_key(cad, n, dynamic=False, max_query=4) == (3, 64, (1, 2))
+
+
+def test_q4_graph_rejects_inconsistent_shadow_metadata():
+    session, cad, n = q4_session_and_metadata((1, 2, 3))
+    cad.max_query_len = 2
+    assert session._mixed_graph_key(cad, n, dynamic=True, max_query=4) is None
+    cad.max_query_len = 3
+    cad.num_actual_tokens = n + 1
+    assert session._mixed_graph_key(cad, n, dynamic=True, max_query=4) is None
+
+
+@pytest.mark.parametrize('key,qlens', [
+    ((6, 64, 3, 'dynamic2'), (1, 1, 4)),
+    ((6, 64, 4, 'dynamic4'), (1, 1, 4)),
+    ((7, 64, 3, 'dynamic4'), (1, 1, 4)),
+    ((6, 64, 3, 'dynamic8'), (1, 1, 4)),
+])
+def test_static_query_bound_rejects_invalid_capture(key, qlens):
+    with pytest.raises(ValueError):
+        RefillSession._graph_static_query_bound(key, qlens)

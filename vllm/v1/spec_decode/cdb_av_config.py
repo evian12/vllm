@@ -447,3 +447,24 @@ def can_bypass_ar_target(*, window_open, steps, horizon, leased_ids,
     if waiting_count:
         return False
     return all(ar_ready for _, ar_ready in running_rows)
+
+
+def get_ragged_graph_query_bound() -> int:
+    raw = os.getenv('CDB_AV_DRAFT_RAGGED_MAX_QUERY', '2')
+    try:
+        bound = int(raw)
+    except (TypeError, ValueError) as exc:
+        raise ValueError('Draft Graph query bound must be 2 or 4') from exc
+    if bound not in (2, 4):
+        raise ValueError('Draft Graph query bound must be 2 or 4')
+    return bound
+
+
+def validate_ragged_graph_backend(bound, builder):
+    if bound != 4:
+        return
+    cls = type(builder)
+    if (cls.__module__ != 'vllm.v1.attention.backends.flash_attn'
+            or cls.__name__ != 'FlashAttentionMetadataBuilder'
+            or getattr(builder, 'aot_schedule', None) is not False):
+        raise ValueError('Query4 Graph requires FlashAttention FA2 without AOT scheduling')
