@@ -420,9 +420,11 @@ class RefillSession:
                 f'Refill packed input has {n} tokens, exceeding Draft '
                 f'input buffer capacity {input_capacity}'
             )
-        mode, desc = p.cudagraph_dispatcher.dispatch(n)
-        if mode != CUDAGraphMode.NONE or desc.num_tokens != n:
-            raise RuntimeError('Refill requires eager, no graph padding')
+        # Diagnostic: native Target Graph, exact-row custom Draft context.
+        if os.getenv('CDB_AV_TARGET_GRAPH_PROBE', '0') != '1':
+            mode, desc = p.cudagraph_dispatcher.dispatch(n)
+            if mode != CUDAGraphMode.NONE or desc.num_tokens != n:
+                raise RuntimeError('Refill requires eager, no graph padding')
         p.input_ids[:n] = ids
         p._set_positions(n, positions)
         # Decode and single-query mixed Prefill share the exact-row graph.

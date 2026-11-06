@@ -468,3 +468,9 @@ def validate_ragged_graph_backend(bound, builder):
             or cls.__name__ != 'FlashAttentionMetadataBuilder'
             or getattr(builder, 'aot_schedule', None) is not False):
         raise ValueError('Query4 Graph requires FlashAttention FA2 without AOT scheduling')
+
+
+def validate_target_graph_probe(enabled, *, persistent, refill):
+    # Restrict native Target Graph diagnostics to the checked P2 RPC path.
+    if enabled and not (persistent and refill):
+        raise ValueError('Target graph probe requires persistent refill')

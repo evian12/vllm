@@ -595,3 +595,16 @@ def test_query4_builder_scope(name, module, aot, allowed):
 
 def test_default_query2_builder_scope_unchanged():
     _config.validate_ragged_graph_backend(2, object())
+
+
+@pytest.mark.parametrize('enabled', [False, True])
+@pytest.mark.parametrize('persistent,refill', [(False, False), (False, True),
+                                              (True, False), (True, True)])
+def test_native_target_graph_probe_scope(enabled, persistent, refill):
+    if enabled and not (persistent and refill):
+        with pytest.raises(ValueError, match='persistent refill'):
+            _config.validate_target_graph_probe(enabled, persistent=persistent,
+                                                refill=refill)
+    else:
+        _config.validate_target_graph_probe(enabled, persistent=persistent,
+                                            refill=refill)
