@@ -3041,6 +3041,15 @@ class GPUModelRunner(
         Returns:
             Model output tensor
         """
+        if os.getenv('CDB_AV_TARGET_FULL_GRAPH', '0') == '1':
+            from vllm.v1.spec_decode.cdb_av_target_graph import TargetFullGraph
+            if (not hasattr(self, '_cdb_target_full_graph')
+                    or self._cdb_target_full_graph.model_ref() is not self.model):
+                self._cdb_target_full_graph = TargetFullGraph(self)
+            output = self._cdb_target_full_graph.forward(
+                input_ids, positions, intermediate_tensors, inputs_embeds, model_kwargs)
+            if output is not None:
+                return output
         return self.model(
             input_ids=input_ids,
             positions=positions,
