@@ -59,3 +59,27 @@ Compare the same cleancommit,query4/cache12 Draft,H8/HF0.8,Target graphOFF/ON,
 No512 test until the paired32 gate ispromising. Alwayscloseownedservices.
 Overall system remainsPartial until broader memory pressure,lifecycle and
 strict final generation equivalence areestablished.
+
+## Exact-maximum cache performance
+
+Runtime2523fdd,32 requests/C16/output128,warmup4,query4 Draft/cache12,
+H8/HF0.8/maxK8,Target cache24/minhits8,all expensive checks/trace OFF.
+Balanced orders OFF/ON,ON/OFF,OFF/ON. All6 complete32/32,4096 tokens each.
+
+|Repeat|Target graph OFF TPS|Exact-maximum graph ON TPS|
+|---|---:|---:|
+|1|197.193|195.629|
+|2|197.717|197.232|
+|3|202.389|201.332|
+
+OFF199.100 vsON198.064 TPS(mean,-0.520%). No reliable benefit;do not promote.
+InON r1's last640-call prefix:458 frequency fallbacks,21captures,141replays
+(22.0%). Exact maximum query length fragments otherwise compatible layouts.
+This prefix isnot a whole-run GPU-time breakdown;do not claim every slowdown
+isproved tocome from that gate alone.
+
+A separate bounded-mode branch investigates query2..9 withstatic maximum9
+frominitialcapture;query1 retains its ownpacked-GQA domain. Token/request
+counts stayexact andevery dynamic mapping iscopied;all original byte/token
+checks remain strict. The exact mode isretained forreversible comparison.
+No H/HF/scheduler/KV-ownership change isneeded forthis graph-key experiment.
