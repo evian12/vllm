@@ -46,3 +46,55 @@ Artifacts:/home/yypan/CDB-AV/results/draft_q4_20261106/ including source hashes,
 initial/scoped patches,backend links,full commands,logs,requests/responses and
 stopped_baseline.json. Performance is pending at this checkpoint. Keep default2
 until paired evidence andbroader lifecycle gates are complete.
+
+## GPU3 paired performance (same e44942d runtime)
+
+FLASH_ATTN FA2/BF16,Target8B,Draft1.7B,H8,HF0.8,maxK8,max_num_seqs4,
+max_model_len1024,C16,128 output tokens,4 HTTP warmups. AR bypass,KV reuse,
+mixed/ragged/dynamic Graph ON;12 ragged cache entries,minhits8. Validation,
+per-step logging and diagnostic timing OFF. Only the input-query Graph bound
+changes. Commands and environments are retained per run;all runs complete.
+
+| Workload | Query2 TPS | Query4 TPS |
+|---|---:|---:|
+|32 requests,rep1|194.414|199.258|
+|32 requests,rep2|192.951|205.755|
+|32 requests,rep3|197.210|205.069|
+|512 requests,query4 then query2|207.084|211.526|
+|512 requests,query2 then query4|205.335|214.420|
+
+32 mean+/-sampleSD:194.858+/-2.164 vs203.361+/-3.570(+4.36%).
+512 mean+/-sampleSD:206.210+/-1.237 vs212.973+/-2.046(+3.28%).
+Only two large pairs;this is promising paired evidence,not a final stable
+performance ceiling or comparison against AR/native SD. Both512 pairs
+generate65536 tokens per side. Do not compare absolute GPU3 TPS to olderGPU1.
+
+512 latency(mean/P50/P95,s):
+query2 first9.8387/9.9929/12.0742;query4 first9.6394/9.7169/11.9692;
+query2 reverse9.9239/9.9856/12.0776;query4 reverse9.5131/9.6870/11.6551.
+Latency starts when a client thread sends its request,excluding the executor
+queue. This is closed-loop concurrency16,not constant-rate arrivals orGPU B16.
+
+Full-text hashes match139/512 and160/512 across bounds. Strict final generation
+equivalence is not established. Even same-bound32 repeats vary(query2 pairs
+16/32,13/32,15/32;query4 pairs12/32,9/32,11/32). Existing non-equivalence alone
+does not prove a new Graph bug,nor prove all differences are harmless floating
+point effects. Keep touched-KV/token checks and explicit equivalence limits.
+Proposal/candidate counts also vary slightly;TPS includes those trajectories.
+
+Real HTTP cancellation:4 streams disconnected after3 chunks;active leases
+released at live counts3,2,1,0;4 recovery requests complete. Final Lease,
+Ready,inflight0,Worker reset dropped[]. Bound4 selected,but this cancellation
+trace only observes mixed query2;do not claim query3/4 cancellation coverage.
+No collision,Cuda error or Graph validation mismatch in the paired logs.
+
+Current Scheduler excludes frozen requests from the active Target capacity.
+Thus its resident running metric may reach15,while actual Target forwards
+remain bounded by4 requests. Neither resident running nor client concurrency
+is the GPU batch size. KV reuse andHF dynamic K are Worker aggregates,not
+client requested_K echoes;aggregate logs cover cumulative prefixes with tails
+unflushed. Native num_drafts counts request-level proposal rounds,not forwards.
+
+Results are also visible via code-directory symlink cdb_av_draft_q4_results.
+Default bound2 remains selectable;query4 stays opt-in until broader lifecycle
+and final-equivalence gates. Stop independent services after each experiment.
