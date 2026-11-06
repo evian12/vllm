@@ -41,3 +41,61 @@ Formal paired32x3 will disable validation/trace,keep4 identical HTTPwarmups,
 record source commit,service startup polling time andready-time GPU memory.
 Startup is separate from client wall/TPS. Only if that gate is promising will
 a512 pair run. Each isolated child service is closed after its pass.
+
+## Actual paired performance gate
+
+Clean runtime59f2690e930f95d34a24206124523a59aa60522d,GPU3.
+32 requests,C16,128 output tokens,4 identical short HTTPwarmups each pass;
+H8,HF0.8,maxK8,query4,cache12,minhits8. Validation,carry byte audit and
+per-step Graph trace OFF. --cudagraph-metrics ON both sides. Baseline retains
+--enforce-eager;candidate uses the dense PIECEWISE config above.
+Orders:control/candidate,candidate/control,control/candidate.
+
+| Repeat | control TPS | candidate TPS |
+|---|---:|---:|
+|1|203.497|205.030|
+|2|205.267|203.001|
+|3|199.042|200.275|
+
+Control202.602+/-3.208 sampleSD vscandidate202.769+/-2.386;
+mean difference+0.082%,within run variation andone pairnegative.
+All6 complete32/32 and4096 tokens each. Mean ofper-run P95 latency:
+12.9485s control,12.6237s candidate;this small-sample change isnot certified
+as a stable latency benefit. Health-poll startup interval averages30.086s
+vs65.073s(includes up to5s polling granularity),separate fromclient TPS.
+The candidate isnot promoted andno512 test isstarted because the gate
+doesnot show a meaningful throughput benefit. Keep the existing query4
+enforce-eager configuration as the testedbest choice for now.
+
+This rejects this combined PIECEWISE/compilation configuration as a measured
+throughput optimization;it doesnot show that every Target Graph design is
+useless. FULL0 isexpected because this candidate explicitly selects PIECEWISE.
+The FA2 builder comment(flash_attn.py234ff) explains its special query=1
+packed-GQA branch andconservative UNIFORM_BATCH capability. Do not simply
+advertise ALWAYS orsetuniform=True forvarlen batches.
+
+A next separate candidate can investigate a scoped manual whole-Target graph
+atGPUModelRunner._model_forward(),with persistent input/metadata buffers and
+correct current GPU/CPU query starts,sequence lengths,slots andblock tables.
+Keep pure query1 capture separate from mixed query>1;fix every CPU scalar
+kernel-launch domain(max query/sequence bounds) in the key andvalidate against
+both static-metadata andoriginal eager execution. Sampling,verification and
+commit must remain outside,as mustall ownership/assertion logic. Start only
+on the checked Qwen3/FA2/eager/synchronous TP1 path,with an independent OFF
+switch andactual full-Target KV/token evidence. This isnot implemented here.
+
+Version audit:primarybb3a8c isnot an ancestor ofthis snapshot lineage.
+An initial overly strict ancestry preflight interrupted its owned runner
+before anyclients;pair32/ isretained andexcluded. Actual source hascomplete
+Drop,Prepare/Drop/Reset ACK andstaged audit-lease guards;11 ownership tests
+pass with additional newer ACK cases. Formal results areonlypair32_formal/.
+Never equate commit ancestry with presence/absence ofcherry-picked fixes,
+andnever blindly overwrite the primary tree to force an ancestry relation.
+
+Raw summaries,configs,startup measurements andall logs are under
+/home/yypan/CDB-AV/results/target_q4_20261106/. Primary/source code directories
+havecdb_av_target_q4_results symlinks. Every owned service isclosed after
+experiments;GPU3 returns15MiB and18084 closes. Original18082 staysstopped
+perthe owner's earlier authorization. Other users' services areuntouched.
+Overall status remainsPartial:strict final output equivalence andbroader
+natural memory/preemption pressure are not established.
