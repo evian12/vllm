@@ -823,6 +823,8 @@ class ReuseDraftQueue(PersistentDraftQueue):
                 continue
             ctx = RefillQueue.context(req) if self.acceptance_replay else None
             cap, k_source = self.resolve_k_cap(req, ctx)
+            if cap == 0:
+                continue  # Cached leases follow existing finish/preempt cleanup.
             cached=self.cached_leases.get(rid,[])
             from vllm.v1.spec_decode.cdb_av_config import (
                 can_verify_ready_tokens,

@@ -935,7 +935,22 @@ class PersistentDraftQueue:
 
     def resolve_k_cap(self, req, context):
         """Resolve diagnostic historical K, with online HF on a missing match."""
-        from vllm.v1.spec_decode.cdb_av_config import get_request_k_cap
+        from vllm.v1.spec_decode.cdb_av_config import (
+            bound_output_budget_cap, get_request_k_cap, is_enabled,
+        )
+
+        def bounded(cap, source):
+            if not is_enabled('CDB_AV_OUTPUT_BUDGET_CAP'):
+                return cap, source
+            limited = bound_output_budget_cap(cap, req.max_tokens, req.num_output_tokens)
+            if limited != cap:
+                emit('p2_output_budget_cap', req_id=req.request_id,
+                     context_tokens=req.num_tokens, max_tokens=req.max_tokens,
+                     output_tokens=req.num_output_tokens, policy_cap=cap,
+                     effective_cap=limited,
+                     role='target_only_tail' if limited == 0 else 'draft')
+            return limited, source
+
         if self.request_average is not None:
             extra = req.sampling_params.extra_args or {}
             fingerprint = token_fingerprint(req.prompt_token_ids)
@@ -946,10 +961,10 @@ class PersistentDraftQueue:
                  prompt_fingerprint=fingerprint, cap=decision.cap,
                  source=decision.source, mean_accepted=decision.mean_accepted,
                  verified_count=decision.verified_count)
-            return decision.cap, ('request_average' if decision.source ==
-                                  'request_average' else 'hf_fallback')
+            return bounded(decision.cap, ('request_average' if decision.source ==
+                                  'request_average' else 'hf_fallback'))
         if self.acceptance_replay is None:
-            return get_request_k_cap(req.sampling_params.extra_args, self.max_k), 'configured'
+            return bounded(get_request_k_cap(req.sampling_params.extra_args, self.max_k), 'configured')
         extra = req.sampling_params.extra_args or {}
         decision = self.acceptance_replay.resolve(
             extra.get('cdb_trace_key'), context['fingerprint'],
@@ -958,7 +973,7 @@ class PersistentDraftQueue:
              trace_key=extra.get('cdb_trace_key'),
              fingerprint=context['fingerprint'], cap=decision.cap,
              source=decision.source, censored=decision.censored)
-        return decision.cap, ('replay' if decision.source == 'replay' else 'hf_fallback')
+        return bounded(decision.cap, ('replay' if decision.source == 'replay' else 'hf_fallback'))
 
     def plans(self):
         plans = []
@@ -984,6 +999,8 @@ class PersistentDraftQueue:
                 continue
             ctx = RefillQueue.context(req) if self.acceptance_replay else None
             cap, k_source = self.resolve_k_cap(req, ctx)
+            if cap == 0:
+                continue  # Native AR handles the final token; no Draft lease/plan.
             from vllm.v1.spec_decode.cdb_av_config import (
                 can_verify_ready_tokens,
             )

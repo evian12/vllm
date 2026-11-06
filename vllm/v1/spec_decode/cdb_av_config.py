@@ -98,6 +98,20 @@ def get_request_k_cap(extra_args, max_k: int) -> int:
     return cap
 
 
+def bound_output_budget_cap(cap: int, max_tokens: int, output_tokens: int) -> int:
+    """Reserve one Target bonus/correction; zero means CPU-side AR-only.
+
+    Only new admissions call this. A Carry's formal context and budget are
+    frozen. Zero must never be forwarded as a Worker Draft plan.
+    """
+    if type(cap) is not int or cap < 1:
+        raise ValueError(f"Invalid Draft cap: {cap!r}")
+    if (type(max_tokens) is not int or max_tokens < 1
+            or type(output_tokens) is not int or not 0 <= output_tokens <= max_tokens):
+        raise ValueError(f"Invalid output budget: {output_tokens!r}/{max_tokens!r}")
+    return min(cap, max(0, max_tokens - output_tokens - 1))
+
+
 def confidence_stop_flags(confidences, threshold: float) -> list[bool]:
     """Stop only when selected-token confidence is strictly below threshold."""
     try:
