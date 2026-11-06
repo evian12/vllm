@@ -7,6 +7,8 @@ never sees these pages or unverified tokens as part of the official prefix.
 """
 import os
 import time
+import json
+import logging
 import torch
 
 from vllm.v1.spec_decode.cdb_av_refill import RefillSession, emit
@@ -364,6 +366,8 @@ class PersistentDraftQueue:
     """CPU owner of exclusive pages and official-context version snapshots."""
     def __init__(self, engine):
         self.engine, self.s = engine, engine.scheduler
+        self._profile_rpc_ns = 0
+        self._profile_rpc_calls = 0
         # Reuse the existing allocator compatibility checks; not its fresh queue.
         checked = RefillQueue(self.s)
         self.block_size = checked.block_size
@@ -1196,7 +1200,19 @@ class PersistentDraftQueue:
         # The Worker returns an idle barrier tick when every current member is
         # Ready. This keeps Ready queued until H without issuing an empty GPU
         # forward, and gives Target a chance to prefill new requests meanwhile.
+        profiling = os.getenv('CDB_AV_PROFILE_DRAFT', '0') == '1'
+        rpc_started = time.perf_counter_ns() if profiling else 0
         status = self.rpc("step")
+        if profiling:
+            self._profile_rpc_ns += time.perf_counter_ns() - rpc_started
+            self._profile_rpc_calls += 1
+            if self._profile_rpc_calls % 256 == 0:
+                logging.getLogger('vllm.cdb_av.profile').info(
+                    '[CDB_RPC_PROFILE] %s', json.dumps(dict(
+                        window=self.window,
+                        calls=self._profile_rpc_calls,
+                        cumulative_ns=self._profile_rpc_ns,
+                    )))
         self._p3_steps += 1
         from vllm.v1.spec_decode.cdb_av_config import (
             validate_draft_step_status,

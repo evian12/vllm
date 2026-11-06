@@ -451,6 +451,20 @@ class EngineCore:
                 dict(scheduler_output.num_scheduled_tokens),
                 scheduler_output.total_num_scheduled_tokens,
             )
+        cdb_profiling = os.getenv('CDB_AV_PROFILE_DRAFT', '0') == '1'
+        if cdb_profiling:
+            import time as cdb_profile_time
+            from collections import Counter as CDBProfileCounter
+            if not hasattr(self, '_cdb_target_profile'):
+                self._cdb_target_profile = CDBProfileCounter()
+            cdb_rows = CDBProfileCounter()
+            for rid, cost in scheduler_output.num_scheduled_tokens.items():
+                req = self.scheduler.requests.get(rid)
+                kind = ('verify' if rid in scheduler_output.scheduled_spec_decode_tokens
+                        else 'ar' if cost == 1 and req is not None
+                        and req.num_output_tokens else 'prepare')
+                cdb_rows[kind] += 1
+            cdb_target_started = cdb_profile_time.perf_counter_ns()
         future = self.model_executor.execute_model(scheduler_output, non_block=True)
         grammar_output = self.scheduler.get_grammar_bitmask(scheduler_output)
         with (
@@ -460,6 +474,23 @@ class EngineCore:
             model_output = future.result()
             if model_output is None:
                 model_output = self.model_executor.sample_tokens(grammar_output)
+
+        if cdb_profiling:
+            import json as cdb_profile_json
+            cdb_duration = cdb_profile_time.perf_counter_ns() - cdb_target_started
+            cdb_stats = self._cdb_target_profile
+            cdb_stats['calls'] += 1
+            cdb_stats['host_stage_ns'] += cdb_duration
+            cdb_stats['tokens'] += scheduler_output.total_num_scheduled_tokens
+            cdb_kind = 'empty' if not cdb_rows else (
+                'mixed' if len(cdb_rows) > 1 else next(iter(cdb_rows)))
+            cdb_stats[f'{cdb_kind}_calls'] += 1
+            cdb_stats[f'{cdb_kind}_host_ns'] += cdb_duration
+            for cdb_kind, cdb_count in cdb_rows.items():
+                cdb_stats[f'{cdb_kind}_rows'] += cdb_count
+            if cdb_stats['calls'] % 128 == 0:
+                logger.info('[CDB_TARGET_PROFILE] %s',
+                            cdb_profile_json.dumps(dict(cdb_stats)))
 
         # Before processing the model output, process any aborts that happened
         # during the model execution.
