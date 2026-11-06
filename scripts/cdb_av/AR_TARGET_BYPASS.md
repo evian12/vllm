@@ -1,5 +1,8 @@
 # Experimental AR-only Target stage bypass
 
+Follow-up reverse512,cancellation and joint Graph results are recorded in
+GRAPH_BUDGET12.md;the single-pair section below is preserved historically.
+
 `CDB_AV_AR_TARGET_BYPASS=1` enables an opt-in EngineCore.step optimization.
 Default 0 preserves the existing path. Tested scope: single-GPU UniProc,
 no async scheduling, fixed H=8, maxK=8, HF confidence0.8, Draft Graph enabled.
