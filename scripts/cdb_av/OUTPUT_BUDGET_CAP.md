@@ -37,7 +37,10 @@ blockthat subset. No test expectation ormodel/tokenizer wasmodified to pass.
 Actual Qwen3 Scheduler runs inall GPU gates. Overall remainsPartial pending
 broader preemption/memory pressure andstrict full-generation equivalence.
 
-Performance pending:pair same cleancommit,featureOFF/ON,bothTarget GraphON,
+Three paired512 runs:221.215+/-2.256 OFF vs222.664+/-0.627 ON tok/s(+0.655%).
+P95 mean11.230->11.217s;not a demonstrated stable speedup,keep default0.
+SeeOUTPUT_BUDGET_RESULTS_20261107.md/JSON. Timing usedthe same cleancommit,
+featureOFF/ON,bothTarget GraphON,
 dynamic queryON,sequence floor0,Draftquery4/cache12/minhits8,Targetcache24/8,
 4 equal HTTPwarmups,HF0.8/H8/maxK8,maxseq4/maxlen1024,C16,output128,diagnosticsOFF.
 Raw commands/evidence:results/output_budget_20261106/. Rollbacksetflag0 and
