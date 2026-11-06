@@ -30,8 +30,15 @@ Ready,inflight0. Final4-stream cancellation+4 recovery also passes withstrict
 Target graph byte/token checks;details inrawaudit.json. No safetyrules removed.
 
 Rawsource/commands/logs underresults/target_dynamic_20261106/.
-Performance pending:balanced OFF/ON paired32x3 onthe same cleancommit,
-H8/HF0.8/maxK8,query4 Draft/cache12,Target cache24/minhits8,warmup4,
-heavydiagnostics OFF. Benchmark512 onlyifgate ispromising;close each service.
+Paired32x3:200.934+/-1.196 OFF vs202.554+/-1.932 ON tok/s(+0.806%).
+Then paired512x3 onthe same runtime14b225d:214.438+/-2.978 OFF vs
+221.427+/-2.471 ON tok/s(+3.259%;sample SD). All3072 measuredrequests
+complete;all3 paired gains positive butvary5.17/3.48/1.17%,not proof of
+universal/significant gain. PooledclientP95:11.701->11.389 seconds.
+H8/HF0.8/maxK8/query4 Draft/cache12,Target cache24/minhits8,warmup4,
+heavychecks OFF; orderOFF/ON,ON/OFF,OFF/ON. Each ownservice closed.
+GPU3 ends15MiB,ports18084/18082 closed. SeeTARGET_DYNAMIC_RESULTS_20261106.md
+andJSON for exactruns,scope,sourcehashes,limits andcomplete startupfiles.
+No newAR/nativeSD comparison andno requestselection/H/KV policychange.
 Overall Partial status remains untilstrict final generation equivalence and
 broader natural-memory/preemption lifecycle gates areestablished.

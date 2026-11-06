@@ -1,0 +1,603 @@
+{
+  "runs": {
+    "full0_r1": {
+      "completed": 512,
+      "failed": 0,
+      "output_tokens": 65536,
+      "wall_time_s": 310.597,
+      "output_tps": 211.0,
+      "requests_per_s": 1.6484383300547012,
+      "mean_latency_s": 9.661344148322314,
+      "p50_s": 9.74210388539359,
+      "p95_s": 12.304713385226204,
+      "last_target_counter_prefix": null,
+      "last_cdb_counter_prefix": {
+        "events": {
+          "p2_runtime_config": 1,
+          "__total__": 131072,
+          "target_ready_select": 9249,
+          "p2_target_begin": 9245,
+          "p2_target_commit": 1499,
+          "p2_reuse_plan": 17566,
+          "k_policy_config": 1,
+          "p2_window_begin": 1495,
+          "reuse_pending_prefill": 17566,
+          "ready": 17566,
+          "p2_ar_target_bypass": 2719,
+          "p2_handoff": 17566,
+          "p2_boundary": 1495,
+          "p2_verified": 17552,
+          "reuse_cache_consumed": 17050,
+          "reuse_lease_release": 502
+        },
+        "k_actual": {
+          "1": 8290,
+          "2": 3886,
+          "3": 1900,
+          "4": 968,
+          "8": 1044,
+          "6": 511,
+          "5": 616,
+          "7": 351
+        },
+        "stop_reasons": {
+          "low_confidence": 16522,
+          "max_k": 1044
+        },
+        "token_counts": {
+          "reused_tokens": 1782141,
+          "prefill_tokens": 62027,
+          "accepted_tokens": 30028,
+          "drafted_tokens": 42556
+        },
+        "replay": {}
+      },
+      "server_metrics_include_warmups": {
+        "time_to_first_token_seconds": {
+          "mean": 0.12458089294359666,
+          "count": 516.0
+        },
+        "request_time_per_output_token_seconds": {
+          "mean": 0.07462197761622982,
+          "count": 516.0
+        },
+        "inter_token_latency_seconds": {
+          "mean": 0.13749059647208892,
+          "count": 35500.0
+        },
+        "request_queue_time_seconds": {
+          "mean": 0.07643277280559663,
+          "count": 516.0
+        }
+      }
+    },
+    "full1_r1": {
+      "completed": 512,
+      "failed": 0,
+      "output_tokens": 65536,
+      "wall_time_s": 295.325,
+      "output_tps": 221.912,
+      "requests_per_s": 1.7336832303394567,
+      "mean_latency_s": 9.181936637340186,
+      "p50_s": 9.25440778164193,
+      "p95_s": 11.413546630740166,
+      "last_target_counter_prefix": {
+        "fallback_layout": 432,
+        "calls": 9216,
+        "fallback_warmup": 302,
+        "capture": 24,
+        "replay": 6646,
+        "fallback_budget": 1812
+      },
+      "last_cdb_counter_prefix": {
+        "events": {
+          "p2_runtime_config": 1,
+          "__total__": 131072,
+          "target_ready_select": 9281,
+          "p2_target_begin": 9277,
+          "p2_target_commit": 1503,
+          "p2_reuse_plan": 17555,
+          "k_policy_config": 1,
+          "p2_window_begin": 1499,
+          "reuse_pending_prefill": 17555,
+          "ready": 17554,
+          "p2_ar_target_bypass": 2719,
+          "p2_handoff": 17545,
+          "p2_boundary": 1498,
+          "p2_verified": 17542,
+          "reuse_cache_consumed": 17039,
+          "reuse_lease_release": 503
+        },
+        "k_actual": {
+          "1": 8295,
+          "2": 3954,
+          "3": 1851,
+          "4": 931,
+          "8": 1110,
+          "6": 501,
+          "5": 573,
+          "7": 339
+        },
+        "stop_reasons": {
+          "low_confidence": 16444,
+          "max_k": 1110
+        },
+        "token_counts": {
+          "reused_tokens": 1784020,
+          "prefill_tokens": 62024,
+          "accepted_tokens": 30028,
+          "drafted_tokens": 42578
+        },
+        "replay": {}
+      },
+      "server_metrics_include_warmups": {
+        "time_to_first_token_seconds": {
+          "mean": 0.11949868257655653,
+          "count": 516.0
+        },
+        "request_time_per_output_token_seconds": {
+          "mean": 0.0709169339119728,
+          "count": 516.0
+        },
+        "inter_token_latency_seconds": {
+          "mean": 0.13044718363896093,
+          "count": 35555.0
+        },
+        "request_queue_time_seconds": {
+          "mean": 0.07273167228983181,
+          "count": 516.0
+        }
+      }
+    },
+    "full0_r2": {
+      "completed": 512,
+      "failed": 0,
+      "output_tokens": 65536,
+      "wall_time_s": 303.275,
+      "output_tps": 216.094,
+      "requests_per_s": 1.6882367488253236,
+      "mean_latency_s": 9.433246604065062,
+      "p50_s": 9.595840802416205,
+      "p95_s": 11.461349654290824,
+      "last_target_counter_prefix": null,
+      "last_cdb_counter_prefix": {
+        "events": {
+          "p2_runtime_config": 1,
+          "__total__": 131072,
+          "target_ready_select": 9208,
+          "p2_target_begin": 9204,
+          "p2_target_commit": 1494,
+          "p2_reuse_plan": 17582,
+          "k_policy_config": 1,
+          "p2_window_begin": 1490,
+          "reuse_pending_prefill": 17582,
+          "ready": 17581,
+          "p2_ar_target_bypass": 2721,
+          "p2_handoff": 17581,
+          "p2_boundary": 1490,
+          "p2_verified": 17569,
+          "reuse_cache_consumed": 17066,
+          "reuse_lease_release": 502
+        },
+        "k_actual": {
+          "1": 8320,
+          "2": 3897,
+          "3": 1907,
+          "4": 970,
+          "8": 1061,
+          "6": 486,
+          "5": 604,
+          "7": 336
+        },
+        "stop_reasons": {
+          "low_confidence": 16520,
+          "max_k": 1061
+        },
+        "token_counts": {
+          "reused_tokens": 1780591,
+          "prefill_tokens": 61856,
+          "accepted_tokens": 30174,
+          "drafted_tokens": 42450
+        },
+        "replay": {}
+      },
+      "server_metrics_include_warmups": {
+        "time_to_first_token_seconds": {
+          "mean": 0.11653706731722337,
+          "count": 516.0
+        },
+        "request_time_per_output_token_seconds": {
+          "mean": 0.07290101255171409,
+          "count": 516.0
+        },
+        "inter_token_latency_seconds": {
+          "mean": 0.13493783458395156,
+          "count": 35336.0
+        },
+        "request_queue_time_seconds": {
+          "mean": 0.06933914936082654,
+          "count": 516.0
+        }
+      }
+    },
+    "full1_r2": {
+      "completed": 512,
+      "failed": 0,
+      "output_tokens": 65536,
+      "wall_time_s": 293.07,
+      "output_tps": 223.619,
+      "requests_per_s": 1.7470228955539633,
+      "mean_latency_s": 9.121097400991857,
+      "p50_s": 9.191324285697192,
+      "p95_s": 11.122545199701563,
+      "last_target_counter_prefix": {
+        "fallback_layout": 423,
+        "calls": 9216,
+        "fallback_warmup": 297,
+        "capture": 24,
+        "replay": 6697,
+        "fallback_budget": 1775
+      },
+      "last_cdb_counter_prefix": {
+        "events": {
+          "p2_runtime_config": 1,
+          "__total__": 132096,
+          "target_ready_select": 9299,
+          "p2_target_begin": 9295,
+          "p2_target_commit": 1511,
+          "p2_reuse_plan": 17702,
+          "k_policy_config": 1,
+          "p2_window_begin": 1507,
+          "reuse_pending_prefill": 17702,
+          "ready": 17702,
+          "p2_ar_target_bypass": 2766,
+          "p2_handoff": 17702,
+          "p2_boundary": 1507,
+          "p2_verified": 17701,
+          "reuse_cache_consumed": 17186,
+          "reuse_lease_release": 514
+        },
+        "k_actual": {
+          "1": 8358,
+          "2": 3915,
+          "3": 1955,
+          "4": 972,
+          "8": 1084,
+          "6": 507,
+          "5": 593,
+          "7": 318
+        },
+        "stop_reasons": {
+          "low_confidence": 16618,
+          "max_k": 1084
+        },
+        "token_counts": {
+          "reused_tokens": 1796928,
+          "prefill_tokens": 62051,
+          "accepted_tokens": 30282,
+          "drafted_tokens": 42845
+        },
+        "replay": {}
+      },
+      "server_metrics_include_warmups": {
+        "time_to_first_token_seconds": {
+          "mean": 0.11984422687412233,
+          "count": 516.0
+        },
+        "request_time_per_output_token_seconds": {
+          "mean": 0.07044435920561039,
+          "count": 516.0
+        },
+        "inter_token_latency_seconds": {
+          "mean": 0.12993771821414807,
+          "count": 35454.0
+        },
+        "request_queue_time_seconds": {
+          "mean": 0.07313661809014373,
+          "count": 516.0
+        }
+      }
+    },
+    "full0_r3": {
+      "completed": 512,
+      "failed": 0,
+      "output_tokens": 65536,
+      "wall_time_s": 303.097,
+      "output_tps": 216.221,
+      "requests_per_s": 1.689228200872988,
+      "mean_latency_s": 9.420964371378432,
+      "p50_s": 9.513528682291508,
+      "p95_s": 11.506868684478103,
+      "last_target_counter_prefix": null,
+      "last_cdb_counter_prefix": {
+        "events": {
+          "p2_runtime_config": 1,
+          "__total__": 132096,
+          "target_ready_select": 9205,
+          "p2_target_begin": 9201,
+          "p2_target_commit": 1506,
+          "p2_reuse_plan": 17734,
+          "k_policy_config": 1,
+          "p2_window_begin": 1502,
+          "reuse_pending_prefill": 17731,
+          "ready": 17731,
+          "p2_ar_target_bypass": 2812,
+          "p2_handoff": 17731,
+          "p2_boundary": 1501,
+          "p2_verified": 17722,
+          "reuse_cache_consumed": 17215,
+          "reuse_lease_release": 503
+        },
+        "k_actual": {
+          "1": 8423,
+          "2": 3916,
+          "3": 1936,
+          "4": 985,
+          "8": 1081,
+          "6": 517,
+          "7": 297,
+          "5": 576
+        },
+        "stop_reasons": {
+          "low_confidence": 16650,
+          "max_k": 1081
+        },
+        "token_counts": {
+          "reused_tokens": 1797798,
+          "prefill_tokens": 61973,
+          "accepted_tokens": 30303,
+          "drafted_tokens": 42698
+        },
+        "replay": {}
+      },
+      "server_metrics_include_warmups": {
+        "time_to_first_token_seconds": {
+          "mean": 0.11701622443605764,
+          "count": 516.0
+        },
+        "request_time_per_output_token_seconds": {
+          "mean": 0.07281453840055152,
+          "count": 516.0
+        },
+        "inter_token_latency_seconds": {
+          "mean": 0.1348715535469686,
+          "count": 35307.0
+        },
+        "request_queue_time_seconds": {
+          "mean": 0.06870682773996116,
+          "count": 516.0
+        }
+      }
+    },
+    "full1_r3": {
+      "completed": 512,
+      "failed": 0,
+      "output_tokens": 65536,
+      "wall_time_s": 299.595,
+      "output_tps": 218.749,
+      "requests_per_s": 1.7089737812713828,
+      "mean_latency_s": 9.324187048016029,
+      "p50_s": 9.425661211833358,
+      "p95_s": 11.44838152420707,
+      "last_target_counter_prefix": {
+        "fallback_layout": 435,
+        "calls": 9216,
+        "fallback_warmup": 297,
+        "capture": 24,
+        "replay": 6813,
+        "fallback_budget": 1647
+      },
+      "last_cdb_counter_prefix": {
+        "events": {
+          "p2_runtime_config": 1,
+          "__total__": 134144,
+          "target_ready_select": 9268,
+          "p2_target_begin": 9264,
+          "p2_target_commit": 1510,
+          "p2_reuse_plan": 18056,
+          "k_policy_config": 1,
+          "p2_window_begin": 1506,
+          "reuse_pending_prefill": 18056,
+          "ready": 18055,
+          "p2_ar_target_bypass": 2781,
+          "p2_handoff": 18053,
+          "p2_boundary": 1505,
+          "p2_verified": 18045,
+          "reuse_cache_consumed": 17540,
+          "reuse_lease_release": 503
+        },
+        "k_actual": {
+          "1": 8731,
+          "2": 3973,
+          "3": 1997,
+          "4": 988,
+          "8": 1055,
+          "7": 299,
+          "6": 461,
+          "5": 551
+        },
+        "stop_reasons": {
+          "low_confidence": 17000,
+          "max_k": 1055
+        },
+        "token_counts": {
+          "reused_tokens": 1825254,
+          "prefill_tokens": 62329,
+          "accepted_tokens": 30115,
+          "drafted_tokens": 42651
+        },
+        "replay": {}
+      },
+      "server_metrics_include_warmups": {
+        "time_to_first_token_seconds": {
+          "mean": 0.11125649130621622,
+          "count": 516.0
+        },
+        "request_time_per_output_token_seconds": {
+          "mean": 0.07208943629995195,
+          "count": 516.0
+        },
+        "inter_token_latency_seconds": {
+          "mean": 0.13299329060721096,
+          "count": 35451.0
+        },
+        "request_queue_time_seconds": {
+          "mean": 0.06334217613772308,
+          "count": 516.0
+        }
+      }
+    }
+  },
+  "groups": {
+    "0": {
+      "repeats": 3,
+      "mean_tps": 214.43833333333333,
+      "sample_sd_tps": 2.9783610146074184,
+      "mean_run_p50_s": 9.617157790033767,
+      "mean_run_p95_s": 11.757643907998377
+    },
+    "1": {
+      "repeats": 3,
+      "mean_tps": 221.42666666666668,
+      "sample_sd_tps": 2.4710091730573054,
+      "mean_run_p50_s": 9.290464426390827,
+      "mean_run_p95_s": 11.328157784882933
+    }
+  },
+  "paired_comparisons": {
+    "full0_r1_vs_full1_r1": {
+      "output_text_hash_equal": 159,
+      "paired_requests": 512,
+      "tps_change_percent": 5.1715639810426595
+    },
+    "full0_r2_vs_full1_r2": {
+      "output_text_hash_equal": 156,
+      "paired_requests": 512,
+      "tps_change_percent": 3.482280859255704
+    },
+    "full0_r3_vs_full1_r3": {
+      "output_text_hash_equal": 154,
+      "paired_requests": 512,
+      "tps_change_percent": 1.1691741320223326
+    }
+  },
+  "mean_tps_change_percent": 3.2589011603957774,
+  "limits": [
+    "Cumulative graph/CDB counters are only their last logged prefixes.",
+    "Text hash inequality does not classify numerical versus logical differences.",
+    "No server GPU Forward timing or full-run Ready latency is inferred."
+  ],
+  "runtime_commit": "14b225db376bb7c5e80cf9924472bee69ef024a5",
+  "additional_metrics": {
+    "0": {
+      "requests": 1536,
+      "output_tokens": 196608,
+      "mean_latency_s": 9.505185041255269,
+      "pooled_p50_s": 9.612692307215184,
+      "pooled_p95_s": 11.70098326401785,
+      "time_to_first_token_seconds_server_mean_includes_warmups": 0.11937806156562589,
+      "request_time_per_output_token_seconds_server_mean_includes_warmups": 0.07344584285616515,
+      "inter_token_latency_seconds_server_mean_includes_warmups": 0.13576956971915707
+    },
+    "1": {
+      "requests": 1536,
+      "output_tokens": 196608,
+      "mean_latency_s": 9.209073695449357,
+      "pooled_p50_s": 9.299439815804362,
+      "pooled_p95_s": 11.388642572565004,
+      "time_to_first_token_seconds_server_mean_includes_warmups": 0.11686646691896503,
+      "request_time_per_output_token_seconds_server_mean_includes_warmups": 0.07115024313917838,
+      "inter_token_latency_seconds_server_mean_includes_warmups": 0.13112536747289025
+    }
+  },
+  "source_hashes": {
+    "commit": "14b225db376bb7c5e80cf9924472bee69ef024a5",
+    "files": {
+      "vllm/v1/spec_decode/cdb_av_target_graph.py": "4a789b5f682272123f007abfd4bd070d20795c6f6aa0b6983fde8b96d817849d",
+      "vllm/v1/worker/gpu_model_runner.py": "72f22dc2fe56341a88414c095e1bdb2f791cfee0a94ed31682a94849bd96aa08",
+      "tests/v1/spec_decode/test_cdb_av_target_graph.py": "42b9065b645ff37264598f19c72d9d6be17cba91c00af4d201efd099633a39ff",
+      "scripts/cdb_av/stress_waiting_512.py": "544ad4b6dea58c7b253474b2ac9e78e0b742f837f391012d9f5bd82207091cc5"
+    }
+  },
+  "cleanup": {
+    "timestamp": "2026-11-06T19:02:02+08:00",
+    "gpu3_used_mib": 15,
+    "ports_listening": {
+      "18084": false,
+      "18082": false
+    },
+    "own_gpu3_processes_remaining": false
+  },
+  "gpu_validation": {
+    "completed": "32/32",
+    "checks": 162,
+    "all_exact": true,
+    "layers": [
+      36
+    ],
+    "actual_qmax": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "static_qmax": [
+      1,
+      9
+    ],
+    "layout_changes": 99,
+    "max_changes": 55,
+    "request_changes": 137,
+    "small_to_9": 0,
+    "rows": [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      13,
+      14,
+      15,
+      17,
+      21
+    ]
+  },
+  "cpu_tests": {
+    "status": "pass",
+    "static_python_files": 0,
+    "static_shell_files": 0,
+    "workflow_tests": 12,
+    "extra_tests": [
+      {
+        "path": "tests/v1/spec_decode/test_cdb_av_target_graph.py",
+        "tests": 50
+      },
+      {
+        "path": "tests/v1/spec_decode/test_cdb_av_config.py",
+        "tests": 130
+      },
+      {
+        "path": "tests/v1/spec_decode/test_cdb_av_draft_decode_graph.py",
+        "tests": 34
+      },
+      {
+        "path": "tests/v1/spec_decode/test_cdb_av_persistent_queue.py",
+        "tests": 23
+      },
+      {
+        "path": "tests/v1/spec_decode/test_cdb_av_kv_reuse_ownership.py",
+        "tests": 11
+      }
+    ],
+    "staged_paths": []
+  }
+}
