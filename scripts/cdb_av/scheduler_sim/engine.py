@@ -232,6 +232,14 @@ class Simulator:
                     )
                 )
             ]
+            ready_waits_ms: list[float] = []
+            for request in batch:
+                if request.ready_since_ms is None:
+                    raise RuntimeError(
+                        f"Ready request {request.request_id} has no ready timestamp"
+                    )
+                ready_waits_ms.append(start_ms - request.ready_since_ms)
+
             duration_ms = self.profile.verify_duration_ms(batch)
             self.now_ms += duration_ms
             self.gpu_busy_ms += duration_ms
@@ -239,14 +247,10 @@ class Simulator:
             self.verify_batch_sizes.append(len(batch))
             self.verified_request_count += len(batch)
 
-            for request in batch:
-                if request.ready_since_ms is None:
-                    raise RuntimeError(
-                        f"Ready request {request.request_id} has no ready timestamp"
-                    )
-                self.ready_wait_samples_ms.append(
-                    self.now_ms - request.ready_since_ms
-                )
+            for request, ready_wait_ms in zip(
+                batch, ready_waits_ms, strict=True
+            ):
+                self.ready_wait_samples_ms.append(ready_wait_ms)
                 accepted = self._sample_accepted_prefix(request)
                 request.accepted_candidate_tokens += accepted
                 self.accepted_candidate_tokens += accepted

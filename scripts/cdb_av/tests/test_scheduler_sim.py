@@ -345,5 +345,55 @@ class SchedulerSimulatorTests(unittest.TestCase):
                 )
 
 
+    def test_ready_wait_excludes_verify_service_time(self):
+        simulator = Simulator(
+            make_requests(
+                1,
+                draft_cap=1,
+                max_output_tokens=2,
+            ),
+            SimulationConfig(
+                max_draft_batch_size=1,
+                max_verify_batch_size=1,
+                confidence_threshold=0.0,
+            ),
+            self.profile,
+            FixedHPolicy(1),
+        )
+        simulator.execute_action(Action.DRAFT)
+        simulator.execute_action(Action.VERIFY)
+        self.assertEqual(simulator.ready_wait_samples_ms, [0.0])
+
+    def test_arrivals_during_forward_enter_eligible_at_forward_completion(self):
+        requests = make_requests(
+            2,
+            draft_cap=1,
+            max_output_tokens=2,
+            arrival_gap_ms=0.5,
+        )
+        simulator = Simulator(
+            requests,
+            SimulationConfig(
+                max_draft_batch_size=1,
+                max_verify_batch_size=1,
+                confidence_threshold=0.0,
+            ),
+            self.profile,
+            FixedHPolicy(1),
+        )
+        simulator.execute_action(Action.DRAFT)
+        self.assertGreaterEqual(simulator.now_ms, 0.5)
+        self.assertEqual(len(simulator.draft_eligible_queue), 0)
+        self.assertEqual(len(simulator.active_draft), 1)
+        self.assertEqual(
+            simulator.active_draft[0].status,
+            RequestStatus.ACTIVE_DRAFT,
+        )
+        self.assertEqual(
+            simulator.active_draft[0].arrival_time_ms,
+            0.5,
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
