@@ -489,6 +489,7 @@ class RefillSession:
         # Decode and single-query mixed Prefill share the exact-row graph.
         # Small ragged Prefill uses gated static buffers; unsupported rows stay eager.
         graph_key = None
+        graph_candidate_key = None
         graph_reason = None
         graph_enabled = os.getenv('CDB_AV_DRAFT_DECODE_GRAPH', '0') == '1'
         if not graph_enabled:
@@ -497,6 +498,7 @@ class RefillSession:
             graph_reason = 'phase_ineligible'
         else:
             graph_key = self._decode_graph_key(cad, n)
+            graph_candidate_key = graph_key
             if graph_key is None:
                 ragged_enabled = (
                     os.getenv('CDB_AV_DRAFT_RAGGED_GRAPH', '0') == '1')
@@ -508,6 +510,7 @@ class RefillSession:
                         dynamic=os.getenv(
                             'CDB_AV_DRAFT_RAGGED_DYNAMIC', '0') == '1',
                         max_query=self.graph_query_bound)
+                    graph_candidate_key = graph_key
                     if graph_key is None:
                         graph_reason = 'ragged_shape_ineligible'
                     elif graph_key not in getattr(
@@ -531,7 +534,8 @@ class RefillSession:
         if graph_key is None:
             _log_draft_graph_runtime_once(
                 p, 'eager', phase=phase, request_rows=len(req_ids),
-                token_rows=n, reason=graph_reason)
+                token_rows=n, graph_key=graph_candidate_key,
+                reason=graph_reason)
         sample = None
         profiler = self._draft_stage_profiler
         if profiler is not None and profiler.has_capacity:
