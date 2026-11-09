@@ -45,6 +45,10 @@ class DraftStageProfiler:
     def __init__(self, limit):
         self.limit = limit
         self.samples = 0
+        self.action_samples = {"eager": 0, "replay": 0}
+        # Reserve half the budget for warmed replay instead of exhausting
+        # all samples during eager warmup. Tiny caps retain legacy behavior.
+        self.replay_reservation = limit // 2 if limit >= 8 else 0
 
     @property
     def has_capacity(self):
@@ -54,6 +58,15 @@ class DraftStageProfiler:
               graph_action, graph_key, metadata_pack_cpu_ms):
         if not self.has_capacity:
             return None
+        if graph_action not in self.action_samples:
+            raise ValueError("Draft stage profiler only samples eager/replay")
+        eager_limit = self.limit - self.replay_reservation
+        replay_limit = (self.replay_reservation
+                        if self.replay_reservation else self.limit)
+        action_limit = eager_limit if graph_action == "eager" else replay_limit
+        if self.action_samples[graph_action] >= action_limit:
+            return None
+        self.action_samples[graph_action] += 1
         self.samples += 1
         return DraftStageSample(
             window=window, step=step, phase=phase,
