@@ -72,21 +72,22 @@ def graph_key(meta, starts, *, n, capacity, max_query, max_model_len,
 
 
 
-
 def target_graph_timing_config(env=None):
     """Parse bounded diagnostic timing settings without touching CUDA."""
     env = os.environ if env is None else env
     enabled = env.get('CDB_AV_TARGET_GRAPH_TIMING', '0') == '1'
+    if not enabled:
+        return False, 5
     validate = env.get('CDB_AV_TARGET_GRAPH_VALIDATE', '0') == '1'
+    if not validate:
+        raise ValueError('Target Graph timing requires CDB_AV_TARGET_GRAPH_VALIDATE=1')
     try:
         max_samples = int(env.get('CDB_AV_TARGET_GRAPH_TIMING_MAX_SAMPLES', '5'))
     except (TypeError, ValueError) as exc:
         raise ValueError('Invalid Target Graph timing sample limit') from exc
     if not 1 <= max_samples <= 32:
         raise ValueError('Target Graph timing sample limit must be in [1, 32]')
-    if enabled and not validate:
-        raise ValueError('Target Graph timing requires CDB_AV_TARGET_GRAPH_VALIDATE=1')
-    return enabled, max_samples
+    return True, max_samples
 
 
 def metadata_has_no_planner(meta):

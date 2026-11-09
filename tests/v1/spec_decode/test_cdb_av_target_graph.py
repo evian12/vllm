@@ -7,7 +7,14 @@ import pytest
 import torch
 
 from vllm.v1.spec_decode.cdb_av_target_graph import (
-    validate_scope, graph_key, clone_metadata, update_metadata, metadata_has_no_planner, query_domain_matches, validate_sequence_floor, target_graph_timing_config,
+    validate_scope,
+    graph_key,
+    clone_metadata,
+    update_metadata,
+    metadata_has_no_planner,
+    query_domain_matches,
+    validate_sequence_floor,
+    target_graph_timing_config,
 )
 
 
@@ -255,7 +262,8 @@ def test_target_graph_timing_accepts_bounded_sample_limit(limit):
 def test_target_graph_timing_rejects_invalid_sample_limit(limit):
     with pytest.raises(ValueError, match='timing sample limit'):
         target_graph_timing_config({
-            'CDB_AV_TARGET_GRAPH_TIMING': '0',
+            'CDB_AV_TARGET_GRAPH_TIMING': '1',
+            'CDB_AV_TARGET_GRAPH_VALIDATE': '1',
             'CDB_AV_TARGET_GRAPH_TIMING_MAX_SAMPLES': limit,
         })
 
@@ -264,4 +272,11 @@ def test_target_graph_timing_keeps_correctness_validation_unbounded_when_disable
     assert target_graph_timing_config({
         'CDB_AV_TARGET_GRAPH_TIMING': '0',
         'CDB_AV_TARGET_GRAPH_VALIDATE': '1',
+    }) == (False, 5)
+
+
+def test_target_graph_timing_ignores_sample_limit_when_disabled():
+    assert target_graph_timing_config({
+        'CDB_AV_TARGET_GRAPH_TIMING': '0',
+        'CDB_AV_TARGET_GRAPH_TIMING_MAX_SAMPLES': 'not-used',
     }) == (False, 5)
