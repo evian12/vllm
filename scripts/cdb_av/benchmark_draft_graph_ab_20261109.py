@@ -75,11 +75,11 @@ def run_client(args, out_path, requests, run_id):
     match = re.search(r"wall_time=([0-9.]+)s", raw)
     wall = float(match.group(1)) if match else elapsed
     if result.returncode != 0 or len(records) != requests or completed != requests:
-        tail = "\\n".join(raw.splitlines()[-30:])
+        tail = "\n".join(raw.splitlines()[-30:])
         raise RuntimeError(
             f"{out_path.name}: client_rc={result.returncode}, "
             f"records={len(records)}/{requests}, completed={completed}/{requests}, "
-            f"failed={failed}\\n{tail}"
+            f"failed={failed}\n{tail}"
         )
     return {
         "run_id": run_id,
@@ -125,7 +125,7 @@ def main():
     config["output_dir"] = str(output_dir)
     config["client_script"] = str(CLIENT)
     (output_dir / "config.json").write_text(
-        json.dumps(config, indent=2) + "\\n", encoding="utf-8"
+        json.dumps(config, indent=2) + "\n", encoding="utf-8"
     )
     print(json.dumps(config, indent=2), flush=True)
 
@@ -166,7 +166,7 @@ def main():
     }
     summary_path = output_dir / "summary.json"
     summary_path.write_text(
-        json.dumps(summary, indent=2) + "\\n", encoding="utf-8"
+        json.dumps(summary, indent=2) + "\n", encoding="utf-8"
     )
     print("========== SUMMARY ==========", flush=True)
     print(json.dumps(summary, indent=2), flush=True)
