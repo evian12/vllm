@@ -102,3 +102,19 @@ def test_stage_lifecycle_rejects_incomplete_measurements(monkeypatch):
     sample.start("backbone")
     with pytest.raises(RuntimeError, match="left open"):
         sample.finish()
+
+
+def test_profiler_reserves_replay_samples_after_eager_warmup():
+    profiler = profile.DraftStageProfiler(20)
+    params = dict(window=1, step=1, phase="decode",
+                  request_rows=4, token_rows=4, graph_key=(4, 64),
+                  metadata_pack_cpu_ms=0.1)
+    for _ in range(10):
+        assert profiler.begin(graph_action="eager", **params) is not None
+    assert profiler.begin(graph_action="eager", **params) is None
+    assert profiler.samples == 10
+    for _ in range(10):
+        assert profiler.begin(graph_action="replay", **params) is not None
+    assert profiler.begin(graph_action="replay", **params) is None
+    assert not profiler.has_capacity
+    assert profiler.action_samples == {"eager": 10, "replay": 10}
