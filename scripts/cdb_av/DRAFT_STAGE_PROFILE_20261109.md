@@ -43,9 +43,19 @@ there are also `confidence_gpu` (both fields),
 - `logits` includes output row selection and LM-head execution.
 - `confidence_gpu` includes confidence/logsumexp, greedy selection, packing
   the tiny result buffer; on manual policy it measures argmax only.
-- `d2h_wait_cpu_ms` measures the actual blocking `.cpu().tolist()`
-  call, including waiting for **all outstanding preceding GPU work**.
-  It is **not** a pure PCIe transfer measurement.
+- `d2h_wait_cpu_ms` measures the full blocking path from immediately
+  before the explicit current-stream synchronization through
+  `.cpu().tolist()`.
+- `pre_d2h_gpu_wait_cpu_ms` isolates the CPU time spent waiting for
+  outstanding work on the tensor's producer stream. This includes prior
+  metadata/backbone/logits/confidence work that has not completed yet.
+- `d2h_materialize_cpu_ms` measures `.cpu().tolist()` after that stream
+  has completed: host allocation/copy plus Python-list materialization.
+  It is not a pure PCIe bandwidth metric.
+- The explicit synchronization is only inserted for sampled diagnostic calls;
+  profiling-disabled execution retains the original single `.cpu().tolist()`
+  path. Moving the wait earlier decomposes the existing barrier; it does not
+  remove the dependency or make the step faster.
 - `batch_update_cpu_ms` covers per-request stop-reason/status bookkeeping
   and final active/ready list updates.
 - CUDA stream spans are interval timings (which may include idle gaps);
