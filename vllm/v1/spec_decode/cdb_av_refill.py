@@ -759,10 +759,19 @@ class RefillSession:
                 )
                 if sample is not None:
                     sample.end('confidence_gpu')
-                    d2h_start = time.perf_counter()
+                    d2h_total_start = time.perf_counter()
+                    # Split the blocking host wait from the tiny device-to-host
+                    # materialization. packed_gpu was produced on this stream.
+                    gpu_wait_start = time.perf_counter()
+                    torch.cuda.current_stream(
+                        device=packed_gpu.device).synchronize()
+                    sample.cpu_span(
+                        'pre_d2h_gpu_wait_cpu_ms', gpu_wait_start)
+                    d2h_copy_start = time.perf_counter()
                 packed = packed_gpu.cpu().tolist()
                 if sample is not None:
-                    sample.cpu_span('d2h_wait_cpu_ms', d2h_start)
+                    sample.cpu_span('d2h_materialize_cpu_ms', d2h_copy_start)
+                    sample.cpu_span('d2h_wait_cpu_ms', d2h_total_start)
                 token_values = [int(row[0]) for row in packed]
                 confidence_values = [float(row[1]) for row in packed]
                 stops = confidence_stop_flags(confidence_values, self.threshold)
@@ -772,10 +781,17 @@ class RefillSession:
                 tokens = logits.argmax(-1)
                 if sample is not None:
                     sample.end('confidence_gpu')
-                    d2h_start = time.perf_counter()
+                    d2h_total_start = time.perf_counter()
+                    gpu_wait_start = time.perf_counter()
+                    torch.cuda.current_stream(
+                        device=tokens.device).synchronize()
+                    sample.cpu_span(
+                        'pre_d2h_gpu_wait_cpu_ms', gpu_wait_start)
+                    d2h_copy_start = time.perf_counter()
                 token_values = tokens.tolist()
                 if sample is not None:
-                    sample.cpu_span('d2h_wait_cpu_ms', d2h_start)
+                    sample.cpu_span('d2h_materialize_cpu_ms', d2h_copy_start)
+                    sample.cpu_span('d2h_wait_cpu_ms', d2h_total_start)
                 stops = [False] * len(worked)
 
             if sample is not None:
