@@ -145,7 +145,7 @@ class RefillSession:
         emit('window_begin', window=window, H=horizon, contexts=contexts)
 
     def _metadata(self, blocks, seqs, qlens, slots):
-        profiler = self._draft_stage_profiler
+        profiler = getattr(self, '_draft_stage_profiler', None)
         tick = (time.perf_counter() if profiler is not None
                 and profiler.has_capacity else None)
         dev = self.p.device
@@ -344,11 +344,11 @@ class RefillSession:
                 static_max_query_len=static_cad.max_query_len,
                 dynamic_layout=dynamic_layout)))
         hidden = entry['hidden']
+        if profile is not None:
+            profile.start('logits')
         if len(key) >= 3:
             hidden = hidden[last_indices if dynamic_layout
                             else entry['last_indices']]
-        if profile is not None:
-            profile.start('logits')
         logits = p.model.compute_logits(hidden)
         if profile is not None:
             profile.end('logits')
