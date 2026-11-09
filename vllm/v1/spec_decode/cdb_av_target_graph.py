@@ -71,7 +71,6 @@ def graph_key(meta, starts, *, n, capacity, max_query, max_model_len,
             meta.max_num_splits, 'bounded' if dynamic else 'exact')
 
 
-
 def target_graph_timing_config(env=None):
     """Parse bounded diagnostic timing settings without touching CUDA."""
     env = os.environ if env is None else env
@@ -291,7 +290,7 @@ class TargetFullGraph:
                      query_lengths=[b-a for a,b in zip(starts, starts[1:])], padding=0)
         result = entry['hidden']
         if os.getenv('CDB_AV_TARGET_GRAPH_VALIDATE', '0') == '1':
-            if (self.timing_enabled
+            if (self.timing_enabled and action == 'replay'
                     and self.timing_samples >= self.timing_max_samples):
                 # Timing mode bounds both measurements and diagnostic eager
                 # forwards. The normal Target Graph result is used afterward.
@@ -333,7 +332,7 @@ class TargetFullGraph:
         saved = {name: kv[:, block, offset].contiguous().clone() for name,kv in caches.items()}
         timing = None
         sample_index = None
-        if self.timing_enabled:
+        if self.timing_enabled and action == 'replay':
             self.timing_samples += 1
             sample_index = self.timing_samples
             # Diagnostic only: event spans include host submission gaps and are
