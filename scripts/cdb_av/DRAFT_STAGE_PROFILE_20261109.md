@@ -12,6 +12,9 @@ sampling, and commit rules are unchanged.
 - `CDB_AV_DRAFT_STAGE_PROFILE=1` enables the one-time profiler.
 - `CDB_AV_DRAFT_STAGE_PROFILE_MAX_SAMPLES=20` limits samples **per proposer lifetime**
   (valid 1..100). A fresh service is required to reset.
+  For limit>=8, the sampler reserves approximately half for warmed Graph
+  replays; extra eager warmups cannot consume replay slots. It may emit fewer
+  than the configured maximum if replay never occurs.
 - Disabled mode creates no CUDA timing events and does not synchronize.
 - Do not combine with `CDB_AV_DRAFT_GRAPH_VALIDATE=1` or Target timing/validation
   when measuring stage costs; those perform extra forwards.
