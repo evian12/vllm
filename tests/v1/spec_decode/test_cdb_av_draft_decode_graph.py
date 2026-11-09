@@ -1,9 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
 """Decode-only graph eligibility must never admit ragged Prefill rows."""
 
-from types import SimpleNamespace
-
 import json
+from types import SimpleNamespace
 
 import pytest
 import torch
