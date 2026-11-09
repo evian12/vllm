@@ -206,6 +206,17 @@ rows), `pre_d2h_gpu_wait_cpu_ms` averaged 4.432 ms and
 `d2h_materialize_cpu_ms` averaged 0.0399 ms. This confirms the host wait is
 for outstanding GPU work, not a costly D2H materialization. The 24.192 s
 smoke wall time is diagnostic only, not production TPS. CPU pytest output has
-not yet been supplied. The matched-shape Draft Graph-OFF control is now
-provided by `start_draft_stage_profile_eager_20261109.sh`; its run remains
+not yet been supplied. The matched-shape diagnostic comparison subsequently completed:
+for (2 request / 2 token rows), median Backbone stream span was 4.330 ms
+(Graph ON, n=2) versus 23.969 ms (Graph OFF, n=3), or 5.54x; for
+(4 request / 4 token rows), it was 4.346 ms (Graph ON, n=6) versus
+17.481 ms (Graph OFF, n=3), or 4.02x. These are diagnostic stream intervals,
+not production speedups; the sample counts are small and eager CPU calls can
+include host dispatch/implicit waits. The D2H materialization medians were
+approximately 0.03--0.05 ms in both modes.
+
+Unprofiled Graph ON/OFF launchers and a paired 512-request client are now
+provided by `start_draft_graph_on_benchmark_20261109.sh`,
+`start_draft_graph_off_benchmark_20261109.sh`, and
+`benchmark_draft_graph_ab_20261109.py`. Production-like TPS results remain
 pending.
