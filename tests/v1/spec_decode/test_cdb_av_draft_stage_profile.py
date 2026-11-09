@@ -73,6 +73,8 @@ def test_sample_emits_cpu_and_gpu_span_without_real_cuda(monkeypatch):
     )
     sample.start("backbone")
     sample.end("backbone")
+    sample.cpu_span("pre_d2h_gpu_wait_cpu_ms", 0.0)
+    sample.cpu_span("d2h_materialize_cpu_ms", 0.0)
     sample.cpu_span("d2h_wait_cpu_ms", 0.0)
     sample.finish()
     assert len(records) == 1
@@ -81,6 +83,8 @@ def test_sample_emits_cpu_and_gpu_span_without_real_cuda(monkeypatch):
     assert data["graph_action"] == "replay"
     assert data["metadata_pack_cpu_ms"] == 0.6
     assert data["measurements"]["backbone"]["stream_span_ms"] == 0.25
+    assert data["measurements"]["pre_d2h_gpu_wait_cpu_ms"] >= 0
+    assert data["measurements"]["d2h_materialize_cpu_ms"] >= 0
     assert data["measurements"]["d2h_wait_cpu_ms"] >= 0
     with pytest.raises(RuntimeError, match="finished twice"):
         sample.finish()
