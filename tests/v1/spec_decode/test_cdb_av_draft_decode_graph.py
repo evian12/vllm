@@ -213,23 +213,33 @@ def test_draft_graph_runtime_diagnostic_is_bounded_and_reports_runtime_config(
         proposer, "eager", graph_key=(4, 64),
         reason="ragged_warmup", **common)
     cdb_av_refill._log_draft_graph_runtime_once(
+        proposer, "eager", graph_key=(5, 64, 3, "dynamic4"),
+        reason="ragged_warmup", phase="mixed_prefill_decode",
+        request_rows=3, token_rows=5)
+    cdb_av_refill._log_draft_graph_runtime_once(
         proposer, "eager", reason="draft_graph_disabled", **common)
     cdb_av_refill._log_draft_graph_runtime_once(
         proposer, "capture", graph_key=(4, 64), **common)
     cdb_av_refill._log_draft_graph_runtime_once(
         proposer, "capture", graph_key=(4, 64), **common)
     cdb_av_refill._log_draft_graph_runtime_once(
+        proposer, "capture", graph_key=(3, 64),
+        phase="decode", request_rows=3, token_rows=3)
+    cdb_av_refill._log_draft_graph_runtime_once(
         proposer, "replay", graph_key=(4, 64), **common)
 
-    assert len(records) == 4
+    assert len(records) == 6
     assert all(fmt == "[CDB_DRAFT_GRAPH_RUNTIME] %s"
                for fmt, _ in records)
     payloads = [payload for _, payload in records]
     assert [payload["action"] for payload in payloads] == [
-        "eager", "eager", "capture", "replay"]
-    assert [payload["reason"] for payload in payloads[:2]] == [
-        "ragged_warmup", "draft_graph_disabled"]
+        "eager", "eager", "eager", "capture", "capture", "replay"]
+    assert [payload["reason"] for payload in payloads[:3]] == [
+        "ragged_warmup", "ragged_warmup", "draft_graph_disabled"]
     assert payloads[0]["graph_key"] == [4, 64]
+    assert payloads[1]["graph_key"] == [5, 64, 3, "dynamic4"]
+    assert payloads[3]["graph_key"] == [4, 64]
+    assert payloads[4]["graph_key"] == [3, 64]
     assert all(payload["pid"] > 0 for payload in payloads)
     config = payloads[0]["config"]
     assert config["CDB_AV_DRAFT_DECODE_GRAPH"] == "0"
@@ -238,4 +248,21 @@ def test_draft_graph_runtime_diagnostic_is_bounded_and_reports_runtime_config(
     assert config["CDB_AV_DRAFT_RAGGED_MAX_QUERY"] == "4"
     assert config["CDB_AV_RAGGED_GRAPH_MAX_KEYS"] == "12"
     assert config["CDB_AV_RAGGED_GRAPH_MIN_HITS"] == "8"
-    assert payloads[2]["graph_key"] == [4, 64]
+
+
+def test_draft_graph_runtime_diagnostic_has_hard_record_cap(monkeypatch):
+    proposer = SimpleNamespace()
+    records = []
+    monkeypatch.setattr(
+        cdb_av_refill.logger,
+        "info",
+        lambda fmt, raw: records.append((fmt, json.loads(raw))),
+    )
+
+    for key in range(40):
+        cdb_av_refill._log_draft_graph_runtime_once(
+            proposer, "replay", phase="decode", request_rows=1,
+            token_rows=1, graph_key=(key, 64))
+
+    assert len(records) == 32
+    assert len(proposer._cdb_draft_graph_runtime_seen) == 32
