@@ -160,6 +160,45 @@ has lower Backbone stream time at the same shape, proceed to a separate
 profile-disabled TPS/TTFT/TPOT A/B run. Do not infer a production speedup
 from the profiled samples.
 
+## Unprofiled 512-request Graph A/B
+
+Two dedicated launchers keep Target Full Graph and all CDB-AV settings fixed,
+changing only the Draft Graph switches. Both explicitly set
+`CDB_AV_DRAFT_STAGE_PROFILE=0`:
+
+- Graph ON: `start_draft_graph_on_benchmark_20261109.sh`
+- Graph OFF: `start_draft_graph_off_benchmark_20261109.sh`
+
+For each mode, start the corresponding launcher in one terminal. It uses GPU
+1, port 18084, and the same Qwen3-8B / Qwen3-1.7B models. Run the benchmark
+from a second terminal:
+
+```bash
+ROOT=/home/yypan/CDB-AV
+WT="$ROOT/worktrees/cdb-draft-stage-profile-20261109"
+PY="$ROOT/.venv/bin/python"
+
+"$PY" "$WT/scripts/cdb_av/benchmark_draft_graph_ab_20261109.py" \
+  --label graph_on --port 18084 \
+  --requests 512 --concurrency 16 --max-tokens 128 \
+  --warmup 32 --repeats 3 \
+  --run-prefix cdb_draft_graph_ab_20261109
+```
+
+Stop only that owned foreground service with Ctrl+C, verify port/GPU release,
+then start the Graph-OFF launcher and run the same command with
+`--label graph_off`. Keep the same `--run-prefix`: each repeat uses identical
+request IDs and prompts in both modes. The client performs 32 warmup requests
+and then three independent 512-request runs, saving raw logs and
+`summary.json` under separate `/tmp/cdb_draft_graph_ab_*` directories.
+
+Compare mean output TPS and run-to-run standard deviation first. Also check
+that completion counts and total output tokens are comparable, then inspect
+E2E p50/p95/p99. This non-streaming completion client does not measure TTFT
+or TPOT. For a stronger thermal/order-bias check, repeat the pair in reverse
+order (OFF then ON). Do not mix these clean benchmark numbers with the
+diagnostic timing numbers above.
+
 **Status (2026-11-09):** the user ran the Graph-ON GPU 1 smoke on the
 RTX 4090: 32/32 requests succeeded, 4,096 completion tokens, and 20 timing
 samples were emitted. In replay Decode (8 samples; mean 3.5 request/token
