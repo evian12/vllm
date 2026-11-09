@@ -248,3 +248,19 @@ grep '\[CDB_DRAFT_GRAPH_RUNTIME\]' /tmp/cdb_draft_graph_off_20261109.log
 
 The PID in this record is the process that actually executed the Draft path,
 not the API-server PID inferred from its startup environment.
+
+
+### Fresh runtime-audit smoke launchers
+
+To preserve the original 2026-11-09 benchmark logs, the runtime-audit
+launchers use separate log files:
+
+- Graph OFF: `start_draft_graph_runtime_audit_off_20261109.sh`
+- Graph ON: `start_draft_graph_runtime_audit_on_20261109.sh`
+
+After launching either service, run
+`smoke_draft_stage_profile.py` from a second terminal (32 requests,
+concurrency 4; diagnostic only). Inspect the corresponding
+`/tmp/cdb_draft_graph_runtime_audit_{off,on}_20261109.log` for
+`[CDB_DRAFT_GRAPH_RUNTIME]`. Do not run the 512-request benchmark for this
+configuration audit.
