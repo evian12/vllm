@@ -10,7 +10,7 @@ main() {
   local VLLM="$ROOT/.venv/bin/vllm"
   local MODEL=/disk14T/yypan/models/Qwen3-8B
   local DRAFT=/disk14T/yypan/models/Qwen3-1.7B
-  local LOG=/tmp/cdb_draft_graph_runtime_audit_on_per_key_20261109.log
+  local LOG=/tmp/cdb_draft_graph_runtime_audit_on_cap128_20261109.log
   local USED RC
 
   if [ ! -x "$PY" ] || [ ! -x "$VLLM" ] || [ ! -d "$WT" ]; then
