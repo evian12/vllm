@@ -259,10 +259,10 @@ def test_draft_graph_runtime_diagnostic_has_hard_record_cap(monkeypatch):
         lambda fmt, raw: records.append((fmt, json.loads(raw))),
     )
 
-    for key in range(40):
+    for key in range(140):
         cdb_av_refill._log_draft_graph_runtime_once(
             proposer, "replay", phase="decode", request_rows=1,
             token_rows=1, graph_key=(key, 64))
 
-    assert len(records) == 32
-    assert len(proposer._cdb_draft_graph_runtime_seen) == 32
+    assert len(records) == 128
+    assert len(proposer._cdb_draft_graph_runtime_seen) == 128
