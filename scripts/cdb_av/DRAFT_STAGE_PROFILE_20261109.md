@@ -220,3 +220,31 @@ provided by `start_draft_graph_on_benchmark_20261109.sh`,
 `start_draft_graph_off_benchmark_20261109.sh`, and
 `benchmark_draft_graph_ab_20261109.py`. Production-like TPS results remain
 pending.
+
+
+## Draft Graph runtime action audit
+
+The bounded `[CDB_DRAFT_GRAPH_RUNTIME]` record is emitted from the actual
+Draft forward path, independently of the Stage Profiler and
+`CDB_AV_TRACE_GRAPH`. It includes the executing PID, the process-local
+Draft Graph environment values, request/token rows, candidate Graph key,
+phase, action, and (for Eager) the fallback reason.
+
+The logger emits once per distinct `(action, reason)` per proposer lifetime;
+it adds no CUDA events, synchronization, or model forwards.
+
+- Graph OFF should report `action=eager, reason=draft_graph_disabled`.
+- Graph ON should eventually report `action=capture` followed by
+  `action=replay` for an eligible key.
+- Eager records while Graph ON are expected for `phase_ineligible`,
+  `ragged_warmup`, `ragged_shape_ineligible`, `ragged_key_limit`, or
+  `ragged_graph_disabled`; inspect the recorded candidate key and phase.
+
+For a smoke-test log:
+
+```bash
+grep '\[CDB_DRAFT_GRAPH_RUNTIME\]' /tmp/cdb_draft_graph_off_20261109.log
+```
+
+The PID in this record is the process that actually executed the Draft path,
+not the API-server PID inferred from its startup environment.
