@@ -13,6 +13,7 @@ from vllm.config import CUDAGraphMode
 from vllm.forward_context import set_forward_context
 from vllm.logger import init_logger
 from vllm.v1.attention.backend import CommonAttentionMetadata
+from vllm.v1.spec_decode.cdb_av_draft_stage_profile import get_draft_stage_profiler
 from vllm.v1.spec_decode.cdb_av_fingerprint import token_fingerprint
 from vllm.v1.spec_decode.cdb_av_acceptance import should_stop
 from vllm.v1.spec_decode.cdb_av_config import (
@@ -113,6 +114,9 @@ class RefillSession:
         self.forward_count = 0
         self.row_sum = 0
         self.ready_records = []
+        self._draft_stage_profiler = get_draft_stage_profiler(proposer)
+        self._draft_stage_pending = None
+        self._draft_stage_metadata_ms = 0.0
         self.graph_query_bound = get_ragged_graph_query_bound()
         self.builder = proposer.attn_metadata_builder or proposer._get_attention_metadata_builder()
         validate_ragged_graph_backend(self.graph_query_bound, self.builder)
@@ -141,18 +145,24 @@ class RefillSession:
         emit('window_begin', window=window, H=horizon, contexts=contexts)
 
     def _metadata(self, blocks, seqs, qlens, slots):
+        profiler = self._draft_stage_profiler
+        tick = (time.perf_counter() if profiler is not None
+                and profiler.has_capacity else None)
         dev = self.p.device
         width = max(len(b) for b in blocks)
         bt = torch.zeros((len(blocks), width), dtype=torch.int32, device=dev)
         for i, row in enumerate(blocks):
             bt[i, :len(row)] = torch.tensor(row, dtype=torch.int32, device=dev)
         qcpu = torch.tensor([0] + list(torch.tensor(qlens).cumsum(0).tolist()), dtype=torch.int32)
-        return CommonAttentionMetadata(query_start_loc=qcpu.to(dev), query_start_loc_cpu=qcpu,
+        result = CommonAttentionMetadata(query_start_loc=qcpu.to(dev), query_start_loc_cpu=qcpu,
             seq_lens=torch.tensor(seqs, dtype=torch.int32, device=dev),
             num_reqs=len(blocks), num_actual_tokens=sum(qlens), max_query_len=max(qlens),
             max_seq_len=max(seqs), block_table_tensor=bt,
             slot_mapping=torch.tensor(slots, dtype=torch.int64, device=dev), causal=True,
             _seq_lens_cpu=None, _num_computed_tokens_cpu=None)
+        if tick is not None:
+            self._draft_stage_metadata_ms = (time.perf_counter() - tick) * 1000
+        return result
 
     def _decode_graph_key(self, cad, n):
         """Only one-token-per-request rows are eligible for the Draft graph."""
@@ -224,7 +234,7 @@ class RefillSession:
                 ('decode', 'mixed_prefill_decode', 'mixed_prefill'))
 
     def _decode_graph_forward(self, cad, n, key, phase='decode',
-                              last_indices=None):
+                              last_indices=None, profile=None):
         """Replay a Draft-only graph with persistent, request-independent buffers.
 
         The graph stores pointers to these buffers, never request-specific KV
@@ -279,6 +289,8 @@ class RefillSession:
         else:
             static_cad = entry['cad']
 
+        if profile is not None:
+            profile.start('metadata')
         dynamic_layout = len(key) == 4
         if dynamic_layout:
             # FlashAttention reads GPU query offsets at replay time. The key
@@ -291,6 +303,8 @@ class RefillSession:
         static_cad.block_table_tensor[:, :width].copy_(cad.block_table_tensor)
         static_cad.seq_lens.copy_(cad.seq_lens)
         static_cad.slot_mapping.copy_(cad.slot_mapping)
+        if profile is not None:
+            profile.end('metadata')
 
         if key not in cache:
             # Capture only after all live metadata and input buffers are valid.
@@ -313,7 +327,11 @@ class RefillSession:
             action = 'capture'
         else:
             action = 'replay'
+        if profile is not None:
+            profile.start('backbone')
         entry['graph'].replay()
+        if profile is not None:
+            profile.end('backbone')
         if os.getenv('CDB_AV_TRACE_GRAPH', '0') == '1':
             logger.info('[CDB_DRAFT_GRAPH] %s', json.dumps(dict(
                 action=action, phase=phase, rows=n, seq_bucket=key[1],
@@ -329,7 +347,11 @@ class RefillSession:
         if len(key) >= 3:
             hidden = hidden[last_indices if dynamic_layout
                             else entry['last_indices']]
+        if profile is not None:
+            profile.start('logits')
         logits = p.model.compute_logits(hidden)
+        if profile is not None:
+            profile.end('logits')
         if os.getenv('CDB_AV_DRAFT_GRAPH_VALIDATE', '0') == '1':
             # Diagnostic only. The eager replay writes the same owned slots;
             # compare them before allowing a later Draft step to observe them.
@@ -449,19 +471,58 @@ class RefillSession:
                         captured = sum(len(key) >= 3 for key in cache)
                         if captured >= limit or hits[graph_key] < min_hits:
                             graph_key = None
+        sample = None
+        profiler = self._draft_stage_profiler
+        if profiler is not None and profiler.has_capacity:
+            if graph_key is None:
+                graph_action = 'eager'
+            else:
+                cache = getattr(p, '_cdb_decode_graphs', {})
+                if (graph_key in cache and
+                        getattr(p, '_cdb_decode_graph_storage', None)
+                        == self._decode_graph_storage()):
+                    graph_action = 'replay'
+                else:
+                    graph_action = 'capture'
+            # Capture includes synchronization and is not a steady-state sample.
+            if graph_action != 'capture':
+                sample = profiler.begin(
+                    window=self.window, step=self.steps_completed + 1,
+                    phase=phase, request_rows=len(req_ids), token_rows=n,
+                    graph_action=graph_action, graph_key=graph_key,
+                    metadata_pack_cpu_ms=self._draft_stage_metadata_ms)
+        self._draft_stage_metadata_ms = 0.0
         if graph_key is not None:
             logits = self._decode_graph_forward(
                 cad, n, graph_key, phase=phase,
-                last_indices=last_indices)
+                last_indices=last_indices, profile=sample)
         else:
+            if sample is not None:
+                sample.start('metadata')
             metadata = self.builder.build_for_drafting(cad, draft_index=0)
             per_layer = {name: metadata for name in p.attn_layer_names}
+            if sample is not None:
+                sample.end('metadata')
+                sample.start('backbone')
             with set_forward_context(per_layer, p.vllm_config, num_tokens=n,
                     cudagraph_runtime_mode=CUDAGraphMode.NONE,
                     slot_mapping=p._get_slot_mapping(n, cad.slot_mapping)):
                 ret = p.model(input_ids=p.input_ids[:n], positions=p._get_positions(n), inputs_embeds=None)
+            if sample is not None:
+                sample.end('backbone')
             hidden = ret[0] if p.model_returns_tuple() else ret
+            if sample is not None:
+                sample.start('logits')
             logits = None if last_indices is None else p.model.compute_logits(hidden[last_indices])
+            if sample is not None:
+                sample.end('logits')
+        if sample is not None:
+            if logits is None or phase == 'audit_replay':
+                sample.finish()
+            else:
+                if self._draft_stage_pending is not None:
+                    raise RuntimeError('Draft stage profile pending sample overwritten')
+                self._draft_stage_pending = sample
         self.forward_count += 1
         self.row_sum += len(req_ids)
         if os.getenv('CDB_AV_VALIDATE_METADATA') == '1':
@@ -663,6 +724,8 @@ class RefillSession:
 
         self.steps_completed += 1
         completed = []
+        sample = self._draft_stage_pending
+        update_cpu_start = None
         if logits is not None:
             if logits.ndim != 2 or logits.shape[0] != len(worked):
                 raise RuntimeError('Draft logits/request alignment mismatch')
@@ -678,6 +741,8 @@ class RefillSession:
                 ))
             )
             if need_confidence:
+                if sample is not None:
+                    sample.start('confidence_gpu')
                 # The confidence of the greedy token is exp(max(logits) -
                 # logsumexp(logits)). Avoid materializing a full log_softmax
                 # tensor for every vocabulary row.
@@ -688,18 +753,33 @@ class RefillSession:
                 # Pack the small per-request result before D2H. A single
                 # synchronization is cheaper than separately materializing
                 # confidence.cpu().tolist() and tokens.tolist().
-                packed = torch.stack(
+                packed_gpu = torch.stack(
                     (tokens.to(torch.float64), confidence.to(torch.float64)),
                     dim=1,
-                ).cpu().tolist()
+                )
+                if sample is not None:
+                    sample.end('confidence_gpu')
+                    d2h_start = time.perf_counter()
+                packed = packed_gpu.cpu().tolist()
+                if sample is not None:
+                    sample.cpu_span('d2h_wait_cpu_ms', d2h_start)
                 token_values = [int(row[0]) for row in packed]
                 confidence_values = [float(row[1]) for row in packed]
                 stops = confidence_stop_flags(confidence_values, self.threshold)
             else:
+                if sample is not None:
+                    sample.start('confidence_gpu')
                 tokens = logits.argmax(-1)
+                if sample is not None:
+                    sample.end('confidence_gpu')
+                    d2h_start = time.perf_counter()
                 token_values = tokens.tolist()
+                if sample is not None:
+                    sample.cpu_span('d2h_wait_cpu_ms', d2h_start)
                 stops = [False] * len(worked)
 
+            if sample is not None:
+                update_cpu_start = time.perf_counter()
             k_caps = {}
             k_actual = {}
             stop_reasons = {}
@@ -779,7 +859,7 @@ class RefillSession:
                 and not getattr(self, 'supports_carry', False)
                 and os.getenv('CDB_P1_VIRTUAL_H', '0') != '1'):
             raise RuntimeError('H exhausted with unfinished admitted work')
-        return dict(
+        result = dict(
             pending=True, done=False, window=self.window,
             steps_completed=self.steps_completed,
             active_req_ids=list(self.active),
@@ -788,6 +868,12 @@ class RefillSession:
             progress={r: m['progress'] for r, m in self.members.items()},
             slots=self.capacity - len(self.active),
             remaining_steps=self.horizon - self.steps_completed)
+        if sample is not None:
+            if update_cpu_start is not None:
+                sample.cpu_span('batch_update_cpu_ms', update_cpu_start)
+            sample.finish()
+            self._draft_stage_pending = None
+        return result
 
     def resume_virtual_h(self):
         """Continue Draft in the same session; NO Target execution in between.
