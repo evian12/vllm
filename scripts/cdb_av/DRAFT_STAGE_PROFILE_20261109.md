@@ -89,10 +89,19 @@ cd /home/yypan/CDB-AV/worktrees/cdb-draft-stage-profile-20261109
 bash scripts/cdb_av/start_draft_stage_profile_20261109.sh
 ```
 
-Send 4-32 identical short greedy requests with max_tokens=128, or reuse the
-previous 32-request CDB stress client. Check that 1..20 valid timing records
-appear, with both eager and replay records *if* Graph keys are warmed. No
-errors, all requests complete, and probe never records a Graph Capture.
+Run the checked-in diagnostic client, then summarize its log:
+
+```bash
+cd /home/yypan/CDB-AV/worktrees/cdb-draft-stage-profile-20261109
+/home/yypan/CDB-AV/.venv/bin/python scripts/cdb_av/smoke_draft_stage_profile.py
+/home/yypan/CDB-AV/.venv/bin/python scripts/cdb_av/analyze_draft_stage_profile.py \
+  /tmp/cdb_draft_stage_profile_20261109.log
+```
+
+The client sends 32 identical greedy prompts, concurrency4 and output128.
+Check that 1..20 valid timing records appear, with both eager and replay
+records *if* Graph keys are warmed. No errors, all requests complete, and
+probe never records a Graph Capture.
 Then stop the owned foreground service via Ctrl+C and verify GPU/port release.
 
 **Status:** implementation and CPU-unit-test files committed. Local GPU and
