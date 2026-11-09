@@ -160,6 +160,13 @@ has lower Backbone stream time at the same shape, proceed to a separate
 profile-disabled TPS/TTFT/TPOT A/B run. Do not infer a production speedup
 from the profiled samples.
 
-**Status:** implementation and CPU-unit-test files committed. Local GPU and
-CPU test results are pending execution on the user's 4090 server; do not
-claim a GPU pass based on static code inspection.
+**Status (2026-11-09):** the user ran the Graph-ON GPU 1 smoke on the
+RTX 4090: 32/32 requests succeeded, 4,096 completion tokens, and 20 timing
+samples were emitted. In replay Decode (8 samples; mean 3.5 request/token
+rows), `pre_d2h_gpu_wait_cpu_ms` averaged 4.432 ms and
+`d2h_materialize_cpu_ms` averaged 0.0399 ms. This confirms the host wait is
+for outstanding GPU work, not a costly D2H materialization. The 24.192 s
+smoke wall time is diagnostic only, not production TPS. CPU pytest output has
+not yet been supplied. The matched-shape Draft Graph-OFF control is now
+provided by `start_draft_stage_profile_eager_20261109.sh`; its run remains
+pending.
