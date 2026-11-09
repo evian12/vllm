@@ -232,7 +232,7 @@ phase, action, and (for Eager) the fallback reason.
 
 The logger emits once per distinct
 `(action, reason, phase, request_rows, token_rows, graph_key)` per proposer
-lifetime, with a hard cap of 32 records per proposer. This preserves
+lifetime, with a hard cap of 128 records per proposer. This preserves
 per-shape Capture/Replay evidence without unbounded log volume. It adds no
 CUDA events, synchronization, or model forwards.
 
@@ -264,7 +264,7 @@ launchers use separate log files:
 - Graph OFF: `start_draft_graph_runtime_audit_off_20261109.sh`
 - Graph ON: `start_draft_graph_runtime_audit_on_20261109.sh`
   (the per-key rerun writes
-  `/tmp/cdb_draft_graph_runtime_audit_on_per_key_20261109.log`).
+  `/tmp/cdb_draft_graph_runtime_audit_on_cap128_20261109.log`).
 
 After launching either service, run
 `smoke_draft_stage_profile.py` from a second terminal (32 requests,
