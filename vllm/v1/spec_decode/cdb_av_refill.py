@@ -103,13 +103,18 @@ def _log_draft_graph_runtime_once(
     proposer, action, *, phase, request_rows, token_rows,
     graph_key=None, reason=None,
 ):
-    """Log each bounded Draft Graph action/reason once per proposer process."""
+    """Log each Draft Graph action/shape once, capped at 32 records per process."""
     seen = getattr(proposer, '_cdb_draft_graph_runtime_seen', None)
     if seen is None:
         seen = set()
         proposer._cdb_draft_graph_runtime_seen = seen
-    log_key = (action, reason)
-    if log_key in seen:
+    # Keep enough detail to distinguish graph keys while bounding log volume.
+    # Include the phase and live shape because the same key/action can be used
+    # by different forward phases or request layouts.
+    graph_key_id = (json.dumps(graph_key, sort_keys=True)
+                    if graph_key is not None else None)
+    log_key = (action, reason, phase, request_rows, token_rows, graph_key_id)
+    if log_key in seen or len(seen) >= 32:
         return
     seen.add(log_key)
 
