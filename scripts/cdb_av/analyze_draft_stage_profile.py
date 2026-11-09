@@ -115,7 +115,7 @@ def summary(records):
 
 def main(argv):
     if len(argv) != 2:
-        print(f"Usage: {argv[0]} /tmp/cdb_draft_stage_profile_20261109.log")
+        print(f"Usage: {argv[0]} /tmp/cdb_draft_stage_profile_split_20261109.log")
         return 2
     path = Path(argv[1])
     if not path.is_file():
