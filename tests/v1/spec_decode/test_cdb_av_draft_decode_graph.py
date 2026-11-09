@@ -6,6 +6,7 @@ from types import SimpleNamespace
 import pytest
 import torch
 
+from vllm.v1.spec_decode import cdb_av_refill
 from vllm.v1.spec_decode.cdb_av_refill import RefillSession
 
 
@@ -183,3 +184,56 @@ def test_q4_graph_rejects_inconsistent_shadow_metadata():
 def test_static_query_bound_rejects_invalid_capture(key, qlens):
     with pytest.raises(ValueError):
         RefillSession._graph_static_query_bound(key, qlens)
+
+
+
+def test_draft_graph_runtime_diagnostic_is_bounded_and_reports_runtime_config(
+    monkeypatch,
+):
+    proposer = SimpleNamespace()
+    records = []
+    monkeypatch.setenv('CDB_AV_DRAFT_DECODE_GRAPH', '0')
+    monkeypatch.setenv('CDB_AV_DRAFT_RAGGED_GRAPH', '1')
+    monkeypatch.setenv('CDB_AV_DRAFT_RAGGED_DYNAMIC', '1')
+    monkeypatch.setenv('CDB_AV_DRAFT_RAGGED_MAX_QUERY', '4')
+    monkeypatch.setenv('CDB_AV_RAGGED_GRAPH_MAX_KEYS', '12')
+    monkeypatch.setenv('CDB_AV_RAGGED_GRAPH_MIN_HITS', '8')
+    monkeypatch.setattr(
+        cdb_av_refill.logger, 'info',
+        lambda fmt, raw: records.append((fmt, json.loads(raw))),
+    )
+
+    common = dict(phase='decode', request_rows=4, token_rows=4)
+    cdb_av_refill._log_draft_graph_runtime_once(
+        proposer, 'eager', reason='phase_ineligible', **common)
+    cdb_av_refill._log_draft_graph_runtime_once(
+        proposer, 'eager', reason='phase_ineligible', **common)
+    cdb_av_refill._log_draft_graph_runtime_once(
+        proposer, 'eager', reason='draft_graph_disabled', **common)
+    cdb_av_refill._log_draft_graph_runtime_once(
+        proposer, 'capture', graph_key=(4, 64), **common)
+    cdb_av_refill._log_draft_graph_runtime_once(
+        proposer, 'capture', graph_key=(4, 64), **common)
+    cdb_av_refill._log_draft_graph_runtime_once(
+        proposer, 'replay', graph_key=(4, 64), **common)
+
+    assert [fmt for fmt, _ in records] == [
+        '[CDB_DRAFT_GRAPH_RUNTIME] %s',
+        '[CDB_DRAFT_GRAPH_RUNTIME] %s',
+        '[CDB_DRAFT_GRAPH_RUNTIME] %s',
+        '[CDB_DRAFT_GRAPH_RUNTIME] %s',
+    ]
+    payloads = [payload for _, payload in records]
+    assert [payload['action'] for payload in payloads] == [
+        'eager', 'eager', 'capture', 'replay']
+    assert [payload['reason'] for payload in payloads[:2]] == [
+        'phase_ineligible', 'draft_graph_disabled']
+    assert all(payload['pid'] > 0 for payload in payloads)
+    config = payloads[0]['config']
+    assert config['CDB_AV_DRAFT_DECODE_GRAPH'] == '0'
+    assert config['CDB_AV_DRAFT_RAGGED_GRAPH'] == '1'
+    assert config['CDB_AV_DRAFT_RAGGED_DYNAMIC'] == '1'
+    assert config['CDB_AV_DRAFT_RAGGED_MAX_QUERY'] == '4'
+    assert config['CDB_AV_RAGGED_GRAPH_MAX_KEYS'] == '12'
+    assert config['CDB_AV_RAGGED_GRAPH_MIN_HITS'] == '8'
+    assert payloads[2]['graph_key'] == [4, 64]
