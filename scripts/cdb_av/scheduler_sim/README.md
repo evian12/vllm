@@ -25,6 +25,28 @@ The event-driven policies do not receive a window H. The simulator records the r
 | pressure | Compare expected useful Draft/Verify work per estimated millisecond, adjusted by Ready backlog and age. Includes a consecutive-Verify guard. |
 | lookahead | Evaluate each legal first action using short rollouts controlled by the queue-pressure policy. |
 
+### Queue-pressure decision
+
+For the currently active Draft batch and the FIFO Verify batch that fits the Target capacity:
+
+- Draft rate: sum of each active request's next-position conditional acceptance probability divided by estimated Draft duration.
+- Verify rate: sum of each Ready request's expected accepted-prefix-plus-correction/bonus tokens divided by estimated Verify duration.
+- Verify score multiplies Verify rate by a Ready-backlog factor and adds normalized oldest-Ready age.
+- Draft score multiplies Draft rate by a Draft-Eligible supply factor.
+- Verify is selected when its score is at least the Draft score. An oldest-Ready wait-budget guard and a consecutive-Verify guard provide additional starvation protection.
+
+The exact weights are exposed in QueuePressurePolicy. They are heuristic parameters to be swept in simulation, not analytically optimal constants.
+
+### Lookahead decision
+
+For each legal first action, LookaheadPolicy clones the current state, executes that action, and rolls forward for a bounded number of additional Forwards using QueuePressurePolicy. It compares:
+
+```
+(committed_tokens + discount * terminal_candidate_potential) / elapsed_simulated_ms
+```
+
+The rollout is an approximate model-predictive heuristic, not an exact solution of the SMDP Bellman equation.
+
 ## Run
 
 From the repository root:
