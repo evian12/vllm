@@ -70,6 +70,8 @@ def summary(records):
         ("logits_stream_ms", lambda r: _measurement(r, "logits", "stream_span_ms")),
         ("confidence_gpu_cpu_enqueue_ms", lambda r: _measurement(r, "confidence_gpu", "cpu_enqueue_ms")),
         ("confidence_gpu_stream_ms", lambda r: _measurement(r, "confidence_gpu", "stream_span_ms")),
+        ("pre_d2h_gpu_wait_cpu_ms", lambda r: r["measurements"].get("pre_d2h_gpu_wait_cpu_ms")),
+        ("d2h_materialize_cpu_ms", lambda r: r["measurements"].get("d2h_materialize_cpu_ms")),
         ("d2h_wait_cpu_ms", lambda r: r["measurements"].get("d2h_wait_cpu_ms")),
         ("batch_update_cpu_ms", lambda r: r["measurements"].get("batch_update_cpu_ms")),
     )
@@ -101,6 +103,8 @@ def summary(records):
                     x, "confidence_gpu", "cpu_enqueue_ms"),
                 "confidence_gpu_stream_ms": _measurement(
                     x, "confidence_gpu", "stream_span_ms"),
+                "pre_d2h_gpu_wait_cpu_ms": x["measurements"].get("pre_d2h_gpu_wait_cpu_ms"),
+                "d2h_materialize_cpu_ms": x["measurements"].get("d2h_materialize_cpu_ms"),
                 "d2h_wait_cpu_ms": x["measurements"].get("d2h_wait_cpu_ms"),
             }
             for x in items
