@@ -103,7 +103,7 @@ def _log_draft_graph_runtime_once(
     proposer, action, *, phase, request_rows, token_rows,
     graph_key=None, reason=None,
 ):
-    """Log each Draft Graph action/shape once, capped at 32 records per process."""
+    """Log each Draft Graph action/shape once, capped at 128 records per process."""
     seen = getattr(proposer, '_cdb_draft_graph_runtime_seen', None)
     if seen is None:
         seen = set()
@@ -114,7 +114,7 @@ def _log_draft_graph_runtime_once(
     graph_key_id = (json.dumps(graph_key, sort_keys=True)
                     if graph_key is not None else None)
     log_key = (action, reason, phase, request_rows, token_rows, graph_key_id)
-    if log_key in seen or len(seen) >= 32:
+    if log_key in seen or len(seen) >= 128:
         return
     seen.add(log_key)
 
