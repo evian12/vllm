@@ -105,7 +105,7 @@ Run the checked-in diagnostic client, then summarize its log:
 cd /home/yypan/CDB-AV/worktrees/cdb-draft-stage-profile-20261109
 /home/yypan/CDB-AV/.venv/bin/python scripts/cdb_av/smoke_draft_stage_profile.py
 /home/yypan/CDB-AV/.venv/bin/python scripts/cdb_av/analyze_draft_stage_profile.py \
-  /tmp/cdb_draft_stage_profile_20261109.log
+  /tmp/cdb_draft_stage_profile_split_20261109.log
 ```
 
 The client sends 32 identical greedy prompts, concurrency4 and output128.
