@@ -8,6 +8,7 @@ opt-in bound while the exact-maximum mode remains available.
 import os
 import json
 import weakref
+import time
 from collections import Counter
 from dataclasses import replace
 
@@ -68,6 +69,24 @@ def graph_key(meta, starts, *, n, capacity, max_query, max_model_len,
     query_max = max_query if dynamic and meta.max_query_len > 1 else meta.max_query_len
     return (n, nr, query_max, bucket, meta.block_table.shape[1],
             meta.max_num_splits, 'bounded' if dynamic else 'exact')
+
+
+
+
+def target_graph_timing_config(env=None):
+    """Parse bounded diagnostic timing settings without touching CUDA."""
+    env = os.environ if env is None else env
+    enabled = env.get('CDB_AV_TARGET_GRAPH_TIMING', '0') == '1'
+    validate = env.get('CDB_AV_TARGET_GRAPH_VALIDATE', '0') == '1'
+    try:
+        max_samples = int(env.get('CDB_AV_TARGET_GRAPH_TIMING_MAX_SAMPLES', '5'))
+    except (TypeError, ValueError) as exc:
+        raise ValueError('Invalid Target Graph timing sample limit') from exc
+    if not 1 <= max_samples <= 32:
+        raise ValueError('Target Graph timing sample limit must be in [1, 32]')
+    if enabled and not validate:
+        raise ValueError('Target Graph timing requires CDB_AV_TARGET_GRAPH_VALIDATE=1')
+    return enabled, max_samples
 
 
 def metadata_has_no_planner(meta):
@@ -148,6 +167,9 @@ class TargetFullGraph:
             raise ValueError('Invalid Target Graph cache budget/frequency')
         self.cache, self.hits, self.counts = {}, Counter(), Counter()
         self.storage = None
+        self.timing_enabled, self.timing_max_samples = target_graph_timing_config()
+        self.timing_samples = 0
+        self.timing_limit_logged = False
 
     def _storage(self):
         context = self.r.vllm_config.compilation_config.static_forward_context
@@ -268,11 +290,21 @@ class TargetFullGraph:
                      query_lengths=[b-a for a,b in zip(starts, starts[1:])], padding=0)
         result = entry['hidden']
         if os.getenv('CDB_AV_TARGET_GRAPH_VALIDATE', '0') == '1':
-            result = entry['hidden'].clone()
-            self._validate(entry, live, caches, model, metas, slots,
-                           input_ids, positions, starts, req_ids, key, action)
-            # The normal route follows native graph output lifetime; diagnostic
-            # eager calls cannot alter the saved result returned to sampling.
+            if (self.timing_enabled
+                    and self.timing_samples >= self.timing_max_samples):
+                # Timing mode bounds both measurements and diagnostic eager
+                # forwards. The normal Target Graph result is used afterward.
+                if not self.timing_limit_logged:
+                    logger.info('[CDB_TARGET_GRAPH_TIMING_LIMIT] %s', json.dumps(dict(
+                        samples=self.timing_samples,
+                        sample_limit=self.timing_max_samples)))
+                    self.timing_limit_logged = True
+            else:
+                result = entry['hidden'].clone()
+                self._validate(entry, live, caches, model, metas, slots,
+                               input_ids, positions, starts, req_ids, key, action)
+                # The normal route follows native graph output lifetime; diagnostic
+                # eager calls cannot alter the saved result returned to sampling.
         return result
 
     def _validate(self, entry, live, caches, model, metas, slots,
@@ -298,15 +330,72 @@ class TargetFullGraph:
         block = live.slot_mapping.div(bs, rounding_mode='floor')
         offset = live.slot_mapping.remainder(bs)
         saved = {name: kv[:, block, offset].contiguous().clone() for name,kv in caches.items()}
-        graph_logits = self.r.model.compute_logits(entry['hidden']).clone()
+        timing = None
+        sample_index = None
+        if self.timing_enabled:
+            self.timing_samples += 1
+            sample_index = self.timing_samples
+            # Diagnostic only: event spans include host submission gaps and are
+            # not a CUPTI sum of active Kernel times.
+            timing = {}
+
+            def measured(fn):
+                begin = torch.cuda.Event(enable_timing=True)
+                end = torch.cuda.Event(enable_timing=True)
+                begin.record()
+                cpu_begin = time.perf_counter()
+                output = fn()
+                cpu_ms = (time.perf_counter() - cpu_begin) * 1000
+                end.record()
+                end.synchronize()
+                return output, dict(cpu_enqueue_ms=cpu_ms,
+                                    stream_span_ms=begin.elapsed_time(end))
+
+            cpu_begin = time.perf_counter()
+            self._storage()
+            timing['storage_audit_cpu_ms'] = (time.perf_counter() - cpu_begin) * 1000
+
+            def refresh_inputs():
+                update_metadata(entry['meta'], live,
+                    mixed_bound=self.max_query if self.dynamic else None)
+                entry['ids'].copy_(ids)
+                entry['positions'].copy_(pos)
+
+            _, timing['six_buffer_copies'] = measured(refresh_inputs)
+            before_hidden = entry['hidden'].clone()
+            _, timing['graph_replay'] = measured(entry['graph'].replay)
+            if (not torch.equal(before_hidden.view(torch.uint8), entry['hidden'].view(torch.uint8))
+                    or not all(torch.equal(saved[name].view(torch.uint8),
+                        kv[:, block, offset].contiguous().view(torch.uint8))
+                        for name,kv in caches.items())):
+                raise RuntimeError('Timed replay changed Target hidden/KV bytes')
+            live_tensors = dict(input_ids=ids, positions=pos,
+                query_start_loc=live.query_start_loc, seq_lens=live.seq_lens,
+                block_table=live.block_table, slot_mapping=live.slot_mapping)
+            timing['live_storage'] = {name: dict(pointer=tensor.data_ptr(),
+                shape=list(tensor.shape), stride=list(tensor.stride()),
+                dtype=str(tensor.dtype), device=str(tensor.device))
+                for name,tensor in live_tensors.items()}
+
+        if timing is None:
+            graph_logits = self.r.model.compute_logits(entry['hidden']).clone()
+        else:
+            graph_logits, timing['graph_logits'] = measured(
+                lambda: self.r.model.compute_logits(entry['hidden']).clone())
         checks = []
         try:
             for kind, meta, slotmap, x, p in (
                     ('static', {name:entry['meta'] for name in caches},
                      {name:entry['meta'].slot_mapping for name in caches}, entry['ids'],entry['positions']),
                     ('live',metas,slots,ids,pos)):
-                eager = model(meta,slotmap,x,p)
-                logits = self.r.model.compute_logits(eager)
+                if timing is None:
+                    eager = model(meta,slotmap,x,p)
+                    logits = self.r.model.compute_logits(eager)
+                else:
+                    eager, timing[kind + '_eager'] = measured(
+                        lambda: model(meta,slotmap,x,p))
+                    logits, timing[kind + '_logits'] = measured(
+                        lambda: self.r.model.compute_logits(eager))
                 kv_exact = all(torch.equal(saved[name].view(torch.uint8),
                     kv[:,block,offset].contiguous().view(torch.uint8)) for name,kv in caches.items())
                 token_exact = torch.equal(graph_logits.argmax(-1),logits.argmax(-1))
@@ -321,3 +410,13 @@ class TargetFullGraph:
             slot_mapping=actual_slots,layers=list(caches),checks=checks,extra_eager_forwards=2)))
         if not all(c['kv_byte_exact'] and c['token_exact'] and c['logits_close'] for c in checks):
             raise RuntimeError('Target full Graph/static/live eager mismatch')
+        if timing is not None:
+            logger.info('[CDB_TARGET_GRAPH_TIMING] %s', json.dumps(dict(
+                action=action,key=key,req_ids=req_ids,qlens=qlens,
+                actual_max_sequence=max(positions)+1,
+                sample_index=sample_index,
+                sample_limit=self.timing_max_samples,
+                measurements=timing,
+                extra_graph_replays=1,extra_eager_forwards=2,
+                model_scope='Target backbone and LM Head separately; excludes sampling/commit',
+                kv_and_hidden_exact=True)))
