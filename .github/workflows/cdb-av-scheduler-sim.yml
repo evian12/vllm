@@ -1,0 +1,45 @@
+name: CDB-AV scheduler simulator
+
+on:
+  push:
+    branches:
+      - cdb-av/event-driven-scheduler-sim-20261109
+  pull_request:
+    branches:
+      - cdb-av/dev
+    paths:
+      - "scripts/cdb_av/scheduler_sim/**"
+      - "scripts/cdb_av/tests/test_scheduler_sim.py"
+      - ".github/workflows/cdb-av-scheduler-sim.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  cpu-simulator:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Compile simulator and tests
+        run: |
+          python -m compileall -q scripts/cdb_av/scheduler_sim
+          python -m py_compile scripts/cdb_av/tests/test_scheduler_sim.py
+      - name: Run simulator unit tests
+        run: |
+          python -m unittest discover \
+            -s scripts/cdb_av/tests \
+            -p "test_scheduler_sim.py" \
+            -v
+      - name: Run a deterministic CPU smoke comparison
+        run: |
+          python -m scripts.cdb_av.scheduler_sim \
+            --requests 32 \
+            --arrival-rate 30 \
+            --arrival-mode bursty \
+            --policy all \
+            --seed 42 \
+            --lookahead-horizon 3 \
+            --lookahead-rollouts 2

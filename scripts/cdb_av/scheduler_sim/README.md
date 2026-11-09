@@ -1,0 +1,79 @@
+# CDB-AV Event-Driven Scheduler Simulator
+
+This is a CPU-only discrete-event simulator for studying the outer scheduling decision:
+**after each completed Forward, should the single GPU execute another Draft Forward or a Target Verify Forward?**
+
+## Research scope (Phase 1)
+
+- One GPU executes exactly one Forward at a time. Draft and Verify never overlap.
+- Requests are assumed to have completed Target Prefill before becoming Draft Eligible.
+- AR and Target Prefill scheduling are intentionally excluded. They will be added only after the outer Draft/Verify policy is understood.
+- Draft is request-ragged at the simulator level: each active request advances one candidate position per Draft Forward and exits independently at its request cap, confidence stop, or output limit.
+- Verify selects at most max_verify_batch_size Ready requests in FIFO order. Unselected requests remain Ready.
+- A Verify commits the accepted candidate prefix plus one correction/bonus token, capped by the request's remaining output budget.
+- acceptance_probs[j] is the conditional probability that candidate j is accepted given that all earlier candidates were accepted.
+- The confidence abstraction checks the confidence attached to a generated candidate. The candidate is retained, and the request becomes Ready if that confidence is below the threshold. This is a simulation convention, not a claim about the exact Worker implementation.
+
+The event-driven policies do not receive a window H. The simulator records the realized number of Draft Forwards between consecutive Verify Forwards as an output metric. Only fixed_h consumes H.
+
+## Policies
+
+| Policy | Decision |
+|---|---|
+| fixed_h | Fixed-H reference baseline; after H Draft Forwards, execute a Verify batch when Ready work exists. |
+| threshold | Verify when Ready Queue cardinality reaches a threshold, or when Draft cannot run. |
+| pressure | Compare expected useful Draft/Verify work per estimated millisecond, adjusted by Ready backlog and age. Includes a consecutive-Verify guard. |
+| lookahead | Evaluate each legal first action using short rollouts controlled by the queue-pressure policy. |
+
+## Run
+
+From the repository root:
+
+```bash
+python -m scripts.cdb_av.scheduler_sim --requests 128 --arrival-rate 20 --arrival-mode poisson --policy all
+```
+
+Bursty workload and a smaller lookahead run:
+
+```bash
+python -m scripts.cdb_av.scheduler_sim --requests 64 --arrival-rate 30 --arrival-mode bursty --policy all --lookahead-horizon 4 --lookahead-rollouts 2
+```
+
+Save machine-readable results:
+
+```bash
+python -m scripts.cdb_av.scheduler_sim --requests 512 --arrival-rate 50 --policy all --output /tmp/cdb_av_sim.json
+```
+
+## Measured execution profile
+
+Pass a JSON file with any subset of the following non-negative coefficients:
+
+```json
+{
+  "draft_base_ms": 0.6,
+  "draft_per_request_ms": 0.22,
+  "draft_per_context_token_ms": 0.000015,
+  "verify_base_ms": 1.0,
+  "verify_per_request_ms": 0.32,
+  "verify_per_candidate_ms": 0.055,
+  "verify_per_context_token_ms": 0.000012
+}
+```
+
+These values are examples only. For GPU evaluation, fit the coefficients from measured Draft/Verify batch-shape profiles on the target host. Keep the same profile, request trace, and seed across policy comparisons.
+
+## Metrics
+
+The simulator reports committed output tokens/s, first-commit latency, Ready wait, inter-Verify commit-gap (a phase-1 proxy, not full ITL), realized H distribution, batch sizes, slot utilization, GPU busy ratio, and candidate acceptance rate.
+
+## Validation
+
+The simulator uses only the Python standard library. Run:
+
+```bash
+python -m compileall -q scripts/cdb_av/scheduler_sim
+python -m unittest discover -s scripts/cdb_av/tests -p 'test_scheduler_sim.py' -v
+```
+
+No vLLM runtime code, CUDA kernels, KV cache implementation, or GPU settings are modified by this research branch.
