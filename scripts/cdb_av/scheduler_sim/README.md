@@ -65,7 +65,7 @@ These values are examples only. For GPU evaluation, fit the coefficients from me
 
 ## Metrics
 
-The simulator reports committed output tokens/s, first-commit latency, Ready wait, inter-Verify commit-gap (a phase-1 proxy, not full ITL), realized H distribution, batch sizes, slot utilization, GPU busy ratio, and candidate acceptance rate.
+The simulator reports committed output tokens/s, first-commit latency, Ready queue wait sampled at Verify dispatch (excluding Verify service time), inter-Verify commit-gap (a phase-1 proxy, not full ITL), realized H distribution, batch sizes, slot utilization, GPU busy ratio, and candidate acceptance rate.
 
 ## Validation
 
