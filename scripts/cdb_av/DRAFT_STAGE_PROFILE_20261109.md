@@ -60,6 +60,12 @@ there are also `confidence_gpu` (both fields),
   and final active/ready list updates.
 - CUDA stream spans are interval timings (which may include idle gaps);
   **not** kernel-active times or isolated FLOP calculations.
+- The field named `cpu_enqueue_ms` is the wall-clock duration of the Python
+  stage call. It is **not** pure CPU compute or a pure CUDA enqueue duration:
+  eager model calls can include substantial host dispatch and implicit waits,
+  while Graph Replay often returns quickly and leaves GPU work outstanding.
+  The later D2H wait may therefore contain work that eager execution already
+  waited for inside the model call.
 - Sampled calls synchronize their event endpoints in the diagnostic logging;
   TPS/TTFT/TPOT/ITL measured with the profiler enabled are invalid for
   production comparison. Keep it off for Graph ON/OFF performance runs.
