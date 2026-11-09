@@ -290,16 +290,20 @@ class TargetFullGraph:
                      query_lengths=[b-a for a,b in zip(starts, starts[1:])], padding=0)
         result = entry['hidden']
         if os.getenv('CDB_AV_TARGET_GRAPH_VALIDATE', '0') == '1':
-            if (self.timing_enabled and action == 'replay'
-                    and self.timing_samples >= self.timing_max_samples):
-                # Timing mode bounds both measurements and diagnostic eager
-                # forwards. The normal Target Graph result is used afterward.
-                if not self.timing_limit_logged:
-                    logger.info('[CDB_TARGET_GRAPH_TIMING_LIMIT] %s', json.dumps(dict(
-                        samples=self.timing_samples,
-                        sample_limit=self.timing_max_samples)))
-                    self.timing_limit_logged = True
+            if self.timing_enabled:
+                # In timing mode, sample only warmed Graph replays. Capture calls
+                # are not representative of steady-state replay cost.
+                should_validate = (action == 'replay'
+                                   and self.timing_samples < self.timing_max_samples)
+                if not should_validate and self.timing_samples >= self.timing_max_samples:
+                    if not self.timing_limit_logged:
+                        logger.info('[CDB_TARGET_GRAPH_TIMING_LIMIT] %s', json.dumps(dict(
+                            samples=self.timing_samples,
+                            sample_limit=self.timing_max_samples)))
+                        self.timing_limit_logged = True
             else:
+                should_validate = True
+            if should_validate:
                 result = entry['hidden'].clone()
                 self._validate(entry, live, caches, model, metas, slots,
                                input_ids, positions, starts, req_ids, key, action)
