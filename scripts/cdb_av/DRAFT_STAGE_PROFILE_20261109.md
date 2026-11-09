@@ -230,8 +230,11 @@ Draft forward path, independently of the Stage Profiler and
 Draft Graph environment values, request/token rows, candidate Graph key,
 phase, action, and (for Eager) the fallback reason.
 
-The logger emits once per distinct `(action, reason)` per proposer lifetime;
-it adds no CUDA events, synchronization, or model forwards.
+The logger emits once per distinct
+`(action, reason, phase, request_rows, token_rows, graph_key)` per proposer
+lifetime, with a hard cap of 32 records per proposer. This preserves
+per-shape Capture/Replay evidence without unbounded log volume. It adds no
+CUDA events, synchronization, or model forwards.
 
 - Graph OFF should report `action=eager, reason=draft_graph_disabled`.
 - Graph ON should eventually report `action=capture` followed by
@@ -239,6 +242,9 @@ it adds no CUDA events, synchronization, or model forwards.
 - Eager records while Graph ON are expected for `phase_ineligible`,
   `ragged_warmup`, `ragged_shape_ineligible`, `ragged_key_limit`, or
   `ragged_graph_disabled`; inspect the recorded candidate key and phase.
+- Different Graph keys now produce separate bounded records, so a
+  `capture` record for one key and a `replay` record for another no longer
+  hide subsequent per-key actions.
 
 For a smoke-test log:
 
