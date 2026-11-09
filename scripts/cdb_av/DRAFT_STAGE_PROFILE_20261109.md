@@ -120,6 +120,46 @@ records *if* Graph keys are warmed. No errors, all requests complete, and
 probe never records a Graph Capture.
 Then stop the owned foreground service via Ctrl+C and verify GPU/port release.
 
+## Matched Decode Graph ON/OFF control
+
+The initial Graph-ON run samples mostly replay Decode, while eager samples
+include mixed Prefill. Those are different token-row workloads and must not
+be compared directly. Use a second fresh service with only Draft graphs
+disabled; Target Full Graph remains enabled.
+
+After stopping the owned Graph-ON service and confirming port 18084/GPU 1 are
+free, update the worktree to the latest branch and run:
+
+```bash
+cd /home/yypan/CDB-AV/worktrees/cdb-draft-stage-profile-20261109
+git fetch myfork codex/cdb-draft-stage-profile-20261109
+git merge --ff-only FETCH_HEAD
+bash scripts/cdb_av/start_draft_stage_profile_eager_20261109.sh
+```
+
+The Graph-OFF run writes
+`/tmp/cdb_draft_stage_profile_eager_20261109.log`. Run the same smoke client:
+
+```bash
+/home/yypan/CDB-AV/.venv/bin/python scripts/cdb_av/smoke_draft_stage_profile.py
+```
+
+Then, after stopping the owned Graph-OFF service, compare only identical
+Decode shapes (request rows and token rows), excluding mixed Prefill:
+
+```bash
+PY=/home/yypan/CDB-AV/.venv/bin/python
+$PY scripts/cdb_av/compare_draft_decode_graph_profile.py \
+  /tmp/cdb_draft_stage_profile_split_20261109.log \
+  /tmp/cdb_draft_stage_profile_eager_20261109.log
+```
+
+The comparison reports medians for matched shapes. It is still a diagnostic
+profile, not a production throughput comparison. If the Graph-ON Decode path
+has lower Backbone stream time at the same shape, proceed to a separate
+profile-disabled TPS/TTFT/TPOT A/B run. Do not infer a production speedup
+from the profiled samples.
+
 **Status:** implementation and CPU-unit-test files committed. Local GPU and
 CPU test results are pending execution on the user's 4090 server; do not
 claim a GPU pass based on static code inspection.
