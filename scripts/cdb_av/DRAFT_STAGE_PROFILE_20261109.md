@@ -263,6 +263,8 @@ launchers use separate log files:
 
 - Graph OFF: `start_draft_graph_runtime_audit_off_20261109.sh`
 - Graph ON: `start_draft_graph_runtime_audit_on_20261109.sh`
+  (the per-key rerun writes
+  `/tmp/cdb_draft_graph_runtime_audit_on_per_key_20261109.log`).
 
 After launching either service, run
 `smoke_draft_stage_profile.py` from a second terminal (32 requests,
