@@ -187,7 +187,6 @@ def test_static_query_bound_rejects_invalid_capture(key, qlens):
 
 
 
-
 def test_draft_graph_runtime_diagnostic_is_bounded_and_reports_runtime_config(
     monkeypatch,
 ):
@@ -207,9 +206,11 @@ def test_draft_graph_runtime_diagnostic_is_bounded_and_reports_runtime_config(
 
     common = dict(phase="decode", request_rows=4, token_rows=4)
     cdb_av_refill._log_draft_graph_runtime_once(
-        proposer, "eager", reason="phase_ineligible", **common)
+        proposer, "eager", graph_key=(4, 64),
+        reason="ragged_warmup", **common)
     cdb_av_refill._log_draft_graph_runtime_once(
-        proposer, "eager", reason="phase_ineligible", **common)
+        proposer, "eager", graph_key=(4, 64),
+        reason="ragged_warmup", **common)
     cdb_av_refill._log_draft_graph_runtime_once(
         proposer, "eager", reason="draft_graph_disabled", **common)
     cdb_av_refill._log_draft_graph_runtime_once(
@@ -226,7 +227,8 @@ def test_draft_graph_runtime_diagnostic_is_bounded_and_reports_runtime_config(
     assert [payload["action"] for payload in payloads] == [
         "eager", "eager", "capture", "replay"]
     assert [payload["reason"] for payload in payloads[:2]] == [
-        "phase_ineligible", "draft_graph_disabled"]
+        "ragged_warmup", "draft_graph_disabled"]
+    assert payloads[0]["graph_key"] == [4, 64]
     assert all(payload["pid"] > 0 for payload in payloads)
     config = payloads[0]["config"]
     assert config["CDB_AV_DRAFT_DECODE_GRAPH"] == "0"
