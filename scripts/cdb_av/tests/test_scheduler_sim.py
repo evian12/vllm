@@ -74,6 +74,20 @@ class SchedulerSimulatorTests(unittest.TestCase):
         )
         self.assertAlmostEqual(request.expected_verify_tokens(depth=3), 1.875)
 
+    def test_next_candidate_marginal_includes_prior_prefix_survival(self):
+        request = Request(
+            request_id="marginal",
+            arrival_time_ms=0.0,
+            max_output_tokens=8,
+            draft_cap=3,
+            acceptance_probs=(0.5, 0.5, 0.5),
+        )
+        request.draft_depth = 2
+        self.assertAlmostEqual(
+            request.expected_next_candidate_acceptance(),
+            0.125,
+        )
+
     def test_fixed_h_baseline_records_realized_h(self):
         requests = make_requests(
             4,

@@ -119,11 +119,20 @@ class Request:
         )
 
     def expected_next_candidate_acceptance(self) -> float:
+        """Marginal probability that the next candidate extends the accepted prefix."""
         if self.draft_depth >= self.draft_cap:
             return 0.0
         if self.remaining_output_tokens <= self.draft_depth + 1:
             return 0.0
-        return self.conditional_acceptance_probability(self.draft_depth)
+        survival_probability = 1.0
+        for position in range(self.draft_depth):
+            survival_probability *= self.conditional_acceptance_probability(
+                position
+            )
+        return (
+            survival_probability
+            * self.conditional_acceptance_probability(self.draft_depth)
+        )
 
 
 @dataclass(frozen=True, slots=True)

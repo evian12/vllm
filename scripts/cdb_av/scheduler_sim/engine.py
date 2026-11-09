@@ -309,7 +309,7 @@ class Simulator:
         accepted = 0
         for position in range(request.draft_depth):
             probability = request.conditional_acceptance_probability(position)
-            if self.rng.random() <= probability:
+            if self.rng.random() < probability:
                 accepted += 1
             else:
                 break

@@ -35,7 +35,7 @@ For the currently active Draft batch and the FIFO Verify batch that fits the Tar
 - Draft score multiplies Draft rate by a Draft-Eligible supply factor.
 - Verify is selected when its score is at least the Draft score. An oldest-Ready wait-budget guard and a consecutive-Verify guard provide additional starvation protection.
 
-The exact weights are exposed in QueuePressurePolicy. They are heuristic parameters to be swept in simulation, not analytically optimal constants.
+The next-candidate Draft contribution is the unconditional marginal probability: the product of conditional acceptance probabilities through the current depth and the next position's conditional probability. The exact weights are exposed in QueuePressurePolicy. They are heuristic parameters to be swept in simulation, not analytically optimal constants.
 
 ### Lookahead decision
 
