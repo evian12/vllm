@@ -99,6 +99,42 @@ def emit(event, **data):
         logger.info('[CDB_REFILL] %s', json.dumps(dict(event=event, **data)))
 
 
+def _log_draft_graph_runtime_once(
+    proposer, action, *, phase, request_rows, token_rows,
+    graph_key=None, reason=None,
+):
+    """Log each bounded Draft Graph action/reason once per proposer process."""
+    seen = getattr(proposer, '_cdb_draft_graph_runtime_seen', None)
+    if seen is None:
+        seen = set()
+        proposer._cdb_draft_graph_runtime_seen = seen
+    log_key = (action, reason)
+    if log_key in seen:
+        return
+    seen.add(log_key)
+
+    env_defaults = (
+        ('CDB_AV_DRAFT_DECODE_GRAPH', '0'),
+        ('CDB_AV_DRAFT_RAGGED_GRAPH', '0'),
+        ('CDB_AV_DRAFT_RAGGED_DYNAMIC', '0'),
+        ('CDB_AV_DRAFT_RAGGED_MAX_QUERY', '2'),
+        ('CDB_AV_RAGGED_GRAPH_MAX_KEYS', '4'),
+        ('CDB_AV_RAGGED_GRAPH_MIN_HITS', '8'),
+    )
+    config = {name: os.getenv(name, default)
+              for name, default in env_defaults}
+    logger.info('[CDB_DRAFT_GRAPH_RUNTIME] %s', json.dumps(dict(
+        pid=os.getpid(),
+        action=action,
+        phase=phase,
+        request_rows=request_rows,
+        token_rows=token_rows,
+        graph_key=graph_key,
+        reason=reason,
+        config=config,
+    )))
+
+
 class RefillSession:
     def __init__(self, proposer, kwargs):
         self.p = proposer
@@ -327,6 +363,9 @@ class RefillSession:
             action = 'capture'
         else:
             action = 'replay'
+        _log_draft_graph_runtime_once(
+            p, action, phase=phase, request_rows=cad.num_reqs,
+            token_rows=n, graph_key=key)
         if profile is not None:
             profile.start('backbone')
         entry['graph'].replay()
@@ -450,27 +489,49 @@ class RefillSession:
         # Decode and single-query mixed Prefill share the exact-row graph.
         # Small ragged Prefill uses gated static buffers; unsupported rows stay eager.
         graph_key = None
-        if (os.getenv('CDB_AV_DRAFT_DECODE_GRAPH', '0') == '1'
-                and self._graph_phase_eligible(phase, last_indices)):
+        graph_reason = None
+        graph_enabled = os.getenv('CDB_AV_DRAFT_DECODE_GRAPH', '0') == '1'
+        if not graph_enabled:
+            graph_reason = 'draft_graph_disabled'
+        elif not self._graph_phase_eligible(phase, last_indices):
+            graph_reason = 'phase_ineligible'
+        else:
             graph_key = self._decode_graph_key(cad, n)
-            if (graph_key is None
-                    and os.getenv('CDB_AV_DRAFT_RAGGED_GRAPH', '0') == '1'):
-                graph_key = self._mixed_graph_key(
-                    cad, n,
-                    dynamic=os.getenv('CDB_AV_DRAFT_RAGGED_DYNAMIC', '0') == '1',
-                    max_query=self.graph_query_bound)
-                if graph_key is not None:
-                    cache = getattr(p, '_cdb_decode_graphs', {})
-                    if graph_key not in cache:
+            if graph_key is None:
+                ragged_enabled = (
+                    os.getenv('CDB_AV_DRAFT_RAGGED_GRAPH', '0') == '1')
+                if not ragged_enabled:
+                    graph_reason = 'ragged_graph_disabled'
+                else:
+                    graph_key = self._mixed_graph_key(
+                        cad, n,
+                        dynamic=os.getenv(
+                            'CDB_AV_DRAFT_RAGGED_DYNAMIC', '0') == '1',
+                        max_query=self.graph_query_bound)
+                    if graph_key is None:
+                        graph_reason = 'ragged_shape_ineligible'
+                    elif graph_key not in getattr(
+                            p, '_cdb_decode_graphs', {}):
+                        cache = getattr(p, '_cdb_decode_graphs', {})
                         hits = getattr(p, '_cdb_ragged_graph_hits', None)
                         if hits is None:
                             hits = p._cdb_ragged_graph_hits = Counter()
                         hits[graph_key] += 1
-                        limit = int(os.getenv('CDB_AV_RAGGED_GRAPH_MAX_KEYS', '4'))
-                        min_hits = int(os.getenv('CDB_AV_RAGGED_GRAPH_MIN_HITS', '8'))
+                        limit = int(os.getenv(
+                            'CDB_AV_RAGGED_GRAPH_MAX_KEYS', '4'))
+                        min_hits = int(os.getenv(
+                            'CDB_AV_RAGGED_GRAPH_MIN_HITS', '8'))
                         captured = sum(len(key) >= 3 for key in cache)
-                        if captured >= limit or hits[graph_key] < min_hits:
+                        if captured >= limit:
                             graph_key = None
+                            graph_reason = 'ragged_key_limit'
+                        elif hits[graph_key] < min_hits:
+                            graph_key = None
+                            graph_reason = 'ragged_warmup'
+        if graph_key is None:
+            _log_draft_graph_runtime_once(
+                p, 'eager', phase=phase, request_rows=len(req_ids),
+                token_rows=n, reason=graph_reason)
         sample = None
         profiler = self._draft_stage_profiler
         if profiler is not None and profiler.has_capacity:
