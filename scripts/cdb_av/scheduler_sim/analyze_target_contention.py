@@ -25,6 +25,8 @@ METRICS = (
     "prefill_containing_token_budget_utilization_p95",
     "prefill_containing_duration_mean_ms",
     "prefill_containing_duration_p95_ms",
+    "prefill_chunk_budget_truncations",
+    "prefill_chunk_budget_shortfall_tokens",
     "ar_excluded_by_sequence_slots_events",
     "ar_excluded_by_token_budget_events",
     "ar_slot_exclusions_per_100_target_forwards",
@@ -142,6 +144,8 @@ def collect_records(root: Path) -> list[dict[str, Any]]:
             "prefill_containing_token_budget_utilization_p95",
             "prefill_containing_duration_mean_ms",
             "prefill_containing_duration_p95_ms",
+            "prefill_chunk_budget_truncations",
+            "prefill_chunk_budget_shortfall_tokens",
             "ar_excluded_by_sequence_slots_events",
             "ar_excluded_by_token_budget_events",
         ):
@@ -307,8 +311,8 @@ def _write_report(
         "",
         "## Per-run mean ± sample standard deviation",
         "",
-        "| Chunk | Rate | N | TPS | TTFT P95 | AR Wait P95 | Prefill Slot Util. | Prefill Token Util. | AR Slot Exclusions / 100 TF | AR Token Exclusions / 100 TF |",
-        "|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
+        "| Chunk | Rate | N | TPS | TTFT P95 | AR Wait P95 | Prefill Slot Util. | Prefill Token Util. | Chunk Truncations | Chunk Token Shortfall | AR Slot Exclusions / 100 TF | AR Token Exclusions / 100 TF |",
+        "|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
     ]
     def cell(row: dict[str, Any], metric: str, digits: int = 2) -> str:
         return (
@@ -324,6 +328,8 @@ def _write_report(
             f"{cell(row, 'ar_wait_p95_ms')} | "
             f"{cell(row, 'prefill_containing_slot_utilization_mean', 3)} | "
             f"{cell(row, 'prefill_containing_token_budget_utilization_mean', 3)} | "
+            f"{cell(row, 'prefill_chunk_budget_truncations')} | "
+            f"{cell(row, 'prefill_chunk_budget_shortfall_tokens')} | "
             f"{cell(row, 'ar_slot_exclusions_per_100_target_forwards')} | "
             f"{cell(row, 'ar_token_exclusions_per_100_target_forwards')} |"
         )
