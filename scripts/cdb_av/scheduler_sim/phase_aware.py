@@ -401,13 +401,30 @@ class LengthAwareTargetBatcher(_BaseTargetBatcher):
             req for req in simulator.prefill_queue
             if req.prompt_tokens <= self.short_threshold
         ]
-        if len(short) != 1 or not simulator.active_draft:
+        if not short or not simulator.active_draft:
             return False
         if simulator.ready_queue or simulator.ar_queue:
             return False
-        last_service = short[0].prefill_last_scheduled_ms
+
+        def recency(req: PhaseRequest) -> tuple[float, float, str]:
+            last = req.prefill_last_scheduled_ms
+            return (
+                last if last is not None else req.arrival_time_ms,
+                req.arrival_time_ms,
+                req.request_id,
+            )
+
+        oldest = min(short, key=recency)
+        bucket = (oldest.prompt_tokens - 1) // self.bucket_width
+        same_bucket = [
+            req for req in short
+            if (req.prompt_tokens - 1) // self.bucket_width == bucket
+        ]
+        if len(same_bucket) >= 2:
+            return False
+        last_service = oldest.prefill_last_scheduled_ms
         wait_origin = (
-            last_service if last_service is not None else short[0].arrival_time_ms
+            last_service if last_service is not None else oldest.arrival_time_ms
         )
         wait_ms = simulator.now_ms - wait_origin
         return wait_ms < self.adaptive_wait_window_ms(simulator)
