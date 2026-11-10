@@ -526,7 +526,7 @@ class FixedHPhasePolicy:
             return PhaseAction.TARGET
         if actions == [PhaseAction.DRAFT]:
             return PhaseAction.DRAFT
-        if simulator.drafts_since_verify >= self.h:
+        if simulator.ready_queue and simulator.drafts_since_verify >= self.h:
             return PhaseAction.TARGET
         if simulator.oldest_ready_wait_ms() >= simulator.config.ready_wait_budget_ms:
             return PhaseAction.TARGET
