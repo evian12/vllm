@@ -642,6 +642,84 @@ class JointPhasePolicy(QueuePressurePhasePolicy):
         return super().choose_action(simulator)
 
 
+class PhaseLookaheadPolicy:
+    """Short-horizon model-predictive stage selector for the phase-aware model."""
+
+    name = "lookahead"
+
+    def __init__(
+        self,
+        horizon: int = 4,
+        rollouts: int = 2,
+        terminal_discount: float = 0.35,
+        rollout_policy: QueuePressurePhasePolicy | None = None,
+    ) -> None:
+        if horizon < 1 or rollouts < 1:
+            raise ValueError("lookahead horizon and rollouts must be positive")
+        if not 0.0 <= terminal_discount <= 1.0:
+            raise ValueError("terminal_discount must be in [0, 1]")
+        self.horizon = horizon
+        self.rollouts = rollouts
+        self.terminal_discount = terminal_discount
+        self.rollout_policy = rollout_policy or QueuePressurePhasePolicy()
+        self.batcher = self.rollout_policy.batcher
+
+    @staticmethod
+    def _terminal_potential(simulator: PhaseAwareSimulator) -> float:
+        value = sum(req.expected_verify_tokens() for req in simulator.ready_queue)
+        value += float(len(simulator.ar_queue))
+        value += sum(
+            0.15 + 0.85 * req.prefill_progress / max(1, req.prompt_tokens)
+            for req in simulator.prefill_queue
+        )
+        value += sum(
+            0.20 + req.expected_next_candidate_acceptance()
+            for req in simulator.active_draft
+        )
+        return value
+
+    def choose_action(self, simulator: PhaseAwareSimulator) -> PhaseAction:
+        actions = simulator.available_actions()
+        if len(actions) == 1:
+            return actions[0]
+
+        scores: dict[PhaseAction, float] = {}
+        for action in actions:
+            rollout_scores: list[float] = []
+            for rollout_index in range(self.rollouts):
+                clone = simulator.clone()
+                clone.policy = self.rollout_policy
+                clone.rng.seed(
+                    simulator.config.seed
+                    + simulator.decision_count * 1009
+                    + rollout_index
+                )
+                start_ms = clone.now_ms
+                start_output = clone.total_output_tokens
+                clone.execute_action(action)
+                forwards = 1
+
+                while forwards < self.horizon and not clone.is_finished:
+                    clone.refresh()
+                    next_actions = clone.available_actions()
+                    if not next_actions:
+                        if not clone.advance_to_next_arrival():
+                            break
+                        continue
+                    next_action = self.rollout_policy.choose_action(clone)
+                    clone.execute_action(next_action)
+                    forwards += 1
+
+                elapsed = max(clone.now_ms - start_ms, 1e-6)
+                committed = clone.total_output_tokens - start_output
+                terminal = self._terminal_potential(clone)
+                rollout_scores.append(
+                    (committed + self.terminal_discount * terminal) / elapsed
+                )
+            scores[action] = mean(rollout_scores)
+        return max(scores, key=scores.get)
+
+
 @dataclass(frozen=True, slots=True)
 class _StepMetrics:
     prefill_wait_ms: float
