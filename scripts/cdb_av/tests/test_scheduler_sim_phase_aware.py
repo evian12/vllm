@@ -25,6 +25,7 @@ from scripts.cdb_av.scheduler_sim.phase_aware import (
     RequestStatus,
     SarathiTargetBatcher,
     VllmChunkedTargetBatcher,
+    WindowPredictivePhasePolicy,
     WorkKind,
     generate_phase_workload,
 )
@@ -349,6 +350,124 @@ class PhaseAwareSchedulerTests(unittest.TestCase):
         self.assertEqual(len(sim.active_draft), 3)
         self.assertEqual(policy.choose_action(sim), PhaseAction.DRAFT)
 
+    def test_window_predictive_looks_beyond_one_draft_for_heterogeneous_completion(self):
+        requests = [
+            make_request("short", output=8, cap=1),
+            make_request("carry-a", output=8, cap=3),
+            make_request("carry-b", output=8, cap=3),
+            make_request("carry-c", output=8, cap=3),
+        ]
+        policy = WindowPredictivePhasePolicy(
+            VllmChunkedTargetBatcher(),
+            max_draft_lookahead=2,
+        )
+        sim = PhaseAwareSimulator(
+            requests,
+            PhaseConfig(
+                max_num_seqs=4,
+                max_draft_batch_size=4,
+                max_num_batched_tokens=2048,
+                confidence_threshold=0.0,
+            ),
+            self.profile,
+            policy,
+        )
+        sim.execute_action(PhaseAction.TARGET)
+        sim.execute_action(PhaseAction.DRAFT)
+
+        self.assertEqual(
+            [req.request_id for req in sim.ready_queue],
+            ["short"],
+        )
+        self.assertEqual(len(sim.active_draft), 3)
+        # One more Draft leaves all three Carry requests unfinished, while
+        # the second additional Draft completes them and creates a full Verify batch.
+        self.assertEqual(policy.choose_action(sim), PhaseAction.DRAFT)
+
+    def test_window_predictive_stops_before_ready_wait_budget(self):
+        requests = [
+            make_request("short", output=8, cap=1),
+            make_request("carry-a", output=8, cap=3),
+            make_request("carry-b", output=8, cap=3),
+            make_request("carry-c", output=8, cap=3),
+        ]
+        policy = WindowPredictivePhasePolicy(
+            VllmChunkedTargetBatcher(),
+            max_draft_lookahead=3,
+        )
+        sim = PhaseAwareSimulator(
+            requests,
+            PhaseConfig(
+                max_num_seqs=4,
+                max_draft_batch_size=4,
+                max_num_batched_tokens=2048,
+                confidence_threshold=0.0,
+                ready_wait_budget_ms=1.0,
+            ),
+            self.profile,
+            policy,
+        )
+        sim.execute_action(PhaseAction.TARGET)
+        sim.execute_action(PhaseAction.DRAFT)
+
+        self.assertEqual(len(sim.ready_queue), 1)
+        self.assertEqual(policy.choose_action(sim), PhaseAction.TARGET)
+
+    def test_window_predictive_forecast_is_non_clairvoyant_and_side_effect_free(self):
+        visible = [
+            make_request("short", output=8, cap=1),
+            make_request("carry-a", output=8, cap=3),
+            make_request("carry-b", output=8, cap=3),
+            make_request("carry-c", output=8, cap=3),
+        ]
+        future = make_request(
+            "not-yet-arrived",
+            arrival=100.0,
+            output=8,
+            cap=1,
+            speculative=False,
+        )
+        policy = WindowPredictivePhasePolicy(
+            VllmChunkedTargetBatcher(),
+            max_draft_lookahead=2,
+        )
+        sim = PhaseAwareSimulator(
+            visible + [future],
+            PhaseConfig(confidence_threshold=0.0),
+            self.profile,
+            policy,
+        )
+        sim.execute_action(PhaseAction.TARGET)
+        sim.execute_action(PhaseAction.DRAFT)
+        future_internal = next(
+            req for req in sim.requests if req.request_id == "not-yet-arrived"
+        )
+        before = (
+            sim.now_ms,
+            sim.pending_arrival_index,
+            future_internal.status,
+            len(sim.ready_queue),
+            len(sim.active_draft),
+            sim.decision_count,
+            len(sim.step_records),
+        )
+        rng_state = sim.rng.getstate()
+
+        action = policy.choose_action(sim)
+
+        after = (
+            sim.now_ms,
+            sim.pending_arrival_index,
+            future_internal.status,
+            len(sim.ready_queue),
+            len(sim.active_draft),
+            sim.decision_count,
+            len(sim.step_records),
+        )
+        self.assertEqual(action, PhaseAction.DRAFT)
+        self.assertEqual(after, before)
+        self.assertEqual(sim.rng.getstate(), rng_state)
+
     def test_dynamic_stage_waits_for_a_draft_that_fills_target_batch(self):
         requests = [
             make_request("ready-next", output=8, cap=1),
@@ -660,6 +779,7 @@ class PhaseAwareSchedulerTests(unittest.TestCase):
             DynamicPhasePolicy(DeadlineAwareTargetBatcher()),
             LoadAdaptivePhasePolicy(VllmChunkedTargetBatcher()),
             LoadAdaptivePhasePolicy(DeadlineAwareTargetBatcher()),
+            WindowPredictivePhasePolicy(DeadlineAwareTargetBatcher()),
             QueuePressurePhasePolicy(VllmChunkedTargetBatcher()),
             QueuePressurePhasePolicy(SarathiTargetBatcher(256)),
             QueuePressurePhasePolicy(LengthAwareTargetBatcher()),
