@@ -12,7 +12,11 @@ on:
       - "scripts/cdb_av/scheduler_sim/**"
       - "scripts/cdb_av/tests/test_scheduler_sim.py"
       - "scripts/cdb_av/tests/test_scheduler_sim_phase_aware.py"
+      - "scripts/cdb_av/tests/test_prefill_chunk_sweep.py"
+      - "scripts/cdb_av/scheduler_sim/run_prefill_chunk_sweep.py"
+      - "scripts/cdb_av/scheduler_sim/analyze_prefill_chunk_sweep.py"
       - ".github/workflows/cdb-av-scheduler-sim.yml"
+      - ".github/workflows/cdb-av-prefill-chunk-sweep.yml"
 
 permissions:
   contents: read
@@ -35,6 +39,7 @@ jobs:
             -s scripts/cdb_av/tests \
             -p "test_scheduler_sim*.py" \
             -v
+          python -m unittest scripts.cdb_av.tests.test_prefill_chunk_sweep -v
       - name: Run a deterministic CPU smoke comparison
         run: |
           python -m scripts.cdb_av.scheduler_sim \
