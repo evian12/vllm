@@ -268,6 +268,13 @@ of a trace, then writes:
   mixed-forward counts.
 - \`target_contention_paired.csv\`: same-seed deltas against chunk 1024.
 - \`target_contention_report.md\`: compact tables for interpretation.
+The analyzer reconstructs Prefill chunk-budget truncations from each trace item's
+\`remaining_prompt_tokens\` and allocated \`token_count\`, using the configured
+chunk size from the run metadata. This avoids relying on the older
+\`requested_token_count\` trace field, which could reflect the global Target
+token budget rather than the configured Prefill chunk cap. Existing raw trace
+files can therefore be re-analyzed without rerunning the 45 simulations.
+
 
 Rate 15 is intentionally omitted from this focused pass: the immediate
 question is whether Target capacity constraints change batch composition under
