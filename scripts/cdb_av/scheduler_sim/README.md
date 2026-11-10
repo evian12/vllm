@@ -135,6 +135,7 @@ Phase 2 adds the Target-side request lifecycle:
 | `sarathi` | Queue pressure | Bounded Prefill chunks, Decode-like work first |
 | `length_aware` | Queue pressure | Short/long queues, similar-length buckets, adaptive Prefill budget |
 | `joint` | Queue pressure plus a short-Prefill batching wait | Length-aware Target batching |
+| `window_predictive` | Forecasts request-specific heterogeneous Draft completion and chooses the Verify stopping point; replans after each Forward | Deadline-aware Target batching |
 
 The length-aware policy is an **LAPS-inspired algorithmic approximation**, not
 a reproduction of LAPS. Its adaptive waiting window \(W\) is estimated from
