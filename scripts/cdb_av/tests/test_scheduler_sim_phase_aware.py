@@ -178,6 +178,25 @@ class PhaseAwareSchedulerTests(unittest.TestCase):
         self.assertEqual(req.prefill_progress, 256)
         self.assertAlmostEqual(sim.oldest_prefill_wait_ms(), 0.0)
 
+    def test_fixed_h_is_not_reset_by_prefill_only_target_forward(self):
+        requests = [
+            make_request("drafting", prompt=128, output=6, cap=4),
+            make_request("new-ar", arrival=0.1, prompt=128, output=3, speculative=False),
+        ]
+        policy = FixedHPhasePolicy(1)
+        sim = PhaseAwareSimulator(
+            requests,
+            PhaseConfig(confidence_threshold=0.0),
+            self.profile,
+            policy,
+        )
+        sim.execute_action(PhaseAction.TARGET)
+        sim.execute_action(PhaseAction.DRAFT)
+        self.assertEqual(sim.drafts_since_verify, 1)
+        record = sim.execute_action(PhaseAction.TARGET)
+        self.assertEqual(record.verify_requests, 0)
+        self.assertEqual(sim.drafts_since_verify, 1)
+
     def test_verify_candidate_batch_is_atomic(self):
         req = make_request("verify-atomic", output=8, cap=3)
         sim = PhaseAwareSimulator(
