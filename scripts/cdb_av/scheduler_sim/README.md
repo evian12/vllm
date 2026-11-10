@@ -106,11 +106,11 @@ No vLLM runtime code, CUDA kernels, KV cache implementation, or GPU settings are
 Phase 1 above remains available as the isolated Draft/Verify reference. The
 phase-aware simulator is a separate model and entry point:
 
-\`\`\`bash
-python -m scripts.cdb_av.scheduler_sim.phase_cli \\
-  --requests 64 --arrival-rate 30 --arrival-mode bursty \\
+```bash
+python -m scripts.cdb_av.scheduler_sim.phase_cli \
+  --requests 64 --arrival-rate 30 --arrival-mode bursty \
   --policy all --seed 42
-\`\`\`
+```
 
 Phase 2 adds the Target-side request lifecycle:
 
@@ -121,7 +121,7 @@ Phase 2 adds the Target-side request lifecycle:
   one-token-at-a-time Target AR.
 - One Target forward may contain a mixture of atomic Verify requests, AR
   requests, and Prefill chunks. The combined batch must respect both
-  \`max_num_seqs\` and \`max_num_batched_tokens\`.
+  `max_num_seqs` and `max_num_batched_tokens`.
 - Draft and Target still execute serially on one GPU. The simulator does not
   model GPU overlap.
 
@@ -129,11 +129,11 @@ Phase 2 adds the Target-side request lifecycle:
 
 | CLI policy | Stage decision | Target batch organization |
 |---|---|---|
-| \`fixed_h\` | Fixed number of Draft forwards between Target forwards | FCFS, chunked Prefill |
-| \`queue_pressure\` | Queue pressure and waiting-time guards | FCFS, chunked Prefill |
-| \`sarathi\` | Queue pressure | Bounded Prefill chunks, Decode-like work first |
-| \`length_aware\` | Queue pressure | Short/long queues, similar-length buckets, adaptive Prefill budget |
-| \`joint\` | Queue pressure plus a short-Prefill batching wait | Length-aware Target batching |
+| `fixed_h` | Fixed number of Draft forwards between Target forwards | FCFS, chunked Prefill |
+| `queue_pressure` | Queue pressure and waiting-time guards | FCFS, chunked Prefill |
+| `sarathi` | Queue pressure | Bounded Prefill chunks, Decode-like work first |
+| `length_aware` | Queue pressure | Short/long queues, similar-length buckets, adaptive Prefill budget |
+| `joint` | Queue pressure plus a short-Prefill batching wait | Length-aware Target batching |
 
 The length-aware policy is an **LAPS-inspired algorithmic approximation**, not
 a reproduction of LAPS. Its adaptive waiting window \(W\) is estimated from
