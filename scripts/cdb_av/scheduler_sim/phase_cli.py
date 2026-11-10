@@ -260,7 +260,7 @@ def main(argv: list[str] | None = None) -> int:
                 "dynamic_urgency_weight": 0.20,
                 "deadline_prefill_chunk_tokens": args.deadline_prefill_chunk_tokens,
                 "window_predictive_draft_lookahead": args.window_predictive_draft_lookahead,
-                "load_adaptive_projection_mode": "visible_only",
+                "load_adaptive_default_projection_mode": "visible_only",
                 "load_adaptive_oracle_policy": "load_adaptive_deadline_oracle",
             },
             "execution_profile": (
