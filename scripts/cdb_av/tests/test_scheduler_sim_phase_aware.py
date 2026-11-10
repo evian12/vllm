@@ -673,6 +673,8 @@ class PhaseAwareSchedulerTests(unittest.TestCase):
         self.assertEqual(record.verify_requests, 1)
         self.assertEqual(record.ar_requests, 1)
         self.assertEqual(record.prefill_requests, 1)
+        self.assertEqual(sim.draft_window_samples, [1])
+        self.assertEqual(sim.summary()["draft_window_mean"], 1.0)
 
 
 if __name__ == "__main__":
