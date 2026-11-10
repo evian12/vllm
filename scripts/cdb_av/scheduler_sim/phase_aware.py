@@ -63,6 +63,7 @@ class PhaseRequest:
     accepted_candidate_tokens: int = 0
     ready_since_ms: float | None = None
     prefill_first_start_ms: float | None = None
+    prefill_last_scheduled_ms: float | None = None
     prefill_complete_time_ms: float | None = None
     first_token_time_ms: float | None = None
     last_token_time_ms: float | None = None
@@ -145,10 +146,12 @@ class PhaseConfig:
     max_consecutive_target_forwards: int = 4
     max_steps: int = 200_000
     seed: int = 42
+    short_prefill_threshold: int = 512
 
     def __post_init__(self) -> None:
         for name in ("max_num_seqs", "max_num_batched_tokens", "max_draft_batch_size",
-                     "fixed_h", "max_consecutive_target_forwards", "max_steps"):
+                     "fixed_h", "max_consecutive_target_forwards", "max_steps",
+                     "short_prefill_threshold"):
             if getattr(self, name) < 1:
                 raise ValueError(f"{name} must be positive")
         for name in ("ready_wait_budget_ms", "ar_itl_budget_ms", "prefill_wait_budget_ms"):
@@ -417,25 +420,37 @@ class LengthAwareTargetBatcher(_BaseTargetBatcher):
         if not short and not long:
             return []
 
-        oldest_short = min(short, key=lambda r: (r.arrival_time_ms, r.request_id)) if short else None
-        oldest_long = min(long, key=lambda r: (r.arrival_time_ms, r.request_id)) if long else None
-        if oldest_long is not None and oldest_short is not None:
-            long_wait = simulator.now_ms - oldest_long.arrival_time_ms
-            choose_long = long_wait >= self.max_wait_ms
+        def recency(req: PhaseRequest) -> tuple[float, float, str]:
+            last = req.prefill_last_scheduled_ms
+            return (
+                last if last is not None else req.arrival_time_ms,
+                req.arrival_time_ms,
+                req.request_id,
+            )
+
+        oldest_short = min(short, key=recency) if short else None
+        oldest_long = min(long, key=recency) if long else None
+        if oldest_short is not None and oldest_long is not None:
+            long_service_age = simulator.now_ms - recency(oldest_long)[0]
+            short_service_age = simulator.now_ms - recency(oldest_short)[0]
+            choose_long = (
+                long_service_age >= self.max_wait_ms
+                or recency(oldest_long) < recency(oldest_short)
+            )
         else:
             choose_long = oldest_long is not None
 
         pool = long if choose_long else short
         if not pool:
             pool = short or long
-        oldest = min(pool, key=lambda r: (r.arrival_time_ms, r.request_id))
+        oldest = min(pool, key=recency)
         bucket = (oldest.prompt_tokens - 1) // self.bucket_width
         return sorted(
             [
                 req for req in pool
                 if (req.prompt_tokens - 1) // self.bucket_width == bucket
             ],
-            key=lambda r: (r.arrival_time_ms, r.request_id),
+            key=recency,
         )
 
     def prefill_budget_tokens(
@@ -711,7 +726,7 @@ class PhaseAwareSimulator:
                 raise RuntimeError(f"request {req.request_id} arrived more than once")
             req.status = RequestStatus.PREFILL
             self.prefill_queue.append(req)
-            if req.prompt_tokens <= 512:
+            if req.prompt_tokens <= self.config.short_prefill_threshold:
                 times = self.short_prefill_arrival_times_ms
                 if times:
                     self.short_prefill_intervals_ms.append(
@@ -752,7 +767,11 @@ class PhaseAwareSimulator:
     def oldest_ar_wait_ms(self) -> float:
         return max(
             (
-                self.now_ms - (req.last_token_time_ms or req.arrival_time_ms)
+                self.now_ms - (
+                    req.last_token_time_ms
+                    if req.last_token_time_ms is not None
+                    else req.arrival_time_ms
+                )
                 for req in self.ar_queue
             ),
             default=0.0,
@@ -905,6 +924,7 @@ class PhaseAwareSimulator:
                             start_ms - req.arrival_time_ms
                         )
                     req.prefill_progress += item.token_count
+                    req.prefill_last_scheduled_ms = self.now_ms
                     self.total_prefill_tokens += item.token_count
                     self.prefill_chunk_count += 1
                     self.prefill_chunk_sizes.append(item.token_count)
@@ -947,6 +967,12 @@ class PhaseAwareSimulator:
                         self.ar_queue.append(req)
 
                 else:
+                    previous_token_time = (
+                        req.last_token_time_ms
+                        if req.last_token_time_ms is not None
+                        else req.arrival_time_ms
+                    )
+                    self.ar_wait_samples_ms.append(start_ms - previous_token_time)
                     self._record_output_commit(req, 1)
                     self.ar_token_count += 1
                     if req.remaining_output_tokens <= 0:
