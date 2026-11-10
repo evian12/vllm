@@ -131,6 +131,7 @@ Phase 2 adds the Target-side request lifecycle:
 |---|---|---|
 | `fixed_h` | Fixed number of Draft forwards between Verify-bearing Target forwards; Prefill/AR-only Target steps do not reset H | FCFS, chunked Prefill |
 | `queue_pressure` | Queue pressure and waiting-time guards | FCFS, chunked Prefill |
+| `lookahead` | Short-horizon rollout over Draft/Target actions | Queue-pressure rollout with FCFS Target batches |
 | `sarathi` | Queue pressure | Bounded Prefill chunks, Decode-like work first |
 | `length_aware` | Queue pressure | Short/long queues, similar-length buckets, adaptive Prefill budget |
 | `joint` | Queue pressure plus a short-Prefill batching wait | Length-aware Target batching |
