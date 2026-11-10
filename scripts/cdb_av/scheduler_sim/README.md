@@ -250,7 +250,7 @@ for CHUNK in 256 1024 2048; do
         --deadline-prefill-chunk-tokens "$CHUNK" \\
         --seed "$SEED" \\
         --include-target-forward-trace \\
-        --output "/tmp/cdb_target_contention_raw/cdb_diag_c\${CHUNK}_r\${RATE}_s\${SEED}.json"
+        --output "/tmp/cdb_target_contention_raw/cdb_diag_c${CHUNK}_r${RATE}_s${SEED}.json"
     done
   done
 done
