@@ -56,7 +56,7 @@ def build_parser() -> argparse.ArgumentParser:
             "all", "fixed_h", "queue_pressure", "lookahead", "sarathi",
             "length_aware", "joint", "fixed_h_deadline", "dynamic",
             "dynamic_deadline", "load_adaptive", "load_adaptive_deadline",
-            "window_predictive", "e5_e6",
+            "window_predictive", "e5_e6", "load_adaptive_deadline_oracle",
         ),
         default="all",
     )
@@ -140,6 +140,10 @@ def build_policies(args: argparse.Namespace, config: PhaseConfig) -> dict[str, o
         "load_adaptive": LoadAdaptivePhasePolicy(vllm_batcher),
         # E5: keep load-adaptive stage decisions, change only Target batch composition.
         "load_adaptive_deadline": LoadAdaptivePhasePolicy(deadline_batcher),
+        # Explicit oracle ablation: preserves the historical full-request-list projection.
+        "load_adaptive_deadline_oracle": LoadAdaptivePhasePolicy(
+            deadline_batcher, allow_future_arrivals=True
+        ),
         # E6: predict heterogeneous Draft completion over a bounded horizon;
         # the stopping point is re-evaluated after every actual forward.
         "window_predictive": WindowPredictivePhasePolicy(
@@ -156,7 +160,8 @@ def build_policies(args: argparse.Namespace, config: PhaseConfig) -> dict[str, o
     policies["dynamic"].name = "dynamic_stage+vllm"
     policies["dynamic_deadline"].name = "dynamic_stage+deadline_batcher"
     policies["load_adaptive"].name = "load_adaptive+vllm"
-    policies["load_adaptive_deadline"].name = "load_adaptive+deadline_batcher"
+    policies["load_adaptive_deadline"].name = "load_adaptive_online+deadline_batcher"
+    policies["load_adaptive_deadline_oracle"].name = "load_adaptive_oracle+deadline_batcher"
     policies["window_predictive"].name = "window_predictive+deadline_batcher"
     if args.policy == "all":
         return policies
@@ -237,6 +242,11 @@ def main(argv: list[str] | None = None) -> int:
                 "unfinished requests, excludes not-yet-arrived requests from forecasts, "
                 "and replans after each real forward"
             ),
+            "load_adaptive_stage": (
+                "one-step marginal Target-batch gain; the default online policy projects "
+                "only requests already visible at the decision time. The explicit "
+                "load_adaptive_deadline_oracle policy is a clairvoyant ablation."
+            ),
             "dynamic_stage": (
                 "no configured H; compares expected Target yield and batch fill "
                 "against marginal Draft yield, with queue-deadline guards"
@@ -250,6 +260,8 @@ def main(argv: list[str] | None = None) -> int:
                 "dynamic_urgency_weight": 0.20,
                 "deadline_prefill_chunk_tokens": args.deadline_prefill_chunk_tokens,
                 "window_predictive_draft_lookahead": args.window_predictive_draft_lookahead,
+                "load_adaptive_projection_mode": "visible_only",
+                "load_adaptive_oracle_policy": "load_adaptive_deadline_oracle",
             },
             "execution_profile": (
                 "synthetic defaults unless --profile-json supplies measured coefficients"
