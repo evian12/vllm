@@ -26,13 +26,22 @@ METRICS = (
     "candidate_acceptance_rate",
     "mixed_target_ratio",
 )
-HIGHER_IS_BETTER = {"output_tokens_per_s"}
+# Directional metrics only. Draft-window size and mixed-target ratio are
+# diagnostics rather than universally monotonic objectives, so their
+# e6_better_seeds values intentionally remain zero.
+HIGHER_IS_BETTER = {
+    "output_tokens_per_s",
+    "mean_target_batch_size",
+    "candidate_acceptance_rate",
+}
 LOWER_IS_BETTER = {
     "ttft_p50_ms",
     "ttft_p95_ms",
     "ar_wait_p95_ms",
     "ready_wait_p95_ms",
     "commit_gap_p95_ms",
+    "target_forwards",
+    "draft_forwards",
 }
 
 
