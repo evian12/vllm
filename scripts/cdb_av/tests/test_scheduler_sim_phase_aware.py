@@ -288,6 +288,33 @@ class PhaseAwareSchedulerTests(unittest.TestCase):
         sim.now_ms = 3.0
         self.assertFalse(batcher.should_wait_for_short_batch(sim))
 
+    def test_wait_window_counts_requests_in_the_same_length_bucket(self):
+        requests = [
+            make_request("active", prompt=128),
+            make_request("bucket-a", arrival=0.1, prompt=128, speculative=False),
+            make_request("bucket-b", arrival=0.2, prompt=384, speculative=False),
+            make_request("bucket-a-2", arrival=0.3, prompt=256, speculative=False),
+        ]
+        batcher = LengthAwareTargetBatcher(
+            short_threshold=512, bucket_width=256, base_wait_ms=2.0
+        )
+        policy = JointPhasePolicy(batcher)
+        sim = PhaseAwareSimulator(
+            requests, PhaseConfig(), self.profile, policy
+        )
+        active = sim.prefill_queue.popleft()
+        active.status = RequestStatus.ACTIVE_DRAFT
+        sim.active_draft.append(active)
+        sim.now_ms = 0.2
+        sim.refresh()
+        self.assertEqual(len(sim.prefill_queue), 2)
+        self.assertTrue(batcher.should_wait_for_short_batch(sim))
+
+        sim.now_ms = 0.3
+        sim.refresh()
+        self.assertEqual(len(sim.prefill_queue), 3)
+        self.assertFalse(batcher.should_wait_for_short_batch(sim))
+
     def test_ar_only_request_generates_one_token_per_target_step(self):
         req = make_request("ar", prompt=128, output=4, speculative=False)
         sim = PhaseAwareSimulator(
