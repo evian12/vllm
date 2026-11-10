@@ -267,6 +267,11 @@ class PhaseAwareSchedulerTests(unittest.TestCase):
         self.assertEqual(req.prefill_progress, 256)
         self.assertAlmostEqual(sim.oldest_prefill_wait_ms(), 0.0)
 
+    def test_load_adaptive_can_use_deadline_aware_target_batcher(self):
+        batcher = DeadlineAwareTargetBatcher(prefill_chunk_tokens=256)
+        policy = LoadAdaptivePhasePolicy(batcher)
+        self.assertIs(policy.batcher, batcher)
+
     def test_load_adaptive_verifies_immediately_when_another_draft_cannot_add_batch_members(self):
         requests = [
             make_request("ready", output=8, cap=1),
@@ -616,6 +621,8 @@ class PhaseAwareSchedulerTests(unittest.TestCase):
             FixedHPhasePolicy(4, DeadlineAwareTargetBatcher()),
             DynamicPhasePolicy(VllmChunkedTargetBatcher()),
             DynamicPhasePolicy(DeadlineAwareTargetBatcher()),
+            LoadAdaptivePhasePolicy(VllmChunkedTargetBatcher()),
+            LoadAdaptivePhasePolicy(DeadlineAwareTargetBatcher()),
             QueuePressurePhasePolicy(VllmChunkedTargetBatcher()),
             QueuePressurePhasePolicy(SarathiTargetBatcher(256)),
             QueuePressurePhasePolicy(LengthAwareTargetBatcher()),
