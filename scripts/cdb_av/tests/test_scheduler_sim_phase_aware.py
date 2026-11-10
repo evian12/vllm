@@ -289,9 +289,9 @@ class PhaseAwareSchedulerTests(unittest.TestCase):
     def test_load_adaptive_continues_draft_when_it_adds_target_batch_members(self):
         requests = [
             make_request("ready", output=8, cap=1),
-            make_request("draft-a", output=8, cap=1),
-            make_request("draft-b", output=8, cap=1),
-            make_request("draft-c", output=8, cap=1),
+            make_request("draft-a", output=8, cap=2),
+            make_request("draft-b", output=8, cap=2),
+            make_request("draft-c", output=8, cap=2),
         ]
         policy = LoadAdaptivePhasePolicy(VllmChunkedTargetBatcher())
         sim = PhaseAwareSimulator(
