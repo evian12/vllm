@@ -9,6 +9,8 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from scripts.cdb_av.scheduler_sim.phase_aware import (
+    DeadlineAwareTargetBatcher,
+    DynamicPhasePolicy,
     FixedHPhasePolicy,
     JointPhasePolicy,
     LengthAwareTargetBatcher,
@@ -85,6 +87,66 @@ class PhaseAwareSchedulerTests(unittest.TestCase):
         self.assertEqual(original.committed_tokens, 0)
         self.assertEqual(internal.prefill_progress, 128)
         self.assertEqual(internal.committed_tokens, 1)
+
+    def test_deadline_batcher_orders_verify_ar_and_prefill_by_absolute_deadline(self):
+        requests = [
+            make_request("verify", prompt=128, output=4, cap=2),
+            make_request("ar", prompt=128, output=4, speculative=False),
+            make_request("prefill", prompt=128, output=4, speculative=False),
+        ]
+        batcher = DeadlineAwareTargetBatcher(prefill_chunk_tokens=512)
+        sim = PhaseAwareSimulator(
+            requests,
+            PhaseConfig(
+                max_num_seqs=3,
+                max_num_batched_tokens=1024,
+                ready_wait_budget_ms=8.0,
+                ar_itl_budget_ms=40.0,
+                prefill_wait_budget_ms=12.0,
+            ),
+            self.profile,
+            QueuePressurePhasePolicy(batcher),
+        )
+        verify, ar, prefill = sim.requests
+        sim.prefill_queue.clear()
+        sim.now_ms = 10.0
+
+        verify.status = RequestStatus.READY
+        verify.draft_depth = 1
+        verify.ready_since_ms = 10.0
+        sim.ready_queue.append(verify)
+
+        ar.status = RequestStatus.ACTIVE_AR
+        ar.last_token_time_ms = 0.0
+        sim.ar_queue.append(ar)
+
+        prefill.status = RequestStatus.PREFILL
+        sim.prefill_queue.append(prefill)
+
+        plan = batcher.plan(sim)
+        self.assertEqual(
+            [item.kind for item in plan],
+            [WorkKind.PREFILL, WorkKind.VERIFY, WorkKind.AR],
+        )
+        self.assertLessEqual(len(plan), 3)
+        self.assertLessEqual(
+            sum(item.token_count for item in plan),
+            sim.config.max_num_batched_tokens,
+        )
+
+    def test_deadline_batcher_bounds_long_prefill_chunks(self):
+        req = make_request("long", prompt=2048, speculative=False)
+        batcher = DeadlineAwareTargetBatcher(prefill_chunk_tokens=512)
+        sim = PhaseAwareSimulator(
+            [req],
+            PhaseConfig(max_num_batched_tokens=2048),
+            self.profile,
+            QueuePressurePhasePolicy(batcher),
+        )
+        plan = batcher.plan(sim)
+        self.assertEqual(len(plan), 1)
+        self.assertEqual(plan[0].kind, WorkKind.PREFILL)
+        self.assertEqual(plan[0].token_count, 512)
 
     def test_prefill_is_chunked_and_does_not_emit_first_token_early(self):
         req = make_request("long", prompt=1024, output=3, cap=1)
@@ -200,6 +262,63 @@ class PhaseAwareSchedulerTests(unittest.TestCase):
         sim.execute_action(PhaseAction.TARGET)
         self.assertEqual(req.prefill_progress, 256)
         self.assertAlmostEqual(sim.oldest_prefill_wait_ms(), 0.0)
+
+    def test_dynamic_stage_waits_for_a_draft_that_fills_target_batch(self):
+        requests = [
+            make_request("ready-next", output=8, cap=1),
+            make_request("draft-a", output=8, cap=2),
+            make_request("draft-b", output=8, cap=2),
+            make_request("draft-c", output=8, cap=2),
+        ]
+        policy = DynamicPhasePolicy(VllmChunkedTargetBatcher())
+        sim = PhaseAwareSimulator(
+            requests,
+            PhaseConfig(confidence_threshold=0.0),
+            self.profile,
+            policy,
+        )
+        sim.execute_action(PhaseAction.TARGET)
+        sim.execute_action(PhaseAction.DRAFT)
+
+        self.assertEqual(len(sim.ready_queue), 1)
+        self.assertEqual(len(sim.active_draft), 3)
+        self.assertFalse(hasattr(policy, "h"))
+        self.assertEqual(policy.choose_action(sim), PhaseAction.DRAFT)
+
+    def test_dynamic_stage_switches_to_target_before_prefill_ttft_budget(self):
+        requests = [
+            make_request("ready", output=8, cap=1),
+            make_request("draft-a", output=8, cap=2),
+            make_request("draft-b", output=8, cap=2),
+            make_request("draft-c", output=8, cap=2),
+            make_request("waiting-prefill", arrival=0.1, prompt=128, speculative=False),
+        ]
+        policy = DynamicPhasePolicy(VllmChunkedTargetBatcher())
+        sim = PhaseAwareSimulator(
+            requests,
+            PhaseConfig(
+                confidence_threshold=0.0,
+                prefill_wait_budget_ms=12.0,
+            ),
+            self.profile,
+            policy,
+        )
+        sim.execute_action(PhaseAction.TARGET)
+        sim.execute_action(PhaseAction.DRAFT)
+
+        pending_prefill = next(
+            req for req in sim.prefill_queue
+            if req.request_id == "phase-00004"
+        )
+        sim.now_ms = 12.0
+        for req in sim.ready_queue:
+            req.ready_since_ms = sim.now_ms
+
+        self.assertGreaterEqual(
+            sim.now_ms - pending_prefill.arrival_time_ms,
+            sim.config.prefill_wait_budget_ms,
+        )
+        self.assertEqual(policy.choose_action(sim), PhaseAction.TARGET)
 
     def test_fixed_h_is_not_reset_by_prefill_only_target_forward(self):
         requests = [
@@ -449,6 +568,9 @@ class PhaseAwareSchedulerTests(unittest.TestCase):
         )
         policies = [
             FixedHPhasePolicy(4, VllmChunkedTargetBatcher()),
+            FixedHPhasePolicy(4, DeadlineAwareTargetBatcher()),
+            DynamicPhasePolicy(VllmChunkedTargetBatcher()),
+            DynamicPhasePolicy(DeadlineAwareTargetBatcher()),
             QueuePressurePhasePolicy(VllmChunkedTargetBatcher()),
             QueuePressurePhasePolicy(SarathiTargetBatcher(256)),
             QueuePressurePhasePolicy(LengthAwareTargetBatcher()),
