@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - cdb-av-complete-runtime-20261103
+      - assistant/cdb-e7-ready-yield-20261110
 
 permissions:
   contents: read
