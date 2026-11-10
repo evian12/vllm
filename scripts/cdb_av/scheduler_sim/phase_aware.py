@@ -857,6 +857,80 @@ class DynamicPhasePolicy:
         )
 
 
+class LoadAdaptivePhasePolicy(DynamicPhasePolicy):
+    """Delay Verify only when one more Draft is predicted to improve packing.
+
+    Under sparse load, another Draft does not increase the number of requests
+    in the next Target batch, so the policy verifies immediately. Under busy
+    load, it may continue Draft when the projected batch gains request slots.
+    All queue wait-budget guards remain hard constraints.
+    """
+
+    name = "load_adaptive"
+
+    def __init__(
+        self,
+        batcher: TargetBatcher | None = None,
+        min_batch_gain: int = 1,
+    ) -> None:
+        super().__init__(batcher=batcher, fill_gain_weight=0.0, urgency_weight=0.20)
+        if min_batch_gain < 1:
+            raise ValueError("min_batch_gain must be positive")
+        self.min_batch_gain = min_batch_gain
+
+    def choose_action(self, simulator: PhaseAwareSimulator) -> PhaseAction:
+        actions = simulator.available_actions()
+        if len(actions) == 1:
+            return actions[0]
+
+        current_plan = self.batcher.plan(simulator)
+        if not current_plan:
+            return PhaseAction.DRAFT
+
+        cfg = simulator.config
+        draft_duration = simulator.profile.draft_duration_ms(simulator.active_draft)
+        target_duration = simulator.profile.target_duration_ms(current_plan)
+        prefill_ttft_age = max(
+            (
+                simulator.now_ms - req.arrival_time_ms
+                for req in simulator.prefill_queue
+            ),
+            default=0.0,
+        )
+        prefill_service = (
+            target_duration
+            if any(item.kind is WorkKind.PREFILL for item in current_plan)
+            else 0.0
+        )
+
+        # Hard latency guard: never delay a queued class beyond its budget.
+        if (
+            simulator.oldest_ready_wait_ms() + draft_duration
+            >= cfg.ready_wait_budget_ms
+            or simulator.oldest_ar_wait_ms() + draft_duration
+            >= cfg.ar_itl_budget_ms
+            or prefill_ttft_age + draft_duration + prefill_service
+            >= cfg.prefill_wait_budget_ms
+        ):
+            return PhaseAction.TARGET
+
+        if len(current_plan) >= cfg.max_num_seqs:
+            return PhaseAction.TARGET
+
+        projected = simulator.clone()
+        projected.execute_action(PhaseAction.DRAFT)
+        projected_plan = self.batcher.plan(projected)
+        marginal_gain = max(0, len(projected_plan) - len(current_plan))
+
+        # Sparse-load rule: if another Draft cannot add a Target request,
+        # waiting only adds latency and cannot reduce Target forward count.
+        if marginal_gain < self.min_batch_gain:
+            return PhaseAction.TARGET
+
+        # If the extra Draft creates useful parallel work, permit one more step.
+        return PhaseAction.DRAFT
+
+
 class JointPhasePolicy(QueuePressurePhasePolicy):
     """Joint stage selection plus LAPS-inspired Prefill batching window."""
 
