@@ -350,6 +350,41 @@ class PhaseAwareSchedulerTests(unittest.TestCase):
         self.assertEqual(len(sim.active_draft), 3)
         self.assertEqual(policy.choose_action(sim), PhaseAction.DRAFT)
 
+    def test_load_adaptive_projection_excludes_future_arrivals_by_default(self):
+        requests = [
+            make_request("ready", output=8, cap=1),
+            make_request("still-drafting", output=8, cap=4),
+            make_request(
+                "not-yet-arrived",
+                arrival=3.2,
+                output=4,
+                speculative=False,
+            ),
+        ]
+        batcher = DeadlineAwareTargetBatcher(prefill_chunk_tokens=512)
+        online = LoadAdaptivePhasePolicy(batcher)
+        sim = PhaseAwareSimulator(
+            requests,
+            PhaseConfig(confidence_threshold=0.0),
+            self.profile,
+            online,
+        )
+        sim.execute_action(PhaseAction.TARGET)
+        sim.execute_action(PhaseAction.DRAFT)
+
+        self.assertEqual(len(sim.ready_queue), 1)
+        self.assertEqual(len(sim.active_draft), 1)
+        # The next Draft completes before the future Prefill arrives. An online
+        # projection must not use that not-yet-visible request to justify waiting.
+        self.assertEqual(online.choose_action(sim), PhaseAction.TARGET)
+
+        oracle = LoadAdaptivePhasePolicy(
+            batcher,
+            allow_future_arrivals=True,
+        )
+        # The oracle ablation sees the request arrive during its cloned Draft.
+        self.assertEqual(oracle.choose_action(sim), PhaseAction.DRAFT)
+
     def test_window_predictive_looks_beyond_one_draft_for_heterogeneous_completion(self):
         requests = [
             make_request("short", output=8, cap=1),
