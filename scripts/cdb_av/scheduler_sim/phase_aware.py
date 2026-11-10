@@ -1230,9 +1230,14 @@ class WindowPredictivePhasePolicy:
                 best_score = score
                 best_draft_steps = draft_steps
 
-            # A full Target batch cannot gain another member by waiting for
-            # more Draft completions in this contiguous window.
-            if len(plan) >= projected.config.max_num_seqs:
+            # Once every slot is occupied by older Ready requests, later
+            # Draft completions cannot improve this Target batch. If AR or
+            # Prefill occupies a slot, keep forecasting: a newly Ready request
+            # may change the deadline-ordered composition.
+            if (
+                len(plan) >= projected.config.max_num_seqs
+                and all(item.kind is WorkKind.VERIFY for item in plan)
+            ):
                 break
 
         return (
