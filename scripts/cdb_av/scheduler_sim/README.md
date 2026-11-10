@@ -156,3 +156,15 @@ is **not** token-level ITL inside a multi-token Verify commit. Default execution
 coefficients are synthetic and are only useful for testing scheduling logic;
 fit them from GPU batch-shape profiles before drawing hardware-performance
 conclusions.
+
+
+## Load-adaptive verification
+
+`load_adaptive` is an additional stage policy that makes verification delay conditional on predicted batch growth:
+
+- If one more Draft Forward does not increase the number of requests that can enter the next Target batch, verify immediately. This is the sparse-load behavior: waiting cannot reduce Target Forward count through batching, so it only adds request latency.
+- If one more Draft Forward is predicted to add at least one Target request, it may continue Draft to form a larger batch.
+- Ready, AR, and Prefill wait budgets remain hard guards; a projected deadline violation forces Target.
+- A full current Target batch is verified immediately.
+
+This is a first deterministic marginal-batch-gain policy, not yet an arrival-rate classifier or a calibrated optimal policy. Evaluate it across low, medium, high, and saturation arrival rates before drawing performance conclusions.
