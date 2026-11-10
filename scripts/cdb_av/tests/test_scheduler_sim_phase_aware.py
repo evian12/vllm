@@ -193,6 +193,7 @@ class PhaseAwareSchedulerTests(unittest.TestCase):
         sim.execute_action(PhaseAction.TARGET)
         sim.execute_action(PhaseAction.DRAFT)
         self.assertEqual(sim.drafts_since_verify, 1)
+        self.assertEqual(policy.choose_action(sim), PhaseAction.DRAFT)
         record = sim.execute_action(PhaseAction.TARGET)
         self.assertEqual(record.verify_requests, 0)
         self.assertEqual(sim.drafts_since_verify, 1)
