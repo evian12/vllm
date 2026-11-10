@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - cdb-av/phase-aware-target-scheduler-20261110
+      - cdb-av/dev
     paths:
       - ".github/workflows/cdb-av-prefill-chunk-sweep.yml"
   workflow_dispatch:
