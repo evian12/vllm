@@ -12,6 +12,7 @@ on:
       - "scripts/cdb_av/scheduler_sim/**"
       - "scripts/cdb_av/tests/test_scheduler_sim.py"
       - "scripts/cdb_av/tests/test_scheduler_sim_phase_aware.py"
+      - "scripts/cdb_av/tests/test_scheduler_sim_target_contention.py"
       - "scripts/cdb_av/tests/test_prefill_chunk_sweep.py"
       - "scripts/cdb_av/scheduler_sim/run_prefill_chunk_sweep.py"
       - "scripts/cdb_av/scheduler_sim/analyze_prefill_chunk_sweep.py"
@@ -32,7 +33,10 @@ jobs:
       - name: Compile simulator and tests
         run: |
           python -m compileall -q scripts/cdb_av/scheduler_sim
-          python -m py_compile scripts/cdb_av/tests/test_scheduler_sim.py scripts/cdb_av/tests/test_scheduler_sim_phase_aware.py
+          python -m py_compile \
+            scripts/cdb_av/tests/test_scheduler_sim.py \
+            scripts/cdb_av/tests/test_scheduler_sim_phase_aware.py \
+            scripts/cdb_av/tests/test_scheduler_sim_target_contention.py
       - name: Run simulator unit tests
         run: |
           python -m unittest discover \
