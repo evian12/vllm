@@ -168,7 +168,11 @@ def build_policies(args: argparse.Namespace, config: PhaseConfig) -> dict[str, o
     if args.policy == "e5_e6":
         return {
             key: policies[key]
-            for key in ("load_adaptive_deadline", "window_predictive")
+            for key in (
+                "load_adaptive_deadline",
+                "load_adaptive_deadline_oracle",
+                "window_predictive",
+            )
         }
     return {args.policy: policies[args.policy]}
 
