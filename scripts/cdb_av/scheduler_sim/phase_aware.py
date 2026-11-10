@@ -1182,15 +1182,10 @@ class WindowPredictivePhasePolicy:
         urgency_cost = 1.0 + self.urgency_weight * pressure
         return expected_yield / (total_duration * urgency_cost)
 
-    def choose_action(self, simulator: PhaseAwareSimulator) -> PhaseAction:
-        actions = simulator.available_actions()
-        if len(actions) == 1:
-            return actions[0]
-
-        current_plan = self.batcher.plan(simulator)
-        if not current_plan:
-            return PhaseAction.DRAFT
-
+    @staticmethod
+    def _visible_state_clone(
+        simulator: PhaseAwareSimulator,
+    ) -> PhaseAwareSimulator:
         # Only requests already visible to the scheduler may influence a
         # prediction. The simulator stores future arrivals for replay, but a
         # live online policy cannot know their exact identities or arrival times.
@@ -1198,6 +1193,17 @@ class WindowPredictivePhasePolicy:
         visible_count = simulator.pending_arrival_index
         projected.requests = projected.requests[:visible_count]
         projected.pending_arrival_index = len(projected.requests)
+        return projected
+
+    def choose_action(self, simulator: PhaseAwareSimulator) -> PhaseAction:
+        actions = simulator.available_actions()
+        if len(actions) == 1:
+            return actions[0]
+
+        projected = self._visible_state_clone(simulator)
+        current_plan = self.batcher.plan(projected)
+        if not current_plan:
+            return PhaseAction.DRAFT
 
         best_score = self._candidate_score(projected, current_plan, 0.0)
         best_draft_steps = 0
