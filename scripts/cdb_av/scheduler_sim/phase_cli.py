@@ -21,6 +21,7 @@ from .phase_aware import (
     QueuePressurePhasePolicy,
     SarathiTargetBatcher,
     VllmChunkedTargetBatcher,
+    WindowPredictivePhasePolicy,
     generate_phase_workload,
 )
 
@@ -55,6 +56,7 @@ def build_parser() -> argparse.ArgumentParser:
             "all", "fixed_h", "queue_pressure", "lookahead", "sarathi",
             "length_aware", "joint", "fixed_h_deadline", "dynamic",
             "dynamic_deadline", "load_adaptive", "load_adaptive_deadline",
+            "window_predictive",
         ),
         default="all",
     )
@@ -65,6 +67,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--fixed-h", type=int, default=8)
     parser.add_argument("--lookahead-horizon", type=int, default=4)
     parser.add_argument("--lookahead-rollouts", type=int, default=2)
+    parser.add_argument("--window-predictive-draft-lookahead", type=int, default=4)
     parser.add_argument("--confidence-threshold", type=float, default=0.8)
     parser.add_argument("--ready-wait-budget-ms", type=float, default=8.0)
     parser.add_argument("--ar-itl-budget-ms", type=float, default=40.0)
@@ -137,6 +140,12 @@ def build_policies(args: argparse.Namespace, config: PhaseConfig) -> dict[str, o
         "load_adaptive": LoadAdaptivePhasePolicy(vllm_batcher),
         # E5: keep load-adaptive stage decisions, change only Target batch composition.
         "load_adaptive_deadline": LoadAdaptivePhasePolicy(deadline_batcher),
+        # E6: predict heterogeneous Draft completion over a bounded horizon;
+        # the stopping point is re-evaluated after every actual forward.
+        "window_predictive": WindowPredictivePhasePolicy(
+            deadline_batcher,
+            max_draft_lookahead=args.window_predictive_draft_lookahead,
+        ),
     }
     # Give each comparison row an explicit, stable strategy label.
     policies["fixed_h"].name = "fixed_h+vllm"
@@ -148,6 +157,7 @@ def build_policies(args: argparse.Namespace, config: PhaseConfig) -> dict[str, o
     policies["dynamic_deadline"].name = "dynamic_stage+deadline_batcher"
     policies["load_adaptive"].name = "load_adaptive+vllm"
     policies["load_adaptive_deadline"].name = "load_adaptive+deadline_batcher"
+    policies["window_predictive"].name = "window_predictive+deadline_batcher"
     if args.policy == "all":
         return policies
     return {args.policy: policies[args.policy]}
@@ -216,6 +226,12 @@ def main(argv: list[str] | None = None) -> int:
             "verify": "each request's candidate verification is atomic",
             "length_aware": "LAPS-inspired approximation, not a reproduction of LAPS",
             "sarathi": "Sarathi-inspired chunked Prefill baseline",
+            "window_predictive_stage": (
+                "CDB-specific bounded forecast of currently active heterogeneous Draft "
+                "requests; predicts their exact confidence/cap stop points, carries "
+                "unfinished requests, excludes not-yet-arrived requests from forecasts, "
+                "and replans after each real forward"
+            ),
             "dynamic_stage": (
                 "no configured H; compares expected Target yield and batch fill "
                 "against marginal Draft yield, with queue-deadline guards"
@@ -228,6 +244,7 @@ def main(argv: list[str] | None = None) -> int:
                 "dynamic_fill_gain_weight": 0.25,
                 "dynamic_urgency_weight": 0.20,
                 "deadline_prefill_chunk_tokens": args.deadline_prefill_chunk_tokens,
+                "window_predictive_draft_lookahead": args.window_predictive_draft_lookahead,
             },
             "execution_profile": (
                 "synthetic defaults unless --profile-json supplies measured coefficients"
