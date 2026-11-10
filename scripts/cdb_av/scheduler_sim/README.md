@@ -177,6 +177,58 @@ E5 keeps the exact same `LoadAdaptivePhasePolicy` stage decision as the existing
 This isolates whether the high-load Prefill/TTFT tail observed with load-adaptive stage control is caused by Target batch composition rather than the decision to delay Verify. Compare `load_adaptive` and `load_adaptive_deadline` on identical generated workloads and seeds. No GPU-performance claim follows from the CPU simulator.
 
 
+### E6 — CDB window-predictive phase scheduling
+
+E6 is designed around CDB-AV's request-level heterogeneous Draft execution,
+not around generic Prefill chunk tuning. After every real Forward, it evaluates
+whether to Verify now or continue the current Draft window.
+
+At a decision point, the policy:
+
+1. Takes a snapshot containing only requests that have already arrived. Future
+   workload entries are excluded from the forecast, avoiding clairvoyant use
+   of the simulator's pre-generated arrival trace.
+2. Simulates between zero and
+   `--window-predictive-draft-lookahead` additional Draft forwards on a clone.
+   Each request follows its own remaining draft cap, confidence stop, and
+   output limit. Requests that do not finish remain Carry; freed Draft slots
+   are refilled from the already-eligible queue using the simulator's normal
+   refill path.
+3. After each projected Draft forward, builds the Target batch with the same
+   deadline-aware batcher and estimates expected Verify/AR/Prefill yield and
+   service time.
+4. Rejects additional-Draft stopping points that would cross Ready, AR, or
+   Prefill wait budgets. Among feasible stopping points, it selects the best
+   estimated useful Target yield per combined Draft-plus-Target time, with a
+   penalty for normalized queue-age pressure.
+5. Executes only the first action and replans after the next real Forward.
+
+The lookahead value is a **forecast depth**, not a configured Draft window H.
+The realized number of Draft forwards before Verify remains an emergent outcome
+and is reported by the existing `draft_window_mean/p50/p95/max` metrics. The
+policy can therefore continue a window for more than one decision cycle when
+each new state still predicts a benefit.
+
+Run E5 and E6 on the same request traces and seeds:
+
+```bash
+python -m scripts.cdb_av.scheduler_sim.phase_cli \
+  --requests 32 \
+  --arrival-rate 30 \
+  --arrival-mode poisson \
+  --policy all \
+  --deadline-prefill-chunk-tokens 1024 \
+  --window-predictive-draft-lookahead 4 \
+  --seed 42 \
+  --output /tmp/cdb_e6_r30_s42.json
+```
+
+Compare the `load_adaptive_deadline` and `window_predictive` result entries.
+The CPU simulator uses synthetic execution coefficients unless a measured
+profile is supplied; these results validate scheduling behavior, not GPU
+performance. Keep the Prefill chunk fixed during E6 so the experiment isolates
+the CDB-specific stage decision.
+
 ### Target Forward contention diagnostics
 
 The phase-aware simulator records resource use specifically for Prefill-containing
