@@ -210,25 +210,50 @@ and is reported by the existing `draft_window_mean/p50/p95/max` metrics. The
 policy can therefore continue a window for more than one decision cycle when
 each new state still predicts a benefit.
 
-Run E5 and E6 on the same request traces and seeds:
+Run only the E5 and E6 policies on the same request trace:
 
 ```bash
 python -m scripts.cdb_av.scheduler_sim.phase_cli \
   --requests 32 \
   --arrival-rate 30 \
   --arrival-mode poisson \
-  --policy all \
+  --policy e5_e6 \
   --deadline-prefill-chunk-tokens 1024 \
   --window-predictive-draft-lookahead 4 \
   --seed 42 \
   --output /tmp/cdb_e6_r30_s42.json
 ```
 
-Compare the `load_adaptive_deadline` and `window_predictive` result entries.
-The CPU simulator uses synthetic execution coefficients unless a measured
-profile is supplied; these results validate scheduling behavior, not GPU
-performance. Keep the Prefill chunk fixed during E6 so the experiment isolates
-the CDB-specific stage decision.
+For a paired load sweep (five rates × five seeds):
+
+```bash
+mkdir -p /tmp/cdb_e6_policy_raw
+
+for RATE in 5 15 30 60 100; do
+  for SEED in 42 43 44 45 46; do
+    python -m scripts.cdb_av.scheduler_sim.phase_cli \
+      --requests 32 \
+      --arrival-rate "$RATE" \
+      --arrival-mode poisson \
+      --policy e5_e6 \
+      --deadline-prefill-chunk-tokens 1024 \
+      --window-predictive-draft-lookahead 4 \
+      --seed "$SEED" \
+      --output "/tmp/cdb_e6_policy_raw/r${RATE}_s${SEED}.json"
+  done
+done
+
+python -m scripts.cdb_av.scheduler_sim.analyze_window_predictive \
+  --input-dir /tmp/cdb_e6_policy_raw \
+  --output-dir /tmp/cdb_e6_policy_report
+```
+
+The analyzer validates paired rate/seed runs and writes summary and paired
+comparison CSVs plus a Markdown report. Compare the `load_adaptive_deadline`
+and `window_predictive` result entries. The CPU simulator uses synthetic
+execution coefficients unless a measured profile is supplied; these results
+validate scheduling behavior, not GPU performance. Keep the Prefill chunk
+fixed during E6 so the experiment isolates the CDB-specific stage decision.
 
 ### Target Forward contention diagnostics
 
