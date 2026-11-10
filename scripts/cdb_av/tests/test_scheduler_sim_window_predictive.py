@@ -92,6 +92,15 @@ class WindowPredictiveAnalysisTests(unittest.TestCase):
             self.assertAlmostEqual(ttft["delta_mean"], -2.0)
             self.assertEqual(ttft["better_seeds"], 2)
 
+            oracle_tps = next(
+                row for row in paired
+                if row["arrival_rate_rps"] == 30
+                and row["comparison"] == "oracle_e5_vs_online_e5"
+                and row["metric"] == "output_tokens_per_s"
+            )
+            self.assertAlmostEqual(oracle_tps["delta_mean"], 2.0)
+            self.assertEqual(oracle_tps["better_seeds"], 2)
+
     def test_efficiency_metrics_have_explicit_better_directions(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -125,11 +134,11 @@ class WindowPredictiveAnalysisTests(unittest.TestCase):
                 "mean_target_batch_size",
                 "candidate_acceptance_rate",
             ):
-                self.assertEqual(by_metric[metric]["e6_better_seeds"], 1)
+                self.assertEqual(by_metric[metric]["better_seeds"], 1)
 
             # These metrics have no universally correct direction.
             for metric in ("draft_window_mean", "draft_window_p95", "mixed_target_ratio"):
-                self.assertEqual(by_metric[metric]["e6_better_seeds"], 0)
+                self.assertEqual(by_metric[metric]["better_seeds"], 0)
 
     def test_collect_rejects_clairvoyant_e5_results(self):
         with tempfile.TemporaryDirectory() as tmp:
