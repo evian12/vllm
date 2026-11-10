@@ -308,14 +308,15 @@ class PhaseAwareSchedulerTests(unittest.TestCase):
 
         pending_prefill = next(
             req for req in sim.prefill_queue
-            if req.request_id == "phase-00004"
+            if req.request_id == "waiting-prefill"
         )
-        sim.now_ms = 12.0
+        sim.now_ms = 11.0
         for req in sim.ready_queue:
             req.ready_since_ms = sim.now_ms
 
+        draft_duration = sim.profile.draft_duration_ms(sim.active_draft)
         self.assertGreaterEqual(
-            sim.now_ms - pending_prefill.arrival_time_ms,
+            sim.now_ms - pending_prefill.arrival_time_ms + draft_duration,
             sim.config.prefill_wait_budget_ms,
         )
         self.assertEqual(policy.choose_action(sim), PhaseAction.TARGET)
