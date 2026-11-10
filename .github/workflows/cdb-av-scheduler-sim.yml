@@ -66,6 +66,7 @@ jobs:
 
       - name: Run paired E5-E6 window-predictive smoke comparison
         run: |
+          mkdir -p /tmp/cdb_e5_e6_smoke_input
           python -m scripts.cdb_av.scheduler_sim.phase_cli \
             --requests 32 \
             --arrival-rate 30 \
@@ -74,7 +75,7 @@ jobs:
             --deadline-prefill-chunk-tokens 1024 \
             --window-predictive-draft-lookahead 4 \
             --seed 42 \
-            --output /tmp/cdb_e5_e6_smoke.json
+            --output /tmp/cdb_e5_e6_smoke_input/smoke.json
           python -m scripts.cdb_av.scheduler_sim.analyze_window_predictive \
-            --input-dir /tmp \
+            --input-dir /tmp/cdb_e5_e6_smoke_input \
             --output-dir /tmp/cdb_e5_e6_smoke_report
