@@ -1,6 +1,12 @@
 name: CDB-AV Prefill chunk-size sweep
 
 on:
+  # Bootstrap this workflow on the feature branch once; later runs are manual.
+  push:
+    branches:
+      - cdb-av/phase-aware-target-scheduler-20261110
+    paths:
+      - ".github/workflows/cdb-av-prefill-chunk-sweep.yml"
   workflow_dispatch:
     inputs:
       requests:
