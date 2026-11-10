@@ -168,3 +168,10 @@ conclusions.
 - A full current Target batch is verified immediately.
 
 This is a first deterministic marginal-batch-gain policy, not yet an arrival-rate classifier or a calibrated optimal policy. Evaluate it across low, medium, high, and saturation arrival rates before drawing performance conclusions.
+
+
+### E5 — Load-Adaptive + Deadline-aware Target batching
+
+E5 keeps the exact same `LoadAdaptivePhasePolicy` stage decision as the existing `load_adaptive` baseline, but swaps its Target batcher from FCFS/VLLM-like ordering to `DeadlineAwareTargetBatcher`.
+
+This isolates whether the high-load Prefill/TTFT tail observed with load-adaptive stage control is caused by Target batch composition rather than the decision to delay Verify. Compare `load_adaptive` and `load_adaptive_deadline` on identical generated workloads and seeds. No GPU-performance claim follows from the CPU simulator.
