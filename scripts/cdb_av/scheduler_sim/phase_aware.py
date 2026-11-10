@@ -1018,7 +1018,7 @@ class DynamicPhasePolicy:
         ) * (1.0 + 0.15 * eligible_supply)
 
         # Estimate whether one more Draft forward will materially improve the
-        # next Target batch. The clone keeps this decision side-effect free.
+        # next Target batch, using only requests visible at this decision time.
         projected = _visible_state_clone(simulator)
         projected.execute_action(PhaseAction.DRAFT)
         projected_plan = self.batcher.plan(projected)
@@ -1039,7 +1039,8 @@ class LoadAdaptivePhasePolicy(DynamicPhasePolicy):
     Under sparse load, another Draft does not increase the number of requests
     in the next Target batch, so the policy verifies immediately. Under busy
     load, it may continue Draft when the projected batch gains request slots.
-    All queue wait-budget guards remain hard constraints.
+    Projections are non-clairvoyant by default; allow_future_arrivals exists
+    only for an explicit oracle ablation.
     """
 
     name = "load_adaptive"
