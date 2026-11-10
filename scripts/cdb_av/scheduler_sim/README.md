@@ -192,3 +192,20 @@ The simulator now additionally reports:
   `TTFT = initial Prefill queue wait + inter-chunk wait + Target-forward exposure`.
 
 This decomposition separates waiting from the wall-clock Target execution intervals experienced by a Prefill request; it does not claim to isolate marginal GPU compute cost.
+
+
+## GitHub Actions: Prefill chunk-size sweep
+
+The 4-by-rate-by-seed CPU-only Prefill chunk-size experiment can run on GitHub-hosted CPU runners without using the development GPU server.
+
+1. Open **Actions → CDB-AV Prefill chunk-size sweep → Run workflow**.
+2. Select the feature branch `cdb-av/phase-aware-target-scheduler-20261110`.
+3. Keep the default workload inputs for the current E6 experiment: 32 requests, Poisson arrivals, rates `5,15,30,60,100`, seeds `42,43,44,45,46`.
+4. Start the workflow. Four matrix jobs independently evaluate chunk sizes 256, 512, 1024, and 2048 tokens. Each job runs one chunk size across all selected rates and seeds.
+5. The aggregate job downloads all raw JSON files, computes mean and sample standard deviation across seeds, performs paired per-seed deltas against the 512-token baseline, and publishes a Markdown report in the workflow summary.
+
+Artifacts:
+- `cdb-prefill-chunk-256`, `512`, `1024`, and `2048`: raw per-run JSON and manifest.
+- `cdb-prefill-chunk-sweep-report`: summary CSV, paired-comparison CSV, and Markdown report.
+
+The workflow is manual-only; ordinary pushes do not launch the 100-run sweep. The existing lightweight simulator CI continues to compile the code and run unit/smoke tests. Results are CPU simulation outputs using the simulator's synthetic execution profile unless a measured profile is explicitly supplied. They are not GPU performance measurements.
