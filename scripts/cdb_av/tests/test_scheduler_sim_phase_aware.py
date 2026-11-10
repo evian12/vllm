@@ -223,7 +223,8 @@ class PhaseAwareSchedulerTests(unittest.TestCase):
         record = sim.execute_action(PhaseAction.TARGET)
         self.assertEqual(record.verify_requests, 4)
         self.assertEqual(len(sim.ready_queue), 1)
-        self.assertEqual(sim.drafts_since_verify, policy.h)
+        self.assertEqual(sim.drafts_since_verify, 0)
+        self.assertTrue(sim.ready_backlog_after_verify)
         self.assertEqual(policy.choose_action(sim), PhaseAction.TARGET)
 
     def test_verify_candidate_batch_is_atomic(self):
