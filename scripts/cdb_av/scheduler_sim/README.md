@@ -147,7 +147,8 @@ of the short-request bucket.
 The phase-aware output includes committed output tok/s, TTFT (measured when the
 initial Target Prefill completes), Prefill queue wait/latency, Ready wait, AR
 wait, commit-gap, Target token/slot utilization, mixed-Target-forward ratio,
-Prefill chunk sizes, and Target batch composition.
+Prefill chunk sizes, Target batch composition, and the realized adaptive
+Prefill wait-window (W) and token-budget (D) averages.
 
 The reported commit-gap is the interval between per-request commit events. It
 is **not** token-level ITL inside a multi-token Verify commit. Default execution
