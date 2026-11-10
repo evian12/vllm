@@ -14,6 +14,7 @@ from scripts.cdb_av.scheduler_sim.phase_aware import (
     FixedHPhasePolicy,
     JointPhasePolicy,
     LengthAwareTargetBatcher,
+    LoadAdaptivePhasePolicy,
     PhaseAction,
     PhaseAwareSimulator,
     PhaseConfig,
@@ -265,6 +266,46 @@ class PhaseAwareSchedulerTests(unittest.TestCase):
         sim.execute_action(PhaseAction.TARGET)
         self.assertEqual(req.prefill_progress, 256)
         self.assertAlmostEqual(sim.oldest_prefill_wait_ms(), 0.0)
+
+    def test_load_adaptive_verifies_immediately_when_another_draft_cannot_add_batch_members(self):
+        requests = [
+            make_request("ready", output=8, cap=1),
+            make_request("still-drafting", output=8, cap=4),
+        ]
+        policy = LoadAdaptivePhasePolicy(VllmChunkedTargetBatcher())
+        sim = PhaseAwareSimulator(
+            requests,
+            PhaseConfig(confidence_threshold=0.0),
+            self.profile,
+            policy,
+        )
+        sim.execute_action(PhaseAction.TARGET)
+        sim.execute_action(PhaseAction.DRAFT)
+
+        self.assertEqual(len(sim.ready_queue), 1)
+        self.assertEqual(len(sim.active_draft), 1)
+        self.assertEqual(policy.choose_action(sim), PhaseAction.TARGET)
+
+    def test_load_adaptive_continues_draft_when_it_adds_target_batch_members(self):
+        requests = [
+            make_request("ready", output=8, cap=1),
+            make_request("draft-a", output=8, cap=1),
+            make_request("draft-b", output=8, cap=1),
+            make_request("draft-c", output=8, cap=1),
+        ]
+        policy = LoadAdaptivePhasePolicy(VllmChunkedTargetBatcher())
+        sim = PhaseAwareSimulator(
+            requests,
+            PhaseConfig(confidence_threshold=0.0),
+            self.profile,
+            policy,
+        )
+        sim.execute_action(PhaseAction.TARGET)
+        sim.execute_action(PhaseAction.DRAFT)
+
+        self.assertEqual(len(sim.ready_queue), 1)
+        self.assertEqual(len(sim.active_draft), 3)
+        self.assertEqual(policy.choose_action(sim), PhaseAction.DRAFT)
 
     def test_dynamic_stage_waits_for_a_draft_that_fills_target_batch(self):
         requests = [
