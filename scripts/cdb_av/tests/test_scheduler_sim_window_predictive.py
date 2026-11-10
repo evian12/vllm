@@ -44,7 +44,10 @@ def payload(rate: int, seed: int, e5_tps: float, e6_tps: float) -> dict:
         },
         "workload": {"arrival_rate_rps": rate, "seed": seed},
         "results": {
-            "load_adaptive_deadline": result("load_adaptive+deadline_batcher", e5_tps, 20.0),
+            "load_adaptive_deadline": result("load_adaptive_online+deadline_batcher", e5_tps, 20.0),
+            "load_adaptive_deadline_oracle": result(
+                "load_adaptive_oracle+deadline_batcher", e5_tps + 2.0, 19.0
+            ),
             "window_predictive": result("window_predictive+deadline_batcher", e6_tps, 18.0),
         },
     }
@@ -64,7 +67,7 @@ class WindowPredictiveAnalysisTests(unittest.TestCase):
             records = collect_records(root)
             self.assertEqual(len(records), 4)
             summary = aggregate(records)
-            self.assertEqual(len(summary), 2)
+            self.assertEqual(len(summary), 3)
             e6 = next(row for row in summary if row["policy_key"] == "window_predictive")
             self.assertEqual(e6["n"], 2)
             self.assertAlmostEqual(e6["output_tokens_per_s_mean"], 102.5)
@@ -73,19 +76,21 @@ class WindowPredictiveAnalysisTests(unittest.TestCase):
             tps = next(
                 row for row in paired
                 if row["arrival_rate_rps"] == 30
+                and row["comparison"] == "window_predictive_vs_online_e5"
                 and row["metric"] == "output_tokens_per_s"
             )
             self.assertEqual(tps["paired_n"], 2)
-            self.assertAlmostEqual(tps["e6_minus_e5_mean"], -2.5)
-            self.assertEqual(tps["e6_better_seeds"], 1)
+            self.assertAlmostEqual(tps["delta_mean"], -2.5)
+            self.assertEqual(tps["better_seeds"], 1)
 
             ttft = next(
                 row for row in paired
                 if row["arrival_rate_rps"] == 30
+                and row["comparison"] == "window_predictive_vs_online_e5"
                 and row["metric"] == "ttft_p95_ms"
             )
-            self.assertAlmostEqual(ttft["e6_minus_e5_mean"], -2.0)
-            self.assertEqual(ttft["e6_better_seeds"], 2)
+            self.assertAlmostEqual(ttft["delta_mean"], -2.0)
+            self.assertEqual(ttft["better_seeds"], 2)
 
     def test_efficiency_metrics_have_explicit_better_directions(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -110,7 +115,10 @@ class WindowPredictiveAnalysisTests(unittest.TestCase):
             )
 
             paired = paired_comparison(collect_records(root))
-            by_metric = {row["metric"]: row for row in paired}
+            by_metric = {
+                row["metric"]: row for row in paired
+                if row["comparison"] == "window_predictive_vs_online_e5"
+            }
             for metric in (
                 "target_forwards",
                 "draft_forwards",
