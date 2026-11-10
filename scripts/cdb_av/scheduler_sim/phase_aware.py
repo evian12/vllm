@@ -1118,7 +1118,7 @@ class WindowPredictivePhasePolicy:
     def __init__(
         self,
         batcher: TargetBatcher | None = None,
-        max_draft_lookahead: int = 4,
+        max_draft_lookahead: int = 8,
         urgency_weight: float = 0.20,
     ) -> None:
         if max_draft_lookahead < 1:
