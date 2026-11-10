@@ -14,6 +14,7 @@ from .phase_aware import (
     PhaseAwareSimulator,
     PhaseConfig,
     PhaseExecutionProfile,
+    PhaseLookaheadPolicy,
     QueuePressurePhasePolicy,
     SarathiTargetBatcher,
     VllmChunkedTargetBatcher,
@@ -47,7 +48,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--policy",
-        choices=("all", "fixed_h", "queue_pressure", "sarathi", "length_aware", "joint"),
+        choices=("all", "fixed_h", "queue_pressure", "lookahead", "sarathi", "length_aware", "joint"),
         default="all",
     )
     parser.add_argument("--seed", type=int, default=42)
@@ -55,6 +56,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--max-num-batched-tokens", type=int, default=2048)
     parser.add_argument("--max-draft-batch", type=int, default=4)
     parser.add_argument("--fixed-h", type=int, default=8)
+    parser.add_argument("--lookahead-horizon", type=int, default=4)
+    parser.add_argument("--lookahead-rollouts", type=int, default=2)
     parser.add_argument("--confidence-threshold", type=float, default=0.8)
     parser.add_argument("--ready-wait-budget-ms", type=float, default=8.0)
     parser.add_argument("--ar-itl-budget-ms", type=float, default=40.0)
@@ -100,6 +103,11 @@ def build_policies(args: argparse.Namespace, config: PhaseConfig) -> dict[str, o
     policies = {
         "fixed_h": FixedHPhasePolicy(args.fixed_h, vllm_batcher),
         "queue_pressure": QueuePressurePhasePolicy(vllm_batcher),
+        "lookahead": PhaseLookaheadPolicy(
+            horizon=args.lookahead_horizon,
+            rollouts=args.lookahead_rollouts,
+            rollout_policy=QueuePressurePhasePolicy(vllm_batcher),
+        ),
         "sarathi": QueuePressurePhasePolicy(sarathi_batcher),
         "length_aware": QueuePressurePhasePolicy(length_batcher),
         "joint": JointPhasePolicy(length_batcher),
