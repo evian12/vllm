@@ -335,6 +335,103 @@ class VllmChunkedTargetBatcher(_BaseTargetBatcher):
     name = "vllm_chunked"
 
 
+class DeadlineAwareTargetBatcher(_BaseTargetBatcher):
+    """Earliest-deadline-first selection across Verify, AR, and chunked Prefill.
+
+    Deadlines are request-local service deadlines derived from the corresponding
+    queue's wait budget. Prefill chunks are bounded so one long prompt cannot
+    consume the entire Target token budget in a single forward.
+    """
+
+    name = "deadline_aware"
+
+    def __init__(self, prefill_chunk_tokens: int = 512) -> None:
+        if prefill_chunk_tokens < 1:
+            raise ValueError("prefill_chunk_tokens must be positive")
+        self.prefill_chunk_tokens = prefill_chunk_tokens
+
+    def plan(self, simulator: PhaseAwareSimulator) -> list[TargetWorkItem]:
+        cfg = simulator.config
+        candidates: list[
+            tuple[float, int, float, str, WorkKind, PhaseRequest]
+        ] = []
+
+        for req in simulator.ready_queue:
+            base = (
+                req.ready_since_ms
+                if req.ready_since_ms is not None
+                else simulator.now_ms
+            )
+            candidates.append((
+                base + cfg.ready_wait_budget_ms,
+                0,
+                req.arrival_time_ms,
+                req.request_id,
+                WorkKind.VERIFY,
+                req,
+            ))
+
+        for req in simulator.ar_queue:
+            base = (
+                req.last_token_time_ms
+                if req.last_token_time_ms is not None
+                else req.arrival_time_ms
+            )
+            candidates.append((
+                base + cfg.ar_itl_budget_ms,
+                1,
+                req.arrival_time_ms,
+                req.request_id,
+                WorkKind.AR,
+                req,
+            ))
+
+        for req in simulator.prefill_queue:
+            base = (
+                req.prefill_last_scheduled_ms
+                if req.prefill_last_scheduled_ms is not None
+                else req.arrival_time_ms
+            )
+            candidates.append((
+                base + cfg.prefill_wait_budget_ms,
+                2,
+                req.arrival_time_ms,
+                req.request_id,
+                WorkKind.PREFILL,
+                req,
+            ))
+
+        candidates.sort(key=lambda item: item[:4])
+        items: list[TargetWorkItem] = []
+        token_budget = cfg.max_num_batched_tokens
+        selected: set[str] = set()
+
+        for _, _, _, _, kind, req in candidates:
+            if len(items) >= cfg.max_num_seqs or token_budget <= 0:
+                break
+            if req.request_id in selected:
+                continue
+
+            if kind is WorkKind.VERIFY:
+                token_count = req.draft_depth + 1
+            elif kind is WorkKind.AR:
+                token_count = 1
+            else:
+                token_count = min(
+                    req.remaining_prompt_tokens,
+                    self.prefill_chunk_tokens,
+                    token_budget,
+                )
+
+            if token_count < 1 or token_count > token_budget:
+                continue
+            items.append(TargetWorkItem(req, kind, token_count))
+            selected.add(req.request_id)
+            token_budget -= token_count
+
+        return items
+
+
 class SarathiTargetBatcher(_BaseTargetBatcher):
     """Sarathi-inspired stall-free batches with a bounded Prefill chunk."""
 
@@ -628,6 +725,123 @@ class QueuePressurePhasePolicy:
         )
 
 
+class DynamicPhasePolicy:
+    """Deadline-aware stage selector with an emergent Draft window.
+
+    It never counts toward a configured H. It compares useful Target work with
+    the marginal value of another Draft forward, while checking whether that
+    Draft forward would push any queued request beyond its wait budget.
+    """
+
+    name = "dynamic"
+
+    def __init__(
+        self,
+        batcher: TargetBatcher | None = None,
+        fill_gain_weight: float = 0.25,
+        urgency_weight: float = 0.20,
+    ) -> None:
+        if fill_gain_weight < 0 or urgency_weight < 0:
+            raise ValueError("dynamic scheduling weights must be non-negative")
+        self.batcher = batcher or VllmChunkedTargetBatcher()
+        self.fill_gain_weight = fill_gain_weight
+        self.urgency_weight = urgency_weight
+
+    @staticmethod
+    def _target_yield(
+        simulator: PhaseAwareSimulator,
+        plan: Sequence[TargetWorkItem],
+    ) -> float:
+        value = 0.0
+        for item in plan:
+            req = item.request
+            if item.kind is WorkKind.VERIFY:
+                value += req.expected_verify_tokens()
+            elif item.kind is WorkKind.AR:
+                value += 1.0
+            else:
+                fraction = item.token_count / max(1, req.remaining_prompt_tokens)
+                completes = item.token_count >= req.remaining_prompt_tokens
+                value += 0.15 + (0.85 if completes else 0.0) + 0.10 * fraction
+        return value
+
+    @staticmethod
+    def _wait_pressure(simulator: PhaseAwareSimulator) -> tuple[float, bool]:
+        cfg = simulator.config
+        ages_and_budgets = [
+            (simulator.oldest_ready_wait_ms(), cfg.ready_wait_budget_ms),
+            (simulator.oldest_ar_wait_ms(), cfg.ar_itl_budget_ms),
+            (simulator.oldest_prefill_wait_ms(), cfg.prefill_wait_budget_ms),
+        ]
+        pressure = max(
+            (age / budget for age, budget in ages_and_budgets),
+            default=0.0,
+        )
+        return pressure, any(age >= budget for age, budget in ages_and_budgets)
+
+    def choose_action(self, simulator: PhaseAwareSimulator) -> PhaseAction:
+        actions = simulator.available_actions()
+        if len(actions) == 1:
+            return actions[0]
+
+        plan = self.batcher.plan(simulator)
+        if not plan:
+            return PhaseAction.DRAFT
+
+        draft_batch = simulator.active_draft
+        draft_duration = simulator.profile.draft_duration_ms(draft_batch)
+
+        # Do not cross a request's configured wait budget just to improve packing.
+        cfg = simulator.config
+        if (
+            simulator.oldest_ready_wait_ms() + draft_duration
+            >= cfg.ready_wait_budget_ms
+            or simulator.oldest_ar_wait_ms() + draft_duration
+            >= cfg.ar_itl_budget_ms
+            or simulator.oldest_prefill_wait_ms() + draft_duration
+            >= cfg.prefill_wait_budget_ms
+        ):
+            return PhaseAction.TARGET
+
+        target_duration = simulator.profile.target_duration_ms(plan)
+        target_fill = len(plan) / cfg.max_num_seqs
+        target_score = (
+            self._target_yield(simulator, plan)
+            / max(target_duration, 1e-6)
+        )
+        target_score *= 0.55 + 0.45 * target_fill
+
+        wait_pressure, _ = self._wait_pressure(simulator)
+        target_score *= 1.0 + self.urgency_weight * min(wait_pressure, 1.0)
+
+        draft_yield = sum(
+            req.expected_next_candidate_acceptance()
+            for req in draft_batch
+        )
+        eligible_supply = min(
+            1.0,
+            len(simulator.draft_eligible_queue) / cfg.max_draft_batch_size,
+        )
+        draft_score = (
+            draft_yield / max(draft_duration, 1e-6)
+        ) * (1.0 + 0.15 * eligible_supply)
+
+        # Estimate whether one more Draft forward will materially improve the
+        # next Target batch. The clone keeps this decision side-effect free.
+        projected = simulator.clone()
+        projected.execute_action(PhaseAction.DRAFT)
+        projected_plan = self.batcher.plan(projected)
+        projected_fill = len(projected_plan) / cfg.max_num_seqs
+        fill_gain = max(0.0, projected_fill - target_fill)
+        draft_score *= 1.0 + self.fill_gain_weight * fill_gain
+
+        return (
+            PhaseAction.DRAFT
+            if draft_score > target_score
+            else PhaseAction.TARGET
+        )
+
+
 class JointPhasePolicy(QueuePressurePhasePolicy):
     """Joint stage selection plus LAPS-inspired Prefill batching window."""
 
@@ -770,6 +984,7 @@ class PhaseAwareSimulator:
         self.draft_forward_count = 0
         self.target_forward_count = 0
         self.drafts_since_verify = 0
+        self.draft_window_samples: list[int] = []
         self.ready_backlog_after_verify = False
         self.consecutive_target_forwards = 0
         self.consecutive_draft_forwards = 0
@@ -1114,6 +1329,7 @@ class PhaseAwareSimulator:
                         self.ar_queue.append(req)
 
             if verify_count > 0:
+                self.draft_window_samples.append(self.drafts_since_verify)
                 self.drafts_since_verify = 0
                 self.ready_backlog_after_verify = bool(self.ready_queue)
             self.consecutive_target_forwards += 1
@@ -1183,6 +1399,11 @@ class PhaseAwareSimulator:
             "idle_ms": self.idle_ms,
             "draft_forwards": self.draft_forward_count,
             "target_forwards": self.target_forward_count,
+            "draft_window_count": len(self.draft_window_samples),
+            "draft_window_mean": mean(self.draft_window_samples) if self.draft_window_samples else 0.0,
+            "draft_window_p50": self._percentile(self.draft_window_samples, 0.50),
+            "draft_window_p95": self._percentile(self.draft_window_samples, 0.95),
+            "draft_window_max": max(self.draft_window_samples, default=0),
             "mixed_target_forwards": self.mixed_target_forward_count,
             "mixed_target_ratio": (
                 self.mixed_target_forward_count / self.target_forward_count
