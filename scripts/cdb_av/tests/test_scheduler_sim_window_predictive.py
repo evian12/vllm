@@ -37,6 +37,11 @@ def payload(rate: int, seed: int, e5_tps: float, e6_tps: float) -> dict:
         }
 
     return {
+        "scope": {
+            "scheduling_policy_parameters": {
+                "load_adaptive_projection_mode": "visible_only",
+            },
+        },
         "workload": {"arrival_rate_rps": rate, "seed": seed},
         "results": {
             "load_adaptive_deadline": result("load_adaptive+deadline_batcher", e5_tps, 20.0),
@@ -117,6 +122,19 @@ class WindowPredictiveAnalysisTests(unittest.TestCase):
             # These metrics have no universally correct direction.
             for metric in ("draft_window_mean", "draft_window_p95", "mixed_target_ratio"):
                 self.assertEqual(by_metric[metric]["e6_better_seeds"], 0)
+
+    def test_collect_rejects_clairvoyant_e5_results(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            item = payload(30, 42, 100.0, 105.0)
+            item["scope"]["scheduling_policy_parameters"][
+                "load_adaptive_projection_mode"
+            ] = "full_request_list"
+            (root / "oracle.json").write_text(
+                json.dumps(item), encoding="utf-8"
+            )
+            with self.assertRaisesRegex(ValueError, "visible_only"):
+                collect_records(root)
 
     def test_collect_rejects_duplicate_rate_seed(self):
         with tempfile.TemporaryDirectory() as tmp:
