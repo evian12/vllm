@@ -815,6 +815,8 @@ class PhaseAwareSchedulerTests(unittest.TestCase):
         self.assertEqual(prefill_item["token_count"], 10)
         self.assertEqual(prefill_item["token_count_shortfall"], 6)
         self.assertEqual(prefill_item["allocation_limit_reason"], "target_token_budget")
+        self.assertEqual(summary["prefill_chunk_requested_tokens"], 16)
+        self.assertEqual(summary["prefill_chunk_allocated_tokens"], 10)
         self.assertEqual(summary["prefill_chunk_budget_shortfall_tokens"], 6)
         self.assertEqual(summary["prefill_chunk_budget_truncations"], 1)
 
