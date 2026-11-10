@@ -198,6 +198,34 @@ class PhaseAwareSchedulerTests(unittest.TestCase):
         self.assertEqual(record.verify_requests, 0)
         self.assertEqual(sim.drafts_since_verify, 1)
 
+    def test_fixed_h_drains_ready_backlog_after_capacity_limited_verify(self):
+        requests = [
+            make_request(f"ready-{i}", output=8, cap=2)
+            for i in range(5)
+        ]
+        policy = FixedHPhasePolicy(2)
+        sim = PhaseAwareSimulator(
+            requests,
+            PhaseConfig(max_num_seqs=4, max_num_batched_tokens=2048),
+            self.profile,
+            policy,
+        )
+        sim.prefill_queue.clear()
+        for req in sim.requests:
+            req.prefill_progress = req.prompt_tokens
+            req.committed_tokens = 1
+            req.last_token_time_ms = 0.0
+            req.draft_depth = 1
+            req.ready_since_ms = 0.0
+            req.status = RequestStatus.READY
+            sim.ready_queue.append(req)
+
+        record = sim.execute_action(PhaseAction.TARGET)
+        self.assertEqual(record.verify_requests, 4)
+        self.assertEqual(len(sim.ready_queue), 1)
+        self.assertEqual(sim.drafts_since_verify, policy.h)
+        self.assertEqual(policy.choose_action(sim), PhaseAction.TARGET)
+
     def test_verify_candidate_batch_is_atomic(self):
         req = make_request("verify-atomic", output=8, cap=3)
         sim = PhaseAwareSimulator(
