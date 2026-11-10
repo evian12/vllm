@@ -63,3 +63,18 @@ jobs:
             --arrival-mode bursty \
             --policy all \
             --seed 42
+
+      - name: Run paired E5-E6 window-predictive smoke comparison
+        run: |
+          python -m scripts.cdb_av.scheduler_sim.phase_cli \
+            --requests 32 \
+            --arrival-rate 30 \
+            --arrival-mode poisson \
+            --policy e5_e6 \
+            --deadline-prefill-chunk-tokens 1024 \
+            --window-predictive-draft-lookahead 4 \
+            --seed 42 \
+            --output /tmp/cdb_e5_e6_smoke.json
+          python -m scripts.cdb_av.scheduler_sim.analyze_window_predictive \
+            --input-dir /tmp \
+            --output-dir /tmp/cdb_e5_e6_smoke_report
