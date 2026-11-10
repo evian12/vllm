@@ -57,7 +57,7 @@ def collect_records(root: Path) -> list[dict[str, Any]]:
             payload.get("scope", {})
             .get("scheduling_policy_parameters", {})
         )
-        projection_mode = scope_params.get("load_adaptive_projection_mode")
+        projection_mode = scope_params.get("load_adaptive_default_projection_mode")
         if projection_mode != "visible_only":
             raise ValueError(
                 f"{path}: E5 projection is not marked visible_only; "
