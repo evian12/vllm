@@ -63,6 +63,9 @@ jobs:
             -s scripts/cdb_av/tests \
             -p "test_scheduler_sim*.py" \
             -v
+          python -m unittest \
+            scripts.cdb_av.tests.test_prefill_chunk_sweep \
+            -v
       - name: Run this chunk-size slice
         run: |
           python -m scripts.cdb_av.scheduler_sim.run_prefill_chunk_sweep \
