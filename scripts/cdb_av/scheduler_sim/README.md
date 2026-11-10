@@ -222,6 +222,52 @@ outputs compact. This instrumentation does not change batch selection or
 execution timing. All values remain outputs of the CPU simulator's configured
 service-time model; they are not GPU measurements.
 
+#### Run the contention-diagnostic sweep
+
+The focused diagnostic matrix uses three Prefill chunk sizes, three medium/high
+arrival rates, and five paired seeds (45 CPU-only runs). It keeps the stage
+policy fixed at \`load_adaptive_deadline\` and changes only the configured
+Prefill chunk cap:
+
+\`\`\`bash
+cd ~/CDB-AV/vllm-phase-aware-target-scheduler-20261110
+mkdir -p /tmp/cdb_target_contention_raw
+
+for CHUNK in 256 1024 2048; do
+  for RATE in 30 60 100; do
+    for SEED in 42 43 44 45 46; do
+      python -m scripts.cdb_av.scheduler_sim.phase_cli \\
+        --requests 32 \\
+        --arrival-rate "$RATE" \\
+        --arrival-mode poisson \\
+        --policy load_adaptive_deadline \\
+        --deadline-prefill-chunk-tokens "$CHUNK" \\
+        --seed "$SEED" \\
+        --include-target-forward-trace \\
+        --output "/tmp/cdb_target_contention_raw/cdb_diag_c\${CHUNK}_r\${RATE}_s\${SEED}.json"
+    done
+  done
+done
+
+python -m scripts.cdb_av.scheduler_sim.analyze_target_contention \\
+  --input-dir /tmp/cdb_target_contention_raw \\
+  --output-dir /tmp/cdb_target_contention_report \\
+  --baseline-chunk 1024
+\`\`\`
+
+The analyzer validates unique (chunk, rate, seed) combinations and the presence
+of a trace, then writes:
+- \`target_contention_summary.csv\`: mean/sample standard deviation across seeds.
+- \`target_contention_composition.csv\`: Prefill-only, Verify-only, AR-only, and
+  mixed-forward counts.
+- \`target_contention_paired.csv\`: same-seed deltas against chunk 1024.
+- \`target_contention_report.md\`: compact tables for interpretation.
+
+Rate 15 is intentionally omitted from this focused pass: the immediate
+question is whether Target capacity constraints change batch composition under
+medium/high contention. A later sparse-load run can check that the same policy
+does not introduce avoidable delay when the queues are lightly populated.
+
 ### Prefill latency metric semantics
 
 The simulator emits the first output token only when the final Prefill chunk completes. Therefore `prefill_latency_ms` is measured from request arrival to Prefill completion and is intentionally identical, request by request, to TTFT. It is not Prefill GPU service time.
