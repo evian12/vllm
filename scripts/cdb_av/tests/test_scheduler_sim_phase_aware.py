@@ -160,6 +160,39 @@ class PhaseAwareSchedulerTests(unittest.TestCase):
         self.assertTrue(all(item.kind is WorkKind.PREFILL for item in plan))
         self.assertTrue(all(item.token_count <= 256 for item in plan))
 
+    def test_prefill_wait_age_resets_after_each_chunk(self):
+        req = make_request("long-wait", prompt=1024, output=2, speculative=False)
+        batcher = LengthAwareTargetBatcher(
+            min_prefill_budget=256,
+            max_prefill_budget=1024,
+            long_chunk_tokens=256,
+        )
+        sim = PhaseAwareSimulator(
+            [req],
+            PhaseConfig(prefill_wait_budget_ms=12.0),
+            self.profile,
+            QueuePressurePhasePolicy(batcher),
+        )
+        sim.execute_action(PhaseAction.TARGET)
+        self.assertEqual(req.prefill_progress, 256)
+        self.assertAlmostEqual(sim.oldest_prefill_wait_ms(), 0.0)
+
+    def test_verify_candidate_batch_is_atomic(self):
+        req = make_request("verify-atomic", output=8, cap=3)
+        sim = PhaseAwareSimulator(
+            [req], PhaseConfig(), self.profile, QueuePressurePhasePolicy()
+        )
+        sim.execute_action(PhaseAction.TARGET)
+        req.status = RequestStatus.READY
+        req.draft_depth = 3
+        req.ready_since_ms = sim.now_ms
+        sim.active_draft.clear()
+        sim.ready_queue.append(req)
+        plan = sim.policy.batcher.plan(sim)
+        verify_items = [item for item in plan if item.kind is WorkKind.VERIFY]
+        self.assertEqual(len(verify_items), 1)
+        self.assertEqual(verify_items[0].token_count, 4)
+
     def test_length_aware_batcher_groups_similar_prompt_lengths(self):
         requests = [
             make_request("a", prompt=128, output=2, speculative=False),
