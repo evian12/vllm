@@ -488,10 +488,12 @@ class PersistentDraftQueue:
         ready_ages_ms = None
         if self.ready_select_policy == "yield_age":
             now = time.monotonic()
+            expected_yield_by_k = {
+                k: self.ready_yield_estimator.expected_committed_tokens(k)
+                for k in range(1, self.max_k + 1)
+            }
             ready_yield_scores = {
-                rid: self.ready_yield_estimator.expected_committed_tokens(
-                    len(record["tokens"])
-                )
+                rid: expected_yield_by_k[len(record["tokens"])]
                 for rid, record in self.ready.items()
             }
             ready_ages_ms = {
