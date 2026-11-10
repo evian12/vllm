@@ -470,7 +470,9 @@ class PhaseAwareSchedulerTests(unittest.TestCase):
             len(sim.ready_queue),
             len(sim.prefill_queue),
             sim.decision_count,
+            len(sim.step_records),
         )
+        rng_state = sim.rng.getstate()
         action = policy.choose_action(sim)
         after = (
             sim.now_ms,
@@ -479,9 +481,11 @@ class PhaseAwareSchedulerTests(unittest.TestCase):
             len(sim.ready_queue),
             len(sim.prefill_queue),
             sim.decision_count,
+            len(sim.step_records),
         )
         self.assertIn(action, sim.available_actions())
         self.assertEqual(before, after)
+        self.assertEqual(sim.rng.getstate(), rng_state)
 
     def test_target_and_draft_forwards_are_serial(self):
         requests = generate_phase_workload(
