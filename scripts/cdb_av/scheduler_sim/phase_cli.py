@@ -56,7 +56,7 @@ def build_parser() -> argparse.ArgumentParser:
             "all", "fixed_h", "queue_pressure", "lookahead", "sarathi",
             "length_aware", "joint", "fixed_h_deadline", "dynamic",
             "dynamic_deadline", "load_adaptive", "load_adaptive_deadline",
-            "window_predictive",
+            "window_predictive", "e5_e6",
         ),
         default="all",
     )
@@ -160,6 +160,11 @@ def build_policies(args: argparse.Namespace, config: PhaseConfig) -> dict[str, o
     policies["window_predictive"].name = "window_predictive+deadline_batcher"
     if args.policy == "all":
         return policies
+    if args.policy == "e5_e6":
+        return {
+            key: policies[key]
+            for key in ("load_adaptive_deadline", "window_predictive")
+        }
     return {args.policy: policies[args.policy]}
 
 
