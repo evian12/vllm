@@ -175,3 +175,20 @@ This is a first deterministic marginal-batch-gain policy, not yet an arrival-rat
 E5 keeps the exact same `LoadAdaptivePhasePolicy` stage decision as the existing `load_adaptive` baseline, but swaps its Target batcher from FCFS/VLLM-like ordering to `DeadlineAwareTargetBatcher`.
 
 This isolates whether the high-load Prefill/TTFT tail observed with load-adaptive stage control is caused by Target batch composition rather than the decision to delay Verify. Compare `load_adaptive` and `load_adaptive_deadline` on identical generated workloads and seeds. No GPU-performance claim follows from the CPU simulator.
+
+
+### Prefill latency metric semantics
+
+The simulator emits the first output token only when the final Prefill chunk completes. Therefore `prefill_latency_ms` is measured from request arrival to Prefill completion and is intentionally identical, request by request, to TTFT. It is not Prefill GPU service time.
+
+The original `prefill_wait_ms` records only arrival-to-first-Prefill-chunk-start. It does not include gaps between later chunks.
+
+The simulator now additionally reports:
+- `prefill_inter_chunk_wait_p50/p95_ms`: cumulative queue/phase waiting between successive Prefill chunks for each completed request.
+- `prefill_target_forward_exposure_p50/p95_ms`: sum of wall-clock durations of Target forwards that carried this request's Prefill chunks. This includes shared batch execution and is not exclusive per-request GPU compute.
+- `prefill_chunk_count_mean`: mean number of Prefill chunks per completed request.
+- `prefill_decomposition_error_max_ms`: maximum absolute residual for the per-request identity:
+
+  `TTFT = initial Prefill queue wait + inter-chunk wait + Target-forward exposure`.
+
+This decomposition separates waiting from the wall-clock Target execution intervals experienced by a Prefill request; it does not claim to isolate marginal GPU compute cost.
