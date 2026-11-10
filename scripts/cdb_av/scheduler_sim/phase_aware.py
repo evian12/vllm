@@ -457,6 +457,12 @@ class DeadlineAwareTargetBatcher(_BaseTargetBatcher):
             raise ValueError("prefill_chunk_tokens must be positive")
         self.prefill_chunk_tokens = prefill_chunk_tokens
 
+    def prefill_chunk_limit(
+        self, simulator: PhaseAwareSimulator, request: PhaseRequest
+    ) -> int:
+        # Keep trace accounting aligned with the exact cap used by plan_with_diagnostics.
+        return self.prefill_chunk_tokens
+
     def plan(self, simulator: PhaseAwareSimulator) -> list[TargetWorkItem]:
         return self.plan_with_diagnostics(simulator).items
 
