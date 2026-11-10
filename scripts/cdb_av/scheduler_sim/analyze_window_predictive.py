@@ -1,4 +1,4 @@
-"""Paired E5/E6 analysis with a strictly online, non-clairvoyant E5 baseline."""
+"""Paired analysis of online E5, clairvoyant E5 oracle, and E6 scheduling."""
 
 from __future__ import annotations
 
@@ -10,7 +10,15 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
-POLICIES = ("load_adaptive_deadline", "window_predictive")
+POLICIES = (
+    "load_adaptive_deadline",
+    "load_adaptive_deadline_oracle",
+    "window_predictive",
+)
+COMPARISONS = (
+    ("window_predictive_vs_online_e5", "window_predictive", "load_adaptive_deadline"),
+    ("oracle_e5_vs_online_e5", "load_adaptive_deadline_oracle", "load_adaptive_deadline"),
+)
 METRICS = (
     "output_tokens_per_s",
     "ttft_p50_ms",
@@ -96,7 +104,7 @@ def collect_records(root: Path) -> list[dict[str, Any]]:
             records.append(row)
 
     if not records:
-        raise ValueError(f"No E5/E6 result JSON files found in {root}")
+        raise ValueError(f"No online-E5/oracle-E5/E6 result JSON files found in {root}")
     return records
 
 
@@ -136,33 +144,36 @@ def paired_comparison(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
     rates = sorted({float(row["arrival_rate_rps"]) for row in records})
     output: list[dict[str, Any]] = []
     for rate in rates:
-        seeds = sorted(
-            seed
-            for candidate_rate, seed, policy in by_run
-            if candidate_rate == rate and policy == "window_predictive"
-            and (rate, seed, "load_adaptive_deadline") in by_run
-        )
-        for metric in METRICS:
-            deltas = [
-                float(by_run[(rate, seed, "window_predictive")][metric])
-                - float(by_run[(rate, seed, "load_adaptive_deadline")][metric])
-                for seed in seeds
-            ]
-            better = 0
-            if metric in HIGHER_IS_BETTER:
-                better = sum(delta > 0 for delta in deltas)
-            elif metric in LOWER_IS_BETTER:
-                better = sum(delta < 0 for delta in deltas)
-            output.append({
-                "arrival_rate_rps": rate,
-                "metric": metric,
-                "paired_n": len(deltas),
-                "e6_minus_e5_mean": statistics.mean(deltas) if deltas else 0.0,
-                "e6_minus_e5_stdev": (
-                    statistics.stdev(deltas) if len(deltas) > 1 else 0.0
-                ),
-                "e6_better_seeds": better,
-            })
+        for comparison, left_policy, right_policy in COMPARISONS:
+            seeds = sorted(
+                seed
+                for candidate_rate, seed, policy in by_run
+                if candidate_rate == rate
+                and policy == left_policy
+                and (rate, seed, right_policy) in by_run
+            )
+            for metric in METRICS:
+                deltas = [
+                    float(by_run[(rate, seed, left_policy)][metric])
+                    - float(by_run[(rate, seed, right_policy)][metric])
+                    for seed in seeds
+                ]
+                better = 0
+                if metric in HIGHER_IS_BETTER:
+                    better = sum(delta > 0 for delta in deltas)
+                elif metric in LOWER_IS_BETTER:
+                    better = sum(delta < 0 for delta in deltas)
+                output.append({
+                    "arrival_rate_rps": rate,
+                    "comparison": comparison,
+                    "metric": metric,
+                    "paired_n": len(deltas),
+                    "delta_mean": statistics.mean(deltas) if deltas else 0.0,
+                    "delta_stdev": (
+                        statistics.stdev(deltas) if len(deltas) > 1 else 0.0
+                    ),
+                    "better_seeds": better,
+                })
     return output
 
 
@@ -184,7 +195,7 @@ def render_report(
         for row in summary
     }
     lines = [
-        "# CDB-AV E5 vs E6 Window-Predictive Scheduling",
+        "# CDB-AV Online E5 vs Oracle E5 vs E6 Scheduling",
         "",
         "CPU-only discrete-event simulation. Coefficients are synthetic unless a measured profile is supplied.",
         "",
@@ -213,12 +224,12 @@ def render_report(
 
     lines.extend([
         "",
-        "## Paired E6 − E5 deltas",
+        "## Paired comparisons",
         "",
         "Positive TPS deltas are better; negative latency deltas are better. Each comparison uses matching arrival rate and seed.",
         "",
-        "| Rate | Metric | Paired N | E6 − E5 Mean | E6 Better Seeds |",
-        "|---:|---|---:|---:|---:|",
+        "| Rate | Comparison | Metric | Paired N | Delta Mean | Better Seeds |",
+        "|---:|---|---|---:|---:|---:|",
     ])
     selected = {
         "output_tokens_per_s",
@@ -233,9 +244,9 @@ def render_report(
         if row["metric"] not in selected:
             continue
         lines.append(
-            f"| {row['arrival_rate_rps']:g} | {row['metric']} "
-            f"| {row['paired_n']} | {row['e6_minus_e5_mean']:+.2f} "
-            f"| {row['e6_better_seeds']}/{row['paired_n']} |"
+            f"| {row['arrival_rate_rps']:g} | {row['comparison']} | {row['metric']} "
+            f"| {row['paired_n']} | {row['delta_mean']:+.2f} "
+            f"| {row['better_seeds']}/{row['paired_n']} |"
         )
     lines.append("")
     return "\n".join(lines)
