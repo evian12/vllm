@@ -24,6 +24,7 @@ from .phase_aware import (
     RequestStatus as PhaseRequestStatus,
     SarathiTargetBatcher,
     VllmChunkedTargetBatcher,
+    WindowPredictivePhasePolicy,
     WorkKind,
     generate_phase_workload,
 )
@@ -53,6 +54,7 @@ __all__ = [
     "QueuePressurePhasePolicy",
     "SarathiTargetBatcher",
     "VllmChunkedTargetBatcher",
+    "WindowPredictivePhasePolicy",
     "WorkKind",
     "generate_phase_workload",
 ]
