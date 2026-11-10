@@ -387,13 +387,10 @@ class DeadlineAwareTargetBatcher(_BaseTargetBatcher):
             ))
 
         for req in simulator.prefill_queue:
-            base = (
-                req.prefill_last_scheduled_ms
-                if req.prefill_last_scheduled_ms is not None
-                else req.arrival_time_ms
-            )
+            # TTFT is not emitted until the final Prefill chunk completes, so
+            # partial service must not reset the request's absolute TTFT deadline.
             candidates.append((
-                base + cfg.prefill_wait_budget_ms,
+                req.arrival_time_ms + cfg.prefill_wait_budget_ms,
                 2,
                 req.arrival_time_ms,
                 req.request_id,
@@ -768,10 +765,17 @@ class DynamicPhasePolicy:
     @staticmethod
     def _wait_pressure(simulator: PhaseAwareSimulator) -> tuple[float, bool]:
         cfg = simulator.config
+        oldest_prefill_ttft_age = max(
+            (
+                simulator.now_ms - req.arrival_time_ms
+                for req in simulator.prefill_queue
+            ),
+            default=0.0,
+        )
         ages_and_budgets = [
             (simulator.oldest_ready_wait_ms(), cfg.ready_wait_budget_ms),
             (simulator.oldest_ar_wait_ms(), cfg.ar_itl_budget_ms),
-            (simulator.oldest_prefill_wait_ms(), cfg.prefill_wait_budget_ms),
+            (oldest_prefill_ttft_age, cfg.prefill_wait_budget_ms),
         ]
         pressure = max(
             (age / budget for age, budget in ages_and_budgets),
@@ -798,8 +802,13 @@ class DynamicPhasePolicy:
             >= cfg.ready_wait_budget_ms
             or simulator.oldest_ar_wait_ms() + draft_duration
             >= cfg.ar_itl_budget_ms
-            or simulator.oldest_prefill_wait_ms() + draft_duration
-            >= cfg.prefill_wait_budget_ms
+            or max(
+                (
+                    simulator.now_ms - req.arrival_time_ms
+                    for req in simulator.prefill_queue
+                ),
+                default=0.0,
+            ) + draft_duration >= cfg.prefill_wait_budget_ms
         ):
             return PhaseAction.TARGET
 
