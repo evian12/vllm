@@ -16,6 +16,7 @@ from scripts.cdb_av.scheduler_sim.phase_aware import (
     PhaseAwareSimulator,
     PhaseConfig,
     PhaseExecutionProfile,
+    PhaseLookaheadPolicy,
     PhaseRequest,
     QueuePressurePhasePolicy,
     RequestStatus,
@@ -376,6 +377,11 @@ class PhaseAwareSchedulerTests(unittest.TestCase):
             QueuePressurePhasePolicy(SarathiTargetBatcher(256)),
             QueuePressurePhasePolicy(LengthAwareTargetBatcher()),
             JointPhasePolicy(LengthAwareTargetBatcher()),
+            PhaseLookaheadPolicy(
+                horizon=3,
+                rollouts=2,
+                rollout_policy=QueuePressurePhasePolicy(VllmChunkedTargetBatcher()),
+            ),
         ]
         expected_output = sum(req.max_output_tokens for req in requests)
         for policy in policies:
@@ -388,6 +394,45 @@ class PhaseAwareSchedulerTests(unittest.TestCase):
                 self.assertGreater(result["ttft_p50_ms"], 0.0)
                 self.assertLessEqual(result["target_slot_utilization"], 1.0)
                 self.assertLessEqual(result["target_token_budget_utilization"], 1.0)
+
+    def test_phase_lookahead_does_not_mutate_live_state(self):
+        requests = [
+            make_request("active-a", prompt=128, cap=4),
+            make_request("active-b", prompt=128, cap=4),
+            make_request("waiting-prefill", arrival=0.1, prompt=256, speculative=False),
+        ]
+        policy = PhaseLookaheadPolicy(
+            horizon=3,
+            rollouts=2,
+            rollout_policy=QueuePressurePhasePolicy(VllmChunkedTargetBatcher()),
+        )
+        sim = PhaseAwareSimulator(
+            requests,
+            PhaseConfig(confidence_threshold=0.0),
+            self.profile,
+            policy,
+        )
+        sim.execute_action(PhaseAction.TARGET)
+        sim.execute_action(PhaseAction.DRAFT)
+        before = (
+            sim.now_ms,
+            sim.total_output_tokens,
+            len(sim.active_draft),
+            len(sim.ready_queue),
+            len(sim.prefill_queue),
+            sim.decision_count,
+        )
+        action = policy.choose_action(sim)
+        after = (
+            sim.now_ms,
+            sim.total_output_tokens,
+            len(sim.active_draft),
+            len(sim.ready_queue),
+            len(sim.prefill_queue),
+            sim.decision_count,
+        )
+        self.assertIn(action, sim.available_actions())
+        self.assertEqual(before, after)
 
     def test_target_and_draft_forwards_are_serial(self):
         requests = generate_phase_workload(
