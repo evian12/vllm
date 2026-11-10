@@ -219,7 +219,7 @@ python -m scripts.cdb_av.scheduler_sim.phase_cli \
   --arrival-mode poisson \
   --policy e5_e6 \
   --deadline-prefill-chunk-tokens 1024 \
-  --window-predictive-draft-lookahead 4 \
+  --window-predictive-draft-lookahead 8 \
   --seed 42 \
   --output /tmp/cdb_e6_r30_s42.json
 ```
@@ -237,7 +237,7 @@ for RATE in 5 15 30 60 100; do
       --arrival-mode poisson \
       --policy e5_e6 \
       --deadline-prefill-chunk-tokens 1024 \
-      --window-predictive-draft-lookahead 4 \
+      --window-predictive-draft-lookahead 8 \
       --seed "$SEED" \
       --output "/tmp/cdb_e6_policy_raw/r${RATE}_s${SEED}.json"
   done
