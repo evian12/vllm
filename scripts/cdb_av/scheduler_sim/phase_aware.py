@@ -1099,6 +1099,143 @@ class LoadAdaptivePhasePolicy(DynamicPhasePolicy):
         return PhaseAction.DRAFT
 
 
+class WindowPredictivePhasePolicy:
+    """Choose the Verify stopping point by forecasting heterogeneous Draft completion.
+
+    At each decision, evaluate stopping after 0..N additional Draft forwards.
+    Draft execution is simulated on a clone, so request-specific caps, confidence
+    stops, and Carry behavior determine when work enters the Ready Queue. The
+    selected action is only the first action; the policy replans after every
+    real forward, making the resulting Draft window emergent rather than fixed.
+
+    The forecast is deliberately non-clairvoyant: requests that have not arrived
+    at the current decision are removed from the rollout clone. Arrivals during
+    a real Draft forward become visible at the next decision, not beforehand.
+    """
+
+    name = "window_predictive"
+
+    def __init__(
+        self,
+        batcher: TargetBatcher | None = None,
+        max_draft_lookahead: int = 4,
+        urgency_weight: float = 0.20,
+    ) -> None:
+        if max_draft_lookahead < 1:
+            raise ValueError("max_draft_lookahead must be positive")
+        if urgency_weight < 0:
+            raise ValueError("urgency_weight must be non-negative")
+        self.batcher = batcher or DeadlineAwareTargetBatcher()
+        self.max_draft_lookahead = max_draft_lookahead
+        self.urgency_weight = urgency_weight
+
+    @staticmethod
+    def _prefill_ttft_age(simulator: PhaseAwareSimulator) -> float:
+        return max(
+            (
+                simulator.now_ms - req.arrival_time_ms
+                for req in simulator.prefill_queue
+            ),
+            default=0.0,
+        )
+
+    @classmethod
+    def _wait_pressure(cls, simulator: PhaseAwareSimulator) -> float:
+        cfg = simulator.config
+        return max(
+            simulator.oldest_ready_wait_ms() / cfg.ready_wait_budget_ms,
+            simulator.oldest_ar_wait_ms() / cfg.ar_itl_budget_ms,
+            cls._prefill_ttft_age(simulator) / cfg.prefill_wait_budget_ms,
+        )
+
+    @classmethod
+    def _within_wait_budgets(
+        cls,
+        simulator: PhaseAwareSimulator,
+        target_duration_ms: float,
+    ) -> bool:
+        cfg = simulator.config
+        if simulator.oldest_ready_wait_ms() >= cfg.ready_wait_budget_ms:
+            return False
+        if (
+            simulator.oldest_ar_wait_ms() + target_duration_ms
+            >= cfg.ar_itl_budget_ms
+        ):
+            return False
+        if (
+            cls._prefill_ttft_age(simulator) + target_duration_ms
+            >= cfg.prefill_wait_budget_ms
+        ):
+            return False
+        return True
+
+    def _candidate_score(
+        self,
+        simulator: PhaseAwareSimulator,
+        plan: Sequence[TargetWorkItem],
+        draft_elapsed_ms: float,
+    ) -> float:
+        target_duration = simulator.profile.target_duration_ms(plan)
+        total_duration = max(draft_elapsed_ms + target_duration, 1e-6)
+        expected_yield = DynamicPhasePolicy._target_yield(simulator, plan)
+        pressure = min(self._wait_pressure(simulator), 2.0)
+        urgency_cost = 1.0 + self.urgency_weight * pressure
+        return expected_yield / (total_duration * urgency_cost)
+
+    def choose_action(self, simulator: PhaseAwareSimulator) -> PhaseAction:
+        actions = simulator.available_actions()
+        if len(actions) == 1:
+            return actions[0]
+
+        current_plan = self.batcher.plan(simulator)
+        if not current_plan:
+            return PhaseAction.DRAFT
+
+        # Only requests already visible to the scheduler may influence a
+        # prediction. The simulator stores future arrivals for replay, but a
+        # live online policy cannot know their exact identities or arrival times.
+        projected = simulator.clone()
+        visible_count = simulator.pending_arrival_index
+        projected.requests = projected.requests[:visible_count]
+        projected.pending_arrival_index = len(projected.requests)
+
+        best_score = self._candidate_score(projected, current_plan, 0.0)
+        best_draft_steps = 0
+        start_ms = projected.now_ms
+
+        for draft_steps in range(1, self.max_draft_lookahead + 1):
+            if PhaseAction.DRAFT not in projected.available_actions():
+                break
+
+            projected.execute_action(PhaseAction.DRAFT)
+            draft_elapsed = projected.now_ms - start_ms
+            plan = self.batcher.plan(projected)
+            if not plan:
+                continue
+
+            target_duration = projected.profile.target_duration_ms(plan)
+            if not self._within_wait_budgets(projected, target_duration):
+                # Additional Draft steps can only increase the age of work
+                # already waiting, so later stopping points are infeasible too.
+                break
+
+            score = self._candidate_score(projected, plan, draft_elapsed)
+            if score > best_score + 1e-12:
+                best_score = score
+                best_draft_steps = draft_steps
+
+            # A full Target batch cannot gain another member by waiting for
+            # more Draft completions in this contiguous window.
+            if len(plan) >= projected.config.max_num_seqs:
+                break
+
+        return (
+            PhaseAction.DRAFT
+            if best_draft_steps > 0
+            else PhaseAction.TARGET
+        )
+
+
 class JointPhasePolicy(QueuePressurePhasePolicy):
     """Joint stage selection plus LAPS-inspired Prefill batching window."""
 
