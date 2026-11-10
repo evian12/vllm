@@ -1,0 +1,115 @@
+name: CDB-AV Prefill chunk-size sweep
+
+on:
+  workflow_dispatch:
+    inputs:
+      requests:
+        description: Requests per workload trace
+        required: true
+        default: "32"
+        type: string
+      rates:
+        description: Comma-separated arrival rates (requests/second)
+        required: true
+        default: "5,15,30,60,100"
+        type: string
+      seeds:
+        description: Comma-separated workload seeds
+        required: true
+        default: "42,43,44,45,46"
+        type: string
+      arrival_mode:
+        description: Arrival process
+        required: true
+        default: poisson
+        type: choice
+        options:
+          - poisson
+          - uniform
+          - bursty
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cdb-av-prefill-chunk-sweep-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  sweep:
+    name: Chunk ${{ matrix.chunk_size }} tokens
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        chunk_size: [256, 512, 1024, 2048]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Compile simulator and run unit tests
+        if: matrix.chunk_size == 256
+        run: |
+          python -m compileall -q scripts/cdb_av/scheduler_sim
+          python -m py_compile \
+            scripts/cdb_av/tests/test_scheduler_sim.py \
+            scripts/cdb_av/tests/test_scheduler_sim_phase_aware.py
+          python -m unittest discover \
+            -s scripts/cdb_av/tests \
+            -p "test_scheduler_sim*.py" \
+            -v
+      - name: Run this chunk-size slice
+        run: |
+          python -m scripts.cdb_av.scheduler_sim.run_prefill_chunk_sweep \
+            --chunk-size "${{ matrix.chunk_size }}" \
+            --rates "${{ inputs.rates }}" \
+            --seeds "${{ inputs.seeds }}" \
+            --requests "${{ inputs.requests }}" \
+            --arrival-mode "${{ inputs.arrival_mode }}" \
+            --output-dir "artifacts/chunk_${{ matrix.chunk_size }}"
+      - name: Upload raw simulation results
+        uses: actions/upload-artifact@v4
+        with:
+          name: cdb-prefill-chunk-${{ matrix.chunk_size }}
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 30
+
+  aggregate:
+    name: Aggregate and report
+    runs-on: ubuntu-latest
+    needs: sweep
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Download all chunk-size results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: cdb-prefill-chunk-*
+          path: artifacts/raw
+          merge-multiple: true
+      - name: Aggregate means, standard deviations, and paired deltas
+        run: |
+          python -m scripts.cdb_av.scheduler_sim.analyze_prefill_chunk_sweep \
+            --input-dir artifacts/raw \
+            --output-dir artifacts/report \
+            --baseline-chunk 512
+      - name: Add report to workflow summary
+        run: |
+          cat artifacts/report/chunk_sweep_report.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload aggregate report
+        uses: actions/upload-artifact@v4
+        with:
+          name: cdb-prefill-chunk-sweep-report
+          path: artifacts/report/
+          if-no-files-found: error
+          retention-days: 90
