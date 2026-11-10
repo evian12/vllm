@@ -203,6 +203,19 @@ def main(argv: list[str] | None = None) -> int:
             "verify": "each request's candidate verification is atomic",
             "length_aware": "LAPS-inspired approximation, not a reproduction of LAPS",
             "sarathi": "Sarathi-inspired chunked Prefill baseline",
+            "dynamic_stage": (
+                "no configured H; compares expected Target yield and batch fill "
+                "against marginal Draft yield, with queue-deadline guards"
+            ),
+            "deadline_aware_target_batcher": (
+                "earliest absolute service deadline across Verify, AR, and Prefill; "
+                "Prefill deadline remains anchored to arrival until TTFT is emitted"
+            ),
+            "scheduling_policy_parameters": {
+                "dynamic_fill_gain_weight": 0.25,
+                "dynamic_urgency_weight": 0.20,
+                "deadline_prefill_chunk_tokens": args.deadline_prefill_chunk_tokens,
+            },
             "execution_profile": (
                 "synthetic defaults unless --profile-json supplies measured coefficients"
             ),
