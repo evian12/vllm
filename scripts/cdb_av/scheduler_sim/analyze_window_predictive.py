@@ -1,4 +1,4 @@
-"""Paired E5/E6 analysis for CDB-AV phase-scheduling experiments."""
+"""Paired E5/E6 analysis with a strictly online, non-clairvoyant E5 baseline."""
 
 from __future__ import annotations
 
@@ -53,6 +53,17 @@ def collect_records(root: Path) -> list[dict[str, Any]]:
         if path.name == "manifest.json":
             continue
         payload = json.loads(path.read_text(encoding="utf-8"))
+        scope_params = (
+            payload.get("scope", {})
+            .get("scheduling_policy_parameters", {})
+        )
+        projection_mode = scope_params.get("load_adaptive_projection_mode")
+        if projection_mode != "visible_only":
+            raise ValueError(
+                f"{path}: E5 projection is not marked visible_only; "
+                "rerun the experiment with the non-clairvoyant online policy"
+            )
+
         workload = payload.get("workload", {})
         if "arrival_rate_rps" not in workload or "seed" not in workload:
             raise ValueError(f"{path}: missing arrival_rate_rps or seed")
