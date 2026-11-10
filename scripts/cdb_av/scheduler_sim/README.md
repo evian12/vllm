@@ -190,6 +190,12 @@ Target forwards. The summary includes:
   utilization conditioned on a Prefill-containing forward.
 - \`prefill_containing_duration_{mean,p50,p95}_ms\`: wall-clock duration of those
   forwards under the configured execution profile.
+- \`prefill_chunk_requested_tokens\`, \`prefill_chunk_allocated_tokens\`,
+  \`prefill_chunk_budget_shortfall_tokens\`, and
+  \`prefill_chunk_budget_truncations\`: distinguish a Prefill chunk's requested
+  cap from the amount actually admitted to the Target forward. Per-item traces
+  include the requested/allocated counts and whether a shortfall came from the
+  Target token budget or an adaptive Prefill-budget/token-budget constraint.
 - \`target_exclusion_events\`: counts by request class and exclusion reason.
   Reasons distinguish \`sequence_slots_exhausted\`,
   \`token_budget_exhausted\`, their joint exhaustion,
