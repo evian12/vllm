@@ -18,7 +18,9 @@ from scripts.cdb_av.scheduler_sim.analyze_target_contention import (
 )
 
 
-def payload(chunk: int, rate: int, seed: int, tps: float) -> dict:
+def payload(
+    chunk: int, rate: int, seed: int, tps: float, prefill_allocated: int = 256
+) -> dict:
     return {
         "scope": {
             "scheduling_policy_parameters": {
@@ -61,10 +63,26 @@ def payload(chunk: int, rate: int, seed: int, tps: float) -> dict:
                 "target_forward_trace": [
                     {
                         "composition": {
-                            "prefill": {"requests": 1, "tokens": 128},
+                            "prefill": {"requests": 1, "tokens": prefill_allocated},
                             "verify": {"requests": 0, "tokens": 0},
                             "ar": {"requests": 1, "tokens": 1},
-                        }
+                        },
+                        "items": [
+                            {
+                                "request_id": "prefill",
+                                "kind": "prefill",
+                                "remaining_prompt_tokens": 1024,
+                                "token_count": prefill_allocated,
+                                # Deliberately emulate the old, incorrect trace field.
+                                "requested_token_count": 2048,
+                            },
+                            {
+                                "request_id": "ar",
+                                "kind": "ar",
+                                "remaining_prompt_tokens": 0,
+                                "token_count": 1,
+                            },
+                        ],
                     }
                 ],
             }
@@ -80,7 +98,7 @@ class TargetContentionAnalysisTests(unittest.TestCase):
                 json.dumps(payload(256, 30, 42, 110.0)), encoding="utf-8"
             )
             (root / "chunk1024.json").write_text(
-                json.dumps(payload(1024, 30, 42, 100.0)), encoding="utf-8"
+                json.dumps(payload(1024, 30, 42, 100.0, prefill_allocated=512)), encoding="utf-8"
             )
 
             records = collect_records(root)
@@ -91,6 +109,13 @@ class TargetContentionAnalysisTests(unittest.TestCase):
             candidate = next(row for row in summary if row["chunk_size"] == 256)
             self.assertEqual(candidate["n"], 1)
             self.assertAlmostEqual(candidate["output_tokens_per_s_mean"], 110.0)
+            # The stale requested_token_count is 2048 in both fixtures.
+            # Reconstruct against the configured chunk cap and actual allocation.
+            self.assertEqual(candidate["prefill_chunk_budget_truncations_mean"], 0.0)
+            self.assertEqual(candidate["prefill_chunk_budget_shortfall_tokens_mean"], 0.0)
+            baseline = next(row for row in summary if row["chunk_size"] == 1024)
+            self.assertEqual(baseline["prefill_chunk_budget_truncations_mean"], 1.0)
+            self.assertEqual(baseline["prefill_chunk_budget_shortfall_tokens_mean"], 512.0)
             self.assertAlmostEqual(
                 candidate["ar_slot_exclusions_per_100_target_forwards_mean"],
                 20.0,
