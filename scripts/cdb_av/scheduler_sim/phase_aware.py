@@ -526,7 +526,10 @@ class FixedHPhasePolicy:
             return PhaseAction.TARGET
         if actions == [PhaseAction.DRAFT]:
             return PhaseAction.DRAFT
-        if simulator.ready_queue and simulator.drafts_since_verify >= self.h:
+        if simulator.ready_queue and (
+            simulator.drafts_since_verify >= self.h
+            or simulator.ready_backlog_after_verify
+        ):
             return PhaseAction.TARGET
         if simulator.oldest_ready_wait_ms() >= simulator.config.ready_wait_budget_ms:
             return PhaseAction.TARGET
@@ -767,6 +770,7 @@ class PhaseAwareSimulator:
         self.draft_forward_count = 0
         self.target_forward_count = 0
         self.drafts_since_verify = 0
+        self.ready_backlog_after_verify = False
         self.consecutive_target_forwards = 0
         self.consecutive_draft_forwards = 0
         self.decision_count = 0
@@ -1110,13 +1114,8 @@ class PhaseAwareSimulator:
                         self.ar_queue.append(req)
 
             if verify_count > 0:
-                # If Ready work remains after a capacity-limited Target batch,
-                # keep the fixed-H gate open until the remaining Ready requests
-                # have had a chance to verify.
-                self.drafts_since_verify = (
-                    getattr(self.policy, "h", self.config.fixed_h)
-                    if self.ready_queue else 0
-                )
+                self.drafts_since_verify = 0
+                self.ready_backlog_after_verify = bool(self.ready_queue)
             self.consecutive_target_forwards += 1
             self.consecutive_draft_forwards = 0
             self.refresh()
