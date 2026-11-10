@@ -32,6 +32,55 @@ def get_window_h() -> int:
     return horizon
 
 
+class AcceptanceYieldEstimator:
+    """Online estimate of accepted-prefix plus bonus tokens for a given K.
+
+    A verification with K candidates and an accepted prefix of A observes
+    positions 1..A as successes and position A+1 as a failure (when A < K).
+    Later positions are censored because they are beyond the first mismatch.
+    A Beta(1, 1) prior keeps estimates finite before enough GPU observations.
+    """
+
+    def __init__(self, max_k: int) -> None:
+        if type(max_k) is not int or max_k < 1:
+            raise ValueError(f"Invalid acceptance-estimator max_k: {max_k!r}")
+        self.max_k = max_k
+        self.successes = [0] * max_k
+        self.attempts = [0] * max_k
+
+    def observe(self, k_cap: int, accepted_prefix: int) -> None:
+        if type(k_cap) is not int or not 1 <= k_cap <= self.max_k:
+            raise ValueError(f"Invalid observed K cap: {k_cap!r}")
+        if (
+            type(accepted_prefix) is not int
+            or not 0 <= accepted_prefix <= k_cap
+        ):
+            raise ValueError(
+                f"Invalid accepted prefix {accepted_prefix!r} for K={k_cap}"
+            )
+
+        for position in range(accepted_prefix):
+            self.attempts[position] += 1
+            self.successes[position] += 1
+        if accepted_prefix < k_cap:
+            self.attempts[accepted_prefix] += 1
+
+    def expected_committed_tokens(self, k_cap: int) -> float:
+        if type(k_cap) is not int or not 1 <= k_cap <= self.max_k:
+            raise ValueError(f"Invalid predicted K cap: {k_cap!r}")
+
+        survival = 1.0
+        expected = 1.0
+        for position in range(k_cap):
+            probability = (
+                (self.successes[position] + 1.0)
+                / (self.attempts[position] + 2.0)
+            )
+            survival *= probability
+            expected += survival
+        return expected
+
+
 def is_enabled(name: str, default: bool = False) -> bool:
     """Parse a strict boolean environment variable."""
     fallback = "1" if default else "0"
@@ -158,8 +207,19 @@ def select_ready_request_ids(
     max_num_running_reqs: int,
     ready_token_costs=None,
     token_budget: int | None = None,
+    ready_yield_scores=None,
+    ready_ages_ms=None,
+    selection_policy: str = "fifo",
+    ready_age_budget_ms: float = 8.0,
+    ready_age_weight: float = 0.5,
 ) -> tuple[str, ...]:
-    """Select a FIFO Ready subset within Target request and token capacity."""
+    """Select Ready work within Target capacity.
+
+    fifo preserves publication order. yield_age ranks non-overdue Ready
+    requests by online expected committed tokens plus an age bonus; requests
+    beyond the age budget are served oldest-first. Both modes retain the same
+    atomic token-cost and Target-capacity constraints.
+    """
     if type(max_num_running_reqs) is not int or max_num_running_reqs < 0:
         raise ValueError(
             f"Invalid Target running capacity: {max_num_running_reqs!r}"
@@ -168,6 +228,10 @@ def select_ready_request_ids(
         type(token_budget) is not int or token_budget < 0
     ):
         raise ValueError(f"Invalid Target token budget: {token_budget!r}")
+    if selection_policy not in ("fifo", "yield_age"):
+        raise ValueError(
+            f"Invalid CDB_AV_READY_SELECT_POLICY: {selection_policy!r}"
+        )
 
     running_ids = list(running_ids)
     ready_order = list(ready_ids)
@@ -179,14 +243,71 @@ def select_ready_request_ids(
     if available <= 0:
         return ()
 
+    if selection_policy == "yield_age":
+        if (
+            not isinstance(ready_age_budget_ms, (int, float))
+            or isinstance(ready_age_budget_ms, bool)
+            or not math.isfinite(ready_age_budget_ms)
+            or ready_age_budget_ms <= 0
+        ):
+            raise ValueError(
+                f"Invalid Ready age budget: {ready_age_budget_ms!r}"
+            )
+        if (
+            not isinstance(ready_age_weight, (int, float))
+            or isinstance(ready_age_weight, bool)
+            or not math.isfinite(ready_age_weight)
+            or ready_age_weight < 0
+        ):
+            raise ValueError(
+                f"Invalid Ready age weight: {ready_age_weight!r}"
+            )
+        scores = {} if ready_yield_scores is None else ready_yield_scores
+        ages = {} if ready_ages_ms is None else ready_ages_ms
+        if not isinstance(scores, dict) or not isinstance(ages, dict):
+            raise ValueError("Ready yield scores and ages must be mappings")
+
+        ranked = []
+        for queue_index, req_id in enumerate(ready_order):
+            score = scores.get(req_id, 1.0)
+            age_ms = ages.get(req_id, 0.0)
+            if (
+                not isinstance(score, (int, float))
+                or isinstance(score, bool)
+                or not math.isfinite(score)
+                or score < 0
+            ):
+                raise ValueError(
+                    f"Invalid Ready yield score for {req_id}: {score!r}"
+                )
+            if (
+                not isinstance(age_ms, (int, float))
+                or isinstance(age_ms, bool)
+                or not math.isfinite(age_ms)
+                or age_ms < 0
+            ):
+                raise ValueError(
+                    f"Invalid Ready age for {req_id}: {age_ms!r}"
+                )
+
+            if age_ms >= ready_age_budget_ms:
+                priority = (0, -float(age_ms), queue_index)
+            else:
+                aged_yield = float(score) + ready_age_weight * min(
+                    float(age_ms) / ready_age_budget_ms, 2.0
+                )
+                priority = (1, -aged_yield, queue_index)
+            ranked.append((priority, req_id))
+        ready_order = [
+            req_id for _, req_id in sorted(ranked, key=lambda item: item[0])
+        ]
+
     costs = ready_token_costs or {}
     selected = []
     seen = set()
     remaining_tokens = token_budget
-    # The Ready dictionary preserves publication order across H boundaries.
-    # Select FIFO from that queue, not from Scheduler's unrelated running order.
-    # A candidate that cannot fit the current token budget is skipped so it
-    # cannot head-of-line block a shorter Ready request behind it.
+    # A candidate that cannot fit is skipped rather than head-of-line blocking
+    # a shorter Ready request. The policy changes order, not verification shape.
     for req_id in ready_order:
         if req_id not in running_set or req_id in seen:
             continue
@@ -202,7 +323,6 @@ def select_ready_request_ids(
         if len(selected) == available:
             break
     return tuple(selected)
-
 
 
 def can_verify_ready_tokens(k_cap: int, target_token_budget: int) -> bool:

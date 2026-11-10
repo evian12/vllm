@@ -29,6 +29,7 @@ get_request_k_cap = _config.get_request_k_cap
 get_window_h = _config.get_window_h
 is_enabled = _config.is_enabled
 select_ready_request_ids = _config.select_ready_request_ids
+AcceptanceYieldEstimator = _config.AcceptanceYieldEstimator
 can_admit_prefill_tokens = _config.can_admit_prefill_tokens
 can_verify_ready_tokens = _config.can_verify_ready_tokens
 validate_draft_worker_status = _config.validate_draft_worker_status
@@ -195,6 +196,74 @@ def test_target_ready_selection_returns_empty_when_ar_uses_capacity():
         max_num_running_reqs=2,
     )
     assert selected == ()
+
+
+def test_acceptance_yield_estimator_uses_censored_accepted_prefixes():
+    estimator = AcceptanceYieldEstimator(max_k=3)
+    assert estimator.expected_committed_tokens(2) == pytest.approx(1.75)
+
+    estimator.observe(k_cap=2, accepted_prefix=1)
+    assert estimator.attempts == [1, 1, 0]
+    assert estimator.successes == [1, 0, 0]
+    assert estimator.expected_committed_tokens(2) == pytest.approx(
+        1.0 + (2.0 / 3.0) + (2.0 / 9.0)
+    )
+
+
+def test_acceptance_yield_estimator_validates_observations():
+    estimator = AcceptanceYieldEstimator(max_k=2)
+    with pytest.raises(ValueError, match="observed K cap"):
+        estimator.observe(k_cap=3, accepted_prefix=0)
+    with pytest.raises(ValueError, match="accepted prefix"):
+        estimator.observe(k_cap=2, accepted_prefix=3)
+
+
+def test_yield_age_ready_selection_prioritizes_expected_committed_tokens():
+    selected = select_ready_request_ids(
+        running_ids=["low", "high"],
+        ready_ids=["low", "high"],
+        protected_ids=set(),
+        max_num_running_reqs=1,
+        ready_yield_scores={"low": 1.5, "high": 2.1},
+        ready_ages_ms={"low": 1.0, "high": 1.0},
+        selection_policy="yield_age",
+    )
+    assert selected == ("high",)
+
+
+def test_yield_age_ready_selection_promotes_overdue_requests():
+    selected = select_ready_request_ids(
+        running_ids=["old", "high_yield"],
+        ready_ids=["high_yield", "old"],
+        protected_ids=set(),
+        max_num_running_reqs=1,
+        ready_yield_scores={"old": 1.5, "high_yield": 3.0},
+        ready_ages_ms={"old": 9.0, "high_yield": 1.0},
+        selection_policy="yield_age",
+    )
+    assert selected == ("old",)
+
+
+def test_yield_age_ready_selection_keeps_token_budget_head_skip():
+    selected = select_ready_request_ids(
+        running_ids=["too_long", "fits"],
+        ready_ids=["too_long", "fits"],
+        protected_ids=set(),
+        max_num_running_reqs=1,
+        ready_token_costs={"too_long": 9, "fits": 3},
+        token_budget=4,
+        ready_yield_scores={"too_long": 3.0, "fits": 1.5},
+        ready_ages_ms={"too_long": 1.0, "fits": 1.0},
+        selection_policy="yield_age",
+    )
+    assert selected == ("fits",)
+
+
+def test_ready_selection_rejects_unknown_policy():
+    with pytest.raises(ValueError, match="CDB_AV_READY_SELECT_POLICY"):
+        select_ready_request_ids(
+            ["r0"], ["r0"], set(), 1, selection_policy="unknown"
+        )
 
 
 def test_target_ready_selection_rejects_invalid_capacity():

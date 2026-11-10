@@ -370,13 +370,25 @@ class PersistentDraftQueue:
         self.leases, self.contexts, self.carry = {}, {}, {}
         self.ready, self.inflight = {}, {}
         self.window = self.target_epoch = 0
-        from vllm.v1.spec_decode.cdb_av_config import get_window_h
+        from vllm.v1.spec_decode.cdb_av_config import (
+            AcceptanceYieldEstimator,
+            get_window_h,
+        )
         self.horizon = get_window_h()
         self.max_k = self.s.num_spec_tokens
         if type(self.max_k) is not int or self.max_k < 1:
             raise ValueError(
                 "CDB-AV persistent mode requires num_speculative_tokens >= 1"
             )
+        self.ready_select_policy = os.getenv(
+            "CDB_AV_READY_SELECT_POLICY", "fifo"
+        ).strip().lower()
+        if self.ready_select_policy not in ("fifo", "yield_age"):
+            raise ValueError(
+                "CDB_AV_READY_SELECT_POLICY must be 'fifo' or 'yield_age', "
+                f"got {self.ready_select_policy!r}"
+            )
+        self.ready_yield_estimator = AcceptanceYieldEstimator(self.max_k)
         self.acceptance_replay = None
         self.request_average = None
         k_policy = os.getenv("CDB_AV_K_POLICY", "manual").strip().lower()
@@ -402,6 +414,7 @@ class PersistentDraftQueue:
             hf_threshold=os.getenv("CDB_AV_HF_THRESHOLD", "0.4"),
             kv_reuse=os.getenv("CDB_AV_KV_REUSE", "0"),
             intra_window=os.getenv("CDB_AV_INTRA_WINDOW", "1"),
+            ready_select_policy=self.ready_select_policy,
         )
         self._cdb_admit_limit = None
         self._cdb_admit_token_limit = None
@@ -471,6 +484,22 @@ class PersistentDraftQueue:
         ready_ids = list(self.ready)
         occupied = set(self.leases) | set(self.inflight)
         non_ready_running = set(running_ids) - set(ready_ids) - occupied
+        ready_yield_scores = None
+        ready_ages_ms = None
+        if self.ready_select_policy == "yield_age":
+            now = time.monotonic()
+            expected_yield_by_k = {
+                k: self.ready_yield_estimator.expected_committed_tokens(k)
+                for k in range(1, self.max_k + 1)
+            }
+            ready_yield_scores = {
+                rid: expected_yield_by_k[len(record["tokens"])]
+                for rid, record in self.ready.items()
+            }
+            ready_ages_ms = {
+                rid: max(0.0, (now - record["ready_at"]) * 1000.0)
+                for rid, record in self.ready.items()
+            }
         selected = select_ready_request_ids(
             running_ids,
             ready_ids,
@@ -481,6 +510,9 @@ class PersistentDraftQueue:
                 for rid, record in self.ready.items()
             },
             token_budget=token_budget,
+            ready_yield_scores=ready_yield_scores,
+            ready_ages_ms=ready_ages_ms,
+            selection_policy=self.ready_select_policy,
         )
         eligible_ready_ids = {
             req.request_id
@@ -927,6 +959,8 @@ class PersistentDraftQueue:
                     window=None if record is None else record["window"],
                 )
             return
+        if self.ready_select_policy == "yield_age":
+            self.ready_yield_estimator.observe(len(record["tokens"]), accepted)
         emit('p2_verified', target_epoch=self.target_epoch, req_id=req.request_id,
              window=record['window'], drafts=drafts, generated=generated,
              accepted=accepted, fingerprint=record['fingerprint'],
