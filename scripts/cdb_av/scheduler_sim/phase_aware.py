@@ -43,6 +43,14 @@ class WorkKind(str, Enum):
 
 _DEFAULT_ACCEPTANCE = (0.72, 0.52, 0.36, 0.25, 0.17, 0.11, 0.07, 0.04)
 
+def _visible_state_clone(simulator: PhaseAwareSimulator) -> PhaseAwareSimulator:
+    """Clone scheduler-visible state without exposing future arrivals."""
+    projected = simulator.clone()
+    visible_count = simulator.pending_arrival_index
+    projected.requests = projected.requests[:visible_count]
+    projected.pending_arrival_index = len(projected.requests)
+    return projected
+
 
 @dataclass(slots=True)
 class PhaseRequest:
@@ -1011,7 +1019,7 @@ class DynamicPhasePolicy:
 
         # Estimate whether one more Draft forward will materially improve the
         # next Target batch. The clone keeps this decision side-effect free.
-        projected = simulator.clone()
+        projected = _visible_state_clone(simulator)
         projected.execute_action(PhaseAction.DRAFT)
         projected_plan = self.batcher.plan(projected)
         projected_fill = len(projected_plan) / cfg.max_num_seqs
@@ -1040,11 +1048,15 @@ class LoadAdaptivePhasePolicy(DynamicPhasePolicy):
         self,
         batcher: TargetBatcher | None = None,
         min_batch_gain: int = 1,
+        allow_future_arrivals: bool = False,
     ) -> None:
         super().__init__(batcher=batcher, fill_gain_weight=0.0, urgency_weight=0.20)
         if min_batch_gain < 1:
             raise ValueError("min_batch_gain must be positive")
         self.min_batch_gain = min_batch_gain
+        # False is the valid online mode. True is retained only as an explicit
+        # oracle ablation for quantifying the value of future-arrival leakage.
+        self.allow_future_arrivals = allow_future_arrivals
 
     def choose_action(self, simulator: PhaseAwareSimulator) -> PhaseAction:
         actions = simulator.available_actions()
@@ -1085,7 +1097,11 @@ class LoadAdaptivePhasePolicy(DynamicPhasePolicy):
         if len(current_plan) >= cfg.max_num_seqs:
             return PhaseAction.TARGET
 
-        projected = simulator.clone()
+        projected = (
+            simulator.clone()
+            if self.allow_future_arrivals
+            else _visible_state_clone(simulator)
+        )
         projected.execute_action(PhaseAction.DRAFT)
         projected_plan = self.batcher.plan(projected)
         marginal_gain = max(0, len(projected_plan) - len(current_plan))
@@ -1189,11 +1205,7 @@ class WindowPredictivePhasePolicy:
         # Only requests already visible to the scheduler may influence a
         # prediction. The simulator stores future arrivals for replay, but a
         # live online policy cannot know their exact identities or arrival times.
-        projected = simulator.clone()
-        visible_count = simulator.pending_arrival_index
-        projected.requests = projected.requests[:visible_count]
-        projected.pending_arrival_index = len(projected.requests)
-        return projected
+        return _visible_state_clone(simulator)
 
     def choose_action(self, simulator: PhaseAwareSimulator) -> PhaseAction:
         actions = simulator.available_actions()
@@ -1309,7 +1321,7 @@ class PhaseLookaheadPolicy:
         for action in actions:
             rollout_scores: list[float] = []
             for rollout_index in range(self.rollouts):
-                clone = simulator.clone()
+                clone = _visible_state_clone(simulator)
                 clone.policy = self.rollout_policy
                 clone.rng.seed(
                     simulator.config.seed
