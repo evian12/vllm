@@ -64,6 +64,10 @@ class PhaseRequest:
     ready_since_ms: float | None = None
     prefill_first_start_ms: float | None = None
     prefill_last_scheduled_ms: float | None = None
+    prefill_previous_chunk_end_ms: float | None = None
+    prefill_inter_chunk_wait_ms: float = 0.0
+    prefill_target_forward_exposure_ms: float = 0.0
+    prefill_chunk_count: int = 0
     prefill_complete_time_ms: float | None = None
     first_token_time_ms: float | None = None
     last_token_time_ms: float | None = None
@@ -1095,6 +1099,10 @@ class PhaseAwareSimulator:
         self.adaptive_prefill_budget_samples: list[int] = []
         self.prefill_wait_samples_ms: list[float] = []
         self.prefill_latency_samples_ms: list[float] = []
+        self.prefill_inter_chunk_wait_samples_ms: list[float] = []
+        self.prefill_target_forward_exposure_samples_ms: list[float] = []
+        self.prefill_chunk_count_samples: list[int] = []
+        self.prefill_decomposition_error_samples_ms: list[float] = []
         self.ready_wait_samples_ms: list[float] = []
         self.ar_wait_samples_ms: list[float] = []
         self.ttft_samples_ms: list[float] = []
@@ -1359,8 +1367,23 @@ class PhaseAwareSimulator:
                         self.prefill_wait_samples_ms.append(
                             start_ms - req.arrival_time_ms
                         )
+                    else:
+                        if req.prefill_previous_chunk_end_ms is None:
+                            raise RuntimeError(
+                                f"Prefill request {req.request_id} has no previous chunk end"
+                            )
+                        req.prefill_inter_chunk_wait_ms += max(
+                            0.0, start_ms - req.prefill_previous_chunk_end_ms
+                        )
+
+                    # This is wall-clock exposure to each Target forward carrying
+                    # one of this request's Prefill chunks. It includes shared
+                    # batch execution and is not exclusive per-request GPU time.
+                    req.prefill_target_forward_exposure_ms += duration
+                    req.prefill_chunk_count += 1
                     req.prefill_progress += item.token_count
                     req.prefill_last_scheduled_ms = self.now_ms
+                    req.prefill_previous_chunk_end_ms = self.now_ms
                     self.total_prefill_tokens += item.token_count
                     self.prefill_chunk_count += 1
                     self.prefill_chunk_sizes.append(item.token_count)
@@ -1372,6 +1395,23 @@ class PhaseAwareSimulator:
                         self.prefill_request_count += 1
                         self.prefill_latency_samples_ms.append(
                             self.now_ms - req.arrival_time_ms
+                        )
+                        self.prefill_inter_chunk_wait_samples_ms.append(
+                            req.prefill_inter_chunk_wait_ms
+                        )
+                        self.prefill_target_forward_exposure_samples_ms.append(
+                            req.prefill_target_forward_exposure_ms
+                        )
+                        self.prefill_chunk_count_samples.append(
+                            req.prefill_chunk_count
+                        )
+                        decomposed_ttft = (
+                            req.prefill_first_start_ms - req.arrival_time_ms
+                            + req.prefill_inter_chunk_wait_ms
+                            + req.prefill_target_forward_exposure_ms
+                        )
+                        self.prefill_decomposition_error_samples_ms.append(
+                            abs((self.now_ms - req.arrival_time_ms) - decomposed_ttft)
                         )
                         self._record_output_commit(req, 1)
                         if req.remaining_output_tokens <= 0:
@@ -1533,8 +1573,17 @@ class PhaseAwareSimulator:
             ),
             "prefill_wait_p50_ms": self._percentile(self.prefill_wait_samples_ms, 0.50),
             "prefill_wait_p95_ms": self._percentile(self.prefill_wait_samples_ms, 0.95),
+            # prefill_latency is end-to-end arrival-to-first-token latency;
+            # it intentionally matches TTFT because the first token is emitted
+            # only after the final Prefill chunk completes.
             "prefill_latency_p50_ms": self._percentile(self.prefill_latency_samples_ms, 0.50),
             "prefill_latency_p95_ms": self._percentile(self.prefill_latency_samples_ms, 0.95),
+            "prefill_inter_chunk_wait_p50_ms": self._percentile(self.prefill_inter_chunk_wait_samples_ms, 0.50),
+            "prefill_inter_chunk_wait_p95_ms": self._percentile(self.prefill_inter_chunk_wait_samples_ms, 0.95),
+            "prefill_target_forward_exposure_p50_ms": self._percentile(self.prefill_target_forward_exposure_samples_ms, 0.50),
+            "prefill_target_forward_exposure_p95_ms": self._percentile(self.prefill_target_forward_exposure_samples_ms, 0.95),
+            "prefill_chunk_count_mean": mean(self.prefill_chunk_count_samples) if self.prefill_chunk_count_samples else 0.0,
+            "prefill_decomposition_error_max_ms": max(self.prefill_decomposition_error_samples_ms, default=0.0),
             "ttft_p50_ms": self._percentile(self.ttft_samples_ms, 0.50),
             "ttft_p95_ms": self._percentile(self.ttft_samples_ms, 0.95),
             "ready_wait_p50_ms": self._percentile(self.ready_wait_samples_ms, 0.50),
