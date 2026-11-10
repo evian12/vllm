@@ -54,7 +54,7 @@ def build_parser() -> argparse.ArgumentParser:
         choices=(
             "all", "fixed_h", "queue_pressure", "lookahead", "sarathi",
             "length_aware", "joint", "fixed_h_deadline", "dynamic",
-            "dynamic_deadline", "load_adaptive",
+            "dynamic_deadline", "load_adaptive", "load_adaptive_deadline",
         ),
         default="all",
     )
@@ -130,6 +130,8 @@ def build_policies(args: argparse.Namespace, config: PhaseConfig) -> dict[str, o
         "dynamic_deadline": DynamicPhasePolicy(deadline_batcher),
         # Load-adaptive: only delay Verify when another Draft increases Target batch size.
         "load_adaptive": LoadAdaptivePhasePolicy(vllm_batcher),
+        # E5: keep load-adaptive stage decisions, change only Target batch composition.
+        "load_adaptive_deadline": LoadAdaptivePhasePolicy(deadline_batcher),
     }
     # Give each comparison row an explicit, stable strategy label.
     policies["fixed_h"].name = "fixed_h+vllm"
@@ -140,6 +142,7 @@ def build_policies(args: argparse.Namespace, config: PhaseConfig) -> dict[str, o
     policies["dynamic"].name = "dynamic_stage+vllm"
     policies["dynamic_deadline"].name = "dynamic_stage+deadline_batcher"
     policies["load_adaptive"].name = "load_adaptive+vllm"
+    policies["load_adaptive_deadline"].name = "load_adaptive+deadline_batcher"
     if args.policy == "all":
         return policies
     return {args.policy: policies[args.policy]}
