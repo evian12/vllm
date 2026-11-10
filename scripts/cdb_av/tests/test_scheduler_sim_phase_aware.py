@@ -765,5 +765,148 @@ class PhaseAwareSchedulerTests(unittest.TestCase):
         self.assertEqual(sim.summary()["draft_window_mean"], 1.0)
 
 
+    def test_deadline_batcher_reports_ar_excluded_by_token_budget(self):
+        requests = [
+            make_request("prefill", prompt=16, speculative=False),
+            make_request("ar", prompt=16, speculative=False),
+        ]
+        batcher = DeadlineAwareTargetBatcher(prefill_chunk_tokens=2048)
+        sim = PhaseAwareSimulator(
+            requests,
+            PhaseConfig(
+                max_num_seqs=4,
+                max_num_batched_tokens=10,
+                include_target_forward_trace=True,
+            ),
+            self.profile,
+            QueuePressurePhasePolicy(batcher),
+        )
+        ar = next(req for req in sim.requests if req.request_id == "ar")
+        sim.prefill_queue.remove(ar)
+        ar.status = RequestStatus.ACTIVE_AR
+        ar.last_token_time_ms = 0.0
+        sim.ar_queue.append(ar)
+
+        plan = batcher.plan_with_diagnostics(sim)
+        self.assertEqual(
+            [(item.request.request_id, item.kind, item.token_count) for item in plan.items],
+            [("prefill", WorkKind.PREFILL, 10)],
+        )
+        ar_exclusion = next(
+            item for item in plan.exclusions if item.request_id == "ar"
+        )
+        self.assertEqual(ar_exclusion.reason, "token_budget_exhausted")
+        self.assertEqual(ar_exclusion.available_tokens, 0)
+        self.assertEqual(ar_exclusion.available_slots, 3)
+
+        sim.execute_action(PhaseAction.TARGET)
+        summary = sim.summary()
+        self.assertEqual(
+            summary["target_exclusion_events"]["ar"]["token_budget_exhausted"],
+            1,
+        )
+        trace = summary["target_forward_trace"][0]
+        self.assertEqual(trace["token_used"], 10)
+        self.assertEqual(trace["token_remaining"], 0)
+        self.assertEqual(trace["excluded"][0]["request_id"], "ar")
+        self.assertEqual(trace["excluded"][0]["reason"], "token_budget_exhausted")
+
+    def test_deadline_batcher_reports_prefill_excluded_by_sequence_slots(self):
+        requests = [
+            make_request("a-prefill", prompt=128, speculative=False),
+            make_request("b-prefill", prompt=128, speculative=False),
+        ]
+        batcher = DeadlineAwareTargetBatcher(prefill_chunk_tokens=128)
+        sim = PhaseAwareSimulator(
+            requests,
+            PhaseConfig(
+                max_num_seqs=1,
+                max_num_batched_tokens=2048,
+                include_target_forward_trace=True,
+            ),
+            self.profile,
+            QueuePressurePhasePolicy(batcher),
+        )
+
+        plan = batcher.plan_with_diagnostics(sim)
+        self.assertEqual(
+            [item.request.request_id for item in plan.items],
+            ["a-prefill"],
+        )
+        excluded = next(
+            item for item in plan.exclusions
+            if item.request_id == "b-prefill"
+        )
+        self.assertEqual(excluded.reason, "sequence_slots_exhausted")
+        self.assertEqual(excluded.available_slots, 0)
+        self.assertGreater(excluded.available_tokens, 0)
+
+        sim.execute_action(PhaseAction.TARGET)
+        summary = sim.summary()
+        self.assertEqual(
+            summary["target_exclusion_events"]["prefill"]["sequence_slots_exhausted"],
+            1,
+        )
+        self.assertEqual(
+            summary["target_forward_trace"][0]["slot_remaining"],
+            0,
+        )
+
+    def test_prefill_containing_forward_metrics_and_trace_are_separate(self):
+        requests = [
+            make_request("prefill", prompt=128, speculative=False),
+            make_request("ar", prompt=128, speculative=False),
+        ]
+        sim = PhaseAwareSimulator(
+            requests,
+            PhaseConfig(
+                max_num_seqs=4,
+                max_num_batched_tokens=2048,
+                include_target_forward_trace=True,
+            ),
+            self.profile,
+            QueuePressurePhasePolicy(VllmChunkedTargetBatcher()),
+        )
+        ar = next(req for req in sim.requests if req.request_id == "ar")
+        sim.prefill_queue.remove(ar)
+        ar.status = RequestStatus.ACTIVE_AR
+        ar.last_token_time_ms = 0.0
+        sim.ar_queue.append(ar)
+
+        record = sim.execute_action(PhaseAction.TARGET)
+        self.assertEqual(record.prefill_requests, 1)
+        self.assertEqual(record.ar_requests, 1)
+
+        summary = sim.summary()
+        self.assertEqual(summary["prefill_containing_target_forwards"], 1)
+        self.assertAlmostEqual(
+            summary["prefill_containing_slot_utilization_mean"], 0.5
+        )
+        self.assertAlmostEqual(
+            summary["prefill_containing_token_budget_utilization_mean"],
+            129 / 2048,
+        )
+        trace = summary["target_forward_trace"][0]
+        self.assertEqual(trace["composition"]["prefill"]["requests"], 1)
+        self.assertEqual(trace["composition"]["prefill"]["tokens"], 128)
+        self.assertEqual(trace["composition"]["ar"]["requests"], 1)
+        self.assertEqual(trace["composition"]["ar"]["tokens"], 1)
+        self.assertEqual(trace["batch_size"], 2)
+        self.assertEqual(trace["slot_remaining"], 2)
+        self.assertEqual(trace["excluded"], [])
+
+    def test_target_forward_trace_is_opt_in(self):
+        sim = PhaseAwareSimulator(
+            [make_request("plain", prompt=128, speculative=False)],
+            PhaseConfig(),
+            self.profile,
+            QueuePressurePhasePolicy(),
+        )
+        sim.execute_action(PhaseAction.TARGET)
+        summary = sim.summary()
+        self.assertFalse(summary["target_forward_trace_enabled"])
+        self.assertNotIn("target_forward_trace", summary)
+
+
 if __name__ == "__main__":
     unittest.main()
