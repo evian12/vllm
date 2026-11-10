@@ -90,6 +90,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--acceptance-base", type=float, default=0.72)
     parser.add_argument("--acceptance-decay", type=float, default=0.72)
     parser.add_argument("--profile-json", type=Path)
+    parser.add_argument(
+        "--include-target-forward-trace",
+        action="store_true",
+        help="include per-Target-Forward composition, capacity, and exclusion details",
+    )
     parser.add_argument("--output", type=Path)
     parser.add_argument("--max-steps", type=int, default=200_000)
     return parser
@@ -180,6 +185,7 @@ def main(argv: list[str] | None = None) -> int:
         max_steps=args.max_steps,
         seed=args.seed,
         short_prefill_threshold=args.short_prefill_threshold,
+        include_target_forward_trace=args.include_target_forward_trace,
     )
     profile = (
         PhaseExecutionProfile.from_json(args.profile_json)
@@ -229,6 +235,12 @@ def main(argv: list[str] | None = None) -> int:
             "metrics_note": (
                 "commit-gap is the interval between per-request commit events, "
                 "not token-level ITL within a multi-token Verify commit"
+            ),
+            "target_forward_diagnostics": (
+                "per-forward trace is emitted only with --include-target-forward-trace; "
+                "exclusion events distinguish sequence-slot, token-budget, and "
+                "policy-deferred work. Exclusion counts are repeated request-forward "
+                "events, not unique requests."
             ),
         },
         "config": asdict(config),
