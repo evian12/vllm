@@ -526,7 +526,7 @@ class FixedHPhasePolicy:
             return PhaseAction.TARGET
         if actions == [PhaseAction.DRAFT]:
             return PhaseAction.DRAFT
-        if simulator.drafts_since_target >= self.h:
+        if simulator.drafts_since_verify >= self.h:
             return PhaseAction.TARGET
         if simulator.oldest_ready_wait_ms() >= simulator.config.ready_wait_budget_ms:
             return PhaseAction.TARGET
@@ -688,7 +688,7 @@ class PhaseAwareSimulator:
 
         self.draft_forward_count = 0
         self.target_forward_count = 0
-        self.drafts_since_target = 0
+        self.drafts_since_verify = 0
         self.consecutive_target_forwards = 0
         self.consecutive_draft_forwards = 0
         self.decision_count = 0
@@ -876,7 +876,7 @@ class PhaseAwareSimulator:
             self.gpu_busy_ms += duration
             self.draft_forward_count += 1
             self.total_draft_tokens += len(batch)
-            self.drafts_since_target += 1
+            self.drafts_since_verify += 1
             self.consecutive_draft_forwards += 1
             self.consecutive_target_forwards = 0
 
@@ -1031,7 +1031,8 @@ class PhaseAwareSimulator:
                         req.status = RequestStatus.ACTIVE_AR
                         self.ar_queue.append(req)
 
-            self.drafts_since_target = 0
+            if verify_count > 0:
+                self.drafts_since_verify = 0
             self.consecutive_target_forwards += 1
             self.consecutive_draft_forwards = 0
             self.refresh()
