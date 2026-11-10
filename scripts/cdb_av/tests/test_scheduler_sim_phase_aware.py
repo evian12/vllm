@@ -66,7 +66,7 @@ class PhaseAwareSchedulerTests(unittest.TestCase):
         )
 
     def test_prefill_is_chunked_and_does_not_emit_first_token_early(self):
-        req = make_request("long", prompt=1024, output=2, cap=1)
+        req = make_request("long", prompt=1024, output=3, cap=1)
         config = PhaseConfig(
             max_num_seqs=4,
             max_num_batched_tokens=512,
@@ -87,6 +87,23 @@ class PhaseAwareSchedulerTests(unittest.TestCase):
         self.assertEqual(req.committed_tokens, 1)
         self.assertIsNotNone(req.first_token_time_ms)
         self.assertEqual(req.status, RequestStatus.ACTIVE_DRAFT)
+
+    def test_speculative_request_with_one_token_left_falls_back_to_ar(self):
+        req = make_request("last-token", prompt=128, output=2, cap=4)
+        sim = PhaseAwareSimulator(
+            [req],
+            PhaseConfig(confidence_threshold=0.0),
+            self.profile,
+            QueuePressurePhasePolicy(),
+        )
+        sim.execute_action(PhaseAction.TARGET)
+        self.assertEqual(req.committed_tokens, 1)
+        self.assertEqual(req.remaining_output_tokens, 1)
+        self.assertEqual(req.status, RequestStatus.ACTIVE_AR)
+        self.assertEqual(len(sim.active_draft), 0)
+        sim.execute_action(PhaseAction.TARGET)
+        self.assertEqual(req.committed_tokens, 2)
+        self.assertEqual(req.status, RequestStatus.FINISHED)
 
     def test_one_target_forward_mixes_prefill_verify_and_ar(self):
         requests = [
