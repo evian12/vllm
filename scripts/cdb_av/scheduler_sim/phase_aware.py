@@ -1258,6 +1258,9 @@ class PhaseAwareSimulator:
         self.target_exclusion_counts: dict[str, dict[str, int]] = {}
         self.target_forward_trace: list[dict[str, object]] = []
         self.prefill_chunk_sizes: list[int] = []
+        self.prefill_chunk_requested_tokens = 0
+        self.prefill_chunk_budget_shortfall_tokens = 0
+        self.prefill_chunk_budget_truncations = 0
         self.adaptive_prefill_wait_samples_ms: list[float] = []
         self.adaptive_prefill_budget_samples: list[int] = []
         self.prefill_wait_samples_ms: list[float] = []
@@ -1531,6 +1534,44 @@ class PhaseAwareSimulator:
                 )
                 for kind in WorkKind
             }
+            trace_items: list[dict[str, object]] = []
+            for item in items:
+                requested_tokens = item.token_count
+                allocation_limit_reason = "none"
+                if item.kind is WorkKind.PREFILL:
+                    requested_tokens = min(
+                        item.request.remaining_prompt_tokens,
+                        self.policy.batcher.prefill_chunk_limit(
+                            self, item.request
+                        ),
+                    )
+                    shortfall = max(0, requested_tokens - item.token_count)
+                    self.prefill_chunk_requested_tokens += requested_tokens
+                    self.prefill_chunk_budget_shortfall_tokens += shortfall
+                    if shortfall > 0:
+                        self.prefill_chunk_budget_truncations += 1
+                        allocation_limit_reason = (
+                            "adaptive_prefill_budget_or_token_budget"
+                            if isinstance(
+                                self.policy.batcher, LengthAwareTargetBatcher
+                            )
+                            else "target_token_budget"
+                        )
+                else:
+                    shortfall = 0
+                trace_items.append({
+                    "request_id": item.request.request_id,
+                    "kind": item.kind.value,
+                    "token_count": item.token_count,
+                    "requested_token_count": requested_tokens,
+                    "token_count_shortfall": shortfall,
+                    "allocation_limit_reason": allocation_limit_reason,
+                    "context_tokens": (
+                        item.request.prompt_tokens + item.request.committed_tokens
+                    ),
+                    "remaining_prompt_tokens": item.request.remaining_prompt_tokens,
+                    "draft_depth": item.request.draft_depth,
+                })
             slot_utilization = len(items) / self.config.max_num_seqs
             token_utilization = (
                 target_tokens / self.config.max_num_batched_tokens
@@ -1574,22 +1615,7 @@ class PhaseAwareSimulator:
                         }
                         for kind in WorkKind
                     },
-                    "items": [
-                        {
-                            "request_id": item.request.request_id,
-                            "kind": item.kind.value,
-                            "token_count": item.token_count,
-                            "context_tokens": (
-                                item.request.prompt_tokens
-                                + item.request.committed_tokens
-                            ),
-                            "remaining_prompt_tokens": (
-                                item.request.remaining_prompt_tokens
-                            ),
-                            "draft_depth": item.request.draft_depth,
-                        }
-                        for item in items
-                    ],
+                    "items": trace_items,
                     "excluded": [
                         {
                             "request_id": exclusion.request_id,
@@ -1789,6 +1815,14 @@ class PhaseAwareSimulator:
                 if self.total_draft_tokens else 0.0
             ),
             "total_prefill_tokens": self.total_prefill_tokens,
+            "prefill_chunk_requested_tokens": self.prefill_chunk_requested_tokens,
+            "prefill_chunk_allocated_tokens": self.total_prefill_tokens,
+            "prefill_chunk_budget_shortfall_tokens": (
+                self.prefill_chunk_budget_shortfall_tokens
+            ),
+            "prefill_chunk_budget_truncations": (
+                self.prefill_chunk_budget_truncations
+            ),
             "prefill_chunks": self.prefill_chunk_count,
             "prefill_completed_requests": self.prefill_request_count,
             "ar_tokens": self.ar_token_count,
