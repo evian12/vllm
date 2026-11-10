@@ -46,8 +46,14 @@ class PrefillChunkSweepAnalysisTest(unittest.TestCase):
     def test_collect_and_aggregate_preserves_chunk_rate_and_seed_groups(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            for chunk, tps in ((256, 100.0), (256, 110.0), (512, 90.0), (512, 100.0)):
-                seed = 42 if tps in (100.0, 90.0) else 43
+            # Keep (chunk, rate, seed) unique: each input file is keyed by seed.
+            samples = (
+                (256, 42, 100.0),
+                (256, 43, 110.0),
+                (512, 42, 90.0),
+                (512, 43, 100.0),
+            )
+            for chunk, seed, tps in samples:
                 result = payload(chunk, 30, seed, tps, 20.0 + seed - 42)
                 folder = root / f"chunk_{chunk}"
                 folder.mkdir(exist_ok=True)
