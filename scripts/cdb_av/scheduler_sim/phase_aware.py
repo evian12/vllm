@@ -1110,7 +1110,13 @@ class PhaseAwareSimulator:
                         self.ar_queue.append(req)
 
             if verify_count > 0:
-                self.drafts_since_verify = 0
+                # If Ready work remains after a capacity-limited Target batch,
+                # keep the fixed-H gate open until the remaining Ready requests
+                # have had a chance to verify.
+                self.drafts_since_verify = (
+                    getattr(self.policy, "h", self.config.fixed_h)
+                    if self.ready_queue else 0
+                )
             self.consecutive_target_forwards += 1
             self.consecutive_draft_forwards = 0
             self.refresh()
