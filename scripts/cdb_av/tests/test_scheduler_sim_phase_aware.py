@@ -810,6 +810,13 @@ class PhaseAwareSchedulerTests(unittest.TestCase):
         self.assertEqual(trace["token_remaining"], 0)
         self.assertEqual(trace["excluded"][0]["request_id"], "ar")
         self.assertEqual(trace["excluded"][0]["reason"], "token_budget_exhausted")
+        prefill_item = trace["items"][0]
+        self.assertEqual(prefill_item["requested_token_count"], 16)
+        self.assertEqual(prefill_item["token_count"], 10)
+        self.assertEqual(prefill_item["token_count_shortfall"], 6)
+        self.assertEqual(prefill_item["allocation_limit_reason"], "target_token_budget")
+        self.assertEqual(summary["prefill_chunk_budget_shortfall_tokens"], 6)
+        self.assertEqual(summary["prefill_chunk_budget_truncations"], 1)
 
     def test_deadline_batcher_reports_prefill_excluded_by_sequence_slots(self):
         requests = [
