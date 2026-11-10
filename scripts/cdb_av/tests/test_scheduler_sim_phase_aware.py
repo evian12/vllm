@@ -107,7 +107,10 @@ class PhaseAwareSchedulerTests(unittest.TestCase):
             self.profile,
             QueuePressurePhasePolicy(batcher),
         )
-        verify, ar, prefill = sim.requests
+        by_id = {req.request_id: req for req in sim.requests}
+        verify = by_id["verify"]
+        ar = by_id["ar"]
+        prefill = by_id["prefill"]
         sim.prefill_queue.clear()
         sim.now_ms = 10.0
 
