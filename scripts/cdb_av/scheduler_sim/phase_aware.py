@@ -151,6 +151,7 @@ class PhaseConfig:
     max_steps: int = 200_000
     seed: int = 42
     short_prefill_threshold: int = 512
+    include_target_forward_trace: bool = False
 
     def __post_init__(self) -> None:
         for name in ("max_num_seqs", "max_num_batched_tokens", "max_draft_batch_size",
@@ -250,6 +251,22 @@ class TargetWorkItem:
 
 
 @dataclass(frozen=True, slots=True)
+class TargetPlanExclusion:
+    request_id: str
+    kind: WorkKind
+    reason: str
+    required_tokens: int
+    available_tokens: int
+    available_slots: int
+
+
+@dataclass(slots=True)
+class TargetBatchPlan:
+    items: list[TargetWorkItem]
+    exclusions: list[TargetPlanExclusion]
+
+
+@dataclass(frozen=True, slots=True)
 class PhaseStepRecord:
     step: int
     action: str
@@ -273,6 +290,11 @@ class TargetBatcher(Protocol):
     def plan(self, simulator: PhaseAwareSimulator) -> list[TargetWorkItem]:
         ...
 
+    def plan_with_diagnostics(
+        self, simulator: PhaseAwareSimulator
+    ) -> TargetBatchPlan:
+        ...
+
 
 class _BaseTargetBatcher:
     name = "vllm_chunked"
@@ -291,37 +313,118 @@ class _BaseTargetBatcher:
         return simulator.config.max_num_batched_tokens
 
     def plan(self, simulator: PhaseAwareSimulator) -> list[TargetWorkItem]:
+        return self.plan_with_diagnostics(simulator).items
+
+    def plan_with_diagnostics(
+        self, simulator: PhaseAwareSimulator
+    ) -> TargetBatchPlan:
         cfg = simulator.config
         items: list[TargetWorkItem] = []
+        exclusions: list[TargetPlanExclusion] = []
         selected: set[str] = set()
         token_budget = cfg.max_num_batched_tokens
 
+        def record_exclusion(
+            request: PhaseRequest,
+            kind: WorkKind,
+            required_tokens: int,
+            *,
+            forced_reason: str | None = None,
+        ) -> None:
+            available_slots = max(0, cfg.max_num_seqs - len(items))
+            if forced_reason is not None:
+                reason = forced_reason
+            else:
+                slots_exhausted = available_slots == 0
+                tokens_exhausted = required_tokens > token_budget
+                if slots_exhausted and tokens_exhausted:
+                    reason = "sequence_and_token_budget_exhausted"
+                elif slots_exhausted:
+                    reason = "sequence_slots_exhausted"
+                elif tokens_exhausted:
+                    reason = "token_budget_exhausted"
+                else:
+                    reason = "not_selected_by_batcher"
+            exclusions.append(
+                TargetPlanExclusion(
+                    request_id=request.request_id,
+                    kind=kind,
+                    reason=reason,
+                    required_tokens=max(0, required_tokens),
+                    available_tokens=max(0, token_budget),
+                    available_slots=available_slots,
+                )
+            )
+
         def add(request: PhaseRequest, kind: WorkKind, token_count: int) -> bool:
             nonlocal token_budget
-            if request.request_id in selected or len(items) >= cfg.max_num_seqs:
+            if request.request_id in selected:
                 return False
-            if token_count < 1 or token_count > token_budget:
+            if len(items) >= cfg.max_num_seqs or token_count > token_budget:
+                record_exclusion(request, kind, token_count)
+                return False
+            if token_count < 1:
+                record_exclusion(
+                    request, kind, token_count, forced_reason="no_remaining_work"
+                )
                 return False
             items.append(TargetWorkItem(request, kind, token_count))
             selected.add(request.request_id)
             token_budget -= token_count
             return True
 
-        # Running Decode-like work is selected before Waiting Prefill work.
+        # Preserve the original policy order: Verify, then AR, then Prefill.
         for request in simulator.ready_queue:
             add(request, WorkKind.VERIFY, request.draft_depth + 1)
         for request in simulator.ar_queue:
             add(request, WorkKind.AR, 1)
 
-        prefill_budget = min(
-            token_budget,
-            self.prefill_budget_tokens(simulator, token_budget),
+        prefill_candidates = self.prefill_candidates(simulator)
+        candidate_ids = {request.request_id for request in prefill_candidates}
+        for request in simulator.prefill_queue:
+            if request.request_id not in candidate_ids:
+                exclusions.append(
+                    TargetPlanExclusion(
+                        request_id=request.request_id,
+                        kind=WorkKind.PREFILL,
+                        reason="policy_deferred",
+                        required_tokens=min(
+                            request.remaining_prompt_tokens,
+                            self.prefill_chunk_limit(simulator, request),
+                        ),
+                        available_tokens=max(0, token_budget),
+                        available_slots=max(0, cfg.max_num_seqs - len(items)),
+                    )
+                )
+
+        policy_prefill_budget = max(
+            0, self.prefill_budget_tokens(simulator, token_budget)
         )
-        for request in self.prefill_candidates(simulator):
-            if len(items) >= cfg.max_num_seqs or prefill_budget <= 0:
-                break
+        prefill_budget = min(token_budget, policy_prefill_budget)
+        for index, request in enumerate(prefill_candidates):
             if request.request_id in selected:
                 continue
+            if len(items) >= cfg.max_num_seqs or prefill_budget <= 0:
+                for deferred in prefill_candidates[index:]:
+                    if deferred.request_id in selected:
+                        continue
+                    required = min(
+                        deferred.remaining_prompt_tokens,
+                        self.prefill_chunk_limit(simulator, deferred),
+                    )
+                    if len(items) >= cfg.max_num_seqs:
+                        record_exclusion(deferred, WorkKind.PREFILL, required)
+                    elif token_budget <= 0:
+                        record_exclusion(deferred, WorkKind.PREFILL, required)
+                    else:
+                        record_exclusion(
+                            deferred,
+                            WorkKind.PREFILL,
+                            required,
+                            forced_reason="prefill_policy_budget_exhausted",
+                        )
+                break
+
             chunk = min(
                 request.remaining_prompt_tokens,
                 self.prefill_chunk_limit(simulator, request),
@@ -330,7 +433,7 @@ class _BaseTargetBatcher:
             if add(request, WorkKind.PREFILL, chunk):
                 prefill_budget -= chunk
 
-        return items
+        return TargetBatchPlan(items=items, exclusions=exclusions)
 
 
 class VllmChunkedTargetBatcher(_BaseTargetBatcher):
@@ -355,6 +458,11 @@ class DeadlineAwareTargetBatcher(_BaseTargetBatcher):
         self.prefill_chunk_tokens = prefill_chunk_tokens
 
     def plan(self, simulator: PhaseAwareSimulator) -> list[TargetWorkItem]:
+        return self.plan_with_diagnostics(simulator).items
+
+    def plan_with_diagnostics(
+        self, simulator: PhaseAwareSimulator
+    ) -> TargetBatchPlan:
         cfg = simulator.config
         candidates: list[
             tuple[float, int, float, str, WorkKind, PhaseRequest]
@@ -404,14 +512,42 @@ class DeadlineAwareTargetBatcher(_BaseTargetBatcher):
 
         candidates.sort(key=lambda item: item[:4])
         items: list[TargetWorkItem] = []
+        exclusions: list[TargetPlanExclusion] = []
         token_budget = cfg.max_num_batched_tokens
-        selected: set[str] = set()
 
-        for _, _, _, _, kind, req in candidates:
-            if len(items) >= cfg.max_num_seqs or token_budget <= 0:
+        def required_tokens(kind: WorkKind, req: PhaseRequest, available: int) -> int:
+            if kind is WorkKind.VERIFY:
+                return req.draft_depth + 1
+            if kind is WorkKind.AR:
+                return 1
+            return min(req.remaining_prompt_tokens, self.prefill_chunk_tokens, max(0, available))
+
+        for index, (_, _, _, _, kind, req) in enumerate(candidates):
+            available_slots = max(0, cfg.max_num_seqs - len(items))
+            if available_slots == 0 or token_budget <= 0:
+                for _, _, _, _, deferred_kind, deferred_req in candidates[index:]:
+                    deferred_required = required_tokens(
+                        deferred_kind, deferred_req, token_budget
+                    )
+                    slots_exhausted = len(items) >= cfg.max_num_seqs
+                    tokens_exhausted = token_budget <= 0
+                    if slots_exhausted and tokens_exhausted:
+                        reason = "sequence_and_token_budget_exhausted"
+                    elif slots_exhausted:
+                        reason = "sequence_slots_exhausted"
+                    else:
+                        reason = "token_budget_exhausted"
+                    exclusions.append(
+                        TargetPlanExclusion(
+                            request_id=deferred_req.request_id,
+                            kind=deferred_kind,
+                            reason=reason,
+                            required_tokens=deferred_required,
+                            available_tokens=max(0, token_budget),
+                            available_slots=max(0, cfg.max_num_seqs - len(items)),
+                        )
+                    )
                 break
-            if req.request_id in selected:
-                continue
 
             if kind is WorkKind.VERIFY:
                 token_count = req.draft_depth + 1
@@ -424,13 +560,35 @@ class DeadlineAwareTargetBatcher(_BaseTargetBatcher):
                     token_budget,
                 )
 
-            if token_count < 1 or token_count > token_budget:
+            if token_count < 1:
+                exclusions.append(
+                    TargetPlanExclusion(
+                        request_id=req.request_id,
+                        kind=kind,
+                        reason="no_remaining_work",
+                        required_tokens=token_count,
+                        available_tokens=token_budget,
+                        available_slots=available_slots,
+                    )
+                )
                 continue
+            if token_count > token_budget:
+                exclusions.append(
+                    TargetPlanExclusion(
+                        request_id=req.request_id,
+                        kind=kind,
+                        reason="token_budget_exhausted",
+                        required_tokens=token_count,
+                        available_tokens=token_budget,
+                        available_slots=available_slots,
+                    )
+                )
+                continue
+
             items.append(TargetWorkItem(req, kind, token_count))
-            selected.add(req.request_id)
             token_budget -= token_count
 
-        return items
+        return TargetBatchPlan(items=items, exclusions=exclusions)
 
 
 class SarathiTargetBatcher(_BaseTargetBatcher):
@@ -1094,6 +1252,11 @@ class PhaseAwareSimulator:
         self.target_token_counts: list[int] = []
         self.target_batch_sizes: list[int] = []
         self.target_compositions: list[dict[str, int]] = []
+        self.prefill_target_forward_slot_utilization_samples: list[float] = []
+        self.prefill_target_forward_token_utilization_samples: list[float] = []
+        self.prefill_target_forward_duration_samples_ms: list[float] = []
+        self.target_exclusion_counts: dict[str, dict[str, int]] = {}
+        self.target_forward_trace: list[dict[str, object]] = []
         self.prefill_chunk_sizes: list[int] = []
         self.adaptive_prefill_wait_samples_ms: list[float] = []
         self.adaptive_prefill_budget_samples: list[int] = []
@@ -1262,6 +1425,7 @@ class PhaseAwareSimulator:
         output_before = self.total_output_tokens
         prefill_count = verify_count = ar_count = 0
         target_tokens = 0
+        target_plan_exclusions: list[TargetPlanExclusion] = []
 
         if action is PhaseAction.DRAFT:
             batch = list(self.active_draft)
@@ -1295,7 +1459,9 @@ class PhaseAwareSimulator:
             request_count = len(batch)
 
         else:
-            items = self.policy.batcher.plan(self)
+            target_plan = self.policy.batcher.plan_with_diagnostics(self)
+            items = target_plan.items
+            target_plan_exclusions = target_plan.exclusions
             if not items:
                 raise RuntimeError("Target action selected but no legal Target work fits")
             request_ids = [item.request.request_id for item in items]
@@ -1358,6 +1524,84 @@ class PhaseAwareSimulator:
             })
             if sum(value > 0 for value in (prefill_count, verify_count, ar_count)) > 1:
                 self.mixed_target_forward_count += 1
+
+            composition_tokens = {
+                kind.value: sum(
+                    item.token_count for item in items if item.kind is kind
+                )
+                for kind in WorkKind
+            }
+            slot_utilization = len(items) / self.config.max_num_seqs
+            token_utilization = (
+                target_tokens / self.config.max_num_batched_tokens
+            )
+            if prefill_count > 0:
+                self.prefill_target_forward_slot_utilization_samples.append(
+                    slot_utilization
+                )
+                self.prefill_target_forward_token_utilization_samples.append(
+                    token_utilization
+                )
+                self.prefill_target_forward_duration_samples_ms.append(duration)
+
+            for exclusion in target_plan_exclusions:
+                kind_counts = self.target_exclusion_counts.setdefault(
+                    exclusion.kind.value, {}
+                )
+                kind_counts[exclusion.reason] = (
+                    kind_counts.get(exclusion.reason, 0) + 1
+                )
+
+            if self.config.include_target_forward_trace:
+                self.target_forward_trace.append({
+                    "forward_index": self.target_forward_count,
+                    "start_ms": start_ms,
+                    "end_ms": self.now_ms,
+                    "duration_ms": duration,
+                    "batch_size": len(items),
+                    "slot_capacity": self.config.max_num_seqs,
+                    "slot_used": len(items),
+                    "slot_remaining": self.config.max_num_seqs - len(items),
+                    "slot_utilization": slot_utilization,
+                    "token_capacity": self.config.max_num_batched_tokens,
+                    "token_used": target_tokens,
+                    "token_remaining": self.config.max_num_batched_tokens - target_tokens,
+                    "token_budget_utilization": token_utilization,
+                    "composition": {
+                        kind.value: {
+                            "requests": sum(item.kind is kind for item in items),
+                            "tokens": composition_tokens[kind.value],
+                        }
+                        for kind in WorkKind
+                    },
+                    "items": [
+                        {
+                            "request_id": item.request.request_id,
+                            "kind": item.kind.value,
+                            "token_count": item.token_count,
+                            "context_tokens": (
+                                item.request.prompt_tokens
+                                + item.request.committed_tokens
+                            ),
+                            "remaining_prompt_tokens": (
+                                item.request.remaining_prompt_tokens
+                            ),
+                            "draft_depth": item.request.draft_depth,
+                        }
+                        for item in items
+                    ],
+                    "excluded": [
+                        {
+                            "request_id": exclusion.request_id,
+                            "kind": exclusion.kind.value,
+                            "reason": exclusion.reason,
+                            "required_tokens": exclusion.required_tokens,
+                            "available_tokens": exclusion.available_tokens,
+                            "available_slots": exclusion.available_slots,
+                        }
+                        for exclusion in target_plan_exclusions
+                    ],
+                })
 
             for item in items:
                 req = item.request
@@ -1516,7 +1760,7 @@ class PhaseAwareSimulator:
         elapsed = max(self.now_ms, 0.0)
         output = self.total_output_tokens
         busy_ratio = self.gpu_busy_ms / elapsed if elapsed > 0 else 0.0
-        return {
+        summary = {
             "policy": self.policy.name,
             "requests": len(self.requests),
             "completed_requests": self.completed_requests,
@@ -1561,6 +1805,58 @@ class PhaseAwareSimulator:
                 / (self.target_forward_count * self.config.max_num_seqs)
                 if self.target_forward_count else 0.0
             ),
+            "prefill_containing_target_forwards": len(
+                self.prefill_target_forward_slot_utilization_samples
+            ),
+            "prefill_containing_slot_utilization_mean": (
+                mean(self.prefill_target_forward_slot_utilization_samples)
+                if self.prefill_target_forward_slot_utilization_samples else 0.0
+            ),
+            "prefill_containing_slot_utilization_p50": self._percentile(
+                self.prefill_target_forward_slot_utilization_samples, 0.50
+            ),
+            "prefill_containing_slot_utilization_p95": self._percentile(
+                self.prefill_target_forward_slot_utilization_samples, 0.95
+            ),
+            "prefill_containing_token_budget_utilization_mean": (
+                mean(self.prefill_target_forward_token_utilization_samples)
+                if self.prefill_target_forward_token_utilization_samples else 0.0
+            ),
+            "prefill_containing_token_budget_utilization_p50": self._percentile(
+                self.prefill_target_forward_token_utilization_samples, 0.50
+            ),
+            "prefill_containing_token_budget_utilization_p95": self._percentile(
+                self.prefill_target_forward_token_utilization_samples, 0.95
+            ),
+            "prefill_containing_duration_mean_ms": (
+                mean(self.prefill_target_forward_duration_samples_ms)
+                if self.prefill_target_forward_duration_samples_ms else 0.0
+            ),
+            "prefill_containing_duration_p50_ms": self._percentile(
+                self.prefill_target_forward_duration_samples_ms, 0.50
+            ),
+            "prefill_containing_duration_p95_ms": self._percentile(
+                self.prefill_target_forward_duration_samples_ms, 0.95
+            ),
+            "target_exclusion_events": {
+                kind: dict(reasons)
+                for kind, reasons in self.target_exclusion_counts.items()
+            },
+            "ar_excluded_by_sequence_slots_events": sum(
+                self.target_exclusion_counts.get("ar", {}).get(reason, 0)
+                for reason in (
+                    "sequence_slots_exhausted",
+                    "sequence_and_token_budget_exhausted",
+                )
+            ),
+            "ar_excluded_by_token_budget_events": sum(
+                self.target_exclusion_counts.get("ar", {}).get(reason, 0)
+                for reason in (
+                    "token_budget_exhausted",
+                    "sequence_and_token_budget_exhausted",
+                )
+            ),
+            "target_forward_trace_enabled": self.config.include_target_forward_trace,
             "target_compositions": list(self.target_compositions),
             "prefill_chunk_mean_tokens": mean(self.prefill_chunk_sizes) if self.prefill_chunk_sizes else 0.0,
             "adaptive_prefill_wait_window_mean_ms": (
@@ -1594,6 +1890,9 @@ class PhaseAwareSimulator:
             "commit_gap_p95_ms": self._percentile(self.commit_gap_samples_ms, 0.95),
             "step_count": self.decision_count,
         }
+        if self.config.include_target_forward_trace:
+            summary["target_forward_trace"] = list(self.target_forward_trace)
+        return summary
 
 
 def generate_phase_workload(
