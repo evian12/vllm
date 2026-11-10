@@ -99,3 +99,58 @@ python -m unittest discover -s scripts/cdb_av/tests -p 'test_scheduler_sim.py' -
 ```
 
 No vLLM runtime code, CUDA kernels, KV cache implementation, or GPU settings are modified by this research branch.
+
+
+## Phase-aware Target scheduling (Phase 2)
+
+Phase 1 above remains available as the isolated Draft/Verify reference. The
+phase-aware simulator is a separate model and entry point:
+
+\`\`\`bash
+python -m scripts.cdb_av.scheduler_sim.phase_cli \\
+  --requests 64 --arrival-rate 30 --arrival-mode bursty \\
+  --policy all --seed 42
+\`\`\`
+
+Phase 2 adds the Target-side request lifecycle:
+
+- Every new request enters Target Prefill first. A prompt can span multiple
+  Target forwards; the first output token is committed only after its final
+  Prefill chunk completes.
+- A speculative request then enters Draft; a non-speculative request enters
+  one-token-at-a-time Target AR.
+- One Target forward may contain a mixture of atomic Verify requests, AR
+  requests, and Prefill chunks. The combined batch must respect both
+  \`max_num_seqs\` and \`max_num_batched_tokens\`.
+- Draft and Target still execute serially on one GPU. The simulator does not
+  model GPU overlap.
+
+### Phase-aware comparison policies
+
+| CLI policy | Stage decision | Target batch organization |
+|---|---|---|
+| \`fixed_h\` | Fixed number of Draft forwards between Target forwards | FCFS, chunked Prefill |
+| \`queue_pressure\` | Queue pressure and waiting-time guards | FCFS, chunked Prefill |
+| \`sarathi\` | Queue pressure | Bounded Prefill chunks, Decode-like work first |
+| \`length_aware\` | Queue pressure | Short/long queues, similar-length buckets, adaptive Prefill budget |
+| \`joint\` | Queue pressure plus a short-Prefill batching wait | Length-aware Target batching |
+
+The length-aware policy is an **LAPS-inspired algorithmic approximation**, not
+a reproduction of LAPS. Its adaptive waiting window \(W\) is estimated from
+recent short-Prefill arrival intervals and bounded by configured minimum and
+maximum values. Its Prefill budget \(D\) grows with queued Prefill tokens and
+shrinks when Ready/AR work is urgent. Long prompts are chunked independently
+of the short-request bucket.
+
+### Phase-2 metrics and interpretation
+
+The phase-aware output includes committed output tok/s, TTFT (measured when the
+initial Target Prefill completes), Prefill queue wait/latency, Ready wait, AR
+wait, commit-gap, Target token/slot utilization, mixed-Target-forward ratio,
+Prefill chunk sizes, and Target batch composition.
+
+The reported commit-gap is the interval between per-request commit events. It
+is **not** token-level ITL inside a multi-token Verify commit. Default execution
+coefficients are synthetic and are only useful for testing scheduling logic;
+fit them from GPU batch-shape profiles before drawing hardware-performance
+conclusions.
