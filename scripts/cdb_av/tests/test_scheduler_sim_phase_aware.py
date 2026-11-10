@@ -422,7 +422,7 @@ class PhaseAwareSchedulerTests(unittest.TestCase):
         ]
         future = make_request(
             "not-yet-arrived",
-            arrival=100.0,
+            arrival=3.35,
             output=8,
             cap=1,
             speculative=False,
@@ -441,6 +441,12 @@ class PhaseAwareSchedulerTests(unittest.TestCase):
         sim.execute_action(PhaseAction.DRAFT)
         future_internal = next(
             req for req in sim.requests if req.request_id == "not-yet-arrived"
+        )
+        forecast = policy._visible_state_clone(sim)
+        self.assertEqual(len(forecast.requests), 4)
+        self.assertEqual(forecast.pending_arrival_index, 4)
+        self.assertFalse(
+            any(req.request_id == "not-yet-arrived" for req in forecast.requests)
         )
         before = (
             sim.now_ms,
