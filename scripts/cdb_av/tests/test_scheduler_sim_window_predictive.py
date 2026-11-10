@@ -39,7 +39,7 @@ def payload(rate: int, seed: int, e5_tps: float, e6_tps: float) -> dict:
     return {
         "scope": {
             "scheduling_policy_parameters": {
-                "load_adaptive_projection_mode": "visible_only",
+                "load_adaptive_default_projection_mode": "visible_only",
             },
         },
         "workload": {"arrival_rate_rps": rate, "seed": seed},
@@ -128,7 +128,7 @@ class WindowPredictiveAnalysisTests(unittest.TestCase):
             root = Path(tmp)
             item = payload(30, 42, 100.0, 105.0)
             item["scope"]["scheduling_policy_parameters"][
-                "load_adaptive_projection_mode"
+                "load_adaptive_default_projection_mode"
             ] = "full_request_list"
             (root / "oracle.json").write_text(
                 json.dumps(item), encoding="utf-8"
