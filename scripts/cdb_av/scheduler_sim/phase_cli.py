@@ -13,6 +13,7 @@ from .phase_aware import (
     FixedHPhasePolicy,
     JointPhasePolicy,
     LengthAwareTargetBatcher,
+    LoadAdaptivePhasePolicy,
     PhaseAwareSimulator,
     PhaseConfig,
     PhaseExecutionProfile,
@@ -53,7 +54,7 @@ def build_parser() -> argparse.ArgumentParser:
         choices=(
             "all", "fixed_h", "queue_pressure", "lookahead", "sarathi",
             "length_aware", "joint", "fixed_h_deadline", "dynamic",
-            "dynamic_deadline",
+            "dynamic_deadline", "load_adaptive",
         ),
         default="all",
     )
@@ -127,6 +128,8 @@ def build_policies(args: argparse.Namespace, config: PhaseConfig) -> dict[str, o
         "dynamic": DynamicPhasePolicy(vllm_batcher),
         # E4: combine dynamic stage selection and deadline-aware Target batching.
         "dynamic_deadline": DynamicPhasePolicy(deadline_batcher),
+        # Load-adaptive: only delay Verify when another Draft increases Target batch size.
+        "load_adaptive": LoadAdaptivePhasePolicy(vllm_batcher),
     }
     # Give each comparison row an explicit, stable strategy label.
     policies["fixed_h"].name = "fixed_h+vllm"
@@ -136,6 +139,7 @@ def build_policies(args: argparse.Namespace, config: PhaseConfig) -> dict[str, o
     policies["fixed_h_deadline"].name = "fixed_h+deadline_batcher"
     policies["dynamic"].name = "dynamic_stage+vllm"
     policies["dynamic_deadline"].name = "dynamic_stage+deadline_batcher"
+    policies["load_adaptive"].name = "load_adaptive+vllm"
     if args.policy == "all":
         return policies
     return {args.policy: policies[args.policy]}
