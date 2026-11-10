@@ -212,6 +212,9 @@ class PhaseAwareSchedulerTests(unittest.TestCase):
         self.assertGreaterEqual(small_budget, batcher.min_prefill_budget)
         self.assertLessEqual(large_budget, batcher.max_prefill_budget)
         self.assertGreater(large_budget, small_budget)
+        small.execute_action(PhaseAction.TARGET)
+        self.assertEqual(len(small.adaptive_prefill_budget_samples), 1)
+        self.assertGreater(small.adaptive_prefill_budget_samples[0], 0)
 
     def test_short_prefill_wait_window_is_adaptive(self):
         batcher = LengthAwareTargetBatcher(
