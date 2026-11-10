@@ -66,6 +66,26 @@ class PhaseAwareSchedulerTests(unittest.TestCase):
             ar_context_per_token_ms=0.0,
         )
 
+    def test_simulator_owns_isolated_request_copies(self):
+        original = make_request(
+            "isolated", prompt=128, output=2, speculative=False
+        )
+        sim = PhaseAwareSimulator(
+            [original],
+            PhaseConfig(),
+            self.profile,
+            QueuePressurePhasePolicy(),
+        )
+        internal = sim.requests[0]
+        self.assertIsNot(original, internal)
+
+        sim.execute_action(PhaseAction.TARGET)
+
+        self.assertEqual(original.prefill_progress, 0)
+        self.assertEqual(original.committed_tokens, 0)
+        self.assertEqual(internal.prefill_progress, 128)
+        self.assertEqual(internal.committed_tokens, 1)
+
     def test_prefill_is_chunked_and_does_not_emit_first_token_early(self):
         req = make_request("long", prompt=1024, output=3, cap=1)
         config = PhaseConfig(
