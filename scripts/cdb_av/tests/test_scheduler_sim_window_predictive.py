@@ -82,6 +82,42 @@ class WindowPredictiveAnalysisTests(unittest.TestCase):
             self.assertAlmostEqual(ttft["e6_minus_e5_mean"], -2.0)
             self.assertEqual(ttft["e6_better_seeds"], 2)
 
+    def test_efficiency_metrics_have_explicit_better_directions(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            item = payload(30, 42, 100.0, 105.0)
+            e5 = item["results"]["load_adaptive_deadline"]
+            e6 = item["results"]["window_predictive"]
+            e5.update({
+                "target_forwards": 110,
+                "draft_forwards": 210,
+                "mean_target_batch_size": 2.0,
+                "candidate_acceptance_rate": 0.3,
+            })
+            e6.update({
+                "target_forwards": 100,
+                "draft_forwards": 190,
+                "mean_target_batch_size": 2.5,
+                "candidate_acceptance_rate": 0.4,
+            })
+            (root / "r30_s42.json").write_text(
+                json.dumps(item), encoding="utf-8"
+            )
+
+            paired = paired_comparison(collect_records(root))
+            by_metric = {row["metric"]: row for row in paired}
+            for metric in (
+                "target_forwards",
+                "draft_forwards",
+                "mean_target_batch_size",
+                "candidate_acceptance_rate",
+            ):
+                self.assertEqual(by_metric[metric]["e6_better_seeds"], 1)
+
+            # These metrics have no universally correct direction.
+            for metric in ("draft_window_mean", "draft_window_p95", "mixed_target_ratio"):
+                self.assertEqual(by_metric[metric]["e6_better_seeds"], 0)
+
     def test_collect_rejects_duplicate_rate_seed(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
