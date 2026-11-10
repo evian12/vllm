@@ -745,7 +745,8 @@ class PhaseAwareSimulator:
         ):
             req = self.draft_eligible_queue.popleft()
             if req.remaining_output_tokens <= 1:
-                self._finish(req)
+                req.status = RequestStatus.ACTIVE_AR
+                self.ar_queue.append(req)
                 continue
             req.status = RequestStatus.ACTIVE_DRAFT
             self.active_draft.append(req)
@@ -948,7 +949,7 @@ class PhaseAwareSimulator:
                         self._record_output_commit(req, 1)
                         if req.remaining_output_tokens <= 0:
                             self._finish(req)
-                        elif req.speculative:
+                        elif req.speculative and req.remaining_output_tokens > 1:
                             req.status = RequestStatus.DRAFT_ELIGIBLE
                             self.draft_eligible_queue.append(req)
                         else:
@@ -967,7 +968,7 @@ class PhaseAwareSimulator:
                     self.verify_request_count += 1
                     if req.remaining_output_tokens <= 0:
                         self._finish(req)
-                    elif req.speculative:
+                    elif req.speculative and req.remaining_output_tokens > 1:
                         req.status = RequestStatus.DRAFT_ELIGIBLE
                         self.draft_eligible_queue.append(req)
                     else:
