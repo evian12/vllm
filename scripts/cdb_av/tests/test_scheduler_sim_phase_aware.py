@@ -152,6 +152,43 @@ class PhaseAwareSchedulerTests(unittest.TestCase):
         self.assertEqual(plan[0].kind, WorkKind.PREFILL)
         self.assertEqual(plan[0].token_count, 512)
 
+    def test_prefill_ttft_decomposition_tracks_chunk_forward_exposure(self):
+        req = make_request("prefill-decomp", prompt=1024, output=3, cap=1)
+        config = PhaseConfig(
+            max_num_seqs=1,
+            max_num_batched_tokens=512,
+            confidence_threshold=0.0,
+        )
+        sim = PhaseAwareSimulator(
+            [req], config, self.profile, FixedHPhasePolicy(1)
+        )
+        req = sim.requests[0]
+
+        first = sim.execute_action(PhaseAction.TARGET)
+        self.assertEqual(req.prefill_chunk_count, 1)
+        self.assertEqual(req.committed_tokens, 0)
+
+        second = sim.execute_action(PhaseAction.TARGET)
+        self.assertEqual(req.prefill_chunk_count, 2)
+        self.assertEqual(req.committed_tokens, 1)
+        self.assertAlmostEqual(
+            req.prefill_target_forward_exposure_ms,
+            first.duration_ms + second.duration_ms,
+        )
+        self.assertAlmostEqual(req.prefill_inter_chunk_wait_ms, 0.0)
+
+        summary = sim.summary()
+        self.assertAlmostEqual(
+            summary["prefill_latency_p95_ms"], summary["ttft_p95_ms"]
+        )
+        self.assertAlmostEqual(
+            summary["prefill_target_forward_exposure_p95_ms"],
+            first.duration_ms + second.duration_ms,
+        )
+        self.assertAlmostEqual(
+            summary["prefill_decomposition_error_max_ms"], 0.0
+        )
+
     def test_prefill_is_chunked_and_does_not_emit_first_token_early(self):
         req = make_request("long", prompt=1024, output=3, cap=1)
         config = PhaseConfig(
