@@ -794,25 +794,31 @@ class DynamicPhasePolicy:
 
         draft_batch = simulator.active_draft
         draft_duration = simulator.profile.draft_duration_ms(draft_batch)
+        target_duration = simulator.profile.target_duration_ms(plan)
 
         # Do not cross a request's configured wait budget just to improve packing.
         cfg = simulator.config
+        prefill_ttft_age = max(
+            (
+                simulator.now_ms - req.arrival_time_ms
+                for req in simulator.prefill_queue
+            ),
+            default=0.0,
+        )
+        prefill_service = (
+            target_duration
+            if any(item.kind is WorkKind.PREFILL for item in plan)
+            else 0.0
+        )
         if (
             simulator.oldest_ready_wait_ms() + draft_duration
             >= cfg.ready_wait_budget_ms
             or simulator.oldest_ar_wait_ms() + draft_duration
             >= cfg.ar_itl_budget_ms
-            or max(
-                (
-                    simulator.now_ms - req.arrival_time_ms
-                    for req in simulator.prefill_queue
-                ),
-                default=0.0,
-            ) + draft_duration >= cfg.prefill_wait_budget_ms
+            or prefill_ttft_age + draft_duration + prefill_service
+            >= cfg.prefill_wait_budget_ms
         ):
             return PhaseAction.TARGET
-
-        target_duration = simulator.profile.target_duration_ms(plan)
         target_fill = len(plan) / cfg.max_num_seqs
         target_score = (
             self._target_yield(simulator, plan)
