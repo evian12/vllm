@@ -405,7 +405,11 @@ class LengthAwareTargetBatcher(_BaseTargetBatcher):
             return False
         if simulator.ready_queue or simulator.ar_queue:
             return False
-        wait_ms = simulator.now_ms - short[0].arrival_time_ms
+        last_service = short[0].prefill_last_scheduled_ms
+        wait_origin = (
+            last_service if last_service is not None else short[0].arrival_time_ms
+        )
+        wait_ms = simulator.now_ms - wait_origin
         return wait_ms < self.adaptive_wait_window_ms(simulator)
 
     def prefill_candidates(self, simulator: PhaseAwareSimulator) -> list[PhaseRequest]:
@@ -780,7 +784,11 @@ class PhaseAwareSimulator:
     def oldest_prefill_wait_ms(self) -> float:
         return max(
             (
-                self.now_ms - req.arrival_time_ms
+                self.now_ms - (
+                    req.prefill_last_scheduled_ms
+                    if req.prefill_last_scheduled_ms is not None
+                    else req.arrival_time_ms
+                )
                 for req in self.prefill_queue
             ),
             default=0.0,
