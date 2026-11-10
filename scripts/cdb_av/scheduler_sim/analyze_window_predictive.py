@@ -36,7 +36,7 @@ METRICS = (
 )
 # Directional metrics only. Draft-window size and mixed-target ratio are
 # diagnostics rather than universally monotonic objectives, so their
-# e6_better_seeds values intentionally remain zero.
+# better_seeds values intentionally remain zero.
 HIGHER_IS_BETTER = {
     "output_tokens_per_s",
     "mean_target_batch_size",
@@ -254,7 +254,7 @@ def render_report(
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Aggregate paired CDB-AV E5/E6 scheduler simulations."
+        description="Aggregate paired online E5, oracle E5, and E6 scheduler simulations."
     )
     parser.add_argument("--input-dir", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
