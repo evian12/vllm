@@ -76,6 +76,7 @@ class PhaseAwareSchedulerTests(unittest.TestCase):
         sim = PhaseAwareSimulator(
             [req], config, self.profile, FixedHPhasePolicy(1)
         )
+        req = sim.requests[0]
 
         first = sim.execute_action(PhaseAction.TARGET)
         self.assertEqual(first.prefill_requests, 1)
@@ -97,6 +98,7 @@ class PhaseAwareSchedulerTests(unittest.TestCase):
             self.profile,
             QueuePressurePhasePolicy(),
         )
+        req = sim.requests[0]
         sim.execute_action(PhaseAction.TARGET)
         self.assertEqual(req.committed_tokens, 1)
         self.assertEqual(req.remaining_output_tokens, 1)
@@ -174,6 +176,7 @@ class PhaseAwareSchedulerTests(unittest.TestCase):
             self.profile,
             QueuePressurePhasePolicy(batcher),
         )
+        req = sim.requests[0]
         sim.execute_action(PhaseAction.TARGET)
         self.assertEqual(req.prefill_progress, 256)
         self.assertAlmostEqual(sim.oldest_prefill_wait_ms(), 0.0)
@@ -232,6 +235,7 @@ class PhaseAwareSchedulerTests(unittest.TestCase):
         sim = PhaseAwareSimulator(
             [req], PhaseConfig(), self.profile, QueuePressurePhasePolicy()
         )
+        req = sim.requests[0]
         sim.execute_action(PhaseAction.TARGET)
         req.status = RequestStatus.READY
         req.draft_depth = 3
@@ -327,6 +331,7 @@ class PhaseAwareSchedulerTests(unittest.TestCase):
             self.profile,
             policy,
         )
+        first = sim.requests[0]
         sim.prefill_queue.remove(first)
         first.status = RequestStatus.ACTIVE_DRAFT
         sim.active_draft.append(first)
@@ -373,6 +378,7 @@ class PhaseAwareSchedulerTests(unittest.TestCase):
             self.profile,
             QueuePressurePhasePolicy(),
         )
+        req = sim.requests[0]
         sim.execute_action(PhaseAction.TARGET)
         self.assertEqual(req.committed_tokens, 1)
         self.assertEqual(req.status, RequestStatus.ACTIVE_AR)
@@ -391,6 +397,7 @@ class PhaseAwareSchedulerTests(unittest.TestCase):
             self.profile,
             QueuePressurePhasePolicy(),
         )
+        req = sim.requests[0]
         sim.execute_action(PhaseAction.TARGET)
         self.assertIsNone(req.first_token_time_ms)
         sim.execute_action(PhaseAction.TARGET)
