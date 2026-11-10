@@ -8,6 +8,8 @@ from dataclasses import asdict
 from pathlib import Path
 
 from .phase_aware import (
+    DeadlineAwareTargetBatcher,
+    DynamicPhasePolicy,
     FixedHPhasePolicy,
     JointPhasePolicy,
     LengthAwareTargetBatcher,
@@ -48,7 +50,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--policy",
-        choices=("all", "fixed_h", "queue_pressure", "lookahead", "sarathi", "length_aware", "joint"),
+        choices=(
+            "all", "fixed_h", "queue_pressure", "lookahead", "sarathi",
+            "length_aware", "joint", "fixed_h_deadline", "dynamic",
+            "dynamic_deadline",
+        ),
         default="all",
     )
     parser.add_argument("--seed", type=int, default=42)
@@ -71,6 +77,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--prefill-budget-max", type=int, default=1024)
     parser.add_argument("--long-prefill-chunk-tokens", type=int, default=256)
     parser.add_argument("--sarathi-chunk-tokens", type=int, default=512)
+    parser.add_argument("--deadline-prefill-chunk-tokens", type=int, default=512)
     parser.add_argument("--ar-fraction", type=float, default=0.25)
     parser.add_argument("--max-output-tokens", type=int, default=64)
     parser.add_argument("--draft-caps", type=parse_int_list, default=(2, 4, 6, 8))
@@ -100,6 +107,9 @@ def build_policies(args: argparse.Namespace, config: PhaseConfig) -> dict[str, o
         max_prefill_budget=args.prefill_budget_max,
         long_chunk_tokens=args.long_prefill_chunk_tokens,
     )
+    deadline_batcher = DeadlineAwareTargetBatcher(
+        prefill_chunk_tokens=args.deadline_prefill_chunk_tokens,
+    )
     policies = {
         "fixed_h": FixedHPhasePolicy(args.fixed_h, vllm_batcher),
         "queue_pressure": QueuePressurePhasePolicy(vllm_batcher),
@@ -111,12 +121,21 @@ def build_policies(args: argparse.Namespace, config: PhaseConfig) -> dict[str, o
         "sarathi": QueuePressurePhasePolicy(sarathi_batcher),
         "length_aware": QueuePressurePhasePolicy(length_batcher),
         "joint": JointPhasePolicy(length_batcher),
+        # E2: isolate Target batch organization under the original Fixed-H stage policy.
+        "fixed_h_deadline": FixedHPhasePolicy(args.fixed_h, deadline_batcher),
+        # E3: isolate dynamic stage selection with the original FCFS Target batcher.
+        "dynamic": DynamicPhasePolicy(vllm_batcher),
+        # E4: combine dynamic stage selection and deadline-aware Target batching.
+        "dynamic_deadline": DynamicPhasePolicy(deadline_batcher),
     }
     # Give each comparison row an explicit, stable strategy label.
     policies["fixed_h"].name = "fixed_h+vllm"
     policies["queue_pressure"].name = "queue_pressure+vllm"
     policies["sarathi"].name = "queue_pressure+sarathi"
     policies["length_aware"].name = "queue_pressure+length_aware"
+    policies["fixed_h_deadline"].name = "fixed_h+deadline_batcher"
+    policies["dynamic"].name = "dynamic_stage+vllm"
+    policies["dynamic_deadline"].name = "dynamic_stage+deadline_batcher"
     if args.policy == "all":
         return policies
     return {args.policy: policies[args.policy]}
