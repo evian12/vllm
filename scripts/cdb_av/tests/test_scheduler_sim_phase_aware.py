@@ -820,6 +820,40 @@ class PhaseAwareSchedulerTests(unittest.TestCase):
         self.assertEqual(summary["prefill_chunk_budget_shortfall_tokens"], 6)
         self.assertEqual(summary["prefill_chunk_budget_truncations"], 1)
 
+    def test_deadline_batcher_trace_uses_configured_prefill_chunk_cap(self):
+        requests = [
+            make_request("long-prefill", prompt=1024, speculative=False),
+        ]
+        batcher = DeadlineAwareTargetBatcher(prefill_chunk_tokens=256)
+        sim = PhaseAwareSimulator(
+            requests,
+            PhaseConfig(
+                max_num_seqs=4,
+                max_num_batched_tokens=2048,
+                include_target_forward_trace=True,
+            ),
+            self.profile,
+            QueuePressurePhasePolicy(batcher),
+        )
+
+        plan = batcher.plan_with_diagnostics(sim)
+        self.assertEqual(
+            [(item.request.request_id, item.kind, item.token_count) for item in plan.items],
+            [("long-prefill", WorkKind.PREFILL, 256)],
+        )
+
+        sim.execute_action(PhaseAction.TARGET)
+        summary = sim.summary()
+        trace_item = summary["target_forward_trace"][0]["items"][0]
+        self.assertEqual(trace_item["requested_token_count"], 256)
+        self.assertEqual(trace_item["token_count"], 256)
+        self.assertEqual(trace_item["token_count_shortfall"], 0)
+        self.assertEqual(trace_item["allocation_limit_reason"], "none")
+        self.assertEqual(summary["prefill_chunk_requested_tokens"], 256)
+        self.assertEqual(summary["prefill_chunk_allocated_tokens"], 256)
+        self.assertEqual(summary["prefill_chunk_budget_shortfall_tokens"], 0)
+        self.assertEqual(summary["prefill_chunk_budget_truncations"], 0)
+
     def test_deadline_batcher_reports_prefill_excluded_by_sequence_slots(self):
         requests = [
             make_request("a-prefill", prompt=128, speculative=False),
