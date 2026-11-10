@@ -515,19 +515,19 @@ class DeadlineAwareTargetBatcher(_BaseTargetBatcher):
         exclusions: list[TargetPlanExclusion] = []
         token_budget = cfg.max_num_batched_tokens
 
-        def required_tokens(kind: WorkKind, req: PhaseRequest, available: int) -> int:
+        def required_tokens(kind: WorkKind, req: PhaseRequest) -> int:
             if kind is WorkKind.VERIFY:
                 return req.draft_depth + 1
             if kind is WorkKind.AR:
                 return 1
-            return min(req.remaining_prompt_tokens, self.prefill_chunk_tokens, max(0, available))
+            return min(req.remaining_prompt_tokens, self.prefill_chunk_tokens)
 
         for index, (_, _, _, _, kind, req) in enumerate(candidates):
             available_slots = max(0, cfg.max_num_seqs - len(items))
             if available_slots == 0 or token_budget <= 0:
                 for _, _, _, _, deferred_kind, deferred_req in candidates[index:]:
                     deferred_required = required_tokens(
-                        deferred_kind, deferred_req, token_budget
+                        deferred_kind, deferred_req
                     )
                     slots_exhausted = len(items) >= cfg.max_num_seqs
                     tokens_exhausted = token_budget <= 0
