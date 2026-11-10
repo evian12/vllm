@@ -67,7 +67,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--fixed-h", type=int, default=8)
     parser.add_argument("--lookahead-horizon", type=int, default=4)
     parser.add_argument("--lookahead-rollouts", type=int, default=2)
-    parser.add_argument("--window-predictive-draft-lookahead", type=int, default=4)
+    parser.add_argument("--window-predictive-draft-lookahead", type=int, default=8)
     parser.add_argument("--confidence-threshold", type=float, default=0.8)
     parser.add_argument("--ready-wait-budget-ms", type=float, default=8.0)
     parser.add_argument("--ar-itl-budget-ms", type=float, default=40.0)
