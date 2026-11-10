@@ -120,6 +120,37 @@ def collect_records(root: Path) -> list[dict[str, Any]]:
                 f"{path}: trace and Prefill-containing Forward count disagree"
             )
 
+        # Derive chunk allocation from per-item trace fields instead of trusting
+        # summary counters. Older traces computed requested_token_count through
+        # the base batcher limit, which could be the full Target token budget
+        # rather than this run's configured deadline Prefill chunk cap.
+        prefill_items = [
+            item
+            for forward in trace
+            for item in forward.get("items", [])
+            if item.get("kind") == "prefill"
+        ]
+        if not prefill_items:
+            raise ValueError(f"{path}: trace contains no Prefill work items")
+        chunk_truncations = 0
+        chunk_shortfall_tokens = 0
+        for item in prefill_items:
+            if "remaining_prompt_tokens" not in item or "token_count" not in item:
+                raise ValueError(
+                    f"{path}: Prefill trace item lacks remaining_prompt_tokens/token_count"
+                )
+            requested = min(int(item["remaining_prompt_tokens"]), int(chunk))
+            allocated = int(item["token_count"])
+            if allocated > requested:
+                raise ValueError(
+                    f"{path}: allocated Prefill tokens ({allocated}) exceed "
+                    f"the configured request cap ({requested})"
+                )
+            shortfall = requested - allocated
+            if shortfall > 0:
+                chunk_truncations += 1
+                chunk_shortfall_tokens += shortfall
+
         composition_counts = Counter(
             _composition_name(item) for item in result.get("target_compositions", [])
         )
@@ -150,6 +181,10 @@ def collect_records(root: Path) -> list[dict[str, Any]]:
             "ar_excluded_by_token_budget_events",
         ):
             row[metric] = float(result.get(metric, 0.0))
+        # These two fields are intentionally reconstructed from the trace so
+        # both old and new raw runs report the correct configured chunk cap.
+        row["prefill_chunk_budget_truncations"] = float(chunk_truncations)
+        row["prefill_chunk_budget_shortfall_tokens"] = float(chunk_shortfall_tokens)
 
         event_groups = {
             "ar_slot_exclusions_per_100_target_forwards": (
