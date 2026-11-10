@@ -177,6 +177,51 @@ E5 keeps the exact same `LoadAdaptivePhasePolicy` stage decision as the existing
 This isolates whether the high-load Prefill/TTFT tail observed with load-adaptive stage control is caused by Target batch composition rather than the decision to delay Verify. Compare `load_adaptive` and `load_adaptive_deadline` on identical generated workloads and seeds. No GPU-performance claim follows from the CPU simulator.
 
 
+### Target Forward contention diagnostics
+
+The phase-aware simulator records resource use specifically for Prefill-containing
+Target forwards, rather than relying only on utilization averaged across all
+Target forwards. The summary includes:
+
+- \`prefill_containing_target_forwards\`: number of Target forwards containing at
+  least one Prefill chunk.
+- \`prefill_containing_slot_utilization_{mean,p50,p95}\` and
+  \`prefill_containing_token_budget_utilization_{mean,p50,p95}\`: per-forward
+  utilization conditioned on a Prefill-containing forward.
+- \`prefill_containing_duration_{mean,p50,p95}_ms\`: wall-clock duration of those
+  forwards under the configured execution profile.
+- \`target_exclusion_events\`: counts by request class and exclusion reason.
+  Reasons distinguish \`sequence_slots_exhausted\`,
+  \`token_budget_exhausted\`, their joint exhaustion,
+  \`prefill_policy_budget_exhausted\`, and \`policy_deferred\` (for example, a
+  length-bucket policy not selecting a Prefill request in the current batch).
+- \`ar_excluded_by_sequence_slots_events\` and
+  \`ar_excluded_by_token_budget_events\`: convenient AR-specific exclusion
+  counters. These count request-forward exclusion events, not unique requests.
+
+To include the complete per-Target-Forward trace in the output JSON, pass
+\`--include-target-forward-trace\`:
+
+\`\`\`bash
+python -m scripts.cdb_av.scheduler_sim.phase_cli \\
+  --requests 32 \\
+  --arrival-rate 60 \\
+  --arrival-mode poisson \\
+  --policy load_adaptive_deadline \\
+  --deadline-prefill-chunk-tokens 1024 \\
+  --seed 42 \\
+  --include-target-forward-trace \\
+  --output /tmp/cdb_target_trace.json
+\`\`\`
+
+Each trace entry records start/end/duration, batch size, slot and token-budget
+capacity/use/remaining, per-class request and token counts, selected request
+items, and queued candidates excluded from that forward with the remaining
+capacity at the point of exclusion. The trace is opt-in to keep large workload
+outputs compact. This instrumentation does not change batch selection or
+execution timing. All values remain outputs of the CPU simulator's configured
+service-time model; they are not GPU measurements.
+
 ### Prefill latency metric semantics
 
 The simulator emits the first output token only when the final Prefill chunk completes. Therefore `prefill_latency_ms` is measured from request arrival to Prefill completion and is intentionally identical, request by request, to TTFT. It is not Prefill GPU service time.
