@@ -688,6 +688,8 @@ class PhaseAwareSimulator:
         self.target_batch_sizes: list[int] = []
         self.target_compositions: list[dict[str, int]] = []
         self.prefill_chunk_sizes: list[int] = []
+        self.adaptive_prefill_wait_samples_ms: list[float] = []
+        self.adaptive_prefill_budget_samples: list[int] = []
         self.prefill_wait_samples_ms: list[float] = []
         self.prefill_latency_samples_ms: list[float] = []
         self.ready_wait_samples_ms: list[float] = []
@@ -894,6 +896,28 @@ class PhaseAwareSimulator:
             if target_tokens > self.config.max_num_batched_tokens:
                 raise RuntimeError("Target batch exceeds max_num_batched_tokens")
 
+            if (
+                isinstance(self.policy.batcher, LengthAwareTargetBatcher)
+                and any(item.kind is WorkKind.PREFILL for item in items)
+            ):
+                batcher = self.policy.batcher
+                self.adaptive_prefill_wait_samples_ms.append(
+                    batcher.adaptive_wait_window_ms(self)
+                )
+                non_prefill_tokens = sum(
+                    item.token_count for item in items
+                    if item.kind is not WorkKind.PREFILL
+                )
+                available_for_prefill = max(
+                    0, self.config.max_num_batched_tokens - non_prefill_tokens
+                )
+                self.adaptive_prefill_budget_samples.append(
+                    min(
+                        available_for_prefill,
+                        batcher.prefill_budget_tokens(self, available_for_prefill),
+                    )
+                )
+
             ready_waits: dict[str, float] = {}
             for item in items:
                 req = item.request
@@ -1088,6 +1112,14 @@ class PhaseAwareSimulator:
             ),
             "target_compositions": list(self.target_compositions),
             "prefill_chunk_mean_tokens": mean(self.prefill_chunk_sizes) if self.prefill_chunk_sizes else 0.0,
+            "adaptive_prefill_wait_window_mean_ms": (
+                mean(self.adaptive_prefill_wait_samples_ms)
+                if self.adaptive_prefill_wait_samples_ms else 0.0
+            ),
+            "adaptive_prefill_budget_mean_tokens": (
+                mean(self.adaptive_prefill_budget_samples)
+                if self.adaptive_prefill_budget_samples else 0.0
+            ),
             "prefill_wait_p50_ms": self._percentile(self.prefill_wait_samples_ms, 0.50),
             "prefill_wait_p95_ms": self._percentile(self.prefill_wait_samples_ms, 0.95),
             "prefill_latency_p50_ms": self._percentile(self.prefill_latency_samples_ms, 0.50),
