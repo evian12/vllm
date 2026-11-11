@@ -59,7 +59,7 @@ def build_parser() -> argparse.ArgumentParser:
             "length_aware", "joint", "fixed_h_deadline", "dynamic",
             "dynamic_deadline", "load_adaptive", "load_adaptive_deadline",
             "window_predictive", "e5_e6", "load_adaptive_deadline_oracle",
-            "marginal_yield", "marginal_yield_pressure",
+            "marginal_yield", "marginal_yield_pressure", "marginal_yield_oracle",
         ),
         default="all",
     )
@@ -155,6 +155,13 @@ def build_policies(args: argparse.Namespace, config: PhaseConfig) -> dict[str, o
             deadline_batcher,
             min_relative_gain=args.marginal_yield_min_relative_gain,
         ),
+        # Diagnostic upper bound only: the one-step projection sees arrivals
+        # that occur during the projected Draft; not a deployable online policy.
+        "marginal_yield_oracle": MarginalYieldPhasePolicy(
+            deadline_batcher,
+            min_relative_gain=args.marginal_yield_min_relative_gain,
+            allow_future_arrivals=True,
+        ),
         # E7.1-A: preserve E7 yield comparison, discount extra Draft under Ready pressure.
         "marginal_yield_pressure": PressureCorrectedMarginalYieldPhasePolicy(
             deadline_batcher,
@@ -182,6 +189,7 @@ def build_policies(args: argparse.Namespace, config: PhaseConfig) -> dict[str, o
     policies["load_adaptive_deadline_oracle"].name = "load_adaptive_oracle+deadline_batcher"
     policies["window_predictive"].name = "window_predictive+deadline_batcher"
     policies["marginal_yield"].name = "marginal_yield+deadline_batcher"
+    policies["marginal_yield_oracle"].name = "marginal_yield_oracle+deadline_batcher"
     policies["marginal_yield_pressure"].name = "marginal_yield_pressure+deadline_batcher"
     if args.policy == "all":
         return policies
