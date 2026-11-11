@@ -1777,6 +1777,7 @@ class PhaseAwareSimulator:
             request_ids = [item.request.request_id for item in items]
             if len(request_ids) != len(set(request_ids)):
                 raise RuntimeError("a request appears more than once in one Target batch")
+            planned_target_duration = self.profile.target_duration_ms(items)
             if self.config.include_target_forward_trace:
                 selected_ids = set(request_ids)
                 exclusion_by_id = {
@@ -1794,7 +1795,7 @@ class PhaseAwareSimulator:
                     waiting_req.prefill_deferred_target_trace.append({
                         "forward_index": self.target_forward_count + 1,
                         "start_ms": start_ms,
-                        "end_ms": start_ms + self.profile.target_duration_ms(items),
+                        "end_ms": start_ms + planned_target_duration,
                         "wait_age_ms_at_start": max(
                             0.0, start_ms - (
                                 waiting_req.prefill_last_scheduled_ms
@@ -1853,7 +1854,7 @@ class PhaseAwareSimulator:
                     self._remove_selected(self.ar_queue, req)
                     ar_count += 1
 
-            duration = self.profile.target_duration_ms(items)
+            duration = planned_target_duration
             self.now_ms += duration
             self.gpu_busy_ms += duration
             self.target_forward_count += 1
