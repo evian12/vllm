@@ -70,6 +70,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--lookahead-horizon", type=int, default=4)
     parser.add_argument("--lookahead-rollouts", type=int, default=2)
     parser.add_argument("--window-predictive-draft-lookahead", type=int, default=8)
+    parser.add_argument("--marginal-yield-min-relative-gain", type=float, default=0.01)
     parser.add_argument("--confidence-threshold", type=float, default=0.8)
     parser.add_argument("--ready-wait-budget-ms", type=float, default=8.0)
     parser.add_argument("--ar-itl-budget-ms", type=float, default=40.0)
@@ -147,7 +148,10 @@ def build_policies(args: argparse.Namespace, config: PhaseConfig) -> dict[str, o
             deadline_batcher, allow_future_arrivals=True
         ),
         # E7: one-step marginal useful-output gain per added Draft+Target time.
-        "marginal_yield": MarginalYieldPhasePolicy(deadline_batcher),
+        "marginal_yield": MarginalYieldPhasePolicy(
+            deadline_batcher,
+            min_relative_gain=args.marginal_yield_min_relative_gain,
+        ),
         # E6: predict heterogeneous Draft completion over a bounded horizon;
         # the stopping point is re-evaluated after every actual forward.
         "window_predictive": WindowPredictivePhasePolicy(
@@ -274,6 +278,7 @@ def main(argv: list[str] | None = None) -> int:
                 "dynamic_urgency_weight": 0.20,
                 "deadline_prefill_chunk_tokens": args.deadline_prefill_chunk_tokens,
                 "window_predictive_draft_lookahead": args.window_predictive_draft_lookahead,
+                "marginal_yield_min_relative_gain": args.marginal_yield_min_relative_gain,
                 "load_adaptive_default_projection_mode": "visible_only",
                 "load_adaptive_oracle_policy": "load_adaptive_deadline_oracle",
             },
