@@ -428,3 +428,55 @@ Artifacts:
 - `cdb-prefill-chunk-sweep-report`: summary CSV, paired-comparison CSV, and Markdown report.
 
 The workflow is manual-only; ordinary pushes do not launch the 100-run sweep. The existing lightweight simulator CI continues to compile the code and run unit/smoke tests. Results are CPU simulation outputs using the simulator's synthetic execution profile unless a measured profile is explicitly supplied. They are not GPU performance measurements.
+
+
+### E7.1-A — Queue-pressure-corrected marginal useful-output scheduling
+
+E7.1-A retains E7's one-step marginal useful-output-rate comparison and adds a
+continuous penalty to the projected extra-Draft action when that action leaves
+a larger or older Ready queue. It does not replace E7 and does not introduce a
+fixed Draft window.
+
+Let the one-step projected Draft-plus-Target rate be `G_D`, the immediate
+Target rate be `G_T`, the projected Ready queue size be `N_r`, and its
+oldest wait be `W_r`. The policy computes:
+
+```
+B_r = min(N_r / max_num_seqs, 2)
+A_r = min(W_r / ready_wait_budget_ms, 2)
+G_D_adjusted = G_D / (1 + alpha * B_r + beta * A_r)
+```
+
+It continues Draft only when `G_D_adjusted > G_T * (1 + min_relative_gain)`.
+The existing hard Ready, AR-ITL, and Prefill wait-budget guards are evaluated
+before this soft pressure correction and remain authoritative. The projected
+state is visible-only and is replanned after every actual Forward.
+
+CLI controls:
+- `--marginal-yield-ready-backlog-weight` (default 0.50)
+- `--marginal-yield-ready-age-weight` (default 0.50)
+- `--marginal-yield-min-relative-gain` (shared with E7; default 0.01)
+
+Run E5, E7, and E7.1-A on paired traces:
+
+```bash
+for RATE in 5 15 30 60 100; do
+  for SEED in 42 43 44 45 46; do
+    python -m scripts.cdb_av.scheduler_sim.phase_cli \
+      --requests 64 --arrival-rate "$RATE" --arrival-mode poisson \
+      --policy all --deadline-prefill-chunk-tokens 1024 \
+      --marginal-yield-min-relative-gain 0.01 \
+      --marginal-yield-ready-backlog-weight 0.50 \
+      --marginal-yield-ready-age-weight 0.50 \
+      --seed "$SEED" \
+      --output "/tmp/cdb_e71_r${RATE}_s${SEED}.json"
+  done
+done
+```
+
+For a strict regression check, set both pressure weights to zero. The E7.1-A
+trajectory and metrics must then exactly match E7 for the same request trace,
+profile, and seed. Sweep backlog and age weights independently before a joint
+sweep; do not tune them on the final held-out seeds. These are CPU simulator
+results until the selected policy is validated in the real vLLM runtime with
+a measured execution profile.
