@@ -1,7 +1,9 @@
 name: CDB-AV Prefill chunk-size sweep
 
 on:
-  # Bootstrap this workflow on the feature branch once; later runs are manual.
+  # A workflow-file push bootstraps the sweep on this feature branch.
+  # Subsequent experiments can be started manually once this workflow is
+  # present on the repository default branch.
   push:
     branches:
       - cdb-av/phase-aware-target-scheduler-20261110
@@ -47,6 +49,13 @@ jobs:
     name: Chunk ${{ matrix.chunk_size }} tokens
     runs-on: ubuntu-latest
     timeout-minutes: 90
+    env:
+      # The inputs context is empty for push events. Keep the same defaults
+      # for both push bootstrap runs and manual workflow_dispatch runs.
+      CDB_SWEEP_REQUESTS: ${{ inputs.requests || '32' }}
+      CDB_SWEEP_RATES: ${{ inputs.rates || '5,15,30,60,100' }}
+      CDB_SWEEP_SEEDS: ${{ inputs.seeds || '42,43,44,45,46' }}
+      CDB_SWEEP_ARRIVAL_MODE: ${{ inputs.arrival_mode || 'poisson' }}
     strategy:
       fail-fast: false
       max-parallel: 4
@@ -65,7 +74,10 @@ jobs:
           python -m compileall -q scripts/cdb_av/scheduler_sim
           python -m py_compile \
             scripts/cdb_av/tests/test_scheduler_sim.py \
-            scripts/cdb_av/tests/test_scheduler_sim_phase_aware.py
+            scripts/cdb_av/tests/test_scheduler_sim_phase_aware.py \
+            scripts/cdb_av/tests/test_scheduler_sim_target_contention.py \
+            scripts/cdb_av/tests/test_scheduler_sim_window_predictive.py \
+            scripts/cdb_av/tests/test_prefill_chunk_sweep.py
           python -m unittest discover \
             -s scripts/cdb_av/tests \
             -p "test_scheduler_sim*.py" \
@@ -77,10 +89,10 @@ jobs:
         run: |
           python -m scripts.cdb_av.scheduler_sim.run_prefill_chunk_sweep \
             --chunk-size "${{ matrix.chunk_size }}" \
-            --rates "${{ inputs.rates }}" \
-            --seeds "${{ inputs.seeds }}" \
-            --requests "${{ inputs.requests }}" \
-            --arrival-mode "${{ inputs.arrival_mode }}" \
+            --rates "$CDB_SWEEP_RATES" \
+            --seeds "$CDB_SWEEP_SEEDS" \
+            --requests "$CDB_SWEEP_REQUESTS" \
+            --arrival-mode "$CDB_SWEEP_ARRIVAL_MODE" \
             --output-dir "artifacts/chunk_${{ matrix.chunk_size }}"
       - name: Upload raw simulation results
         uses: actions/upload-artifact@v4
