@@ -7,6 +7,7 @@ import json
 from dataclasses import asdict
 from pathlib import Path
 
+from .marginal_yield_pressure import PressureCorrectedMarginalYieldPhasePolicy
 from .phase_aware import (
     DeadlineAwareTargetBatcher,
     DynamicPhasePolicy,
@@ -58,7 +59,7 @@ def build_parser() -> argparse.ArgumentParser:
             "length_aware", "joint", "fixed_h_deadline", "dynamic",
             "dynamic_deadline", "load_adaptive", "load_adaptive_deadline",
             "window_predictive", "e5_e6", "load_adaptive_deadline_oracle",
-            "marginal_yield",
+            "marginal_yield", "marginal_yield_pressure",
         ),
         default="all",
     )
@@ -71,6 +72,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--lookahead-rollouts", type=int, default=2)
     parser.add_argument("--window-predictive-draft-lookahead", type=int, default=8)
     parser.add_argument("--marginal-yield-min-relative-gain", type=float, default=0.01)
+    parser.add_argument("--marginal-yield-ready-backlog-weight", type=float, default=0.50)
+    parser.add_argument("--marginal-yield-ready-age-weight", type=float, default=0.50)
     parser.add_argument("--confidence-threshold", type=float, default=0.8)
     parser.add_argument("--ready-wait-budget-ms", type=float, default=8.0)
     parser.add_argument("--ar-itl-budget-ms", type=float, default=40.0)
@@ -152,6 +155,13 @@ def build_policies(args: argparse.Namespace, config: PhaseConfig) -> dict[str, o
             deadline_batcher,
             min_relative_gain=args.marginal_yield_min_relative_gain,
         ),
+        # E7.1-A: preserve E7 yield comparison, discount extra Draft under Ready pressure.
+        "marginal_yield_pressure": PressureCorrectedMarginalYieldPhasePolicy(
+            deadline_batcher,
+            min_relative_gain=args.marginal_yield_min_relative_gain,
+            ready_backlog_weight=args.marginal_yield_ready_backlog_weight,
+            ready_age_weight=args.marginal_yield_ready_age_weight,
+        ),
         # E6: predict heterogeneous Draft completion over a bounded horizon;
         # the stopping point is re-evaluated after every actual forward.
         "window_predictive": WindowPredictivePhasePolicy(
@@ -172,6 +182,7 @@ def build_policies(args: argparse.Namespace, config: PhaseConfig) -> dict[str, o
     policies["load_adaptive_deadline_oracle"].name = "load_adaptive_oracle+deadline_batcher"
     policies["window_predictive"].name = "window_predictive+deadline_batcher"
     policies["marginal_yield"].name = "marginal_yield+deadline_batcher"
+    policies["marginal_yield_pressure"].name = "marginal_yield_pressure+deadline_batcher"
     if args.policy == "all":
         return policies
     if args.policy == "e5_e6":
@@ -279,6 +290,8 @@ def main(argv: list[str] | None = None) -> int:
                 "deadline_prefill_chunk_tokens": args.deadline_prefill_chunk_tokens,
                 "window_predictive_draft_lookahead": args.window_predictive_draft_lookahead,
                 "marginal_yield_min_relative_gain": args.marginal_yield_min_relative_gain,
+                "marginal_yield_ready_backlog_weight": args.marginal_yield_ready_backlog_weight,
+                "marginal_yield_ready_age_weight": args.marginal_yield_ready_age_weight,
                 "load_adaptive_default_projection_mode": "visible_only",
                 "load_adaptive_oracle_policy": "load_adaptive_deadline_oracle",
             },
