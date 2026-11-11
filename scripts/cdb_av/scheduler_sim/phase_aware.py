@@ -1116,6 +1116,128 @@ class LoadAdaptivePhasePolicy(DynamicPhasePolicy):
         return PhaseAction.DRAFT
 
 
+
+
+class MarginalYieldPhasePolicy:
+    """E7: continue Draft only when one more completion improves useful output rate.
+
+    Unlike E5, this values the *marginal accepted-output yield* of the requests
+    that become Verify-ready, even when the Target batch cardinality is unchanged.
+    Unlike E6, it evaluates exactly one additional Draft Forward and replans at
+    the next real completion, avoiding a long synthetic rollout horizon.
+    """
+
+    name = "marginal_yield"
+
+    def __init__(
+        self,
+        batcher: TargetBatcher | None = None,
+        min_relative_gain: float = 0.01,
+    ) -> None:
+        if min_relative_gain < 0:
+            raise ValueError("min_relative_gain must be non-negative")
+        self.batcher = batcher or DeadlineAwareTargetBatcher()
+        self.min_relative_gain = min_relative_gain
+
+    @staticmethod
+    def _expected_output_yield(
+        plan: Sequence[TargetWorkItem],
+    ) -> float:
+        value = 0.0
+        for item in plan:
+            req = item.request
+            if item.kind is WorkKind.VERIFY:
+                value += req.expected_verify_tokens()
+            elif item.kind is WorkKind.AR:
+                value += 1.0
+            elif item.token_count >= req.remaining_prompt_tokens:
+                # A Prefill request emits its first output token only when its
+                # final chunk completes. Partial chunks are useful work, but
+                # are not counted as committed output tokens in this objective.
+                value += 1.0
+        return value
+
+    @staticmethod
+    def _prefill_age(simulator: PhaseAwareSimulator) -> float:
+        return max(
+            (simulator.now_ms - req.arrival_time_ms
+             for req in simulator.prefill_queue),
+            default=0.0,
+        )
+
+    def choose_action(self, simulator: PhaseAwareSimulator) -> PhaseAction:
+        actions = simulator.available_actions()
+        if len(actions) == 1:
+            return actions[0]
+
+        current_plan = self.batcher.plan(simulator)
+        if not current_plan:
+            return PhaseAction.DRAFT
+
+        cfg = simulator.config
+        draft_duration = simulator.profile.draft_duration_ms(
+            simulator.active_draft
+        )
+        current_target_duration = simulator.profile.target_duration_ms(
+            current_plan
+        )
+        prefill_age = self._prefill_age(simulator)
+        current_has_prefill = any(
+            item.kind is WorkKind.PREFILL for item in current_plan
+        )
+
+        # Hard guards preserve the existing E5 latency contract.
+        if (
+            simulator.oldest_ready_wait_ms() + draft_duration
+            >= cfg.ready_wait_budget_ms
+            or simulator.oldest_ar_wait_ms() + draft_duration
+            >= cfg.ar_itl_budget_ms
+            or prefill_age + draft_duration
+            + (current_target_duration if current_has_prefill else 0.0)
+            >= cfg.prefill_wait_budget_ms
+        ):
+            return PhaseAction.TARGET
+
+        # A full Target batch has no room for an additional Verify request.
+        if len(current_plan) >= cfg.max_num_seqs:
+            return PhaseAction.TARGET
+
+        current_yield = self._expected_output_yield(current_plan)
+        current_rate = current_yield / max(current_target_duration, 1e-6)
+
+        projected = _visible_state_clone(simulator)
+        projected.execute_action(PhaseAction.DRAFT)
+        projected_plan = self.batcher.plan(projected)
+        if not projected_plan:
+            return PhaseAction.TARGET
+
+        projected_target_duration = projected.profile.target_duration_ms(
+            projected_plan
+        )
+        projected_prefill = self._prefill_age(projected)
+        if (
+            projected.oldest_ready_wait_ms()
+            >= cfg.ready_wait_budget_ms
+            or projected.oldest_ar_wait_ms() + projected_target_duration
+            >= cfg.ar_itl_budget_ms
+            or projected_prefill + projected_target_duration
+            >= cfg.prefill_wait_budget_ms
+        ):
+            return PhaseAction.TARGET
+
+        projected_yield = self._expected_output_yield(projected_plan)
+        projected_rate = projected_yield / max(
+            draft_duration + projected_target_duration, 1e-6
+        )
+
+        required_rate = current_rate * (1.0 + self.min_relative_gain)
+        return (
+            PhaseAction.DRAFT
+            if projected_rate > required_rate + 1e-12
+            else PhaseAction.TARGET
+        )
+
+
 class WindowPredictivePhasePolicy:
     """Choose the Verify stopping point by forecasting heterogeneous Draft completion.
 
