@@ -41,6 +41,26 @@ class MarginalYieldPolicyTests(unittest.TestCase):
         self.assertGreater(result["draft_forwards"], 0)
         self.assertGreaterEqual(result["draft_window_mean"], 0.0)
 
+    def test_arrival_oracle_ablation_completes_same_workload(self):
+        requests = generate_phase_workload(
+            request_count=24,
+            arrival_rate_rps=60,
+            arrival_mode="poisson",
+            seed=19,
+            max_output_tokens=24,
+        )
+        policy = MarginalYieldPhasePolicy(
+            DeadlineAwareTargetBatcher(prefill_chunk_tokens=1024),
+            min_relative_gain=0.01,
+            allow_future_arrivals=True,
+        )
+        simulator = PhaseAwareSimulator(
+            requests, PhaseConfig(seed=19), PhaseExecutionProfile(), policy
+        )
+        result = simulator.run()
+        self.assertEqual(result["completed_requests"], 24)
+        self.assertGreater(result["output_tokens_per_s"], 0.0)
+
     def test_minimum_relative_gain_must_be_non_negative(self):
         with self.assertRaisesRegex(ValueError, "non-negative"):
             MarginalYieldPhasePolicy(min_relative_gain=-0.01)
