@@ -2,15 +2,12 @@
 
 from __future__ import annotations
 
-from typing import Sequence
-
 from .phase_aware import (
     DeadlineAwareTargetBatcher,
     MarginalYieldPhasePolicy,
     PhaseAction,
     PhaseAwareSimulator,
     TargetBatcher,
-    TargetWorkItem,
     WorkKind,
     _visible_state_clone,
 )
