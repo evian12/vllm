@@ -1,0 +1,85 @@
+name: CDB-AV scheduler simulator
+
+on:
+  push:
+    branches:
+      - cdb-av/event-driven-scheduler-sim-20261109
+      - cdb-av/phase-aware-target-scheduler-20261110
+      - cdb-av/e7-marginal-yield-scheduler-20261111
+  pull_request:
+    branches:
+      - cdb-av/dev
+    paths:
+      - "scripts/cdb_av/scheduler_sim/**"
+      - "scripts/cdb_av/tests/test_scheduler_sim.py"
+      - "scripts/cdb_av/tests/test_scheduler_sim_phase_aware.py"
+      - "scripts/cdb_av/tests/test_scheduler_sim_target_contention.py"
+      - "scripts/cdb_av/tests/test_scheduler_sim_window_predictive.py"
+      - "scripts/cdb_av/tests/test_scheduler_sim_marginal_yield*.py"
+      - "scripts/cdb_av/tests/test_prefill_chunk_sweep.py"
+      - "scripts/cdb_av/scheduler_sim/run_prefill_chunk_sweep.py"
+      - "scripts/cdb_av/scheduler_sim/analyze_prefill_chunk_sweep.py"
+      - ".github/workflows/cdb-av-scheduler-sim.yml"
+      - ".github/workflows/cdb-av-prefill-chunk-sweep.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  cpu-simulator:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Compile simulator and tests
+        run: |
+          python -m compileall -q scripts/cdb_av/scheduler_sim
+          python -m py_compile \
+            scripts/cdb_av/tests/test_scheduler_sim.py \
+            scripts/cdb_av/tests/test_scheduler_sim_phase_aware.py \
+            scripts/cdb_av/tests/test_scheduler_sim_target_contention.py \
+            scripts/cdb_av/tests/test_scheduler_sim_window_predictive.py
+      - name: Run simulator unit tests
+        run: |
+          python -m unittest discover \
+            -s scripts/cdb_av/tests \
+            -p "test_scheduler_sim*.py" \
+            -v
+          python -m unittest scripts.cdb_av.tests.test_prefill_chunk_sweep -v
+      - name: Run a deterministic CPU smoke comparison
+        run: |
+          python -m scripts.cdb_av.scheduler_sim \
+            --requests 32 \
+            --arrival-rate 30 \
+            --arrival-mode bursty \
+            --policy all \
+            --seed 42 \
+            --lookahead-horizon 3 \
+            --lookahead-rollouts 2
+
+      - name: Run phase-aware mixed Target scheduling smoke comparison
+        run: |
+          python -m scripts.cdb_av.scheduler_sim.phase_cli \
+            --requests 32 \
+            --arrival-rate 30 \
+            --arrival-mode bursty \
+            --policy all \
+            --seed 42
+
+      - name: Run paired E5-E6 window-predictive smoke comparison
+        run: |
+          mkdir -p /tmp/cdb_e5_e6_smoke_input
+          python -m scripts.cdb_av.scheduler_sim.phase_cli \
+            --requests 32 \
+            --arrival-rate 30 \
+            --arrival-mode poisson \
+            --policy e5_e6 \
+            --deadline-prefill-chunk-tokens 1024 \
+            --window-predictive-draft-lookahead 4 \
+            --seed 42 \
+            --output /tmp/cdb_e5_e6_smoke_input/smoke.json
+          python -m scripts.cdb_av.scheduler_sim.analyze_window_predictive \
+            --input-dir /tmp/cdb_e5_e6_smoke_input \
+            --output-dir /tmp/cdb_e5_e6_smoke_report
