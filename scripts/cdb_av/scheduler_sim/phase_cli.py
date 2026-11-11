@@ -273,6 +273,11 @@ def main(argv: list[str] | None = None) -> int:
                 "Draft-plus-Target time; uses request-level expected Verify yield "
                 "and the same hard Ready/AR/Prefill wait guards as E5"
             ),
+            "marginal_yield_oracle_stage": (
+                "diagnostic clairvoyant ablation of E7: retains future requests in "
+                "the one-step clone so arrivals during the projected Draft can enter "
+                "the projected Target plan; not deployable online"
+            ),
             "window_predictive_stage": (
                 "CDB-specific bounded forecast of currently active heterogeneous Draft "
                 "requests; predicts their exact confidence/cap stop points, carries "
@@ -302,6 +307,10 @@ def main(argv: list[str] | None = None) -> int:
                 "marginal_yield_ready_age_weight": args.marginal_yield_ready_age_weight,
                 "load_adaptive_default_projection_mode": "visible_only",
                 "load_adaptive_oracle_policy": "load_adaptive_deadline_oracle",
+                "marginal_yield_projection_mode": (
+                    "clairvoyant_arrivals" if args.policy == "marginal_yield_oracle"
+                    else "visible_only"
+                ),
             },
             "execution_profile": (
                 "synthetic defaults unless --profile-json supplies measured coefficients"
