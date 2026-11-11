@@ -76,6 +76,7 @@ class PhaseRequest:
     prefill_inter_chunk_wait_ms: float = 0.0
     prefill_target_forward_exposure_ms: float = 0.0
     prefill_chunk_count: int = 0
+    prefill_chunk_trace: list[dict[str, object]] = field(default_factory=list)
     prefill_complete_time_ms: float | None = None
     first_token_time_ms: float | None = None
     last_token_time_ms: float | None = None
@@ -1561,6 +1562,7 @@ class PhaseAwareSimulator:
         self.prefill_target_forward_duration_samples_ms: list[float] = []
         self.target_exclusion_counts: dict[str, dict[str, int]] = {}
         self.target_forward_trace: list[dict[str, object]] = []
+        self.prefill_request_trace: list[dict[str, object]] = []
         self.prefill_chunk_sizes: list[int] = []
         self.prefill_chunk_requested_tokens = 0
         self.prefill_chunk_budget_shortfall_tokens = 0
@@ -1954,6 +1956,39 @@ class PhaseAwareSimulator:
                     # one of this request's Prefill chunks. It includes shared
                     # batch execution and is not exclusive per-request GPU time.
                     req.prefill_target_forward_exposure_ms += duration
+                    if self.config.include_target_forward_trace:
+                        req.prefill_chunk_trace.append({
+                            "forward_index": self.target_forward_count,
+                            "start_ms": start_ms,
+                            "end_ms": self.now_ms,
+                            "duration_ms": duration,
+                            "chunk_index": req.prefill_chunk_count,
+                            "chunk_tokens": item.token_count,
+                            "prompt_tokens": req.prompt_tokens,
+                            "remaining_prompt_tokens_before": (
+                                req.remaining_prompt_tokens
+                            ),
+                            "batch_size": len(items),
+                            "slot_used": len(items),
+                            "slot_capacity": self.config.max_num_seqs,
+                            "token_used": target_tokens,
+                            "token_capacity": self.config.max_num_batched_tokens,
+                            "composition": {
+                                kind.value: sum(
+                                    other.kind is kind for other in items
+                                )
+                                for kind in WorkKind
+                            },
+                            "co_scheduled": [
+                                {
+                                    "request_id": other.request.request_id,
+                                    "kind": other.kind.value,
+                                    "token_count": other.token_count,
+                                }
+                                for other in items
+                                if other.request.request_id != req.request_id
+                            ],
+                        })
                     req.prefill_chunk_count += 1
                     req.prefill_progress += item.token_count
                     req.prefill_last_scheduled_ms = self.now_ms
@@ -1979,6 +2014,33 @@ class PhaseAwareSimulator:
                         self.prefill_chunk_count_samples.append(
                             req.prefill_chunk_count
                         )
+                        if self.config.include_target_forward_trace:
+                            request_ttft = self.now_ms - req.arrival_time_ms
+                            decomposition = {
+                                "first_chunk_wait_ms": (
+                                    req.prefill_first_start_ms - req.arrival_time_ms
+                                ),
+                                "inter_chunk_wait_ms": (
+                                    req.prefill_inter_chunk_wait_ms
+                                ),
+                                "target_forward_exposure_ms": (
+                                    req.prefill_target_forward_exposure_ms
+                                ),
+                            }
+                            self.prefill_request_trace.append({
+                                "request_id": req.request_id,
+                                "arrival_time_ms": req.arrival_time_ms,
+                                "first_chunk_start_ms": req.prefill_first_start_ms,
+                                "completion_time_ms": self.now_ms,
+                                "ttft_ms": request_ttft,
+                                **decomposition,
+                                "chunk_count": req.prefill_chunk_count,
+                                "prompt_tokens": req.prompt_tokens,
+                                "chunks": list(req.prefill_chunk_trace),
+                                "decomposition_error_ms": abs(
+                                    request_ttft - sum(decomposition.values())
+                                ),
+                            })
                         decomposed_ttft = (
                             req.prefill_first_start_ms - req.arrival_time_ms
                             + req.prefill_inter_chunk_wait_ms
@@ -2230,6 +2292,7 @@ class PhaseAwareSimulator:
         }
         if self.config.include_target_forward_trace:
             summary["target_forward_trace"] = list(self.target_forward_trace)
+            summary["prefill_request_trace"] = list(self.prefill_request_trace)
         return summary
 
 
