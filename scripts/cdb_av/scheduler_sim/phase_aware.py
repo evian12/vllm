@@ -77,6 +77,7 @@ class PhaseRequest:
     prefill_target_forward_exposure_ms: float = 0.0
     prefill_chunk_count: int = 0
     prefill_chunk_trace: list[dict[str, object]] = field(default_factory=list)
+    prefill_deferred_target_trace: list[dict[str, object]] = field(default_factory=list)
     prefill_complete_time_ms: float | None = None
     first_token_time_ms: float | None = None
     last_token_time_ms: float | None = None
@@ -1776,6 +1777,38 @@ class PhaseAwareSimulator:
             request_ids = [item.request.request_id for item in items]
             if len(request_ids) != len(set(request_ids)):
                 raise RuntimeError("a request appears more than once in one Target batch")
+            if self.config.include_target_forward_trace:
+                selected_ids = set(request_ids)
+                exclusion_by_id = {
+                    exclusion.request_id: exclusion
+                    for exclusion in target_plan_exclusions
+                }
+                planned_composition = {
+                    kind.value: sum(item.kind is kind for item in items)
+                    for kind in WorkKind
+                }
+                for waiting_req in list(self.prefill_queue):
+                    if waiting_req.request_id in selected_ids:
+                        continue
+                    exclusion = exclusion_by_id.get(waiting_req.request_id)
+                    waiting_req.prefill_deferred_target_trace.append({
+                        "forward_index": self.target_forward_count + 1,
+                        "start_ms": start_ms,
+                        "end_ms": start_ms + self.profile.target_duration_ms(items),
+                        "wait_age_ms_at_start": max(
+                            0.0, start_ms - (
+                                waiting_req.prefill_last_scheduled_ms
+                                if waiting_req.prefill_last_scheduled_ms is not None
+                                else waiting_req.arrival_time_ms
+                            )
+                        ),
+                        "reason": (
+                            exclusion.reason if exclusion is not None
+                            else "not_selected_by_batcher"
+                        ),
+                        "composition": planned_composition,
+                        "selected_request_ids": request_ids,
+                    })
             if len(items) > self.config.max_num_seqs:
                 raise RuntimeError("Target batch exceeds max_num_seqs")
             target_tokens = sum(item.token_count for item in items)
@@ -2037,6 +2070,9 @@ class PhaseAwareSimulator:
                                 "chunk_count": req.prefill_chunk_count,
                                 "prompt_tokens": req.prompt_tokens,
                                 "chunks": list(req.prefill_chunk_trace),
+                                "deferred_target_forwards": list(
+                                    req.prefill_deferred_target_trace
+                                ),
                                 "decomposition_error_ms": abs(
                                     request_ttft - sum(decomposition.values())
                                 ),
