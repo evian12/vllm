@@ -1962,7 +1962,7 @@ class PhaseAwareSimulator:
                             "start_ms": start_ms,
                             "end_ms": self.now_ms,
                             "duration_ms": duration,
-                            "chunk_index": req.prefill_chunk_count,
+                            "chunk_index": req.prefill_chunk_count + 1,
                             "chunk_tokens": item.token_count,
                             "prompt_tokens": req.prompt_tokens,
                             "remaining_prompt_tokens_before": (
