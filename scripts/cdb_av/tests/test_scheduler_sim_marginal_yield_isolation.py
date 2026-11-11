@@ -16,7 +16,6 @@ from scripts.cdb_av.scheduler_sim.phase_aware import (
     PhaseConfig,
     PhaseExecutionProfile,
     PhaseRequest,
-    RequestStatus,
 )
 
 
