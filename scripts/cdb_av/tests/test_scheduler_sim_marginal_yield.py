@@ -101,6 +101,22 @@ class MarginalYieldPolicyTests(unittest.TestCase):
             self.assertTrue(
                 all(chunk["duration_ms"] > 0 for chunk in item["chunks"])
             )
+            for deferred in item["deferred_target_forwards"]:
+                self.assertIn(
+                    deferred["reason"],
+                    {
+                        "sequence_slots_exhausted",
+                        "sequence_and_token_budget_exhausted",
+                        "token_budget_exhausted",
+                        "not_selected_by_batcher",
+                        "policy_deferred",
+                        "prefill_policy_budget_exhausted",
+                    },
+                )
+                self.assertGreaterEqual(
+                    deferred["end_ms"], deferred["start_ms"]
+                )
+                self.assertGreaterEqual(deferred["wait_age_ms_at_start"], 0.0)
 
     def test_minimum_relative_gain_must_be_non_negative(self):
         with self.assertRaisesRegex(ValueError, "non-negative"):
