@@ -5,6 +5,7 @@ on:
     branches:
       - cdb-av/event-driven-scheduler-sim-20261109
       - cdb-av/phase-aware-target-scheduler-20261110
+      - cdb-av/e7-marginal-yield-scheduler-20261111
   pull_request:
     branches:
       - cdb-av/dev
@@ -14,6 +15,7 @@ on:
       - "scripts/cdb_av/tests/test_scheduler_sim_phase_aware.py"
       - "scripts/cdb_av/tests/test_scheduler_sim_target_contention.py"
       - "scripts/cdb_av/tests/test_scheduler_sim_window_predictive.py"
+      - "scripts/cdb_av/tests/test_scheduler_sim_marginal_yield*.py"
       - "scripts/cdb_av/tests/test_prefill_chunk_sweep.py"
       - "scripts/cdb_av/scheduler_sim/run_prefill_chunk_sweep.py"
       - "scripts/cdb_av/scheduler_sim/analyze_prefill_chunk_sweep.py"
