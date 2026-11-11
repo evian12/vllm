@@ -1215,12 +1215,18 @@ class MarginalYieldPhasePolicy:
             projected_plan
         )
         projected_prefill = self._prefill_age(projected)
+        projected_has_prefill = any(
+            item.kind is WorkKind.PREFILL for item in projected_plan
+        )
+        projected_prefill_service = (
+            projected_target_duration if projected_has_prefill else 0.0
+        )
         if (
             projected.oldest_ready_wait_ms()
             >= cfg.ready_wait_budget_ms
             or projected.oldest_ar_wait_ms() + projected_target_duration
             >= cfg.ar_itl_budget_ms
-            or projected_prefill + projected_target_duration
+            or projected_prefill + projected_prefill_service
             >= cfg.prefill_wait_budget_ms
         ):
             return PhaseAction.TARGET
