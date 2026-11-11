@@ -14,6 +14,7 @@ from .phase_aware import (
     JointPhasePolicy,
     LengthAwareTargetBatcher,
     LoadAdaptivePhasePolicy,
+    MarginalYieldPhasePolicy,
     PhaseAwareSimulator,
     PhaseConfig,
     PhaseExecutionProfile,
@@ -57,6 +58,7 @@ def build_parser() -> argparse.ArgumentParser:
             "length_aware", "joint", "fixed_h_deadline", "dynamic",
             "dynamic_deadline", "load_adaptive", "load_adaptive_deadline",
             "window_predictive", "e5_e6", "load_adaptive_deadline_oracle",
+            "marginal_yield",
         ),
         default="all",
     )
@@ -144,6 +146,8 @@ def build_policies(args: argparse.Namespace, config: PhaseConfig) -> dict[str, o
         "load_adaptive_deadline_oracle": LoadAdaptivePhasePolicy(
             deadline_batcher, allow_future_arrivals=True
         ),
+        # E7: one-step marginal useful-output gain per added Draft+Target time.
+        "marginal_yield": MarginalYieldPhasePolicy(deadline_batcher),
         # E6: predict heterogeneous Draft completion over a bounded horizon;
         # the stopping point is re-evaluated after every actual forward.
         "window_predictive": WindowPredictivePhasePolicy(
@@ -163,6 +167,7 @@ def build_policies(args: argparse.Namespace, config: PhaseConfig) -> dict[str, o
     policies["load_adaptive_deadline"].name = "load_adaptive_online+deadline_batcher"
     policies["load_adaptive_deadline_oracle"].name = "load_adaptive_oracle+deadline_batcher"
     policies["window_predictive"].name = "window_predictive+deadline_batcher"
+    policies["marginal_yield"].name = "marginal_yield+deadline_batcher"
     if args.policy == "all":
         return policies
     if args.policy == "e5_e6":
@@ -240,6 +245,11 @@ def main(argv: list[str] | None = None) -> int:
             "verify": "each request's candidate verification is atomic",
             "length_aware": "LAPS-inspired approximation, not a reproduction of LAPS",
             "sarathi": "Sarathi-inspired chunked Prefill baseline",
+            "marginal_yield_stage": (
+                "one-step online marginal expected committed-output yield per "
+                "Draft-plus-Target time; uses request-level expected Verify yield "
+                "and the same hard Ready/AR/Prefill wait guards as E5"
+            ),
             "window_predictive_stage": (
                 "CDB-specific bounded forecast of currently active heterogeneous Draft "
                 "requests; predicts their exact confidence/cap stop points, carries "
