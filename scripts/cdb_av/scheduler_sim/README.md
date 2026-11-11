@@ -255,6 +255,43 @@ execution coefficients unless a measured profile is supplied; these results
 validate scheduling behavior, not GPU performance. Keep the Prefill chunk
 fixed during E6 so the experiment isolates the CDB-specific stage decision.
 
+
+### E7 — One-step marginal useful-output scheduling
+
+E7 is a CDB-specific stage-selection candidate. At every Draft/Target decision,
+it compares the current Target plan's expected committed-output rate with the
+rate after exactly one additional Draft Forward followed by the projected
+Target plan. It counts request-level expected accepted-prefix-plus-correction
+output for Verify, one token for AR, and one first token only when a Prefill
+request's final chunk completes. Partial Prefill chunks are not miscounted as
+committed output tokens.
+
+E7 continues Draft only when the one-step projected output rate exceeds the
+immediate-Target rate by `--marginal-yield-min-relative-gain` (default 1%). It
+retains E5's hard Ready/AR/Prefill wait guards, uses only requests visible at
+the decision point, and replans after every actual Forward. Unlike E5, it can
+continue when another Draft improves expected Verify yield without increasing
+Target batch cardinality. Unlike E6, it does not search a multi-step forecast
+horizon. This is a research candidate, not an established improvement.
+
+Run paired E5/E7 comparisons on the same rate and seeds:
+
+```bash
+for RATE in 5 15 30 60 100; do
+  for SEED in 42 43 44 45 46; do
+    python -m scripts.cdb_av.scheduler_sim.phase_cli \
+      --requests 32 --arrival-rate "$RATE" --arrival-mode poisson \
+      --policy all --deadline-prefill-chunk-tokens 1024 \
+      --marginal-yield-min-relative-gain 0.01 --seed "$SEED" \
+      --output "/tmp/cdb_e7_r${RATE}_s${SEED}.json"
+  done
+done
+```
+
+The default execution profile remains synthetic. For hardware claims, use a
+profile fitted from the same host's measured Draft/Target batch-shape timings,
+then validate the selected policy in the real vLLM runtime.
+
 ### Target Forward contention diagnostics
 
 The phase-aware simulator records resource use specifically for Prefill-containing
