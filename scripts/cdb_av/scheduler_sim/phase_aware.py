@@ -1019,7 +1019,14 @@ class DynamicPhasePolicy:
 
         # Estimate whether one more Draft forward will materially improve the
         # next Target batch, using only requests visible at this decision time.
-        projected = _visible_state_clone(simulator)
+        # Oracle ablation retains not-yet-arrived requests so arrivals occurring
+        # during the projected Draft are visible to the projected Target plan.
+        # The deployable policy remains non-clairvoyant by default.
+        projected = (
+            simulator.clone()
+            if self.allow_future_arrivals
+            else _visible_state_clone(simulator)
+        )
         projected.execute_action(PhaseAction.DRAFT)
         projected_plan = self.batcher.plan(projected)
         projected_fill = len(projected_plan) / cfg.max_num_seqs
@@ -1133,11 +1140,13 @@ class MarginalYieldPhasePolicy:
         self,
         batcher: TargetBatcher | None = None,
         min_relative_gain: float = 0.01,
+        allow_future_arrivals: bool = False,
     ) -> None:
         if min_relative_gain < 0:
             raise ValueError("min_relative_gain must be non-negative")
         self.batcher = batcher or DeadlineAwareTargetBatcher()
         self.min_relative_gain = min_relative_gain
+        self.allow_future_arrivals = allow_future_arrivals
 
     @staticmethod
     def _expected_output_yield(
