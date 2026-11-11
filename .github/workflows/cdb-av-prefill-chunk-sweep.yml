@@ -3,7 +3,8 @@ name: CDB-AV Prefill chunk-size sweep
 on:
   # A workflow-file push bootstraps the sweep on this feature branch.
   # Subsequent experiments can be started manually once this workflow is
-  # present on the repository default branch.
+  # present on the repository default branch. The same workflow is bootstrapped
+  # on cdb-av/dev so PR checks can run against that base branch.
   push:
     branches:
       - cdb-av/phase-aware-target-scheduler-20261110
