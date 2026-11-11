@@ -49,7 +49,24 @@ class MarginalYieldPressurePolicyTests(unittest.TestCase):
                 ready_age_weight=0.0,
             )
         )
-        self.assertEqual(candidate, baseline)
+        # The policy labels differ; all scheduling outputs must nevertheless match.
+        for key in (
+            "completed_requests",
+            "output_tokens_per_s",
+            "ttft_p50_ms",
+            "ttft_p95_ms",
+            "target_forwards",
+            "draft_forwards",
+            "draft_window_mean",
+            "draft_window_p50",
+            "draft_window_p95",
+            "draft_window_max",
+            "ready_wait_p95_ms",
+            "ar_wait_p95_ms",
+            "commit_gap_p95_ms",
+        ):
+            if key in baseline or key in candidate:
+                self.assertEqual(candidate.get(key), baseline.get(key), key)
 
     def test_pressure_weights_must_be_non_negative(self):
         with self.assertRaisesRegex(ValueError, "non-negative"):
