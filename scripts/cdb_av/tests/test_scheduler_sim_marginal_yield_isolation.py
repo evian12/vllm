@@ -131,6 +131,7 @@ class MarginalYieldIsolationTests(unittest.TestCase):
 
     def test_clone_has_independent_rng_and_request_objects(self) -> None:
         sim = self._simulator()
+        live_before = self._live_state(sim)
         clone = sim.clone()
 
         self.assertIsNot(clone.rng, sim.rng)
@@ -138,8 +139,8 @@ class MarginalYieldIsolationTests(unittest.TestCase):
         self.assertEqual(clone.rng.getstate(), sim.rng.getstate())
 
         clone.rng.random()
-        self.assertEqual(clone.rng.getstate() != sim.rng.getstate(), True)
-        self.assertEqual(self._live_state(sim), self._live_state(sim))
+        self.assertNotEqual(clone.rng.getstate(), sim.rng.getstate())
+        self.assertEqual(self._live_state(sim), live_before)
 
 
 if __name__ == "__main__":
