@@ -1,0 +1,830 @@
+{
+  "performance": {
+    "code": "b4b6e8b0354b369f12170c17db352919603490fd",
+    "modes": {
+      "24": {
+        "runs": [
+          {
+            "repeat": 0,
+            "success": 512,
+            "failed": 0,
+            "output_tokens": 65536,
+            "wall_time_s": 284.298,
+            "output_tps": 230.519,
+            "latency_mean_s": 8.83450848053144,
+            "latency_p50_s": 8.993599310517311,
+            "latency_p95_s": 10.804311797674746,
+            "gpu_samples": 284,
+            "gpu_util_mean": 79.68661971830986,
+            "gpu_sm_clock_mean_mhz": 2670.0,
+            "max_temperature_c": 60.0
+          },
+          {
+            "repeat": 1,
+            "success": 512,
+            "failed": 0,
+            "output_tokens": 65536,
+            "wall_time_s": 280.285,
+            "output_tps": 233.82,
+            "latency_mean_s": 8.72063931248158,
+            "latency_p50_s": 8.814498340245336,
+            "latency_p95_s": 10.575320496317,
+            "gpu_samples": 280,
+            "gpu_util_mean": 80.31428571428572,
+            "gpu_sm_clock_mean_mhz": 2670.0,
+            "max_temperature_c": 60.0
+          },
+          {
+            "repeat": 2,
+            "success": 512,
+            "failed": 0,
+            "output_tokens": 65536,
+            "wall_time_s": 278.944,
+            "output_tps": 234.943,
+            "latency_mean_s": 8.684593358786515,
+            "latency_p50_s": 8.771265386138111,
+            "latency_p95_s": 10.71656262120232,
+            "gpu_samples": 278,
+            "gpu_util_mean": 80.40647482014388,
+            "gpu_sm_clock_mean_mhz": 2670.0,
+            "max_temperature_c": 60.0
+          }
+        ],
+        "output_tps": {
+          "n": 3,
+          "mean": 233.094,
+          "sample_sd": 2.2996197511762686
+        },
+        "latency_p95_s": {
+          "n": 3,
+          "mean": 10.698731638398021,
+          "sample_sd": 0.11553229845027727
+        },
+        "target_graph_last_aggregate_prefix": {
+          "fallback_layout": 1306,
+          "calls": 27648,
+          "fallback_warmup": 309,
+          "capture": 24,
+          "replay": 20359,
+          "fallback_budget": 5650
+        },
+        "worker_last_aggregate_prefix_including_warmup": {
+          "events": {
+            "p2_runtime_config": 1,
+            "__total__": 396288,
+            "target_ready_select": 27695,
+            "p2_target_begin": 27689,
+            "p2_target_commit": 4406,
+            "p2_reuse_plan": 53370,
+            "k_policy_config": 1,
+            "p2_window_begin": 4400,
+            "reuse_pending_prefill": 53370,
+            "ready": 53367,
+            "p2_ar_target_bypass": 7511,
+            "p2_handoff": 53366,
+            "p2_boundary": 4399,
+            "p2_verified": 53357,
+            "reuse_cache_consumed": 51829,
+            "reuse_lease_release": 1527
+          },
+          "k_actual": {
+            "1": 25501,
+            "2": 11592,
+            "3": 5889,
+            "4": 2896,
+            "8": 3169,
+            "5": 1774,
+            "7": 983,
+            "6": 1563
+          },
+          "stop_reasons": {
+            "low_confidence": 50198,
+            "max_k": 3169
+          },
+          "token_counts": {
+            "reused_tokens": 5429504,
+            "prefill_tokens": 186321,
+            "accepted_tokens": 90557,
+            "drafted_tokens": 128398
+          },
+          "replay": {}
+        },
+        "cleanup": {
+          "port_closed": true,
+          "gpu3_memory_mib": 15,
+          "time": 1794471858.2910912
+        }
+      },
+      "32": {
+        "runs": [
+          {
+            "repeat": 0,
+            "success": 512,
+            "failed": 0,
+            "output_tokens": 65536,
+            "wall_time_s": 283.251,
+            "output_tps": 231.371,
+            "latency_mean_s": 8.815795876687844,
+            "latency_p50_s": 8.86235059518367,
+            "latency_p95_s": 10.982009883178398,
+            "gpu_samples": 283,
+            "gpu_util_mean": 79.65371024734982,
+            "gpu_sm_clock_mean_mhz": 2663.6395759717316,
+            "max_temperature_c": 62.0
+          },
+          {
+            "repeat": 1,
+            "success": 512,
+            "failed": 0,
+            "output_tokens": 65536,
+            "wall_time_s": 280.068,
+            "output_tps": 234.0,
+            "latency_mean_s": 8.710840911438936,
+            "latency_p50_s": 8.81614336464554,
+            "latency_p95_s": 10.673854231834412,
+            "gpu_samples": 280,
+            "gpu_util_mean": 80.58571428571429,
+            "gpu_sm_clock_mean_mhz": 2670.0,
+            "max_temperature_c": 60.0
+          },
+          {
+            "repeat": 2,
+            "success": 512,
+            "failed": 0,
+            "output_tokens": 65536,
+            "wall_time_s": 279.708,
+            "output_tps": 234.301,
+            "latency_mean_s": 8.700244897818266,
+            "latency_p50_s": 8.832725233398378,
+            "latency_p95_s": 10.744597548199817,
+            "gpu_samples": 279,
+            "gpu_util_mean": 80.76344086021506,
+            "gpu_sm_clock_mean_mhz": 2670.0,
+            "max_temperature_c": 61.0
+          }
+        ],
+        "output_tps": {
+          "n": 3,
+          "mean": 233.224,
+          "sample_sd": 1.6117868965840272
+        },
+        "latency_p95_s": {
+          "n": 3,
+          "mean": 10.800153887737542,
+          "sample_sd": 0.16141516815631773
+        },
+        "target_graph_last_aggregate_prefix": {
+          "fallback_layout": 1296,
+          "calls": 27648,
+          "fallback_warmup": 361,
+          "capture": 32,
+          "replay": 22793,
+          "fallback_budget": 3166
+        },
+        "worker_last_aggregate_prefix_including_warmup": {
+          "events": {
+            "p2_runtime_config": 1,
+            "__total__": 395264,
+            "target_ready_select": 27728,
+            "p2_target_begin": 27722,
+            "p2_target_commit": 4393,
+            "p2_reuse_plan": 53218,
+            "k_policy_config": 1,
+            "p2_window_begin": 4387,
+            "reuse_pending_prefill": 53218,
+            "ready": 53216,
+            "p2_ar_target_bypass": 7380,
+            "p2_handoff": 53206,
+            "p2_boundary": 4386,
+            "p2_verified": 53204,
+            "reuse_cache_consumed": 51678,
+            "reuse_lease_release": 1526
+          },
+          "k_actual": {
+            "1": 25287,
+            "2": 11692,
+            "3": 5873,
+            "4": 2941,
+            "8": 3191,
+            "6": 1541,
+            "7": 978,
+            "5": 1713
+          },
+          "stop_reasons": {
+            "low_confidence": 50025,
+            "max_k": 3191
+          },
+          "token_counts": {
+            "reused_tokens": 5409017,
+            "prefill_tokens": 185965,
+            "accepted_tokens": 90244,
+            "drafted_tokens": 128213
+          },
+          "replay": {}
+        },
+        "cleanup": {
+          "port_closed": true,
+          "gpu3_memory_mib": 15,
+          "time": 1794470967.3324459
+        }
+      }
+    },
+    "gain_percent": 0.0557714913296703,
+    "scope": {
+      "fixed_H": 8,
+      "hf_threshold": 0.8,
+      "server_K_cap": 8,
+      "max_num_seqs": 4,
+      "client_concurrency": 16,
+      "arrival": "closed-loop ThreadPoolExecutor, at most16 in-flight HTTP requests",
+      "request_set": "stress_waiting_512.py 16 families, 512 requests, greedy, output128",
+      "graph_budget": "Draft24, Target24or32, minimumHits8; four warmups per fresh service",
+      "counters": "Last cumulative prefix only, includes warmup and all3 runs; not exact full-run work totals.",
+      "gpu": "NVML1Hz, first interval dropped; sampled utilization is not kernel-active time",
+      "latency": "Nonstreaming HTTP in-flight latency, linear quantile; no TTFT or ITL measurement",
+      "order": "Target32 all3 repeats precede Target24 all3 repeats; thermal/order bias not excluded.",
+      "correctness": "Per-forward diagnostics pass on recorded samples; strict whole-run output equivalence not certified."
+    }
+  },
+  "fairness": {
+    "same_source_and_hashes": true,
+    "same_command": true,
+    "environment_difference": {
+      "CDB_AV_TARGET_GRAPH_MAX_KEYS": [
+        "24",
+        "32"
+      ]
+    }
+  },
+  "new_target_keys": {
+    "captured_keys": 32,
+    "new_beyond24_keys": [
+      [
+        12,
+        4,
+        9,
+        256,
+        64,
+        0,
+        "bounded"
+      ],
+      [
+        9,
+        4,
+        9,
+        256,
+        64,
+        0,
+        "bounded"
+      ],
+      [
+        11,
+        4,
+        9,
+        256,
+        64,
+        0,
+        "bounded"
+      ],
+      [
+        15,
+        4,
+        9,
+        256,
+        64,
+        0,
+        "bounded"
+      ],
+      [
+        10,
+        4,
+        9,
+        256,
+        64,
+        0,
+        "bounded"
+      ],
+      [
+        13,
+        4,
+        9,
+        256,
+        64,
+        0,
+        "bounded"
+      ],
+      [
+        4,
+        3,
+        9,
+        256,
+        64,
+        0,
+        "bounded"
+      ],
+      [
+        20,
+        4,
+        9,
+        256,
+        64,
+        0,
+        "bounded"
+      ]
+    ],
+    "new_beyond24_validation_checks": 417,
+    "all_target_validation_checks": 1849
+  },
+  "target_validation": {
+    "draft_checks": 2472,
+    "target_checks": 1849,
+    "all_checks_pass": true,
+    "new_query5_to8_checks": 135,
+    "new_actual_max_query_hist": {
+      "7": 14,
+      "8": 14,
+      "5": 73,
+      "6": 34
+    },
+    "draft_layers": 28,
+    "target_layers": 36,
+    "errors": [],
+    "ready_reasons": {
+      "low_confidence": 4240,
+      "max_k": 265
+    },
+    "cleanup": {
+      "port_closed": true,
+      "gpu3_memory_mib": 15,
+      "time": 1794470074.7706196
+    },
+    "carry_snapshot_pairs": 669,
+    "carry_with_real_target_interleave": 669,
+    "resumed_actual_decode_associations": 669,
+    "final_reset": {
+      "event": "p2_reset",
+      "window": 371,
+      "target_epoch": 2295,
+      "released_blocks": 0,
+      "live_leases": 0,
+      "ready": 0,
+      "inflight": 0
+    }
+  },
+  "code": "d7fe5de4812ab9f53c98853be4da20af7914395d",
+  "cpu_tests": {
+    "passed": 377,
+    "gpu_skipped": 5,
+    "workflow": 12
+  },
+  "gpu_code_check": {
+    "requests": 16,
+    "output_tokens": 1024,
+    "runtime_records": 32,
+    "forwards": 157,
+    "audit": {
+      "draft_checks": 157,
+      "target_checks": 101,
+      "all_checks_pass": true,
+      "new_query5_to8_checks": 5,
+      "new_actual_max_query_hist": {
+        "5": 4,
+        "6": 1
+      },
+      "draft_layers": 28,
+      "target_layers": 36,
+      "errors": [],
+      "ready_reasons": {
+        "low_confidence": 246,
+        "max_k": 24
+      },
+      "cleanup": {
+        "port_closed": true,
+        "gpu3_memory_mib": 15,
+        "time": 1794471922.3769999
+      },
+      "carry_snapshot_pairs": 44,
+      "carry_with_real_target_interleave": 44,
+      "resumed_actual_decode_associations": 44,
+      "final_reset": {
+        "event": "p2_reset",
+        "window": 30,
+        "target_epoch": 144,
+        "released_blocks": 0,
+        "live_leases": 0,
+        "ready": 0,
+        "inflight": 0
+      }
+    }
+  },
+  "native_norm_component": [
+    {
+      "model": "draft",
+      "legacy_us": 5.525900050997734,
+      "fused_us": 2.5839999318122864,
+      "Q": {
+        "byte_exact": false,
+        "max_abs": 0.125,
+        "rms": 0.006525749806314707,
+        "rel_l2": 0.0035650423443342734
+      },
+      "K": {
+        "byte_exact": false,
+        "max_abs": 1.0,
+        "rms": 0.025955339893698692,
+        "rel_l2": 0.0037059403979949686
+      },
+      "all_V_preserved": true,
+      "speedup_range": [
+        2.0535896589289906,
+        2.374176474734003
+      ],
+      "max_Q_rel_l2": 0.0037753631079198158,
+      "max_K_rel_l2": 0.0037059403979949686
+    },
+    {
+      "model": "target",
+      "legacy_us": 5.698850005865097,
+      "fused_us": 2.4399999529123306,
+      "Q": {
+        "byte_exact": false,
+        "max_abs": 0.03125,
+        "rms": 0.006210095714777708,
+        "rel_l2": 0.003488307186153149
+      },
+      "K": {
+        "byte_exact": false,
+        "max_abs": 0.25,
+        "rms": 0.010759517550468445,
+        "rel_l2": 0.002759647719775521
+      },
+      "all_V_preserved": true,
+      "speedup_range": [
+        1.9884775376370527,
+        2.356940231947379
+      ],
+      "max_Q_rel_l2": 0.0037285870076973504,
+      "max_K_rel_l2": 0.003969834019413819
+    }
+  ],
+  "gemm_model_config": {
+    "models": {
+      "target": {
+        "model": "/disk14T/yypan/models/Qwen3-8B",
+        "config_sha256": "f7c4eadfbbf522470667b797a3c89be2524832d2d599797248dc304fff447c30",
+        "config": {
+          "hidden_size": 4096,
+          "intermediate_size": 12288,
+          "num_hidden_layers": 36,
+          "num_attention_heads": 32,
+          "num_key_value_heads": 8,
+          "head_dim": 128,
+          "vocab_size": 151936,
+          "tie_word_embeddings": false
+        },
+        "weight_header_shapes": {
+          "q": [
+            4096,
+            4096
+          ],
+          "k": [
+            1024,
+            4096
+          ],
+          "v": [
+            1024,
+            4096
+          ],
+          "o": [
+            4096,
+            4096
+          ],
+          "gate": [
+            12288,
+            4096
+          ],
+          "up": [
+            12288,
+            4096
+          ],
+          "down": [
+            4096,
+            12288
+          ],
+          "head": [
+            151936,
+            4096
+          ]
+        },
+        "keys": {
+          "q": "model.layers.0.self_attn.q_proj.weight",
+          "k": "model.layers.0.self_attn.k_proj.weight",
+          "v": "model.layers.0.self_attn.v_proj.weight",
+          "o": "model.layers.0.self_attn.o_proj.weight",
+          "gate": "model.layers.0.mlp.gate_proj.weight",
+          "up": "model.layers.0.mlp.up_proj.weight",
+          "down": "model.layers.0.mlp.down_proj.weight",
+          "head": "lm_head.weight"
+        },
+        "gemm_shapes": [
+          [
+            "target_qkv",
+            6144,
+            4096
+          ],
+          [
+            "target_o",
+            4096,
+            4096
+          ],
+          [
+            "target_gate_up",
+            24576,
+            4096
+          ],
+          [
+            "target_down",
+            4096,
+            12288
+          ],
+          [
+            "target_lm_head",
+            151936,
+            4096
+          ]
+        ]
+      },
+      "draft": {
+        "model": "/disk14T/yypan/models/Qwen3-1.7B",
+        "config_sha256": "1ddb5b89ebc90dcb417a45c213d818577e65976454d29385c8f6140771d95197",
+        "config": {
+          "hidden_size": 2048,
+          "intermediate_size": 6144,
+          "num_hidden_layers": 28,
+          "num_attention_heads": 16,
+          "num_key_value_heads": 8,
+          "head_dim": 128,
+          "vocab_size": 151936,
+          "tie_word_embeddings": true
+        },
+        "weight_header_shapes": {
+          "q": [
+            2048,
+            2048
+          ],
+          "k": [
+            1024,
+            2048
+          ],
+          "v": [
+            1024,
+            2048
+          ],
+          "o": [
+            2048,
+            2048
+          ],
+          "gate": [
+            6144,
+            2048
+          ],
+          "up": [
+            6144,
+            2048
+          ],
+          "down": [
+            2048,
+            6144
+          ],
+          "head": [
+            151936,
+            2048
+          ]
+        },
+        "keys": {
+          "q": "model.layers.0.self_attn.q_proj.weight",
+          "k": "model.layers.0.self_attn.k_proj.weight",
+          "v": "model.layers.0.self_attn.v_proj.weight",
+          "o": "model.layers.0.self_attn.o_proj.weight",
+          "gate": "model.layers.0.mlp.gate_proj.weight",
+          "up": "model.layers.0.mlp.up_proj.weight",
+          "down": "model.layers.0.mlp.down_proj.weight",
+          "head": "lm_head.weight"
+        },
+        "gemm_shapes": [
+          [
+            "draft_qkv",
+            4096,
+            2048
+          ],
+          [
+            "draft_o",
+            2048,
+            2048
+          ],
+          [
+            "draft_gate_up",
+            12288,
+            2048
+          ],
+          [
+            "draft_down",
+            2048,
+            6144
+          ],
+          [
+            "draft_lm_head",
+            151936,
+            2048
+          ]
+        ]
+      }
+    },
+    "shapes": [
+      [
+        "target_qkv",
+        6144,
+        4096
+      ],
+      [
+        "target_o",
+        4096,
+        4096
+      ],
+      [
+        "target_gate_up",
+        24576,
+        4096
+      ],
+      [
+        "target_down",
+        4096,
+        12288
+      ],
+      [
+        "target_lm_head",
+        151936,
+        4096
+      ],
+      [
+        "draft_qkv",
+        4096,
+        2048
+      ],
+      [
+        "draft_o",
+        2048,
+        2048
+      ],
+      [
+        "draft_gate_up",
+        12288,
+        2048
+      ],
+      [
+        "draft_down",
+        2048,
+        6144
+      ],
+      [
+        "draft_lm_head",
+        151936,
+        2048
+      ]
+    ],
+    "read_only_header_checks_pass": true
+  },
+  "gemm_exception_recheck": {
+    "shape": [
+      1,
+      4096,
+      2048
+    ],
+    "bank": 16,
+    "warmup_s": 0.8,
+    "paired_trials": [
+      {
+        "trial": 0,
+        "order": [
+          "cublas",
+          "cublaslt"
+        ],
+        "us": {
+          "cublas": 18.924800554911297,
+          "cublaslt": 18.94399921099345
+        }
+      },
+      {
+        "trial": 1,
+        "order": [
+          "cublaslt",
+          "cublas"
+        ],
+        "us": {
+          "cublaslt": 18.94613305727641,
+          "cublas": 18.924800554911297
+        }
+      },
+      {
+        "trial": 2,
+        "order": [
+          "cublas",
+          "cublaslt"
+        ],
+        "us": {
+          "cublas": 18.92053286234538,
+          "cublaslt": 18.933333953221638
+        }
+      },
+      {
+        "trial": 3,
+        "order": [
+          "cublaslt",
+          "cublas"
+        ],
+        "us": {
+          "cublaslt": 18.99306575457255,
+          "cublas": 18.89493266741435
+        }
+      },
+      {
+        "trial": 4,
+        "order": [
+          "cublas",
+          "cublaslt"
+        ],
+        "us": {
+          "cublas": 18.901199102401733,
+          "cublaslt": 18.919867277145386
+        }
+      },
+      {
+        "trial": 5,
+        "order": [
+          "cublaslt",
+          "cublas"
+        ],
+        "us": {
+          "cublaslt": 18.93120010693868,
+          "cublas": 18.924399216969807
+        }
+      },
+      {
+        "trial": 6,
+        "order": [
+          "cublas",
+          "cublaslt"
+        ],
+        "us": {
+          "cublas": 18.916267156600952,
+          "cublaslt": 18.924800554911297
+        }
+      },
+      {
+        "trial": 7,
+        "order": [
+          "cublaslt",
+          "cublas"
+        ],
+        "us": {
+          "cublaslt": 18.935465812683105,
+          "cublas": 18.89493266741435
+        }
+      },
+      {
+        "trial": 8,
+        "order": [
+          "cublas",
+          "cublaslt"
+        ],
+        "us": {
+          "cublas": 18.922666708628338,
+          "cublaslt": 18.922666708628338
+        }
+      },
+      {
+        "trial": 9,
+        "order": [
+          "cublaslt",
+          "cublas"
+        ],
+        "us": {
+          "cublaslt": 18.937599658966064,
+          "cublas": 18.91979972521464
+        }
+      }
+    ],
+    "cublas_median_us": 18.92016629378001,
+    "lt_median_us": 18.93439988295237,
+    "gain_percent": -0.0751731729568883,
+    "byte_exact": true,
+    "scope": "Synthetic primitive with balanced order after sustained warmup; not inference TPS."
+  },
+  "cleanup": {
+    "time": 1794472517.6217988,
+    "port18084_closed": true,
+    "gpu3_memory_mib": 15,
+    "compute_apps": "gpu_uuid, pid, process_name, used_gpu_memory [MiB]\nGPU-98e44aa3-41b5-126c-79ca-97dfbe5948c0, 3713190, /disk14T/zwliu/qwen3_vl_cloud/qwen3_vl_cloud_env/bin/python, 20648 MiB\nGPU-98e44aa3-41b5-126c-79ca-97dfbe5948c0, 3119078, /snap/snapd-desktop-integration/391/usr/bin/snapd-desktop-integration, 9 MiB\nGPU-a09ae3dd-7eec-5868-a3a8-df250b32eb82, 3713196, /disk14T/zwliu/qwen3_vl_cloud/qwen3_vl_cloud_env/bin/python, 668 MiB\n"
+  },
+  "status": "Partial Implementation; current safe recommendation retained. Numerically preserving QK fusion remains a candidate, not implemented."
+}

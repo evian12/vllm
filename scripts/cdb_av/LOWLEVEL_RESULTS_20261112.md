@@ -1,5 +1,8 @@
 # CDB-AV 底层优化实测交付 — 2026-11-12
 
+> 后续更正：此前GEMM探针的6个Target MLP案例用了代理尺寸；实际intermediate_size=12288。真实512/Nsight结果不受影响。已从config与权重头推导30个案例复查，见LOWLEVEL_FOLLOWUP_20261112.md。原始记录保留。
+
+
 ## 结论
 
 沿此前约222 output tokens/s的底层版本继续，没有整合或修改网页版算法分支。
