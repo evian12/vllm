@@ -105,6 +105,12 @@ void cdb_exact_qknorm_rope(torch::Tensor qkv, torch::Tensor qw, torch::Tensor kw
   }
   TORCH_CHECK(!overlap(qout, kout), "Outputs overlap");
   if (!n) return;
+  // The vector8 norm loads below require16-byte input/weight alignment.
+  // Contiguous tensors with a storage offset may still violate this contract.
+  for (const auto& t : {qkv, qw, kw}) {
+    TORCH_CHECK(reinterpret_cast<uintptr_t>(t.data_ptr()) % 16 == 0,
+                "Vector inputs must be16-byte aligned");
+  }
   const at::cuda::OptionalCUDAGuard guard(device_of(qkv));
   exact_kernel<<<n * (nq + nk), 16, 0, at::cuda::getCurrentCUDAStream()>>>(
       qkv.data_ptr<B>(), qw.data_ptr<B>(), kw.data_ptr<B>(), cache.data_ptr<B>(),

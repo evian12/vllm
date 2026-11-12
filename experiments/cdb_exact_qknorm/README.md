@@ -20,3 +20,9 @@ Rows>1024 or unsupported layout use the complete original path.
 CDB_AV_EXACT_QK_VALIDATE=1 compares actual model Q/K bytes against native outside capture;
 SAMPLES defaults8 per layer. Existing Graph/KV validation remains independent.
 No scheduling,verification,lease or weight logic is modified.
+
+## Raw API alignment guard
+Vector8 QKV and learned-norm-weight pointers must be16-byte aligned.
+Contiguous offset tensors are explicitly rejected before launch;model allocations are aligned.
+The guard adds no valid-input GPU operations. Keep build receipts from each source version.
+Negative API tests require CDB_EXACT_NEGATIVE_GPU=1 and a separately reserved GPU3.
