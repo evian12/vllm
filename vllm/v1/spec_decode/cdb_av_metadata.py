@@ -32,10 +32,10 @@ def packed_metadata_tensors(blocks, seqs, qlens, slots, device):
     table_start = len(ints)
     ints.extend(table)
     ints.extend([0] * (-len(ints) % 4))
-    host32 = torch.tensor(ints, dtype=torch.int32)
+    host32 = torch.tensor(ints, dtype=torch.int32, device="cpu")
     prefix64 = host32.numel() // 2
     host64 = torch.cat((host32.view(torch.int64),
-                        torch.tensor(slots, dtype=torch.int64)))
+                        torch.tensor(slots, dtype=torch.int64, device="cpu")))
     # Exactly one H2D call; all device fields below are dtype-preserving views.
     device64 = host64.to(device)
     device32 = device64[:prefix64].view(torch.int32)

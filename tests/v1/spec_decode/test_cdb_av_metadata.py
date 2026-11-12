@@ -140,3 +140,29 @@ def test_packed_runtime_evidence_records_actual_factory_once(monkeypatch):
     assert evidence['pid'] > 0
     assert evidence['device'] == 'cpu'
     assert evidence['single_transfer'] is True
+
+
+def test_host_shadow_ignores_external_default_device():
+    with torch.device('meta'):
+        fields = packed_metadata_tensors([[1]], [1], [1], [16], 'cpu')
+    assert all(t.device.type == 'cpu' for t in fields.values())
+    assert fields['query_start_loc_cpu'].tolist() == [0, 1]
+    assert fields['slot_mapping'].tolist() == [16]
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason='isolated GPU transfer gate')
+def test_gpu_shadow_stays_cpu_with_cuda_default_device(monkeypatch):
+    session = RefillSession.__new__(RefillSession)
+    session.p = SimpleNamespace(device='cuda:0')
+    monkeypatch.setenv('CDB_AV_PACKED_METADATA', '0')
+    original = session._metadata([[1], [3]], [4, 5], [2, 3], [18, 19, 50, 51, 52])
+    monkeypatch.setenv('CDB_AV_PACKED_METADATA', '1')
+    with torch.device('cuda:0'):
+        packed = session._metadata([[1], [3]], [4, 5], [2, 3], [18, 19, 50, 51, 52])
+    assert packed.query_start_loc_cpu.device.type == 'cpu'
+    for name in ('query_start_loc', 'query_start_loc_cpu', 'seq_lens',
+                 'block_table_tensor', 'slot_mapping'):
+        a, b = getattr(original, name), getattr(packed, name)
+        assert a.device == b.device
+        assert a.dtype == b.dtype
+        assert torch.equal(a.contiguous().view(torch.uint8), b.contiguous().view(torch.uint8))
