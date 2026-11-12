@@ -190,17 +190,31 @@ class RefillSession:
         tick = (time.perf_counter() if profiler is not None
                 and profiler.has_capacity else None)
         dev = self.p.device
-        width = max(len(b) for b in blocks)
-        bt = torch.zeros((len(blocks), width), dtype=torch.int32, device=dev)
-        for i, row in enumerate(blocks):
-            bt[i, :len(row)] = torch.tensor(row, dtype=torch.int32, device=dev)
-        qcpu = torch.tensor([0] + list(torch.tensor(qlens).cumsum(0).tolist()), dtype=torch.int32)
-        result = CommonAttentionMetadata(query_start_loc=qcpu.to(dev), query_start_loc_cpu=qcpu,
-            seq_lens=torch.tensor(seqs, dtype=torch.int32, device=dev),
-            num_reqs=len(blocks), num_actual_tokens=sum(qlens), max_query_len=max(qlens),
-            max_seq_len=max(seqs), block_table_tensor=bt,
-            slot_mapping=torch.tensor(slots, dtype=torch.int64, device=dev), causal=True,
-            _seq_lens_cpu=None, _num_computed_tokens_cpu=None)
+        if os.getenv('CDB_AV_PACKED_METADATA', '0') == '1':
+            from vllm.v1.spec_decode.cdb_av_metadata import packed_metadata_tensors
+            fields = packed_metadata_tensors(blocks, seqs, qlens, slots, dev)
+            if not getattr(self.p, '_cdb_packed_metadata_recorded', False):
+                logger.info('[CDB_METADATA_RUNTIME] %s', json.dumps(dict(
+                    pid=os.getpid(), caller_source=__file__,
+                    factory_source=packed_metadata_tensors.__code__.co_filename,
+                    device=str(dev), single_transfer=True)))
+                self.p._cdb_packed_metadata_recorded = True
+            result = CommonAttentionMetadata(
+                **fields, num_reqs=len(blocks), num_actual_tokens=sum(qlens),
+                max_query_len=max(qlens), max_seq_len=max(seqs), causal=True,
+                _seq_lens_cpu=None, _num_computed_tokens_cpu=None)
+        else:
+            width = max(len(b) for b in blocks)
+            bt = torch.zeros((len(blocks), width), dtype=torch.int32, device=dev)
+            for i, row in enumerate(blocks):
+                bt[i, :len(row)] = torch.tensor(row, dtype=torch.int32, device=dev)
+            qcpu = torch.tensor([0] + list(torch.tensor(qlens).cumsum(0).tolist()), dtype=torch.int32)
+            result = CommonAttentionMetadata(query_start_loc=qcpu.to(dev), query_start_loc_cpu=qcpu,
+                seq_lens=torch.tensor(seqs, dtype=torch.int32, device=dev),
+                num_reqs=len(blocks), num_actual_tokens=sum(qlens), max_query_len=max(qlens),
+                max_seq_len=max(seqs), block_table_tensor=bt,
+                slot_mapping=torch.tensor(slots, dtype=torch.int64, device=dev), causal=True,
+                _seq_lens_cpu=None, _num_computed_tokens_cpu=None)
         if tick is not None:
             self._draft_stage_metadata_ms = (time.perf_counter() - tick) * 1000
         return result
