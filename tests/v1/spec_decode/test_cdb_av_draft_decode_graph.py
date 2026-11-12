@@ -314,3 +314,30 @@ def test_q8_retains_sequence_capacity_and_capture_bound_checks():
         session._graph_static_query_bound((10, 64, 3, 'dynamic8'), (0, 1, 9))
     with pytest.raises(ValueError):
         session._graph_static_query_bound((10, 64, 3, 'dynamic8'), (1, 0, 9))
+
+
+def test_full_runtime_log_quota_skips_key_serialization(monkeypatch):
+    proposer = SimpleNamespace()
+    records = []
+    monkeypatch.setattr(
+        cdb_av_refill.logger, "info",
+        lambda fmt, raw: records.append((fmt, json.loads(raw))),
+    )
+    for key in range(32):
+        cdb_av_refill._log_draft_graph_runtime_once(
+            proposer, "replay", phase="decode",
+            request_rows=1, token_rows=1, graph_key=(key, 64))
+    assert len(records) == 32
+    saved = set(proposer._cdb_draft_graph_runtime_seen)
+
+    def unexpected_serialization(*args, **kwargs):
+        raise AssertionError("Full diagnostic quota must skip serialization")
+
+    monkeypatch.setattr(cdb_av_refill.json, "dumps", unexpected_serialization)
+    # Both repeated and unseen shapes must take the quota-only fast path.
+    for key in ((0, 64), (99, 256)):
+        cdb_av_refill._log_draft_graph_runtime_once(
+            proposer, "replay", phase="decode",
+            request_rows=1, token_rows=1, graph_key=key)
+    assert proposer._cdb_draft_graph_runtime_seen == saved
+    assert len(records) == 32

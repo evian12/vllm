@@ -108,13 +108,17 @@ def _log_draft_graph_runtime_once(
     if seen is None:
         seen = set()
         proposer._cdb_draft_graph_runtime_seen = seen
+    # Once the diagnostic quota is full, avoid serializing a key on every
+    # later Forward. This does not change graph dispatch or model execution.
+    if len(seen) >= 32:
+        return
     # Keep enough detail to distinguish graph keys while bounding log volume.
     # Include the phase and live shape because the same key/action can be used
     # by different forward phases or request layouts.
     graph_key_id = (json.dumps(graph_key, sort_keys=True)
                     if graph_key is not None else None)
     log_key = (action, reason, phase, request_rows, token_rows, graph_key_id)
-    if log_key in seen or len(seen) >= 32:
+    if log_key in seen:
         return
     seen.add(log_key)
 
