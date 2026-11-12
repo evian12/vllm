@@ -218,8 +218,8 @@ class RefillSession:
         return n, bucket
 
     def _mixed_graph_key(self, cad, n, dynamic=False, max_query=2):
-        if max_query not in (2, 4):
-            raise ValueError('Draft Graph query bound must be 2 or 4')
+        if max_query not in (2, 4, 8):
+            raise ValueError('Draft Graph query bound must be 2, 4 or 8')
         # The existing exact-layout path retains its original query1/2 scope.
         limit = max_query if dynamic else 2
         if (not 1 <= cad.num_reqs <= self.capacity
@@ -249,9 +249,9 @@ class RefillSession:
         if not qlens or min(qlens) < 1 or sum(qlens) != key[0]:
             raise ValueError('Invalid Graph query layout')
         if len(key) == 4:
-            if key[3] not in ('dynamic2', 'dynamic4') or len(qlens) != key[2]:
+            if key[3] not in ('dynamic2', 'dynamic4', 'dynamic8') or len(qlens) != key[2]:
                 raise ValueError('Invalid dynamic Graph query key')
-            bound = 2 if key[3] == 'dynamic2' else 4
+            bound = {'dynamic2': 2, 'dynamic4': 4, 'dynamic8': 8}[key[3]]
         else:
             bound = max(qlens)
         if max(qlens) > bound:

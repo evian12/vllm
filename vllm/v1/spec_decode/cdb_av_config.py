@@ -468,17 +468,17 @@ def get_ragged_graph_query_bound() -> int:
     try:
         bound = int(raw)
     except (TypeError, ValueError) as exc:
-        raise ValueError('Draft Graph query bound must be 2 or 4') from exc
-    if bound not in (2, 4):
-        raise ValueError('Draft Graph query bound must be 2 or 4')
+        raise ValueError('Draft Graph query bound must be 2, 4 or 8') from exc
+    if bound not in (2, 4, 8):
+        raise ValueError('Draft Graph query bound must be 2, 4 or 8')
     return bound
 
 
 def validate_ragged_graph_backend(bound, builder):
-    if bound != 4:
+    if bound not in (4, 8):
         return
     cls = type(builder)
     if (cls.__module__ != 'vllm.v1.attention.backends.flash_attn'
             or cls.__name__ != 'FlashAttentionMetadataBuilder'
             or getattr(builder, 'aot_schedule', None) is not False):
-        raise ValueError('Query4 Graph requires FlashAttention FA2 without AOT scheduling')
+        raise ValueError(f'Query{bound} Graph requires FlashAttention FA2 without AOT scheduling')

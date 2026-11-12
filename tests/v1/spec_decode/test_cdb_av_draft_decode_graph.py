@@ -180,7 +180,7 @@ def test_q4_graph_rejects_inconsistent_shadow_metadata():
     ((6, 64, 3, 'dynamic2'), (1, 1, 4)),
     ((6, 64, 4, 'dynamic4'), (1, 1, 4)),
     ((7, 64, 3, 'dynamic4'), (1, 1, 4)),
-    ((6, 64, 3, 'dynamic8'), (1, 1, 4)),
+    ((6, 64, 3, 'dynamic16'), (1, 1, 4)),
 ])
 def test_static_query_bound_rejects_invalid_capture(key, qlens):
     with pytest.raises(ValueError):
@@ -266,3 +266,51 @@ def test_draft_graph_runtime_diagnostic_has_hard_record_cap(monkeypatch):
 
     assert len(records) == 32
     assert len(proposer._cdb_draft_graph_runtime_seen) == 32
+
+@pytest.mark.parametrize('qlens,expected', [
+    ((8, 8, 8, 8), (32, 64, 4, 'dynamic8')),
+    ((1, 1, 8), (10, 64, 3, 'dynamic8')),
+    ((5,), (5, 64, 1, 'dynamic8')),
+    ((9,), None), ((1, 0, 8), None),
+    ((1, 1, 1, 1, 8), None), ((1, 1, 1, 1), None),
+])
+def test_q8_uses_exact_rows_and_retains_layout_guards(qlens, expected):
+    session, cad, n = q4_session_and_metadata(qlens)
+    key = session._mixed_graph_key(cad, n, dynamic=True, max_query=8)
+    assert key == expected
+    if key is not None:
+        assert key[0] == sum(qlens)
+        assert session._graph_static_query_bound(key, qlens) == 8
+
+
+def test_q8_reuses_smaller_first_capture_for_larger_queries():
+    keys = []
+    for qlens in ((3, 3, 4), (1, 1, 8), (1, 4, 5), (8, 1, 1)):
+        session, cad, n = q4_session_and_metadata(qlens)
+        key = session._mixed_graph_key(cad, n, dynamic=True, max_query=8)
+        keys.append(key)
+        assert session._graph_static_query_bound(key, qlens) == 8
+    assert keys == [(10, 64, 3, 'dynamic8')] * 4
+
+
+def test_q8_does_not_extend_exact_layout_or_decode_domain():
+    session, cad, n = q4_session_and_metadata((1, 1, 8))
+    assert session._mixed_graph_key(cad, n, dynamic=False, max_query=8) is None
+    assert session._decode_graph_key(cad, n) is None
+
+
+@pytest.mark.parametrize('qlens', [(1, 8), (8, 1), (4, 5)])
+def test_q8_rejects_mismatched_cpu_shadow(qlens):
+    session, cad, n = q4_session_and_metadata(qlens)
+    cad.max_query_len -= 1
+    assert session._mixed_graph_key(cad, n, dynamic=True, max_query=8) is None
+
+
+def test_q8_retains_sequence_capacity_and_capture_bound_checks():
+    session, cad, n = q4_session_and_metadata((1, 8))
+    cad.max_seq_len = 1025
+    assert session._mixed_graph_key(cad, n, dynamic=True, max_query=8) is None
+    with pytest.raises(ValueError):
+        session._graph_static_query_bound((10, 64, 3, 'dynamic8'), (0, 1, 9))
+    with pytest.raises(ValueError):
+        session._graph_static_query_bound((10, 64, 3, 'dynamic8'), (1, 0, 9))

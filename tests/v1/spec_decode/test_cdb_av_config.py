@@ -561,7 +561,7 @@ def test_ar_only_target_stage_bypass(changes, expected):
     assert _config.can_bypass_ar_target(**args) is expected
 
 
-@pytest.mark.parametrize('value,expected', [(None, 2), ('2', 2), ('4', 4)])
+@pytest.mark.parametrize('value,expected', [(None, 2), ('2', 2), ('4', 4), ('8', 8)])
 def test_ragged_graph_query_bound_config(monkeypatch, value, expected):
     if value is None:
         monkeypatch.delenv('CDB_AV_DRAFT_RAGGED_MAX_QUERY', raising=False)
@@ -570,10 +570,10 @@ def test_ragged_graph_query_bound_config(monkeypatch, value, expected):
     assert _config.get_ragged_graph_query_bound() == expected
 
 
-@pytest.mark.parametrize('value', ['0', '1', '3', '5', '8', '2.0', 'bad'])
+@pytest.mark.parametrize('value', ['0', '1', '3', '5', '9', '16', '2.0', 'bad'])
 def test_ragged_graph_query_bound_rejects_unsupported(monkeypatch, value):
     monkeypatch.setenv('CDB_AV_DRAFT_RAGGED_MAX_QUERY', value)
-    with pytest.raises(ValueError, match='2 or 4'):
+    with pytest.raises(ValueError, match='2, 4 or 8'):
         _config.get_ragged_graph_query_bound()
 
 
@@ -583,14 +583,15 @@ def test_ragged_graph_query_bound_rejects_unsupported(monkeypatch, value):
     ('FlashAttentionMetadataBuilder', 'vllm.v1.attention.backends.flash_attn', None, False),
     ('FlashInferMetadataBuilder', 'vllm.v1.attention.backends.flashinfer', False, False),
 ])
-def test_query4_builder_scope(name, module, aot, allowed):
+@pytest.mark.parametrize('bound', [4, 8])
+def test_bounded_builder_scope(name, module, aot, allowed, bound):
     builder = type(name, (), {'__module__': module})()
     builder.aot_schedule = aot
     if allowed:
-        _config.validate_ragged_graph_backend(4, builder)
+        _config.validate_ragged_graph_backend(bound, builder)
     else:
         with pytest.raises(ValueError, match='FA2'):
-            _config.validate_ragged_graph_backend(4, builder)
+            _config.validate_ragged_graph_backend(bound, builder)
 
 
 def test_default_query2_builder_scope_unchanged():
