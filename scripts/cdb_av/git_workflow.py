@@ -63,7 +63,17 @@ def unsafe_path(name: str) -> str | None:
     if path.is_absolute() or ".." in path.parts:
         return "path leaves repository"
     parts = {p.lower() for p in path.parts}
-    if parts & {"models", "checkpoints", "datasets", ".venv", "venv", "__pycache__"}:
+    blocked = parts & {"models", "checkpoints", "datasets", ".venv", "venv", "__pycache__"}
+    # This canonical directory contains vLLM Python implementations, not model
+    # weights. Limit the exception to files already committed in HEAD; new
+    # files (including staged-only files) and every other protection still apply.
+    if ("models" in blocked
+            and path.parts[:3] == ("vllm", "model_executor", "models")
+            and path.suffix == ".py"
+            and command(["git", "cat-file", "-e", f"HEAD:{name}"],
+                        check=False).returncode == 0):
+        blocked.discard("models")
+    if blocked:
         return "model, dataset, or generated directory"
     if path.suffix.lower() in WEIGHT_SUFFIXES:
         return "model or checkpoint file"

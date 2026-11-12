@@ -1,5 +1,8 @@
 import importlib.util
 import unittest
+import tempfile
+import subprocess
+from unittest.mock import patch
 from pathlib import Path
 
 
@@ -43,6 +46,56 @@ class GitWorkflowTests(unittest.TestCase):
                      ".env.example"):
             with self.subTest(name=name):
                 self.assertIsNone(workflow.unsafe_path(name))
+
+    def _fixture_repo(self, root):
+        root = Path(root)
+        source = root / "vllm/model_executor/models/qwen3.py"
+        source.parent.mkdir(parents=True)
+        source.write_text("VALUE = 1\\n")
+        subprocess.run(["git", "init", "-q", str(root)], check=True)
+        subprocess.run(["git", "-C", str(root), "add", str(source)], check=True)
+        subprocess.run(["git", "-C", str(root), "-c", "user.name=Fixture",
+                        "-c", "user.email=fixture@example.invalid",
+                        "commit", "-qm", "source fixture"], check=True)
+        return source
+
+    def test_allow_only_head_tracked_canonical_model_source(self):
+        with tempfile.TemporaryDirectory() as root:
+            self._fixture_repo(root)
+            with patch.object(workflow, "ROOT", Path(root)):
+                self.assertIsNone(workflow.unsafe_path(
+                    "vllm/model_executor/models/qwen3.py"))
+
+    def test_reject_new_and_staged_only_model_sources(self):
+        with tempfile.TemporaryDirectory() as root:
+            source = self._fixture_repo(root)
+            new = source.with_name("new_model.py")
+            new.write_text("VALUE = 2\\n")
+            with patch.object(workflow, "ROOT", Path(root)):
+                self.assertIsNotNone(workflow.unsafe_path(
+                    "vllm/model_executor/models/new_model.py"))
+                subprocess.run(["git", "-C", root, "add", str(new)], check=True)
+                self.assertIsNotNone(workflow.unsafe_path(
+                    "vllm/model_executor/models/new_model.py"))
+
+    def test_reject_model_weights_and_nested_protected_paths(self):
+        with tempfile.TemporaryDirectory() as root:
+            self._fixture_repo(root)
+            paths = ["vllm/model_executor/models/weights.safetensors",
+                     "vllm/model_executor/models/checkpoints/module.py",
+                     "models/qwen3.py"]
+            for name in paths:
+                file = Path(root) / name
+                file.parent.mkdir(parents=True, exist_ok=True)
+                file.write_text("VALUE = 3\\n")
+            subprocess.run(["git", "-C", root, "add", "."], check=True)
+            subprocess.run(["git", "-C", root, "-c", "user.name=Fixture",
+                            "-c", "user.email=fixture@example.invalid",
+                            "commit", "-qm", "protected fixture"], check=True)
+            with patch.object(workflow, "ROOT", Path(root)):
+                for name in paths:
+                    with self.subTest(name=name):
+                        self.assertIsNotNone(workflow.unsafe_path(name))
 
     def test_detect_private_key(self):
         sample = "-----BEGIN " + "PRIVATE KEY-----"
