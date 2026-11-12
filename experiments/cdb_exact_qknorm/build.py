@@ -2,6 +2,7 @@
 # Build only the isolated experimental operator; no installed package changes.
 import importlib.util
 import json
+import hashlib
 import os
 import subprocess
 import sysconfig
@@ -50,6 +51,15 @@ def build():
     for command in commands:
         print(command, flush=True)
         subprocess.run(command,check=True)
+    required = ['experiments/cdb_exact_qknorm/binding.cpp',
+                'experiments/cdb_exact_qknorm/kernel.cu',
+                'csrc/cub_helpers.h','csrc/quantization/vectorization_utils.cuh',
+                'csrc/quantization/vectorization.cuh']
+    root = SOURCE.parents[1]
+    receipt = dict(format=1,module=NAME,torch=torch.__version__,
+        binary_sha256=hashlib.sha256(module_path().read_bytes()).hexdigest(),
+        sources={name:hashlib.sha256((root/name).read_bytes()).hexdigest() for name in required})
+    module_path().with_suffix('.json').write_text(json.dumps(receipt,indent=2))
     return load_built()
 
 if __name__ == '__main__':
