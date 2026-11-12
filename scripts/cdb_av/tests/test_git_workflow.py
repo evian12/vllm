@@ -51,7 +51,8 @@ class GitWorkflowTests(unittest.TestCase):
         root = Path(root)
         source = root / "vllm/model_executor/models/qwen3.py"
         source.parent.mkdir(parents=True)
-        source.write_text("VALUE = 1\\n")
+        source.write_text("VALUE = 1" + chr(10))
+        compile(source.read_text(), str(source), "exec")
         subprocess.run(["git", "init", "-q", str(root)], check=True)
         subprocess.run(["git", "-C", str(root), "add", str(source)], check=True)
         subprocess.run(["git", "-C", str(root), "-c", "user.name=Fixture",
@@ -70,7 +71,7 @@ class GitWorkflowTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as root:
             source = self._fixture_repo(root)
             new = source.with_name("new_model.py")
-            new.write_text("VALUE = 2\\n")
+            new.write_text("VALUE = 2" + chr(10))
             with patch.object(workflow, "ROOT", Path(root)):
                 self.assertIsNotNone(workflow.unsafe_path(
                     "vllm/model_executor/models/new_model.py"))
@@ -87,7 +88,7 @@ class GitWorkflowTests(unittest.TestCase):
             for name in paths:
                 file = Path(root) / name
                 file.parent.mkdir(parents=True, exist_ok=True)
-                file.write_text("VALUE = 3\\n")
+                file.write_text("VALUE = 3" + chr(10))
             subprocess.run(["git", "-C", root, "add", "."], check=True)
             subprocess.run(["git", "-C", root, "-c", "user.name=Fixture",
                             "-c", "user.email=fixture@example.invalid",
