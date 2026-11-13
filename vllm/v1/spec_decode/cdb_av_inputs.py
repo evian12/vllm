@@ -122,6 +122,12 @@ class PinnedDraftInputStager:
         self.owner = threading.get_ident()
         self.host = self.host_view = self.zero_view = None
         self.event = torch.cuda.Event(enable_timing=False)
+        self.validation_enabled = os.getenv("CDB_AV_VALIDATE_METADATA","0") == "1"
+        self.validation_limit = (int(os.getenv("CDB_AV_INPUT_VALIDATE_SAMPLES","64"))
+                                 if self.validation_enabled else 64)
+        if not 1 <= self.validation_limit <= 256:
+            raise ValueError("Invalid input validation sample limit")
+        self.validation_samples = 0
         self.pending = False
         self.failed = False
         self.calls = self.source_waits = self.growths = self.bytes_copied = 0
@@ -175,6 +181,29 @@ class PinnedDraftInputStager:
                 capacity=self.host.numel(),growths=self.growths,
                 pinned=True,non_blocking=True,fresh_device_payload=True,
                 fresh_cpu_query_shadow=True,device=str(self.device))))
+        if self.validation_enabled and self.validation_samples < self.validation_limit:
+            checks = []
+            for f in plan.fields:
+                ref = torch.tensor(f.values,dtype=f.dtype,device="cpu").view(f.shape)
+                actual = fields[f.name].cpu()
+                exact = (actual.dtype == ref.dtype and actual.shape == ref.shape
+                         and actual.stride() == ref.stride()
+                         and torch.equal(actual.contiguous().view(torch.uint8),
+                                         ref.contiguous().view(torch.uint8)))
+                checks.append(dict(field=f.name,shape=list(f.shape),
+                                   dtype=str(f.dtype),byte_exact=exact))
+            shadow = fields["query_start_loc_cpu"]
+            shadow_ok = (shadow.device.type == "cpu"
+                         and shadow.tolist() == list(plan.starts)
+                         and shadow.untyped_storage().data_ptr()
+                             != self.host.untyped_storage().data_ptr())
+            if not shadow_ok or not all(c["byte_exact"] for c in checks):
+                raise RuntimeError("Pinned input/native CPU byte mismatch")
+            self.validation_samples += 1
+            logger.info("[CDB_INPUT_VALIDATE] %s",json.dumps(dict(
+                call=self.calls,sample=self.validation_samples,
+                requests=plan.requests,tokens=plan.tokens,
+                checks=checks,cpu_shadow_independent=shadow_ok)))
         return fields
 
 

@@ -211,3 +211,11 @@ def test_real_step_branch_preserves_request_mapping_and_completion(staged,monkey
     assert third['newly_completed_req_ids']==['B'] and not s.active
     assert seen==[['A','B'],['B'],['B']]
     assert s.members['A']['tokens']==[3] and s.members['B']['tokens']==[4,5,6]
+
+@GPU
+def test_bounded_gpu_validation_uses_actual_typed_payload(monkeypatch):
+    monkeypatch.setenv("CDB_AV_VALIDATE_METADATA","1")
+    monkeypatch.setenv("CDB_AV_INPUT_VALIDATE_SAMPLES","2")
+    stager=PinnedDraftInputStager("cuda:0")
+    for _ in range(4):stager.pack(**case([1,2,4]))
+    assert stager.validation_samples==2
