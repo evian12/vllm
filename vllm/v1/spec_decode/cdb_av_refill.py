@@ -170,6 +170,9 @@ class RefillSession:
         self._input_stager = get_input_stager(proposer)
         self.policy = os.getenv('CDB_AV_K_POLICY', 'manual').strip().lower()
         self.threshold = float(os.getenv('CDB_AV_HF_THRESHOLD', '0.4'))
+        from vllm.v1.spec_decode.cdb_av_post_graph import get_draft_post_graph
+        self._post_graph = get_draft_post_graph(proposer, self.policy)
+        self._post_graph_pending = None
         if self.policy not in ('manual', 'hf_confidence', 'replay_acceptance',
                                'request_avg_acceptance') or not 0 <= self.threshold <= 1:
             raise ValueError('Invalid refill stopping policy')
@@ -413,7 +416,7 @@ class RefillSession:
         if len(key) >= 3:
             hidden = hidden[last_indices if dynamic_layout
                             else entry['last_indices']]
-        logits = p.model.compute_logits(hidden)
+        logits = self._compute_draft_logits(hidden)
         if profile is not None:
             profile.end('logits')
         if os.getenv('CDB_AV_DRAFT_GRAPH_VALIDATE', '0') == '1':
@@ -495,7 +498,21 @@ class RefillSession:
                 raise RuntimeError('Draft Decode Graph/eager validation mismatch')
         return logits
 
+    def _compute_draft_logits(self, hidden):
+        post = getattr(self, '_post_graph', None)
+        if post is None:
+            return self.p.model.compute_logits(hidden)
+        logits, packet = post(hidden, context=getattr(self, '_post_graph_context', None))
+        self._post_graph_pending = (logits, packet)
+        return logits
+
     def _forward(self, ids, positions, cad, last_indices, req_ids, phase):
+        self._post_graph_pending = None
+        post = getattr(self, '_post_graph', None)
+        self._post_graph_context = (dict(
+            window=self.window, step=self.steps_completed + 1,
+            req_ids=list(req_ids), phase=phase)
+            if post is not None and post.validate else None)
         p = self.p
         n = ids.numel()
         if n <= 0 or len(req_ids) > self.capacity:
@@ -603,7 +620,7 @@ class RefillSession:
             hidden = ret[0] if p.model_returns_tuple() else ret
             if sample is not None:
                 sample.start('logits')
-            logits = None if last_indices is None else p.model.compute_logits(hidden[last_indices])
+            logits = None if last_indices is None else self._compute_draft_logits(hidden[last_indices])
             if sample is not None:
                 sample.end('logits')
         if sample is not None:
@@ -849,17 +866,22 @@ class RefillSession:
                 # The confidence of the greedy token is exp(max(logits) -
                 # logsumexp(logits)). Avoid materializing a full log_softmax
                 # tensor for every vocabulary row.
-                logits_fp32 = logits.float()
-                max_logits, tokens = logits_fp32.max(dim=-1)
-                log_normalizer = torch.logsumexp(logits_fp32, dim=-1)
-                confidence = (max_logits - log_normalizer).exp()
-                # Pack the small per-request result before D2H. A single
-                # synchronization is cheaper than separately materializing
-                # confidence.cpu().tolist() and tokens.tolist().
-                packed_gpu = torch.stack(
-                    (tokens.to(torch.float64), confidence.to(torch.float64)),
-                    dim=1,
-                )
+                from vllm.v1.spec_decode.cdb_av_post_graph import consume_post_packet
+                packed_gpu = consume_post_packet(
+                    getattr(self, '_post_graph_pending', None), logits)
+                self._post_graph_pending = None
+                if packed_gpu is None:
+                    logits_fp32 = logits.float()
+                    max_logits, tokens = logits_fp32.max(dim=-1)
+                    log_normalizer = torch.logsumexp(logits_fp32, dim=-1)
+                    confidence = (max_logits - log_normalizer).exp()
+                    # Pack the small per-request result before D2H. A single
+                    # synchronization is cheaper than separately materializing
+                    # confidence.cpu().tolist() and tokens.tolist().
+                    packed_gpu = torch.stack(
+                        (tokens.to(torch.float64), confidence.to(torch.float64)),
+                        dim=1,
+                    )
                 if sample is not None:
                     sample.end('confidence_gpu')
                     d2h_total_start = time.perf_counter()
