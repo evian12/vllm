@@ -1,0 +1,14 @@
+{
+  "component_median_saved_us": [
+    28.722803108394146,
+    32.06278779543936,
+    31.68758121319115,
+    31.561125069856644
+  ],
+  "diagnostic_actual_forward_count": 753,
+  "extrapolated_512_forward_count": 12048,
+  "illustrative_saved_s": 0.38629246735945344,
+  "illustrative_wall_fraction_pct": 0.1410782498718149,
+  "limitation": "Diagnostic schedule differs from formal workload;extrapolation is not a measured end-to-end gain or guaranteed bound.",
+  "decision": "No model integration this stage:~30us component opportunity,extra capture/cache/state complexity;no evidence of material system gain. Keep original path;reopen only with representative critical-path profile."
+}

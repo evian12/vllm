@@ -1,0 +1,14 @@
+[
+  {
+    "case": "dry_run_no_directory_or_GPU",
+    "passed": true
+  },
+  {
+    "case": "existing_output_rejected",
+    "passed": true
+  },
+  {
+    "case": "relative_output_rejected",
+    "passed": true
+  }
+]

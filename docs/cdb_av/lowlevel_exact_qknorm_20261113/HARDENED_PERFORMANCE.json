@@ -1,0 +1,111 @@
+{
+  "source": {
+    "commit": "c7531aaef4438b138c600e22aae384519a4522f6",
+    "source": "/home/yypan/CDB-AV/worktrees/cdb-exact-qknorm-rope-20261113",
+    "files": {
+      "vllm/v1/spec_decode/cdb_av_refill.py": "cdc9487e8d74143ec2f8dafbe42d510e50bcd68c1906b9465bf190c32a7f6a42",
+      "vllm/v1/spec_decode/cdb_av_config.py": "3e07b2f6a0b37644e48169a5878570795b634dd250906932440ae6d4f9eacff2",
+      "vllm/v1/spec_decode/cdb_av_kv_reuse.py": "2738ef579b080daa4f7f73f1d6aea7b66d57d4cf8e15bb5639758ad80ed73a7d",
+      "vllm/v1/spec_decode/cdb_av_persistent.py": "727fa44f7f4c8bd364eec79ba023f8e65db09ecac4287c6e0d37e3f269ff0cf1",
+      "vllm/v1/spec_decode/cdb_av_target_graph.py": "7ddc3870a78dab7b296a66c858ac3cfda6c143ee171dd837b85623f356d542e6",
+      "vllm/v1/spec_decode/cdb_av_metadata.py": "9dfdf1c58479a8754d897ecb7a65a04b12ba445c61d6c48f41aa0abab047854d",
+      "vllm/model_executor/layers/cdb_exact_qknorm.py": "4a9ee0b783c76a2f3ed3de23ae72ff6252ae580eef572caf4d16413075e61416",
+      "vllm/model_executor/models/qwen3.py": "e1525f18a207c4f7cfad9af669fbbd41262a543e244e9c73998a971189052a02",
+      "experiments/cdb_exact_qknorm/kernel.cu": "50e1e325ebf9dbdc67261900600675fe7caec566508666a9ca4dace782a2a4b2",
+      "experiments/cdb_exact_qknorm/binding.cpp": "f7da259851041a278a348287ac9afe757cb559cb7f200af58030da6e3dab61f7"
+    }
+  },
+  "arms": [
+    {
+      "trial": 0,
+      "tps": 237.745,
+      "wall_s": 275.656,
+      "requests": 512,
+      "tokens": 65536,
+      "latency_mean_s": 8.582476804725957,
+      "latency_p50_s": 8.684844905510545,
+      "latency_p95_s": 10.516241721669212,
+      "cleanup": {
+        "port_closed": true,
+        "gpu3_memory_mib": 15,
+        "time": 1794527099.9498591
+      },
+      "runtime": [
+        {
+          "event": "runtime",
+          "pid": 2516567,
+          "source": "/home/yypan/CDB-AV/worktrees/cdb-exact-qknorm-rope-20261113/vllm/model_executor/layers/cdb_exact_qknorm.py",
+          "binary": "/disk14T/yypan/CDB-AV-runtime/results/exact_qknorm_20261113/build_v2/cdb_exact_qknorm_20261113.so",
+          "binary_sha256": "b148b8541950b326f49ea4222b136d336bac5fefeaeab012b14bf38606180f5b"
+        }
+      ]
+    },
+    {
+      "trial": 1,
+      "tps": 239.159,
+      "wall_s": 274.027,
+      "requests": 512,
+      "tokens": 65536,
+      "latency_mean_s": 8.52761669823667,
+      "latency_p50_s": 8.620633005164564,
+      "latency_p95_s": 10.529295081784948,
+      "cleanup": {
+        "port_closed": true,
+        "gpu3_memory_mib": 15,
+        "time": 1794527488.1181293
+      },
+      "runtime": [
+        {
+          "event": "runtime",
+          "pid": 2609016,
+          "source": "/home/yypan/CDB-AV/worktrees/cdb-exact-qknorm-rope-20261113/vllm/model_executor/layers/cdb_exact_qknorm.py",
+          "binary": "/disk14T/yypan/CDB-AV-runtime/results/exact_qknorm_20261113/build_v2/cdb_exact_qknorm_20261113.so",
+          "binary_sha256": "b148b8541950b326f49ea4222b136d336bac5fefeaeab012b14bf38606180f5b"
+        }
+      ]
+    },
+    {
+      "trial": 2,
+      "tps": 240.37,
+      "wall_s": 272.647,
+      "requests": 512,
+      "tokens": 65536,
+      "latency_mean_s": 8.473766898356189,
+      "latency_p50_s": 8.564894104842097,
+      "latency_p95_s": 10.301843426562845,
+      "cleanup": {
+        "port_closed": true,
+        "gpu3_memory_mib": 15,
+        "time": 1794527874.897612
+      },
+      "runtime": [
+        {
+          "event": "runtime",
+          "pid": 2681981,
+          "source": "/home/yypan/CDB-AV/worktrees/cdb-exact-qknorm-rope-20261113/vllm/model_executor/layers/cdb_exact_qknorm.py",
+          "binary": "/disk14T/yypan/CDB-AV-runtime/results/exact_qknorm_20261113/build_v2/cdb_exact_qknorm_20261113.so",
+          "binary_sha256": "b148b8541950b326f49ea4222b136d336bac5fefeaeab012b14bf38606180f5b"
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "tps": {
+      "mean": 239.09133333333332,
+      "sample_sd": 1.3138075708920742
+    },
+    "latency_mean_s": {
+      "mean": 8.527953467106272,
+      "sample_sd": 0.05435573562821658
+    },
+    "latency_p50_s": {
+      "mean": 8.623457338505736,
+      "sample_sd": 0.06002525542941894
+    },
+    "latency_p95_s": {
+      "mean": 10.449126743339002,
+      "sample_sd": 0.12771796703290036
+    }
+  },
+  "scope": "Fresh-service128warmup+512/C16/max128 per repeat;hardened ON regression only,not a new OFF/ON causal experiment."
+}

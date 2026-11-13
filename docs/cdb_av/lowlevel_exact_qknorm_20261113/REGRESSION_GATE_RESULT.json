@@ -1,0 +1,6 @@
+{
+  "tps_change_pct": -0.10584457003429693,
+  "p95_change_pct": 0.4747084238590382,
+  "passed": true,
+  "scope": "ON regression gate,not causal"
+}

@@ -1,0 +1,13 @@
+{
+  "cuda_kernel_source_equal": true,
+  "sass_lines_equal": true,
+  "instruction_and_function_line_count": [
+    1234,
+    1234
+  ],
+  "normalized_sass_sha256": [
+    "3add03cbb7424c8f7b30b3aab5b1622eb9bb150b7f8807db0ec2ecbfb673f9e6",
+    "3add03cbb7424c8f7b30b3aab5b1622eb9bb150b7f8807db0ec2ecbfb673f9e6"
+  ],
+  "note": "Host argument checks changed;compares all emitted SM89 function/instruction lines,not host code or fullbinary."
+}

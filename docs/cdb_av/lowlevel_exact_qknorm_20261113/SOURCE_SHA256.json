@@ -1,0 +1,14 @@
+{
+  "experiments/cdb_exact_qknorm/README.md": "76008e9ca79f212603ddba8a93c5e494a2494314ba34fbcbbaee49b893e95695",
+  "experiments/cdb_exact_qknorm/binding.cpp": "f7da259851041a278a348287ac9afe757cb559cb7f200af58030da6e3dab61f7",
+  "experiments/cdb_exact_qknorm/build.py": "65ef47db577aaea7d7f4107d3f0b59627c805a9f0a6ea623b490a75430c2da51",
+  "experiments/cdb_exact_qknorm/kernel.cu": "50e1e325ebf9dbdc67261900600675fe7caec566508666a9ca4dace782a2a4b2",
+  "experiments/cdb_exact_qknorm/test_cpu.py": "c1188edca063a3212e34fa476e56a9b274b5fdc144eedabf991c74e2f5837f5c",
+  "experiments/cdb_exact_qknorm/test_gpu_api.py": "74942ec53bea395f96cdb9b6997c205314195fcfd526450a267a03c4fca39d67",
+  "experiments/cdb_exact_qknorm/validate_gpu.py": "ed35f9a595c439ca094a7f39b9880071c4b055b049044962cac7dfa57948fb51",
+  "scripts/cdb_av/git_workflow.py": "06aa1459a187cd8bd6d4356565347f7532269959a38adad69065c631231850fe",
+  "scripts/cdb_av/tests/test_git_workflow.py": "a69bf40e19a88a0962fe92786b3345a07d8a546c5224be01516c97bb5970b50e",
+  "tests/v1/spec_decode/test_cdb_av_exact_qknorm.py": "6d6b0a2cc7ee1605995f5b039971cc9ef5545b948b79b7ae85f25ffbff2166aa",
+  "vllm/model_executor/layers/cdb_exact_qknorm.py": "4a9ee0b783c76a2f3ed3de23ae72ff6252ae580eef572caf4d16413075e61416",
+  "vllm/model_executor/models/qwen3.py": "e1525f18a207c4f7cfad9af669fbbd41262a543e244e9c73998a971189052a02"
+}

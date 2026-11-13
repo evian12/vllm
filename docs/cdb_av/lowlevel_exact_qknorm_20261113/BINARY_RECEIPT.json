@@ -1,0 +1,13 @@
+{
+  "format": 1,
+  "module": "cdb_exact_qknorm_20261113",
+  "torch": "2.9.1+cu129",
+  "binary_sha256": "b148b8541950b326f49ea4222b136d336bac5fefeaeab012b14bf38606180f5b",
+  "sources": {
+    "experiments/cdb_exact_qknorm/binding.cpp": "f7da259851041a278a348287ac9afe757cb559cb7f200af58030da6e3dab61f7",
+    "experiments/cdb_exact_qknorm/kernel.cu": "50e1e325ebf9dbdc67261900600675fe7caec566508666a9ca4dace782a2a4b2",
+    "csrc/cub_helpers.h": "91bd3c5f862387c475806a13245f0353369439a4e83962d2798e820314c48c31",
+    "csrc/quantization/vectorization_utils.cuh": "de3ceffef5f97a1e6d445a7dea36e0b6e8f1f5c37326677362c95cd0ebbbeaf5",
+    "csrc/quantization/vectorization.cuh": "e57e0598fff5a4f85db8b531b58e1f0b1afcd839d9ea007f1af3576707800529"
+  }
+}

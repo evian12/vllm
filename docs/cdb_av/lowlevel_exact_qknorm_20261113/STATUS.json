@@ -1,0 +1,102 @@
+{
+  "stage": "Converged within reviewed candidate scope",
+  "overall": "Partial Implementation",
+  "runtime_commit": "c7531aaef4438b138c600e22aae384519a4522f6",
+  "causal_performance_commit": "b6da217f6ba92b728f1aad7ea92ce1943fa4dc97",
+  "default_exact_qknorm": 0,
+  "recommended_experiment": {
+    "exact_qknorm": 1,
+    "mode": "both",
+    "H": 8,
+    "hf_threshold": 0.8,
+    "k_cap": 8,
+    "draft_query_bound": 8,
+    "draft_mixed_keys": 24,
+    "target_keys": 24,
+    "packed_metadata": 0
+  },
+  "causal_performance": {
+    "0": {
+      "tps": {
+        "mean": 234.51233333333334,
+        "sample_sd": 1.5823989172561284
+      },
+      "latency_mean_s": {
+        "mean": 8.692765069617963,
+        "sample_sd": 0.06671643279757936
+      },
+      "latency_p50_s": {
+        "mean": 8.829655300049732,
+        "sample_sd": 0.07946578676413363
+      },
+      "latency_p95_s": {
+        "mean": 10.662927093387893,
+        "sample_sd": 0.02645990088525813
+      }
+    },
+    "1": {
+      "tps": {
+        "mean": 239.34466666666668,
+        "sample_sd": 0.6043958415916989
+      },
+      "latency_mean_s": {
+        "mean": 8.516685154684334,
+        "sample_sd": 0.01625744720766012
+      },
+      "latency_p50_s": {
+        "mean": 8.626661688710252,
+        "sample_sd": 0.057225170682615685
+      },
+      "latency_p95_s": {
+        "mean": 10.399758215031277,
+        "sample_sd": 0.04849172392217405
+      }
+    }
+  },
+  "hardened_performance": {
+    "tps": {
+      "mean": 239.09133333333332,
+      "sample_sd": 1.3138075708920742
+    },
+    "latency_mean_s": {
+      "mean": 8.527953467106272,
+      "sample_sd": 0.05435573562821658
+    },
+    "latency_p50_s": {
+      "mean": 8.623457338505736,
+      "sample_sd": 0.06002525542941894
+    },
+    "latency_p95_s": {
+      "mean": 10.449126743339002,
+      "sample_sd": 0.12771796703290036
+    }
+  },
+  "tests": {
+    "cpu": 400,
+    "cpu_skipped_gpu": 5,
+    "workflow": 15,
+    "cpu_api": 2,
+    "negative_gpu_api": 14,
+    "independent_cases": 106,
+    "nonempty": 104,
+    "boundary_models": 2,
+    "model_requests_per_run": 32,
+    "model_runs": 2,
+    "byte_checks_per_model_run": 2048,
+    "causal_formal_requests": 3072,
+    "hardened_formal_requests": 1536
+  },
+  "strict_output_equivalence_proven": false,
+  "global_optimality_proven": false,
+  "gpu_released": {
+    "gpu3_memory_mib": 15,
+    "port18084_closed": true,
+    "time": 1794527882.0809863
+  },
+  "limitations": [
+    "SM89 BF16 static Qwen3/CDB capacity4 only",
+    "TTFT/ITL not measured",
+    "No new AR/nativeSpec comparison",
+    "No universal KV-lifecycle/output proof"
+  ]
+}

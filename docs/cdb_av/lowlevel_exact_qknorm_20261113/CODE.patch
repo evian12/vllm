@@ -1,0 +1,843 @@
+diff --git a/experiments/cdb_exact_qknorm/README.md b/experiments/cdb_exact_qknorm/README.md
+new file mode 100644
+index 0000000000..aa9bd53c08
+--- /dev/null
++++ b/experiments/cdb_exact_qknorm/README.md
+@@ -0,0 +1,28 @@
++# Exact BF16 QK Norm/RoPE candidate
++Isolated experimental CUDA operator, not installed in any model path.
++Preserves native vector8/CUB1024-valid16 RMSNorm reduction and BF16 rounding,
++including each multiply/add/subtract in RoPE. Head128 full NeoX only.
++Separate contiguous Q/K outputs; QKV/V/weights/cache/positions are readonly.
++API checks shape/dtype/aliasing; invalid GPU position triggers a device assertion.
++Build with existing CUDA12.4/GCC11, Torch2.9.1+CUDA12.9. No dependency changes.
++CPU compile and CPU-input guard are checked before the first GPU experiment.
++GPU acceptance requires raw-byte equality against the existing native operators;
++empty intervals are inapplicable. Accuracy failure prohibits promotion.
++This is not a production feature and not an end-to-end speedup claim.
++
++## Experimental model dispatch
++CDB_AV_EXACT_QKNORM=1 enables the candidate (default0).
++CDB_AV_EXACT_QKNORM_MODE=both|draft|target (defaultboth).
++CDB_AV_EXACT_QK_LIB must point to the built .so with a matching .json receipt.
++Only static eager BF16 SM89 CDB/capacity4/TP1 basic head128 NeoX is accepted.
++Batch-invariant mode,other custom-op dispatch,quantization,LoRA and prefix caching are rejected.
++Rows>1024 or unsupported layout use the complete original path.
++CDB_AV_EXACT_QK_VALIDATE=1 compares actual model Q/K bytes against native outside capture;
++SAMPLES defaults8 per layer. Existing Graph/KV validation remains independent.
++No scheduling,verification,lease or weight logic is modified.
++
++## Raw API alignment guard
++Vector8 QKV and learned-norm-weight pointers must be16-byte aligned.
++Contiguous offset tensors are explicitly rejected before launch;model allocations are aligned.
++The guard adds no valid-input GPU operations. Keep build receipts from each source version.
++Negative API tests require CDB_EXACT_NEGATIVE_GPU=1 and a separately reserved GPU3.
+diff --git a/experiments/cdb_exact_qknorm/binding.cpp b/experiments/cdb_exact_qknorm/binding.cpp
+new file mode 100644
+index 0000000000..78af073ce0
+--- /dev/null
++++ b/experiments/cdb_exact_qknorm/binding.cpp
+@@ -0,0 +1,8 @@
++// SPDX-License-Identifier: Apache-2.0
++#include <torch/extension.h>
++void cdb_exact_qknorm_rope(torch::Tensor qkv, torch::Tensor qw, torch::Tensor kw,
++    torch::Tensor cache, torch::Tensor positions, torch::Tensor qout,
++    torch::Tensor kout, double eps, int64_t nq, int64_t nk);
++PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
++  m.def("forward", &cdb_exact_qknorm_rope, "Exact BF16 QK RMSNorm + NeoX RoPE");
++}
+diff --git a/experiments/cdb_exact_qknorm/build.py b/experiments/cdb_exact_qknorm/build.py
+new file mode 100644
+index 0000000000..51f704ef38
+--- /dev/null
++++ b/experiments/cdb_exact_qknorm/build.py
+@@ -0,0 +1,66 @@
++# SPDX-License-Identifier: Apache-2.0
++# Build only the isolated experimental operator; no installed package changes.
++import importlib.util
++import json
++import hashlib
++import os
++import subprocess
++import sysconfig
++from pathlib import Path
++import torch
++from torch.utils.cpp_extension import include_paths, library_paths, _get_pybind11_abi_build_flags
++
++SOURCE = Path(__file__).resolve().parent
++NAME = 'cdb_exact_qknorm_20261113'
++
++def module_path():
++    return Path(os.environ['CDB_EXACT_BUILD_DIR']) / (NAME + '.so')
++
++def load_built():
++    path = module_path()
++    spec = importlib.util.spec_from_file_location(NAME, path)
++    module = importlib.util.module_from_spec(spec)
++    spec.loader.exec_module(module)
++    return module
++
++def build():
++    directory = module_path().parent
++    directory.mkdir(parents=True, exist_ok=True)
++    cuda = Path(os.environ['CUDA_HOME'])
++    includes = [*include_paths(device_type='cuda'),
++                sysconfig.get_path('include'), str(SOURCE.parents[1]/'csrc')]
++    inc = [arg for path in includes for arg in ('-I', path)]
++    flags = ['-O3','-std=c++17','-fPIC', f'-DTORCH_EXTENSION_NAME={NAME}',
++             '-DTORCH_API_INCLUDE_EXTENSION_H',
++             f'-D_GLIBCXX_USE_CXX11_ABI={int(torch._C._GLIBCXX_USE_CXX11_ABI)}',
++             *_get_pybind11_abi_build_flags()]
++    commands = [
++      ['g++', *flags, *inc, '-c',str(SOURCE/'binding.cpp'),'-o',str(directory/'binding.o')],
++      [str(cuda/'bin/nvcc'),'-O3','-std=c++17','-lineinfo','--expt-relaxed-constexpr',
++       '-Xcompiler','-fPIC','-gencode','arch=compute_89,code=sm_89',
++       f'-D_GLIBCXX_USE_CXX11_ABI={int(torch._C._GLIBCXX_USE_CXX11_ABI)}',
++       *inc,'-c',str(SOURCE/'kernel.cu'),'-o',str(directory/'kernel.o')],
++      ['g++','-shared',str(directory/'binding.o'),str(directory/'kernel.o'),
++       *[arg for path in library_paths(device_type='cuda') for arg in ('-L',path)],
++       '-lc10','-ltorch','-ltorch_cpu','-ltorch_python','-lc10_cuda','-ltorch_cuda',
++       '-lcudart', '-o',str(module_path())]
++    ]
++    (directory/'commands.json').write_text(json.dumps(dict(
++        commands=commands,torch=torch.__version__,torch_cuda=torch.version.cuda,
++        cuda_home=str(cuda),arch='8.9',note='Manual existing-toolchain build; Ninja missing. CUDA12.4/Torch12.9 minor version difference.'),indent=2))
++    for command in commands:
++        print(command, flush=True)
++        subprocess.run(command,check=True)
++    required = ['experiments/cdb_exact_qknorm/binding.cpp',
++                'experiments/cdb_exact_qknorm/kernel.cu',
++                'csrc/cub_helpers.h','csrc/quantization/vectorization_utils.cuh',
++                'csrc/quantization/vectorization.cuh']
++    root = SOURCE.parents[1]
++    receipt = dict(format=1,module=NAME,torch=torch.__version__,
++        binary_sha256=hashlib.sha256(module_path().read_bytes()).hexdigest(),
++        sources={name:hashlib.sha256((root/name).read_bytes()).hexdigest() for name in required})
++    module_path().with_suffix('.json').write_text(json.dumps(receipt,indent=2))
++    return load_built()
++
++if __name__ == '__main__':
++    print(build().__file__)
+diff --git a/experiments/cdb_exact_qknorm/kernel.cu b/experiments/cdb_exact_qknorm/kernel.cu
+new file mode 100644
+index 0000000000..1e13e155bd
+--- /dev/null
++++ b/experiments/cdb_exact_qknorm/kernel.cu
+@@ -0,0 +1,120 @@
++// SPDX-License-Identifier: Apache-2.0
++// Experimental operator; no production model path uses this kernel.
++#include <torch/extension.h>
++#include <ATen/cuda/CUDAContext.h>
++#include <c10/cuda/CUDAGuard.h>
++#include <c10/cuda/CUDAException.h>
++#include <cmath>
++#include <cassert>
++#include "cub_helpers.h"
++#include "quantization/vectorization_utils.cuh"
++
++using B = c10::BFloat16;
++
++// Preserve layernorm_kernels.cu's vector8 accumulation, CUB1024 valid16
++// reduction, BF16 norm product and BF16 weight product. Then preserve
++// pos_encoding_kernels.cu's BF16 multiply/subtract/add operations.
++__global__ void exact_kernel(const B* qkv, const B* qw, const B* kw,
++    const B* cache, const int64_t* positions, B* qout, B* kout,
++    float eps, int nq, int nk, int cache_rows, int head_dim) {
++  const int heads = nq + nk;
++  const int token = blockIdx.x / heads;
++  const int head = blockIdx.x % heads;
++  const bool isq = head < nq;
++  const int h = isq ? head : head - nq;
++  const B* input = qkv + token * (nq + 2 * nk) * 128
++      + (isq ? h : nq + h) * 128;
++  const B* weight = isq ? qw : kw;
++  B* output = isq ? qout + (token * nq + h) * 128
++                  : kout + (token * nk + h) * 128;
++  __shared__ float inverse_rms;
++  __shared__ __align__(16) B normalized[128];
++  float variance = 0.0f;
++  auto vec_op = [&variance](const vllm::vec_n_t<B, 8>& vec) {
++#pragma unroll
++    for (int i = 0; i < 8; ++i) {
++      float x = static_cast<float>(vec.val[i]);
++      variance += x * x;
++    }
++  };
++  auto scalar_op = [&variance](const B& value) {
++    float x = static_cast<float>(value);
++    variance += x * x;
++  };
++  vllm::vectorize_read_with_alignment<8>(
++      input, 128, threadIdx.x, blockDim.x, vec_op, scalar_op);
++  using Reduce = cub::BlockReduce<float, 1024>;
++  __shared__ typename Reduce::TempStorage reduce_store;
++  variance = Reduce(reduce_store).Reduce(variance, CubAddOp{}, blockDim.x);
++  if (threadIdx.x == 0) inverse_rms = rsqrtf(variance / head_dim + eps);
++  __syncthreads();
++  auto* in = reinterpret_cast<const vllm::vec_n_t<B, 8>*>(input);
++  auto* w = reinterpret_cast<const vllm::vec_n_t<B, 8>*>(weight);
++  auto* norm = reinterpret_cast<vllm::vec_n_t<B, 8>*>(normalized);
++  vllm::vec_n_t<B, 8> src = in[threadIdx.x], weights = w[threadIdx.x], dst;
++#pragma unroll
++  for (int j = 0; j < 8; ++j) {
++    float x = static_cast<float>(src.val[j]);
++    dst.val[j] = ((B)(x * inverse_rms)) * weights.val[j];
++  }
++  norm[threadIdx.x] = dst;
++  __syncthreads();
++  const int64_t pos = positions[token];
++  assert(pos >= 0 && pos < cache_rows);
++  const B* cos = cache + pos * 128;
++  const B* sin = cos + 64;
++  for (int i = threadIdx.x; i < 64; i += blockDim.x) {
++    const B x = normalized[i], y = normalized[i + 64];
++    output[i] = x * cos[i] - y * sin[i];
++    output[i + 64] = y * cos[i] + x * sin[i];
++  }
++}
++
++static bool overlap(const torch::Tensor& a, const torch::Tensor& b) {
++  const auto ap = reinterpret_cast<uintptr_t>(a.data_ptr());
++  const auto bp = reinterpret_cast<uintptr_t>(b.data_ptr());
++  return a.numel() && b.numel()
++      && ap < bp + b.nbytes() && bp < ap + a.nbytes();
++}
++
++void cdb_exact_qknorm_rope(torch::Tensor qkv, torch::Tensor qw, torch::Tensor kw,
++    torch::Tensor cache, torch::Tensor positions, torch::Tensor qout,
++    torch::Tensor kout, double eps, int64_t nq, int64_t nk) {
++  TORCH_CHECK(qkv.is_cuda(), "QKV must be CUDA");
++  TORCH_CHECK(nq > 0 && nk > 0 && nq <= 32 && nk <= 8 && nq % nk == 0,
++              "Unsupported head counts");
++  TORCH_CHECK(std::isfinite(eps) && eps > 0, "Invalid epsilon");
++  for (const auto& t : {qkv, qw, kw, cache, qout, kout}) {
++    TORCH_CHECK(t.device() == qkv.device() && t.scalar_type() == torch::kBFloat16
++                && t.is_contiguous(), "Requires contiguous BF16 tensors on one device");
++  }
++  TORCH_CHECK(positions.is_cuda() && positions.device() == qkv.device()
++      && positions.scalar_type() == torch::kInt64 && positions.is_contiguous()
++      && positions.dim() == 1, "Invalid positions");
++  TORCH_CHECK(qkv.dim() == 2 && qkv.size(1) == (nq + 2 * nk) * 128
++      && qkv.size(0) == positions.numel(), "Invalid QKV shape");
++  const auto n = qkv.size(0);
++  TORCH_CHECK(n <= 1024 && qw.sizes() == torch::IntArrayRef({128})
++      && kw.sizes() == torch::IntArrayRef({128}), "Invalid weight/token shape");
++  TORCH_CHECK(cache.dim() == 2 && cache.size(0) >= 1 && cache.size(1) == 128,
++              "Requires full head128 NeoX cache");
++  TORCH_CHECK(qout.sizes() == torch::IntArrayRef({n, nq * 128})
++      && kout.sizes() == torch::IntArrayRef({n, nk * 128}), "Invalid output shape");
++  for (const auto& input : {qkv, qw, kw, cache, positions}) {
++    TORCH_CHECK(!overlap(qout, input) && !overlap(kout, input), "Output aliases input");
++  }
++  TORCH_CHECK(!overlap(qout, kout), "Outputs overlap");
++  if (!n) return;
++  // The vector8 norm loads below require16-byte input/weight alignment.
++  // Contiguous tensors with a storage offset may still violate this contract.
++  for (const auto& t : {qkv, qw, kw}) {
++    TORCH_CHECK(reinterpret_cast<uintptr_t>(t.data_ptr()) % 16 == 0,
++                "Vector inputs must be16-byte aligned");
++  }
++  const at::cuda::OptionalCUDAGuard guard(device_of(qkv));
++  exact_kernel<<<n * (nq + nk), 16, 0, at::cuda::getCurrentCUDAStream()>>>(
++      qkv.data_ptr<B>(), qw.data_ptr<B>(), kw.data_ptr<B>(), cache.data_ptr<B>(),
++      positions.data_ptr<int64_t>(), qout.data_ptr<B>(), kout.data_ptr<B>(),
++      float(eps), nq, nk, cache.size(0), 128);
++  C10_CUDA_KERNEL_LAUNCH_CHECK();
++}
+diff --git a/experiments/cdb_exact_qknorm/test_cpu.py b/experiments/cdb_exact_qknorm/test_cpu.py
+new file mode 100644
+index 0000000000..eb7ed0f084
+--- /dev/null
++++ b/experiments/cdb_exact_qknorm/test_cpu.py
+@@ -0,0 +1,26 @@
++# SPDX-License-Identifier: Apache-2.0
++import importlib.util
++import os
++from pathlib import Path
++import pytest
++import torch
++
++def _module():
++    path = Path(os.environ['CDB_EXACT_BUILD_DIR']) / 'cdb_exact_qknorm_20261113.so'
++    spec = importlib.util.spec_from_file_location('cdb_exact_qknorm_20261113',path)
++    module = importlib.util.module_from_spec(spec)
++    spec.loader.exec_module(module)
++    return module
++
++@pytest.mark.skipif(not os.environ.get('CDB_EXACT_BUILD_DIR'), reason='explicit experimental binary required')
++@pytest.mark.parametrize('rows',[0,1])
++def test_cpu_inputs_rejected_before_cuda_launch(rows):
++    module = _module()
++    qkv=torch.empty((rows,4096),dtype=torch.bfloat16)
++    weight=torch.ones(128,dtype=torch.bfloat16)
++    cache=torch.zeros((1024,128),dtype=torch.bfloat16)
++    positions=torch.zeros(rows,dtype=torch.int64)
++    with pytest.raises(RuntimeError,match='QKV must be CUDA'):
++        module.forward(qkv,weight,weight,cache,positions,
++            torch.empty((rows,2048),dtype=torch.bfloat16),
++            torch.empty((rows,1024),dtype=torch.bfloat16),1e-6,16,8)
+diff --git a/experiments/cdb_exact_qknorm/test_gpu_api.py b/experiments/cdb_exact_qknorm/test_gpu_api.py
+new file mode 100644
+index 0000000000..901cc6833b
+--- /dev/null
++++ b/experiments/cdb_exact_qknorm/test_gpu_api.py
+@@ -0,0 +1,62 @@
++# SPDX-License-Identifier: Apache-2.0
++"""Explicit isolated-GPU negative API tests; no model/HTTP load."""
++import importlib.util
++import os
++import pytest
++import torch
++
++@pytest.fixture
++def arguments():
++    if os.getenv('CDB_EXACT_NEGATIVE_GPU') != '1':
++        pytest.skip('explicit isolated GPU reservation required')
++    assert os.environ['CUDA_VISIBLE_DEVICES']=='3'
++    device='cuda'
++    qkv=torch.randn(2,4096,device=device,dtype=torch.bfloat16)
++    qw=torch.ones(128,device=device,dtype=torch.bfloat16)
++    kw=qw.clone()
++    cache=torch.zeros(1024,128,device=device,dtype=torch.bfloat16)
++    positions=torch.tensor([0,1023],device=device,dtype=torch.int64)
++    qo=torch.empty(2,2048,device=device,dtype=torch.bfloat16)
++    ko=torch.empty(2,1024,device=device,dtype=torch.bfloat16)
++    return [qkv,qw,kw,cache,positions,qo,ko,1e-6,16,8]
++
++@pytest.fixture
++def extension():
++    name='cdb_exact_qknorm_20261113'
++    path=os.path.join(os.environ['CDB_EXACT_BUILD_DIR'],name+'.so')
++    spec=importlib.util.spec_from_file_location(name,path)
++    module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
++    return module
++
++@pytest.mark.parametrize('index',[0,1,2])
++def test_vector_inputs_require_16_byte_alignment(arguments,extension,index):
++    old=arguments[index]
++    shifted=torch.empty(old.numel()+1,device=old.device,dtype=old.dtype)[1:].view(old.shape)
++    shifted.copy_(old)
++    assert shifted.is_contiguous() and shifted.data_ptr()%16 != 0
++    arguments[index]=shifted
++    with pytest.raises(RuntimeError,match='16-byte aligned'):
++        extension.forward(*arguments)
++    torch.cuda.synchronize()
++
++@pytest.mark.parametrize('case,match',[
++ ('dtype','contiguous BF16'),('layout','contiguous BF16'),
++ ('positions_dtype','Invalid positions'),('positions_rows','Invalid QKV shape'),
++ ('weights_shape','Invalid weight/token shape'),('cache_shape','NeoX cache'),
++ ('output_shape','Invalid output shape'),('alias','Output aliases input'),
++ ('overlap','Outputs overlap'),('epsilon','Invalid epsilon'),('heads','Unsupported head counts'),
++])
++def test_invalid_arguments_fail_before_launch(arguments,extension,case,match):
++    if case=='dtype':arguments[0]=arguments[0].float()
++    elif case=='layout':arguments[0]=torch.empty(4096,2,device='cuda',dtype=torch.bfloat16).t()
++    elif case=='positions_dtype':arguments[4]=arguments[4].int()
++    elif case=='positions_rows':arguments[4]=arguments[4][:1]
++    elif case=='weights_shape':arguments[1]=arguments[1][:127]
++    elif case=='cache_shape':arguments[3]=arguments[3][:,:64].contiguous()
++    elif case=='output_shape':arguments[5]=arguments[5][:1]
++    elif case=='alias':arguments[5]=arguments[0].view(-1)[:4096].view(2,2048)
++    elif case=='overlap':arguments[6]=arguments[5].view(-1)[:2048].view(2,1024)
++    elif case=='epsilon':arguments[7]=float('nan')
++    elif case=='heads':arguments[8]=33
++    with pytest.raises(RuntimeError,match=match):extension.forward(*arguments)
++    torch.cuda.synchronize()
+diff --git a/experiments/cdb_exact_qknorm/validate_gpu.py b/experiments/cdb_exact_qknorm/validate_gpu.py
+new file mode 100644
+index 0000000000..697835536f
+--- /dev/null
++++ b/experiments/cdb_exact_qknorm/validate_gpu.py
+@@ -0,0 +1,106 @@
++# SPDX-License-Identifier: Apache-2.0
++import argparse,hashlib,json,math,os,statistics,subprocess,socket,time
++from pathlib import Path
++import torch
++from safetensors import safe_open
++from vllm import _custom_ops as ops
++from build import load_built,module_path
++
++def same(a,b):
++    return torch.equal(a.contiguous().view(torch.uint8),b.contiguous().view(torch.uint8))
++
++def stats(a,b):
++    if not a.numel():
++        return dict(applicable=False,byte_exact=None,max_abs=None,rms=None,rel_l2=None)
++    aa=a.float();bb=b.float();delta=aa-bb;ref=bb.norm().item()
++    finite=bool(torch.isfinite(aa).all() and torch.isfinite(bb).all())
++    return dict(applicable=True,byte_exact=same(a,b),finite=finite,
++        max_abs=delta.abs().max().item() if finite else None,
++        rms=delta.square().mean().sqrt().item() if finite else None,
++        rel_l2=delta.norm().item()/ref if finite and ref else None)
++
++def main():
++    ap=argparse.ArgumentParser();ap.add_argument('--out',required=True);args=ap.parse_args()
++    out=Path(args.out);out.mkdir()
++    used=int(subprocess.check_output(['nvidia-smi','--id=3','--query-gpu=memory.used','--format=csv,noheader,nounits'],text=True))
++    uuid=subprocess.check_output(['nvidia-smi','--id=3','--query-gpu=uuid','--format=csv,noheader'],text=True).strip()
++    assert used<1000
++    assert uuid not in subprocess.check_output(['nvidia-smi','--query-compute-apps=gpu_uuid','--format=csv,noheader'],text=True).splitlines()
++    with socket.socket() as sock:assert sock.connect_ex(('127.0.0.1',18084))!=0
++    assert os.environ['CUDA_VISIBLE_DEVICES']=='3' and torch.cuda.device_count()==1
++    ext=load_built();torch.manual_seed(42);records=[];bench=[]
++    configs={}
++    for name in ('draft','target'):
++        path=Path('/disk14T/yypan/models')/('Qwen3-1.7B' if name=='draft' else 'Qwen3-8B')
++        c=json.loads((path/'config.json').read_text());idx=json.loads((path/'model.safetensors.index.json').read_text())['weight_map']
++        configs[name]=dict(path=str(path),config=c,config_sha256=hashlib.sha256((path/'config.json').read_bytes()).hexdigest())
++        nq=c['num_attention_heads'];nk=c['num_key_value_heads'];assert c['head_dim']==128
++        weights=[]
++        for layer in range(c['num_hidden_layers']):
++            pair=[]
++            for kind in ('q','k'):
++                key=f'model.layers.{layer}.self_attn.{kind}_norm.weight'
++                with safe_open(path/idx[key],framework='pt',device='cpu') as f:
++                    pair.append(f.get_tensor(key).to(device='cuda',dtype=torch.bfloat16))
++            weights.append(pair)
++        theta=c.get('rope_theta',1e6)
++        inv=1/(theta**(torch.arange(0,128,2,device='cuda',dtype=torch.float32)/128))
++        freq=torch.arange(1024,device='cuda',dtype=torch.float32)[:,None]*inv[None,:]
++        cache=torch.cat([freq.cos(),freq.sin()],-1).to(torch.bfloat16).contiguous()
++        width=(nq+2*nk)*128
++
++        def case(rows,weight_pair,label,pattern=None):
++            x=torch.randn(rows,width,device='cuda',dtype=torch.bfloat16)
++            if pattern=='zero':x.zero_()
++            elif pattern=='tiny':x.mul_(1e-20)
++            elif pattern=='subnormal':x.fill_(1e-40)
++            elif pattern=='large':x.mul_(1e20)
++            elif pattern=='max':x.fill_(torch.finfo(torch.bfloat16).max)
++            elif pattern=='constant':x.fill_(1)
++            elif pattern=='alternating':x[:,::2]=1;x[:,1::2]=-1
++            pos=torch.randint(0,1024,(rows,),device='cuda',dtype=torch.int64)
++            if rows==4:pos.copy_(torch.tensor([0,1,1022,1023],device='cuda'))
++            qw,kw=weight_pair
++            qo=torch.empty(rows,nq*128,device='cuda',dtype=torch.bfloat16)
++            ko=torch.empty(rows,nk*128,device='cuda',dtype=torch.bfloat16)
++            rq=torch.empty_like(qo);rk=torch.empty_like(ko)
++            before=x.clone();wq=qw.clone();wk=kw.clone();cache_before=cache.clone();pos_before=pos.clone()
++            q,k,v=x.split([nq*128,nk*128,nk*128],-1)
++            def reference():
++                if rows:
++                    ops.rms_norm(rq.view(rows,nq,128),q.view(rows,nq,128),qw,1e-6)
++                    ops.rms_norm(rk.view(rows,nk,128),k.view(rows,nk,128),kw,1e-6)
++                    ops.rotary_embedding(pos,rq,rk,128,cache,True)
++            def fused():
++                ext.forward(x,qw,kw,cache,pos,qo,ko,1e-6,nq,nk)
++            reference();fused();torch.cuda.synchronize()
++            record=dict(model=name,label=label,rows=rows,Q=stats(qo,rq),K=stats(ko,rk),
++                input_byte_preserved=same(x,before),weights_preserved=same(qw,wq) and same(kw,wk),
++                positions_preserved=same(pos,pos_before),cache_preserved=same(cache,cache_before))
++            records.append(record)
++            return reference,fused,record
++
++        ones=(torch.ones(128,device='cuda',dtype=torch.bfloat16),torch.ones(128,device='cuda',dtype=torch.bfloat16))
++        for rows in (1,4,8,16,64,256):
++            for label,pair in [('ones',ones),('layer0',weights[0])]:
++                case(rows,pair,label)
++        for i,pair in enumerate(weights):
++            case(4,pair,f'learned_layer{i}')
++        for pattern in ('zero','tiny','subnormal','large','max','constant','alternating'):
++            case(4,weights[0],pattern,pattern)
++        zeros=(torch.zeros(128,device='cuda',dtype=torch.bfloat16),torch.zeros(128,device='cuda',dtype=torch.bfloat16))
++        case(4,zeros,'zero_weights')
++        case(0,ones,'empty')
++        (out/'accuracy.json').write_text(json.dumps(dict(records=records,configs=configs),indent=2))
++        bad=[z for z in records if any(z[k]['applicable'] and not z[k]['byte_exact'] for k in ('Q','K')) or not all(z[k] for k in ('input_byte_preserved','weights_preserved','positions_preserved','cache_preserved'))]
++        print('ACCURACY',name,'cases',len(records),'mismatches',len(bad),flush=True)
++
++    bad=[z for z in records if any(z[k]['applicable'] and not z[k]['byte_exact'] for k in ('Q','K')) or not all(z[k] for k in ('input_byte_preserved','weights_preserved','positions_preserved','cache_preserved'))]
++    assert not bad,'Exact-fusion comparison failed; do not benchmark/promote'
++    print('ALL EXACT',len(records),flush=True)
++    (out/'ACCEPTED.json').write_text(json.dumps(dict(cases=len(records),all_byte_exact=True,
++        binary=str(module_path()),binary_sha256=hashlib.sha256(module_path().read_bytes()).hexdigest(),
++        torch=torch.__version__,scope='Independent operators only; no model or TPS validation.'),indent=2))
++
++if __name__=='__main__':
++    with torch.inference_mode():main()
+diff --git a/scripts/cdb_av/git_workflow.py b/scripts/cdb_av/git_workflow.py
+index b6029fd118..d6431d6e3e 100755
+--- a/scripts/cdb_av/git_workflow.py
++++ b/scripts/cdb_av/git_workflow.py
+@@ -66 +66,11 @@ def unsafe_path(name: str) -> str | None:
+-    if parts & {"models", "checkpoints", "datasets", ".venv", "venv", "__pycache__"}:
++    blocked = parts & {"models", "checkpoints", "datasets", ".venv", "venv", "__pycache__"}
++    # This canonical directory contains vLLM Python implementations, not model
++    # weights. Limit the exception to files already committed in HEAD; new
++    # files (including staged-only files) and every other protection still apply.
++    if ("models" in blocked
++            and path.parts[:3] == ("vllm", "model_executor", "models")
++            and path.suffix == ".py"
++            and command(["git", "cat-file", "-e", f"HEAD:{name}"],
++                        check=False).returncode == 0):
++        blocked.discard("models")
++    if blocked:
+diff --git a/scripts/cdb_av/tests/test_git_workflow.py b/scripts/cdb_av/tests/test_git_workflow.py
+index 5fbc16eea6..96fbcd6607 100644
+--- a/scripts/cdb_av/tests/test_git_workflow.py
++++ b/scripts/cdb_av/tests/test_git_workflow.py
+@@ -2,0 +3,3 @@ import unittest
++import tempfile
++import subprocess
++from unittest.mock import patch
+@@ -46,0 +50,51 @@ class GitWorkflowTests(unittest.TestCase):
++    def _fixture_repo(self, root):
++        root = Path(root)
++        source = root / "vllm/model_executor/models/qwen3.py"
++        source.parent.mkdir(parents=True)
++        source.write_text("VALUE = 1" + chr(10))
++        compile(source.read_text(), str(source), "exec")
++        subprocess.run(["git", "init", "-q", str(root)], check=True)
++        subprocess.run(["git", "-C", str(root), "add", str(source)], check=True)
++        subprocess.run(["git", "-C", str(root), "-c", "user.name=Fixture",
++                        "-c", "user.email=fixture@example.invalid",
++                        "commit", "-qm", "source fixture"], check=True)
++        return source
++
++    def test_allow_only_head_tracked_canonical_model_source(self):
++        with tempfile.TemporaryDirectory() as root:
++            self._fixture_repo(root)
++            with patch.object(workflow, "ROOT", Path(root)):
++                self.assertIsNone(workflow.unsafe_path(
++                    "vllm/model_executor/models/qwen3.py"))
++
++    def test_reject_new_and_staged_only_model_sources(self):
++        with tempfile.TemporaryDirectory() as root:
++            source = self._fixture_repo(root)
++            new = source.with_name("new_model.py")
++            new.write_text("VALUE = 2" + chr(10))
++            with patch.object(workflow, "ROOT", Path(root)):
++                self.assertIsNotNone(workflow.unsafe_path(
++                    "vllm/model_executor/models/new_model.py"))
++                subprocess.run(["git", "-C", root, "add", str(new)], check=True)
++                self.assertIsNotNone(workflow.unsafe_path(
++                    "vllm/model_executor/models/new_model.py"))
++
++    def test_reject_model_weights_and_nested_protected_paths(self):
++        with tempfile.TemporaryDirectory() as root:
++            self._fixture_repo(root)
++            paths = ["vllm/model_executor/models/weights.safetensors",
++                     "vllm/model_executor/models/checkpoints/module.py",
++                     "models/qwen3.py"]
++            for name in paths:
++                file = Path(root) / name
++                file.parent.mkdir(parents=True, exist_ok=True)
++                file.write_text("VALUE = 3" + chr(10))
++            subprocess.run(["git", "-C", root, "add", "."], check=True)
++            subprocess.run(["git", "-C", root, "-c", "user.name=Fixture",
++                            "-c", "user.email=fixture@example.invalid",
++                            "commit", "-qm", "protected fixture"], check=True)
++            with patch.object(workflow, "ROOT", Path(root)):
++                for name in paths:
++                    with self.subTest(name=name):
++                        self.assertIsNotNone(workflow.unsafe_path(name))
++
+diff --git a/tests/v1/spec_decode/test_cdb_av_exact_qknorm.py b/tests/v1/spec_decode/test_cdb_av_exact_qknorm.py
+new file mode 100644
+index 0000000000..981f6548ac
+--- /dev/null
++++ b/tests/v1/spec_decode/test_cdb_av_exact_qknorm.py
+@@ -0,0 +1,118 @@
++# SPDX-License-Identifier: Apache-2.0
++from types import SimpleNamespace
++import hashlib
++import json
++from pathlib import Path
++import pytest
++import torch
++from torch import nn
++from vllm.model_executor.layers import cdb_exact_qknorm as mod
++
++def valid_scope():
++    return dict(dtype=torch.bfloat16,eager=True,asynchronous=False,prefix_cache=False,
++        lora=False,quantized=False,parallel_sizes=(1,1,1,1),capacity=4)
++
++def test_valid_static_scope():
++    mod.validate_scope(**valid_scope())
++
++@pytest.mark.parametrize('name,value',[
++ ('dtype',torch.float16),('eager',False),('asynchronous',True),
++ ('prefix_cache',True),('lora',True),('quantized',True),('capacity',8),
++ ('parallel_sizes',(2,1,1,1)),('parallel_sizes',(1,1,1)),
++ ('parallel_sizes',(True,1,1,1)),('batch_invariant',True)])
++def test_unsupported_scope_rejected(name,value):
++    args=valid_scope();args[name]=value
++    with pytest.raises(ValueError,match='Exact QK requires'):
++        mod.validate_scope(**args)
++
++def test_disabled_factory_never_loads_binary(monkeypatch):
++    monkeypatch.setenv('CDB_AV_EXACT_QKNORM','0')
++    monkeypatch.setattr(mod,'_load',lambda _:pytest.fail('disabled path loaded extension'))
++    assert mod.make_exact_qknorm(None,'',None) is None
++
++def test_bad_switch_rejected(monkeypatch):
++    monkeypatch.setenv('CDB_AV_EXACT_QKNORM','yes')
++    with pytest.raises(ValueError,match='Invalid exact QK switch'):
++        mod.make_exact_qknorm(None,'',None)
++
++def test_non_cdb_use_rejected_before_config(monkeypatch):
++    monkeypatch.setenv('CDB_AV_EXACT_QKNORM','1')
++    monkeypatch.setenv('CDB_AV_REFILL','0')
++    with pytest.raises(ValueError,match='persistent refill'):
++        mod.make_exact_qknorm(None,'',None)
++
++def receipt_fixture(tmp_path,monkeypatch):
++    required=['experiments/cdb_exact_qknorm/binding.cpp',
++       'experiments/cdb_exact_qknorm/kernel.cu','csrc/cub_helpers.h',
++       'csrc/quantization/vectorization_utils.cuh','csrc/quantization/vectorization.cuh']
++    for name in required:
++        p=tmp_path/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_text(name)
++    path=tmp_path/'operator.so';path.write_bytes(b'fixture binary, not loaded')
++    receipt=dict(format=1,module=mod.NAME,torch=torch.__version__,
++        binary_sha256=hashlib.sha256(path.read_bytes()).hexdigest(),
++        sources={name:hashlib.sha256((tmp_path/name).read_bytes()).hexdigest() for name in required})
++    path.with_suffix('.json').write_text(json.dumps(receipt))
++    monkeypatch.setattr(mod,'ROOT',tmp_path)
++    return path,receipt
++
++def test_receipt_provenance(tmp_path,monkeypatch):
++    path,receipt=receipt_fixture(tmp_path,monkeypatch)
++    assert mod.validate_receipt(path)==(path,receipt)
++
++@pytest.mark.parametrize('change',['binary','source','incomplete','torch'])
++def test_bad_receipt_is_rejected_before_dlopen(tmp_path,monkeypatch,change):
++    path,receipt=receipt_fixture(tmp_path,monkeypatch)
++    if change=='binary':path.write_bytes(b'changed')
++    elif change=='source':(tmp_path/'experiments/cdb_exact_qknorm/kernel.cu').write_text('changed')
++    elif change=='incomplete':receipt['sources'].pop('csrc/cub_helpers.h')
++    else:receipt['torch']='different'
++    path.with_suffix('.json').write_text(json.dumps(receipt))
++    with pytest.raises(ValueError):
++        mod.validate_receipt(path)
++
++def test_row_domain_falls_back_to_complete_native_work(monkeypatch):
++    class Rotary(nn.Module):
++        def forward(self,pos,q,k):
++            return q,k
++    att=SimpleNamespace(training=False,q_size=2048,kv_size=1024,num_heads=16,
++        num_kv_heads=8,q_norm=nn.Identity(),k_norm=nn.Identity(),rotary_emb=Rotary())
++    kernel=SimpleNamespace(forward=lambda *args:pytest.fail('out of domain used kernel'))
++    callback=mod.ExactQK(kernel,'draft','fixture')
++    data=torch.arange(1025*4096,dtype=torch.float32).reshape(1025,4096)
++    q,k=callback(att,torch.zeros(1025,dtype=torch.int64),data)
++    assert torch.equal(q,data[:,:2048])
++    assert torch.equal(k,data[:,2048:3072])
++    assert callback.fallback_seen=={'row_or_layout_domain'}
++
++@pytest.mark.parametrize('hook',[False,True])
++def test_qwen_dispatch_preserves_value_and_projection_count(hook):
++    from vllm.model_executor.models.qwen3 import Qwen3Attention
++    class Project(nn.Module):
++        def __init__(self):
++            super().__init__();self.calls=0
++        def forward(self,x):
++            self.calls+=1
++            return x,None
++    class Attend(nn.Module):
++        def forward(self,q,k,v):
++            self.inputs=(q,k,v)
++            return q
++    class Rotate(nn.Module):
++        def forward(self,pos,q,k):
++            return q,k
++    att=Qwen3Attention.__new__(Qwen3Attention);nn.Module.__init__(att)
++    att.q_size=2048;att.kv_size=1024;att.head_dim=128
++    att.qkv_proj=Project();att.o_proj=Project()
++    att.q_norm=nn.Identity();att.k_norm=nn.Identity();att.rotary_emb=Rotate()
++    att.attn=Attend()
++    def replacement(module,pos,qkv):
++        return qkv[:,:2048]+1,qkv[:,2048:3072]+1
++    att._cdb_exact_qknorm=replacement if hook else None
++    x=torch.randn(3,4096)
++    out=att.forward(torch.arange(3),x)
++    q,k,v=att.attn.inputs
++    assert torch.equal(q,x[:,:2048]+int(hook))
++    assert torch.equal(k,x[:,2048:3072]+int(hook))
++    assert torch.equal(v,x[:,3072:])
++    assert torch.equal(out,q)
++    assert att.qkv_proj.calls==att.o_proj.calls==1
+diff --git a/vllm/model_executor/layers/cdb_exact_qknorm.py b/vllm/model_executor/layers/cdb_exact_qknorm.py
+new file mode 100644
+index 0000000000..a0d62e412a
+--- /dev/null
++++ b/vllm/model_executor/layers/cdb_exact_qknorm.py
+@@ -0,0 +1,151 @@
++# SPDX-License-Identifier: Apache-2.0
++"""Opt-in experimental exact-BF16 QK norm/RoPE; static Qwen3 CDB only."""
++import functools
++import hashlib
++import importlib.util
++import json
++import os
++from pathlib import Path
++import torch
++from vllm.logger import init_logger
++
++logger = init_logger(__name__)
++ROOT = Path(__file__).resolve().parents[3]
++NAME = 'cdb_exact_qknorm_20261113'
++_EXECUTED_ROLES = set()
++
++def validate_scope(*, dtype, eager, asynchronous, prefix_cache, lora, quantized,
++                   parallel_sizes, capacity, batch_invariant=False):
++    if (dtype != torch.bfloat16 or not eager or asynchronous or prefix_cache
++            or lora or quantized or batch_invariant or capacity != 4 or len(parallel_sizes) != 4
++            or any(type(x) is not int or x != 1 for x in parallel_sizes)):
++        raise ValueError('Exact QK requires static eager BF16 CDB,capacity4,TP/PP/DP/DCP1,no async/prefix/LoRA/quantization')
++
++def validate_receipt(path):
++    path = Path(path).resolve()
++    receipt = json.loads(path.with_suffix('.json').read_text())
++    if receipt.get('format') != 1 or receipt.get('module') != NAME:
++        raise ValueError('Invalid exact QK binary receipt')
++    if receipt.get('torch') != torch.__version__:
++        raise ValueError('Exact QK Torch version changed')
++    if hashlib.sha256(path.read_bytes()).hexdigest() != receipt.get('binary_sha256'):
++        raise ValueError('Exact QK binary hash mismatch')
++    required = ('experiments/cdb_exact_qknorm/binding.cpp',
++                'experiments/cdb_exact_qknorm/kernel.cu',
++                'csrc/cub_helpers.h', 'csrc/quantization/vectorization_utils.cuh',
++                'csrc/quantization/vectorization.cuh')
++    sources = receipt.get('sources', {})
++    if set(sources) != set(required):
++        raise ValueError('Incomplete exact QK source receipt')
++    for name in required:
++        if hashlib.sha256((ROOT/name).read_bytes()).hexdigest() != sources[name]:
++            raise ValueError('Exact QK source hash mismatch: ' + name)
++    return path, receipt
++
++@functools.lru_cache(maxsize=1)
++def _load(path):
++    path, receipt = validate_receipt(path)
++    if torch.cuda.get_device_capability() != (8, 9):
++        raise ValueError('Exact QK experimental binary requires SM89')
++    spec = importlib.util.spec_from_file_location(NAME, path)
++    module = importlib.util.module_from_spec(spec)
++    spec.loader.exec_module(module)
++    logger.info('[CDB_EXACT_QK] %s', json.dumps(dict(
++        event='runtime', pid=os.getpid(), source=__file__, binary=str(path),
++        binary_sha256=receipt['binary_sha256'])))
++    return module
++
++def native_qk(attention, positions, qkv):
++    q, k, _ = qkv.split([attention.q_size,attention.kv_size,attention.kv_size], dim=-1)
++    qshape, kshape = q.shape, k.shape
++    q = attention.q_norm(q.view(*q.shape[:-1], attention.num_heads,128)).view(qshape)
++    k = attention.k_norm(k.view(*k.shape[:-1], attention.num_kv_heads,128)).view(kshape)
++    return attention.rotary_emb(positions,q,k)
++
++class ExactQK:
++    def __init__(self, kernel, role, prefix, validate=False, limit=8):
++        self.kernel=kernel;self.role=role;self.prefix=prefix
++        self.validate=validate;self.limit=limit;self.samples=0
++        self.fallback_seen=set()
++
++    def __call__(self, att, positions, qkv):
++        if att.training:
++            raise RuntimeError('Exact QK is inference only')
++        if qkv.ndim != 2 or qkv.shape[0] > 1024 or not qkv.is_contiguous():
++            reason='row_or_layout_domain'
++            if reason not in self.fallback_seen:
++                self.fallback_seen.add(reason)
++                logger.info('[CDB_EXACT_QK] %s',json.dumps(dict(
++                    event='fallback',role=self.role,prefix=self.prefix,
++                    reason=reason,shape=list(qkv.shape))))
++            return native_qk(att,positions,qkv)
++        att.rotary_emb._match_cos_sin_cache_dtype(qkv)
++        q=qkv.new_empty((qkv.shape[0],att.q_size))
++        k=qkv.new_empty((qkv.shape[0],att.kv_size))
++        self.kernel.forward(qkv,att.q_norm.weight,att.k_norm.weight,
++            att.rotary_emb.cos_sin_cache,positions,q,k,
++            att.q_norm.variance_epsilon,att.num_heads,att.num_kv_heads)
++        if self.role not in _EXECUTED_ROLES:
++            _EXECUTED_ROLES.add(self.role)
++            logger.info('[CDB_EXACT_QK] %s',json.dumps(dict(
++                event='forward_enqueued',role=self.role,prefix=self.prefix,
++                rows=qkv.shape[0],device=str(qkv.device))))
++        if self.validate and self.samples < self.limit and not torch.cuda.is_current_stream_capturing():
++            rq,rk=native_qk(att,positions,qkv)
++            exact=torch.equal(q.view(torch.uint8),rq.view(torch.uint8)) and torch.equal(k.view(torch.uint8),rk.view(torch.uint8))
++            self.samples+=1
++            logger.info('[CDB_EXACT_QK] %s',json.dumps(dict(
++                event='validate',role=self.role,prefix=self.prefix,
++                sample=self.samples,rows=qkv.shape[0],Q_shape=list(q.shape),
++                K_shape=list(k.shape),positions=positions.cpu().tolist(),
++                byte_exact=exact)))
++            if not exact:
++                raise RuntimeError('Exact QK model/native byte mismatch')
++        return q,k
++
++def make_exact_qknorm(attention, prefix, quant_config):
++    flag=os.getenv('CDB_AV_EXACT_QKNORM','0')
++    if flag not in ('0','1'):
++        raise ValueError('Invalid exact QK switch')
++    if flag=='0':
++        return None
++    if any(os.getenv(k,'0')!='1' for k in ('CDB_AV_REFILL','CDB_AV_PERSISTENT')):
++        raise ValueError('Exact QK requires CDB persistent refill')
++    from vllm.config import get_current_vllm_config
++    cfg=get_current_vllm_config();pc=cfg.parallel_config
++    from vllm.model_executor.layers.batch_invariant import vllm_is_batch_invariant
++    validate_scope(dtype=cfg.model_config.dtype,eager=cfg.model_config.enforce_eager,
++        asynchronous=cfg.scheduler_config.async_scheduling,
++        prefix_cache=cfg.cache_config.enable_prefix_caching,
++        lora=cfg.lora_config is not None,
++        quantized=quant_config is not None or cfg.model_config.quantization is not None,
++        parallel_sizes=(pc.tensor_parallel_size,pc.pipeline_parallel_size,
++            pc.data_parallel_size,pc.decode_context_parallel_size),
++        capacity=cfg.scheduler_config.max_num_seqs,batch_invariant=vllm_is_batch_invariant())
++    if (attention.head_dim != 128 or attention.num_kv_heads != 8
++            or (attention.hidden_size,attention.num_heads) not in ((2048,16),(4096,32))
++            or type(attention.rotary_emb).__name__!='RotaryEmbedding'
++            or attention.rotary_emb.rotary_dim!=128
++            or not attention.rotary_emb.is_neox_style
++            or attention.rotary_emb.use_flashinfer
++            or attention.rotary_emb._forward_method.__name__!='forward_cuda'
++            or any(not norm.has_weight or norm.variance_size_override is not None
++                   or norm.weight.dtype!=torch.bfloat16
++                   or norm._forward_method.__name__!='forward_cuda'
++                   for norm in (attention.q_norm,attention.k_norm))
++            or attention.q_norm.variance_epsilon!=attention.k_norm.variance_epsilon):
++        raise ValueError('Unsupported exact QK head/norm/RoPE domain')
++    role='draft' if attention.hidden_size==2048 else 'target'
++    mode=os.getenv('CDB_AV_EXACT_QKNORM_MODE','both')
++    if mode not in ('both','draft','target'):
++        raise ValueError('Invalid exact QK model selection')
++    if mode not in ('both',role):
++        return None
++    validate=os.getenv('CDB_AV_EXACT_QK_VALIDATE','0')=='1'
++    limit=int(os.getenv('CDB_AV_EXACT_QK_VALIDATE_SAMPLES','8'))
++    if not 1<=limit<=32:
++        raise ValueError('Invalid exact QK audit limit')
++    path=os.environ.get('CDB_AV_EXACT_QK_LIB')
++    if not path:
++        raise ValueError('CDB_AV_EXACT_QK_LIB is required')
++    return ExactQK(_load(path),role,prefix,validate,limit)
+diff --git a/vllm/model_executor/models/qwen3.py b/vllm/model_executor/models/qwen3.py
+index 707e0ccfd3..da024545df 100644
+--- a/vllm/model_executor/models/qwen3.py
++++ b/vllm/model_executor/models/qwen3.py
+@@ -135,0 +136,2 @@ class Qwen3Attention(nn.Module):
++        from vllm.model_executor.layers.cdb_exact_qknorm import make_exact_qknorm
++        self._cdb_exact_qknorm = make_exact_qknorm(self, prefix, quant_config)
+@@ -144,8 +146,11 @@ class Qwen3Attention(nn.Module):
+-        # Add qk-norm
+-        q_by_head = q.view(*q.shape[:-1], q.shape[-1] // self.head_dim, self.head_dim)
+-        q_by_head = self.q_norm(q_by_head)
+-        q = q_by_head.view(q.shape)
+-        k_by_head = k.view(*k.shape[:-1], k.shape[-1] // self.head_dim, self.head_dim)
+-        k_by_head = self.k_norm(k_by_head)
+-        k = k_by_head.view(k.shape)
+-        q, k = self.rotary_emb(positions, q, k)
++        if self._cdb_exact_qknorm is None:
++            # Add qk-norm
++            q_by_head = q.view(*q.shape[:-1], q.shape[-1] // self.head_dim, self.head_dim)
++            q_by_head = self.q_norm(q_by_head)
++            q = q_by_head.view(q.shape)
++            k_by_head = k.view(*k.shape[:-1], k.shape[-1] // self.head_dim, self.head_dim)
++            k_by_head = self.k_norm(k_by_head)
++            k = k_by_head.view(k.shape)
++            q, k = self.rotary_emb(positions, q, k)
++        else:
++            q, k = self._cdb_exact_qknorm(self, positions, qkv)

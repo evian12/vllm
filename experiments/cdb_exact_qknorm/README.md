@@ -1,5 +1,6 @@
 # Exact BF16 QK Norm/RoPE candidate
-Isolated experimental CUDA operator, not installed in any model path.
+Isolated experimental CUDA operator; default dispatch is unchanged.
+The explicit opt-in model path below is validated only in the recorded static scope.
 Preserves native vector8/CUB1024-valid16 RMSNorm reduction and BF16 rounding,
 including each multiply/add/subtract in RoPE. Head128 full NeoX only.
 Separate contiguous Q/K outputs; QKV/V/weights/cache/positions are readonly.
