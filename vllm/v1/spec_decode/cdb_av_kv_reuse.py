@@ -6,14 +6,18 @@ Ready caches remain owned but are not scheduler-frozen. A commit certificate is
 required before they can become active again. Rejection invalidates actual slots.
 """
 import os
+import json
+from vllm.logger import init_logger
 from collections import Counter
 import torch
 from vllm.v1.request import RequestStatus
 from vllm.v1.spec_decode.cdb_av_persistent import PersistentDraftQueue, PersistentDraftSession
 from vllm.v1.spec_decode.cdb_av_refill_queue import RefillQueue
 from vllm.v1.spec_decode.cdb_av_refill import emit
-from vllm.v1.spec_decode.cdb_av_fingerprint import token_fingerprint
+from vllm.v1.spec_decode.cdb_av_fingerprint import token_fingerprint, BATCH_ENABLED
 from vllm.v1.spec_decode.cdb_av_kv_metrics import kv_segment_errors
+
+logger = init_logger(__name__)
 
 
 def reuse_span_diagnostic(cached_inputs, prefix, old_prefix, drafts, certificate):
@@ -706,7 +710,13 @@ class ReuseDraftSession(PersistentDraftSession):
 
 class ReuseDraftQueue(PersistentDraftQueue):
     def __init__(self,engine):
+        from vllm.v1.spec_decode.cdb_av_config import is_enabled
+        self._reuse_parent_ownership_check = is_enabled(
+            "CDB_AV_KV_CHECK_REUSE", default=False)
         super().__init__(engine)
+        logger.info("[CDB_CPU_FASTPATH] %s", json.dumps(dict(
+            source=__file__, fingerprint_batch=BATCH_ENABLED,
+            ownership_parent_only=self._reuse_parent_ownership_check)))
         self.cached_leases={};self.commits={};self.audit_leases={}
         self.history_pages=set();self.replayed=set();self.replay_blocks=[]
         # Allocations whose rollback failed remain explicitly tracked for close().
@@ -760,6 +770,11 @@ class ReuseDraftQueue(PersistentDraftQueue):
 
     def before_target(self,output):
         super().before_target(output)
+        # The parent just validated a STRICT superset of these same pages,
+        # including audit/replay/pending owners, refcounts and null blocks.
+        # This is same-call reuse only: the parent still runs on EVERY call.
+        if getattr(self, "_reuse_parent_ownership_check", False):
+            return
         owned=[b for rows in [*self.leases.values(),*self.cached_leases.values()] for b in rows]
         ids=[b.block_id for b in owned]
         formal={b for req in self.s.running for group in self.s.kv_cache_manager.get_block_ids(req.request_id) for b in group}
