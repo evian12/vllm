@@ -1,0 +1,14 @@
+{
+  "user_instruction": "Paper and all comparative experiments explicitly disable async scheduling.",
+  "parameter": "--no-async-scheduling",
+  "applies_to": [
+    "AR",
+    "native draft_model speculative decoding",
+    "CDB"
+  ],
+  "rationale": "Controlled synchronous execution;local vLLM0.15.1 draft_model rejects native async scheduling.",
+  "conclusion_scope": "Same synchronous execution setting;not a claim against every system best configuration.",
+  "async_compatibility_development": "deferred per user clarification;continue low-level optimization with async OFF",
+  "current_paired_runs": "already all OFF;do not restart or invalidate",
+  "time": 1794543574.6424396
+}

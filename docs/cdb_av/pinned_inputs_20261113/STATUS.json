@@ -1,0 +1,75 @@
+{
+  "overall": "Partial Implementation",
+  "runtime_commit": "1096679a1401517852a18248564bc8f66b181508",
+  "default_pinned_inputs": 0,
+  "paired_tps": {
+    "0": {
+      "tps": {
+        "mean": 237.9226,
+        "sample_sd": 0.8884462842513383
+      },
+      "latency_mean_s": {
+        "mean": 8.566856558800646,
+        "sample_sd": 0.028529708318304516
+      },
+      "latency_p50_s": {
+        "mean": 8.66488257534802,
+        "sample_sd": 0.057467915213748375
+      },
+      "latency_p95_s": {
+        "mean": 10.476869351761415,
+        "sample_sd": 0.11458594555265122
+      }
+    },
+    "1": {
+      "tps": {
+        "mean": 239.8256,
+        "sample_sd": 0.8962702159505187
+      },
+      "latency_mean_s": {
+        "mean": 8.50203445685438,
+        "sample_sd": 0.034954335286601704
+      },
+      "latency_p50_s": {
+        "mean": 8.635489437263459,
+        "sample_sd": 0.04300567394893275
+      },
+      "latency_p95_s": {
+        "mean": 10.42368309124373,
+        "sample_sd": 0.06201019702932544
+      }
+    }
+  },
+  "paired_changes": {
+    "tps_change_pct": {
+      "mean": 0.8014218891715919,
+      "sample_sd": 0.6316416220328815
+    },
+    "p95_change_pct": {
+      "mean": -0.5002508747733914,
+      "sample_sd": 1.0026690610114954
+    }
+  },
+  "illustrative_paired_ci95_pct": [
+    0.017135227382205853,
+    1.5857085509609778
+  ],
+  "positive_pairs": 4,
+  "recommendation": "有限五组结果支持小幅正向收益，仍保留默认0及回退开关。",
+  "tests": {
+    "cpu": 430,
+    "gpu_skipped": 13,
+    "primitive_gpu": 8,
+    "model_requests": 32,
+    "input_field_byte_checks": 448,
+    "formal_requests": 5120
+  },
+  "async_scheduling": "OFF for all paper comparisons by user instruction",
+  "strict_full_output_equivalence_proven": false,
+  "global_optimality_proven": false,
+  "final_gpu": {
+    "gpu3_memory_mib": 15,
+    "port18084_closed": true,
+    "time": 1794547697.1375425
+  }
+}

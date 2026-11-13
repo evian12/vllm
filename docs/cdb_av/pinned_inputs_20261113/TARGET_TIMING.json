@@ -1,0 +1,1228 @@
+{
+  "samples": 8,
+  "summary": {
+    "storage_audit_cpu_ms": {
+      "mean": 0.1236841781064868,
+      "median": 0.11741789057850838,
+      "samples": [
+        0.11712126433849335,
+        0.11390727013349533,
+        0.13554096221923828,
+        0.17413217574357986,
+        0.10371673852205276,
+        0.10907463729381561,
+        0.11771451681852341,
+        0.11826585978269577
+      ]
+    },
+    "six_buffer_copies": {
+      "cpu_enqueue_ms": {
+        "mean": 0.058354693464934826,
+        "median": 0.05568796768784523,
+        "samples": [
+          0.05592312663793564,
+          0.05606282502412796,
+          0.05282275378704071,
+          0.08082389831542969,
+          0.053435564041137695,
+          0.05545280873775482,
+          0.055009499192237854,
+          0.05730707198381424
+        ]
+      },
+      "stream_span_ms": {
+        "mean": 0.07349599990993738,
+        "median": 0.07017600163817406,
+        "samples": [
+          0.0697920024394989,
+          0.07065600156784058,
+          0.06665600091218948,
+          0.10239999741315842,
+          0.06726399809122086,
+          0.07056000083684921,
+          0.0689919963479042,
+          0.0716480016708374
+        ]
+      }
+    },
+    "graph_replay": {
+      "cpu_enqueue_ms": {
+        "mean": 0.016931327991187572,
+        "median": 0.01637311652302742,
+        "samples": [
+          0.015912577509880066,
+          0.015933997929096222,
+          0.015292316675186157,
+          0.021843239665031433,
+          0.016666017472743988,
+          0.016080215573310852,
+          0.01691281795501709,
+          0.01680944114923477
+        ]
+      },
+      "stream_span_ms": {
+        "mean": 16.353872060775757,
+        "median": 16.3655366897583,
+        "samples": [
+          16.42188835144043,
+          16.36345672607422,
+          16.322240829467773,
+          16.36966323852539,
+          16.38092803955078,
+          16.367616653442383,
+          16.321535110473633,
+          16.283647537231445
+        ]
+      }
+    },
+    "graph_logits": {
+      "cpu_enqueue_ms": {
+        "mean": 0.11093285866081715,
+        "median": 0.10146712884306908,
+        "samples": [
+          0.10153651237487793,
+          0.09990017861127853,
+          0.09887106716632843,
+          0.16782246530056,
+          0.09374599903821945,
+          0.10268483310937881,
+          0.10139774531126022,
+          0.12150406837463379
+        ]
+      },
+      "stream_span_ms": {
+        "mean": 1.3956279903650284,
+        "median": 1.388975977897644,
+        "samples": [
+          1.3907519578933716,
+          1.3871999979019165,
+          1.3834880590438843,
+          1.4393279552459717,
+          1.38428795337677,
+          1.3926399946212769,
+          1.3853440284729004,
+          1.4019839763641357
+        ]
+      }
+    },
+    "static_eager": {
+      "cpu_enqueue_ms": {
+        "mean": 15.986408572643995,
+        "median": 15.133839100599289,
+        "samples": [
+          14.987373724579811,
+          14.980864711105824,
+          15.972187742590904,
+          22.00150489807129,
+          14.509486965835094,
+          14.816378243267536,
+          15.280304476618767,
+          15.343167819082737
+        ]
+      },
+      "stream_span_ms": {
+        "mean": 17.697691679000854,
+        "median": 17.059264183044434,
+        "samples": [
+          17.072383880615234,
+          17.01171112060547,
+          17.116159439086914,
+          22.216703414916992,
+          16.99123191833496,
+          17.017183303833008,
+          17.110015869140625,
+          17.046144485473633
+        ]
+      }
+    },
+    "live_eager": {
+      "cpu_enqueue_ms": {
+        "mean": 14.910969533957541,
+        "median": 14.619284775108099,
+        "samples": [
+          14.633504673838615,
+          14.58158902823925,
+          14.534787274897099,
+          16.4334699511528,
+          14.471270143985748,
+          14.605064876377583,
+          14.981157146394253,
+          15.046913176774979
+        ]
+      },
+      "stream_span_ms": {
+        "mean": 17.11418390274048,
+        "median": 16.978736877441406,
+        "samples": [
+          17.05251121520996,
+          16.975648880004883,
+          16.91811180114746,
+          18.123743057250977,
+          17.005184173583984,
+          16.98182487487793,
+          16.94108772277832,
+          16.915359497070312
+        ]
+      }
+    }
+  },
+  "records": [
+    {
+      "action": "replay",
+      "key": [
+        8,
+        4,
+        9,
+        64,
+        64,
+        0,
+        "bounded"
+      ],
+      "req_ids": [
+        "cmpl-p0_validate_r0_8-0-afa07c75",
+        "cmpl-p0_validate_r0_9-0-b053554b",
+        "cmpl-p0_validate_r0_10-0-92361e0b",
+        "cmpl-p0_validate_r0_11-0-87a6f815"
+      ],
+      "qlens": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "actual_max_sequence": 50,
+      "sample_index": 1,
+      "sample_limit": 8,
+      "measurements": {
+        "storage_audit_cpu_ms": 0.11712126433849335,
+        "six_buffer_copies": {
+          "cpu_enqueue_ms": 0.05592312663793564,
+          "stream_span_ms": 0.0697920024394989
+        },
+        "graph_replay": {
+          "cpu_enqueue_ms": 0.015912577509880066,
+          "stream_span_ms": 16.42188835144043
+        },
+        "live_storage": {
+          "input_ids": {
+            "pointer": 139192149548032,
+            "shape": [
+              8
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.int32",
+            "device": "cuda:0"
+          },
+          "positions": {
+            "pointer": 139192149556224,
+            "shape": [
+              8
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.int64",
+            "device": "cuda:0"
+          },
+          "query_start_loc": {
+            "pointer": 139192149572608,
+            "shape": [
+              5
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.int32",
+            "device": "cuda:0"
+          },
+          "seq_lens": {
+            "pointer": 139192149573120,
+            "shape": [
+              4
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.int32",
+            "device": "cuda:0"
+          },
+          "block_table": {
+            "pointer": 139192149528064,
+            "shape": [
+              4,
+              64
+            ],
+            "stride": [
+              64,
+              1
+            ],
+            "dtype": "torch.int32",
+            "device": "cuda:0"
+          },
+          "slot_mapping": {
+            "pointer": 139192149529088,
+            "shape": [
+              8
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.int64",
+            "device": "cuda:0"
+          }
+        },
+        "graph_logits": {
+          "cpu_enqueue_ms": 0.10153651237487793,
+          "stream_span_ms": 1.3907519578933716
+        },
+        "static_eager": {
+          "cpu_enqueue_ms": 14.987373724579811,
+          "stream_span_ms": 17.072383880615234
+        },
+        "static_logits": {
+          "cpu_enqueue_ms": 0.057850033044815063,
+          "stream_span_ms": 1.3670400381088257
+        },
+        "live_eager": {
+          "cpu_enqueue_ms": 14.633504673838615,
+          "stream_span_ms": 17.05251121520996
+        },
+        "live_logits": {
+          "cpu_enqueue_ms": 0.054166652262210846,
+          "stream_span_ms": 1.3741439580917358
+        }
+      },
+      "extra_graph_replays": 1,
+      "extra_eager_forwards": 2,
+      "model_scope": "Target backbone and LM Head separately; excludes sampling/commit",
+      "kv_and_hidden_exact": true
+    },
+    {
+      "action": "replay",
+      "key": [
+        8,
+        4,
+        9,
+        64,
+        64,
+        0,
+        "bounded"
+      ],
+      "req_ids": [
+        "cmpl-p0_validate_r0_3-0-a49df98b",
+        "cmpl-p0_validate_r0_7-0-a2ce4d24",
+        "cmpl-p0_validate_r0_8-0-afa07c75",
+        "cmpl-p0_validate_r0_9-0-b053554b"
+      ],
+      "qlens": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "actual_max_sequence": 56,
+      "sample_index": 2,
+      "sample_limit": 8,
+      "measurements": {
+        "storage_audit_cpu_ms": 0.11390727013349533,
+        "six_buffer_copies": {
+          "cpu_enqueue_ms": 0.05606282502412796,
+          "stream_span_ms": 0.07065600156784058
+        },
+        "graph_replay": {
+          "cpu_enqueue_ms": 0.015933997929096222,
+          "stream_span_ms": 16.36345672607422
+        },
+        "live_storage": {
+          "input_ids": {
+            "pointer": 139192149548032,
+            "shape": [
+              8
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.int32",
+            "device": "cuda:0"
+          },
+          "positions": {
+            "pointer": 139192149556224,
+            "shape": [
+              8
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.int64",
+            "device": "cuda:0"
+          },
+          "query_start_loc": {
+            "pointer": 139192149572608,
+            "shape": [
+              5
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.int32",
+            "device": "cuda:0"
+          },
+          "seq_lens": {
+            "pointer": 139192149573120,
+            "shape": [
+              4
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.int32",
+            "device": "cuda:0"
+          },
+          "block_table": {
+            "pointer": 139192149528064,
+            "shape": [
+              4,
+              64
+            ],
+            "stride": [
+              64,
+              1
+            ],
+            "dtype": "torch.int32",
+            "device": "cuda:0"
+          },
+          "slot_mapping": {
+            "pointer": 139192149529088,
+            "shape": [
+              8
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.int64",
+            "device": "cuda:0"
+          }
+        },
+        "graph_logits": {
+          "cpu_enqueue_ms": 0.09990017861127853,
+          "stream_span_ms": 1.3871999979019165
+        },
+        "static_eager": {
+          "cpu_enqueue_ms": 14.980864711105824,
+          "stream_span_ms": 17.01171112060547
+        },
+        "static_logits": {
+          "cpu_enqueue_ms": 0.05624350160360336,
+          "stream_span_ms": 1.363711953163147
+        },
+        "live_eager": {
+          "cpu_enqueue_ms": 14.58158902823925,
+          "stream_span_ms": 16.975648880004883
+        },
+        "live_logits": {
+          "cpu_enqueue_ms": 0.055042095482349396,
+          "stream_span_ms": 1.3660160303115845
+        }
+      },
+      "extra_graph_replays": 1,
+      "extra_eager_forwards": 2,
+      "model_scope": "Target backbone and LM Head separately; excludes sampling/commit",
+      "kv_and_hidden_exact": true
+    },
+    {
+      "action": "replay",
+      "key": [
+        6,
+        4,
+        9,
+        64,
+        64,
+        0,
+        "bounded"
+      ],
+      "req_ids": [
+        "cmpl-p0_validate_r0_10-0-92361e0b",
+        "cmpl-p0_validate_r0_11-0-87a6f815",
+        "cmpl-p0_validate_r0_8-0-afa07c75",
+        "cmpl-p0_validate_r0_9-0-b053554b"
+      ],
+      "qlens": [
+        2,
+        2,
+        1,
+        1
+      ],
+      "actual_max_sequence": 55,
+      "sample_index": 3,
+      "sample_limit": 8,
+      "measurements": {
+        "storage_audit_cpu_ms": 0.13554096221923828,
+        "six_buffer_copies": {
+          "cpu_enqueue_ms": 0.05282275378704071,
+          "stream_span_ms": 0.06665600091218948
+        },
+        "graph_replay": {
+          "cpu_enqueue_ms": 0.015292316675186157,
+          "stream_span_ms": 16.322240829467773
+        },
+        "live_storage": {
+          "input_ids": {
+            "pointer": 139192149548032,
+            "shape": [
+              6
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.int32",
+            "device": "cuda:0"
+          },
+          "positions": {
+            "pointer": 139192149556224,
+            "shape": [
+              6
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.int64",
+            "device": "cuda:0"
+          },
+          "query_start_loc": {
+            "pointer": 139192149572608,
+            "shape": [
+              5
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.int32",
+            "device": "cuda:0"
+          },
+          "seq_lens": {
+            "pointer": 139192149573120,
+            "shape": [
+              4
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.int32",
+            "device": "cuda:0"
+          },
+          "block_table": {
+            "pointer": 139192149528064,
+            "shape": [
+              4,
+              64
+            ],
+            "stride": [
+              64,
+              1
+            ],
+            "dtype": "torch.int32",
+            "device": "cuda:0"
+          },
+          "slot_mapping": {
+            "pointer": 139192149529088,
+            "shape": [
+              6
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.int64",
+            "device": "cuda:0"
+          }
+        },
+        "graph_logits": {
+          "cpu_enqueue_ms": 0.09887106716632843,
+          "stream_span_ms": 1.3834880590438843
+        },
+        "static_eager": {
+          "cpu_enqueue_ms": 15.972187742590904,
+          "stream_span_ms": 17.116159439086914
+        },
+        "static_logits": {
+          "cpu_enqueue_ms": 0.056187622249126434,
+          "stream_span_ms": 1.3608319759368896
+        },
+        "live_eager": {
+          "cpu_enqueue_ms": 14.534787274897099,
+          "stream_span_ms": 16.91811180114746
+        },
+        "live_logits": {
+          "cpu_enqueue_ms": 0.0591939315199852,
+          "stream_span_ms": 1.3616960048675537
+        }
+      },
+      "extra_graph_replays": 1,
+      "extra_eager_forwards": 2,
+      "model_scope": "Target backbone and LM Head separately; excludes sampling/commit",
+      "kv_and_hidden_exact": true
+    },
+    {
+      "action": "replay",
+      "key": [
+        8,
+        4,
+        9,
+        64,
+        64,
+        0,
+        "bounded"
+      ],
+      "req_ids": [
+        "cmpl-p0_validate_r0_1-0-80a59ff1",
+        "cmpl-p0_validate_r0_0-0-8f5dace9",
+        "cmpl-p0_validate_r0_4-0-9bf25867",
+        "cmpl-p0_validate_r0_15-0-ac20746f"
+      ],
+      "qlens": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "actual_max_sequence": 58,
+      "sample_index": 4,
+      "sample_limit": 8,
+      "measurements": {
+        "storage_audit_cpu_ms": 0.17413217574357986,
+        "six_buffer_copies": {
+          "cpu_enqueue_ms": 0.08082389831542969,
+          "stream_span_ms": 0.10239999741315842
+        },
+        "graph_replay": {
+          "cpu_enqueue_ms": 0.021843239665031433,
+          "stream_span_ms": 16.36966323852539
+        },
+        "live_storage": {
+          "input_ids": {
+            "pointer": 139192149548032,
+            "shape": [
+              8
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.int32",
+            "device": "cuda:0"
+          },
+          "positions": {
+            "pointer": 139192149556224,
+            "shape": [
+              8
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.int64",
+            "device": "cuda:0"
+          },
+          "query_start_loc": {
+            "pointer": 139192149572608,
+            "shape": [
+              5
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.int32",
+            "device": "cuda:0"
+          },
+          "seq_lens": {
+            "pointer": 139192149573120,
+            "shape": [
+              4
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.int32",
+            "device": "cuda:0"
+          },
+          "block_table": {
+            "pointer": 139192149528064,
+            "shape": [
+              4,
+              64
+            ],
+            "stride": [
+              64,
+              1
+            ],
+            "dtype": "torch.int32",
+            "device": "cuda:0"
+          },
+          "slot_mapping": {
+            "pointer": 139192149529088,
+            "shape": [
+              8
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.int64",
+            "device": "cuda:0"
+          }
+        },
+        "graph_logits": {
+          "cpu_enqueue_ms": 0.16782246530056,
+          "stream_span_ms": 1.4393279552459717
+        },
+        "static_eager": {
+          "cpu_enqueue_ms": 22.00150489807129,
+          "stream_span_ms": 22.216703414916992
+        },
+        "static_logits": {
+          "cpu_enqueue_ms": 0.07642246782779694,
+          "stream_span_ms": 1.3820480108261108
+        },
+        "live_eager": {
+          "cpu_enqueue_ms": 16.4334699511528,
+          "stream_span_ms": 18.123743057250977
+        },
+        "live_logits": {
+          "cpu_enqueue_ms": 0.056860968470573425,
+          "stream_span_ms": 1.3647680282592773
+        }
+      },
+      "extra_graph_replays": 1,
+      "extra_eager_forwards": 2,
+      "model_scope": "Target backbone and LM Head separately; excludes sampling/commit",
+      "kv_and_hidden_exact": true
+    },
+    {
+      "action": "replay",
+      "key": [
+        9,
+        4,
+        9,
+        64,
+        64,
+        0,
+        "bounded"
+      ],
+      "req_ids": [
+        "cmpl-p0_validate_r0_5-0-a5ad22ec",
+        "cmpl-p0_validate_r0_6-0-9cfcefcf",
+        "cmpl-p0_validate_r0_3-0-a49df98b",
+        "cmpl-p0_validate_r0_2-0-8c764021"
+      ],
+      "qlens": [
+        3,
+        2,
+        2,
+        2
+      ],
+      "actual_max_sequence": 57,
+      "sample_index": 5,
+      "sample_limit": 8,
+      "measurements": {
+        "storage_audit_cpu_ms": 0.10371673852205276,
+        "six_buffer_copies": {
+          "cpu_enqueue_ms": 0.053435564041137695,
+          "stream_span_ms": 0.06726399809122086
+        },
+        "graph_replay": {
+          "cpu_enqueue_ms": 0.016666017472743988,
+          "stream_span_ms": 16.38092803955078
+        },
+        "live_storage": {
+          "input_ids": {
+            "pointer": 139192149548032,
+            "shape": [
+              9
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.int32",
+            "device": "cuda:0"
+          },
+          "positions": {
+            "pointer": 139192149556224,
+            "shape": [
+              9
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.int64",
+            "device": "cuda:0"
+          },
+          "query_start_loc": {
+            "pointer": 139192149572608,
+            "shape": [
+              5
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.int32",
+            "device": "cuda:0"
+          },
+          "seq_lens": {
+            "pointer": 139192149573120,
+            "shape": [
+              4
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.int32",
+            "device": "cuda:0"
+          },
+          "block_table": {
+            "pointer": 139192149528064,
+            "shape": [
+              4,
+              64
+            ],
+            "stride": [
+              64,
+              1
+            ],
+            "dtype": "torch.int32",
+            "device": "cuda:0"
+          },
+          "slot_mapping": {
+            "pointer": 139192149529088,
+            "shape": [
+              9
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.int64",
+            "device": "cuda:0"
+          }
+        },
+        "graph_logits": {
+          "cpu_enqueue_ms": 0.09374599903821945,
+          "stream_span_ms": 1.38428795337677
+        },
+        "static_eager": {
+          "cpu_enqueue_ms": 14.509486965835094,
+          "stream_span_ms": 16.99123191833496
+        },
+        "static_logits": {
+          "cpu_enqueue_ms": 0.0624852254986763,
+          "stream_span_ms": 1.3701119422912598
+        },
+        "live_eager": {
+          "cpu_enqueue_ms": 14.471270143985748,
+          "stream_span_ms": 17.005184173583984
+        },
+        "live_logits": {
+          "cpu_enqueue_ms": 0.05518365651369095,
+          "stream_span_ms": 1.363968014717102
+        }
+      },
+      "extra_graph_replays": 1,
+      "extra_eager_forwards": 2,
+      "model_scope": "Target backbone and LM Head separately; excludes sampling/commit",
+      "kv_and_hidden_exact": true
+    },
+    {
+      "action": "replay",
+      "key": [
+        9,
+        4,
+        9,
+        64,
+        64,
+        0,
+        "bounded"
+      ],
+      "req_ids": [
+        "cmpl-p0_validate_r0_7-0-a2ce4d24",
+        "cmpl-p0_validate_r0_8-0-afa07c75",
+        "cmpl-p0_validate_r0_12-0-8da66a17",
+        "cmpl-p0_validate_r0_2-0-8c764021"
+      ],
+      "qlens": [
+        2,
+        2,
+        4,
+        1
+      ],
+      "actual_max_sequence": 58,
+      "sample_index": 6,
+      "sample_limit": 8,
+      "measurements": {
+        "storage_audit_cpu_ms": 0.10907463729381561,
+        "six_buffer_copies": {
+          "cpu_enqueue_ms": 0.05545280873775482,
+          "stream_span_ms": 0.07056000083684921
+        },
+        "graph_replay": {
+          "cpu_enqueue_ms": 0.016080215573310852,
+          "stream_span_ms": 16.367616653442383
+        },
+        "live_storage": {
+          "input_ids": {
+            "pointer": 139192149548032,
+            "shape": [
+              9
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.int32",
+            "device": "cuda:0"
+          },
+          "positions": {
+            "pointer": 139192149556224,
+            "shape": [
+              9
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.int64",
+            "device": "cuda:0"
+          },
+          "query_start_loc": {
+            "pointer": 139192149572608,
+            "shape": [
+              5
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.int32",
+            "device": "cuda:0"
+          },
+          "seq_lens": {
+            "pointer": 139192149573120,
+            "shape": [
+              4
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.int32",
+            "device": "cuda:0"
+          },
+          "block_table": {
+            "pointer": 139192149528064,
+            "shape": [
+              4,
+              64
+            ],
+            "stride": [
+              64,
+              1
+            ],
+            "dtype": "torch.int32",
+            "device": "cuda:0"
+          },
+          "slot_mapping": {
+            "pointer": 139192149529088,
+            "shape": [
+              9
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.int64",
+            "device": "cuda:0"
+          }
+        },
+        "graph_logits": {
+          "cpu_enqueue_ms": 0.10268483310937881,
+          "stream_span_ms": 1.3926399946212769
+        },
+        "static_eager": {
+          "cpu_enqueue_ms": 14.816378243267536,
+          "stream_span_ms": 17.017183303833008
+        },
+        "static_logits": {
+          "cpu_enqueue_ms": 0.05649402737617493,
+          "stream_span_ms": 1.3657599687576294
+        },
+        "live_eager": {
+          "cpu_enqueue_ms": 14.605064876377583,
+          "stream_span_ms": 16.98182487487793
+        },
+        "live_logits": {
+          "cpu_enqueue_ms": 0.05781184881925583,
+          "stream_span_ms": 1.3659839630126953
+        }
+      },
+      "extra_graph_replays": 1,
+      "extra_eager_forwards": 2,
+      "model_scope": "Target backbone and LM Head separately; excludes sampling/commit",
+      "kv_and_hidden_exact": true
+    },
+    {
+      "action": "replay",
+      "key": [
+        6,
+        4,
+        9,
+        64,
+        64,
+        0,
+        "bounded"
+      ],
+      "req_ids": [
+        "cmpl-p0_validate_r0_9-0-b053554b",
+        "cmpl-p0_validate_r0_8-0-afa07c75",
+        "cmpl-p0_validate_r0_12-0-8da66a17",
+        "cmpl-p0_validate_r0_10-0-92361e0b"
+      ],
+      "qlens": [
+        3,
+        1,
+        1,
+        1
+      ],
+      "actual_max_sequence": 46,
+      "sample_index": 7,
+      "sample_limit": 8,
+      "measurements": {
+        "storage_audit_cpu_ms": 0.11771451681852341,
+        "six_buffer_copies": {
+          "cpu_enqueue_ms": 0.055009499192237854,
+          "stream_span_ms": 0.0689919963479042
+        },
+        "graph_replay": {
+          "cpu_enqueue_ms": 0.01691281795501709,
+          "stream_span_ms": 16.321535110473633
+        },
+        "live_storage": {
+          "input_ids": {
+            "pointer": 139192149548032,
+            "shape": [
+              6
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.int32",
+            "device": "cuda:0"
+          },
+          "positions": {
+            "pointer": 139192149556224,
+            "shape": [
+              6
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.int64",
+            "device": "cuda:0"
+          },
+          "query_start_loc": {
+            "pointer": 139192149572608,
+            "shape": [
+              5
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.int32",
+            "device": "cuda:0"
+          },
+          "seq_lens": {
+            "pointer": 139192149573120,
+            "shape": [
+              4
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.int32",
+            "device": "cuda:0"
+          },
+          "block_table": {
+            "pointer": 139192149528064,
+            "shape": [
+              4,
+              64
+            ],
+            "stride": [
+              64,
+              1
+            ],
+            "dtype": "torch.int32",
+            "device": "cuda:0"
+          },
+          "slot_mapping": {
+            "pointer": 139192149529088,
+            "shape": [
+              6
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.int64",
+            "device": "cuda:0"
+          }
+        },
+        "graph_logits": {
+          "cpu_enqueue_ms": 0.10139774531126022,
+          "stream_span_ms": 1.3853440284729004
+        },
+        "static_eager": {
+          "cpu_enqueue_ms": 15.280304476618767,
+          "stream_span_ms": 17.110015869140625
+        },
+        "static_logits": {
+          "cpu_enqueue_ms": 0.06930716335773468,
+          "stream_span_ms": 1.3718080520629883
+        },
+        "live_eager": {
+          "cpu_enqueue_ms": 14.981157146394253,
+          "stream_span_ms": 16.94108772277832
+        },
+        "live_logits": {
+          "cpu_enqueue_ms": 0.054873526096343994,
+          "stream_span_ms": 1.3575999736785889
+        }
+      },
+      "extra_graph_replays": 1,
+      "extra_eager_forwards": 2,
+      "model_scope": "Target backbone and LM Head separately; excludes sampling/commit",
+      "kv_and_hidden_exact": true
+    },
+    {
+      "action": "replay",
+      "key": [
+        5,
+        4,
+        9,
+        64,
+        64,
+        0,
+        "bounded"
+      ],
+      "req_ids": [
+        "cmpl-p0_validate_r0_9-0-b053554b",
+        "cmpl-p0_validate_r0_13-0-946310a1",
+        "cmpl-p0_validate_r0_12-0-8da66a17",
+        "cmpl-p0_validate_r0_10-0-92361e0b"
+      ],
+      "qlens": [
+        1,
+        2,
+        1,
+        1
+      ],
+      "actual_max_sequence": 47,
+      "sample_index": 8,
+      "sample_limit": 8,
+      "measurements": {
+        "storage_audit_cpu_ms": 0.11826585978269577,
+        "six_buffer_copies": {
+          "cpu_enqueue_ms": 0.05730707198381424,
+          "stream_span_ms": 0.0716480016708374
+        },
+        "graph_replay": {
+          "cpu_enqueue_ms": 0.01680944114923477,
+          "stream_span_ms": 16.283647537231445
+        },
+        "live_storage": {
+          "input_ids": {
+            "pointer": 139192149548032,
+            "shape": [
+              5
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.int32",
+            "device": "cuda:0"
+          },
+          "positions": {
+            "pointer": 139192149556224,
+            "shape": [
+              5
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.int64",
+            "device": "cuda:0"
+          },
+          "query_start_loc": {
+            "pointer": 139192149572608,
+            "shape": [
+              5
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.int32",
+            "device": "cuda:0"
+          },
+          "seq_lens": {
+            "pointer": 139192149573120,
+            "shape": [
+              4
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.int32",
+            "device": "cuda:0"
+          },
+          "block_table": {
+            "pointer": 139192149528064,
+            "shape": [
+              4,
+              64
+            ],
+            "stride": [
+              64,
+              1
+            ],
+            "dtype": "torch.int32",
+            "device": "cuda:0"
+          },
+          "slot_mapping": {
+            "pointer": 139192149529088,
+            "shape": [
+              5
+            ],
+            "stride": [
+              1
+            ],
+            "dtype": "torch.int64",
+            "device": "cuda:0"
+          }
+        },
+        "graph_logits": {
+          "cpu_enqueue_ms": 0.12150406837463379,
+          "stream_span_ms": 1.4019839763641357
+        },
+        "static_eager": {
+          "cpu_enqueue_ms": 15.343167819082737,
+          "stream_span_ms": 17.046144485473633
+        },
+        "static_logits": {
+          "cpu_enqueue_ms": 0.057416968047618866,
+          "stream_span_ms": 1.3587839603424072
+        },
+        "live_eager": {
+          "cpu_enqueue_ms": 15.046913176774979,
+          "stream_span_ms": 16.915359497070312
+        },
+        "live_logits": {
+          "cpu_enqueue_ms": 0.06094202399253845,
+          "stream_span_ms": 1.361664056777954
+        }
+      },
+      "extra_graph_replays": 1,
+      "extra_eager_forwards": 2,
+      "model_scope": "Target backbone and LM Head separately; excludes sampling/commit",
+      "kv_and_hidden_exact": true
+    }
+  ],
+  "scope": "Bounded heavy-audit current-stream spans with host gaps;not pure activeGPU/kernel time or productionTPS."
+}

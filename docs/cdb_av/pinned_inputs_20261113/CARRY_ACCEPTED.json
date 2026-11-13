@@ -1,0 +1,542 @@
+{
+  "requests": 16,
+  "tokens": 1024,
+  "byte_checks": 37,
+  "with_real_target": 37,
+  "checked_bytes": 346816512,
+  "examples": [
+    {
+      "event": "carry_kv_unchanged",
+      "window": 3,
+      "req_id": "cmpl-p0_validate_r0_4-0-9bf25867",
+      "target_epoch": 12,
+      "previous_target_epoch": 6,
+      "checked_bytes": 5505024,
+      "layers": 28
+    },
+    {
+      "event": "carry_kv_unchanged",
+      "window": 3,
+      "req_id": "cmpl-p0_validate_r0_12-0-8da66a17",
+      "target_epoch": 12,
+      "previous_target_epoch": 6,
+      "checked_bytes": 5505024,
+      "layers": 28
+    },
+    {
+      "event": "carry_kv_unchanged",
+      "window": 3,
+      "req_id": "cmpl-p0_validate_r0_15-0-ac20746f",
+      "target_epoch": 12,
+      "previous_target_epoch": 6,
+      "checked_bytes": 7340032,
+      "layers": 28
+    }
+  ],
+  "graph_audit": {
+    "draft_checks": 157,
+    "target_checks": 8,
+    "all_checks_pass": true,
+    "new_query5_to8_checks": 10,
+    "new_actual_max_query_hist": {
+      "6": 2,
+      "8": 2,
+      "5": 5,
+      "7": 1
+    },
+    "new_shape_examples": [
+      {
+        "action": "replay",
+        "phase": "mixed_prefill_decode",
+        "rows": 9,
+        "seq_bucket": 64,
+        "query_lengths": [
+          1,
+          1,
+          1,
+          6
+        ],
+        "capture_query_lengths": [
+          1,
+          3,
+          3,
+          2
+        ],
+        "static_max_query_len": 8,
+        "dynamic_layout": true,
+        "kv_exact": true,
+        "token_exact": true,
+        "logits_close": true,
+        "max_abs": 0.0,
+        "dynamic_token_exact": true,
+        "dynamic_kv_exact": true,
+        "dynamic_max_abs": 0.0
+      },
+      {
+        "action": "capture",
+        "phase": "mixed_prefill_decode",
+        "rows": 11,
+        "seq_bucket": 128,
+        "query_lengths": [
+          1,
+          1,
+          1,
+          8
+        ],
+        "capture_query_lengths": [
+          1,
+          1,
+          1,
+          8
+        ],
+        "static_max_query_len": 8,
+        "dynamic_layout": true,
+        "kv_exact": true,
+        "token_exact": true,
+        "logits_close": true,
+        "max_abs": 0.0,
+        "dynamic_token_exact": true,
+        "dynamic_kv_exact": true,
+        "dynamic_max_abs": 0.0
+      },
+      {
+        "action": "capture",
+        "phase": "mixed_prefill_decode",
+        "rows": 8,
+        "seq_bucket": 128,
+        "query_lengths": [
+          1,
+          1,
+          1,
+          5
+        ],
+        "capture_query_lengths": [
+          1,
+          1,
+          1,
+          5
+        ],
+        "static_max_query_len": 8,
+        "dynamic_layout": true,
+        "kv_exact": true,
+        "token_exact": true,
+        "logits_close": true,
+        "max_abs": 0.0,
+        "dynamic_token_exact": true,
+        "dynamic_kv_exact": true,
+        "dynamic_max_abs": 0.0
+      },
+      {
+        "action": "replay",
+        "phase": "mixed_prefill_decode",
+        "rows": 8,
+        "seq_bucket": 128,
+        "query_lengths": [
+          1,
+          1,
+          1,
+          5
+        ],
+        "capture_query_lengths": [
+          1,
+          1,
+          1,
+          5
+        ],
+        "static_max_query_len": 8,
+        "dynamic_layout": true,
+        "kv_exact": true,
+        "token_exact": true,
+        "logits_close": true,
+        "max_abs": 0.0,
+        "dynamic_token_exact": true,
+        "dynamic_kv_exact": true,
+        "dynamic_max_abs": 0.0
+      },
+      {
+        "action": "capture",
+        "phase": "mixed_prefill_decode",
+        "rows": 9,
+        "seq_bucket": 128,
+        "query_lengths": [
+          1,
+          1,
+          2,
+          5
+        ],
+        "capture_query_lengths": [
+          1,
+          1,
+          2,
+          5
+        ],
+        "static_max_query_len": 8,
+        "dynamic_layout": true,
+        "kv_exact": true,
+        "token_exact": true,
+        "logits_close": true,
+        "max_abs": 0.0,
+        "dynamic_token_exact": true,
+        "dynamic_kv_exact": true,
+        "dynamic_max_abs": 0.0
+      }
+    ],
+    "q8_key_layouts": [
+      {
+        "key": [
+          5,
+          64,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            1,
+            2
+          ],
+          [
+            1,
+            1,
+            2,
+            1
+          ]
+        ]
+      },
+      {
+        "key": [
+          6,
+          64,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            1,
+            3
+          ],
+          [
+            1,
+            1,
+            2,
+            2
+          ],
+          [
+            1,
+            2,
+            1,
+            2
+          ],
+          [
+            1,
+            2,
+            2,
+            1
+          ]
+        ]
+      },
+      {
+        "key": [
+          9,
+          64,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            1,
+            6
+          ],
+          [
+            1,
+            3,
+            3,
+            2
+          ]
+        ]
+      },
+      {
+        "key": [
+          5,
+          64,
+          3
+        ],
+        "layouts": [
+          [
+            1,
+            2,
+            2
+          ],
+          [
+            2,
+            2,
+            1
+          ]
+        ]
+      },
+      {
+        "key": [
+          7,
+          64,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            1,
+            4
+          ],
+          [
+            1,
+            3,
+            2,
+            1
+          ]
+        ]
+      },
+      {
+        "key": [
+          5,
+          128,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            1,
+            2
+          ],
+          [
+            1,
+            1,
+            2,
+            1
+          ]
+        ]
+      },
+      {
+        "key": [
+          11,
+          128,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            1,
+            8
+          ],
+          [
+            1,
+            1,
+            7,
+            2
+          ]
+        ]
+      },
+      {
+        "key": [
+          7,
+          128,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            1,
+            4
+          ],
+          [
+            1,
+            1,
+            2,
+            3
+          ],
+          [
+            1,
+            1,
+            3,
+            2
+          ],
+          [
+            1,
+            2,
+            2,
+            2
+          ]
+        ]
+      },
+      {
+        "key": [
+          8,
+          128,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            1,
+            5
+          ],
+          [
+            1,
+            1,
+            3,
+            3
+          ],
+          [
+            1,
+            3,
+            2,
+            2
+          ]
+        ]
+      },
+      {
+        "key": [
+          6,
+          128,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            1,
+            3
+          ],
+          [
+            1,
+            1,
+            2,
+            2
+          ],
+          [
+            1,
+            1,
+            3,
+            1
+          ]
+        ]
+      },
+      {
+        "key": [
+          5,
+          128,
+          3
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            3
+          ],
+          [
+            1,
+            2,
+            2
+          ],
+          [
+            1,
+            3,
+            1
+          ],
+          [
+            2,
+            1,
+            2
+          ]
+        ]
+      },
+      {
+        "key": [
+          4,
+          128,
+          3
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            2
+          ],
+          [
+            1,
+            2,
+            1
+          ],
+          [
+            2,
+            1,
+            1
+          ]
+        ]
+      },
+      {
+        "key": [
+          9,
+          128,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            1,
+            6
+          ],
+          [
+            1,
+            1,
+            2,
+            5
+          ],
+          [
+            1,
+            1,
+            5,
+            2
+          ],
+          [
+            1,
+            2,
+            2,
+            4
+          ]
+        ]
+      }
+    ],
+    "draft_layers": 28,
+    "target_layers": 36,
+    "errors": [],
+    "ready_reasons": {
+      "low_confidence": 235,
+      "max_k": 28
+    },
+    "cleanup": {
+      "port_closed": true,
+      "gpu3_memory_mib": 15,
+      "time": 1794545565.9375966
+    },
+    "carry_snapshot_pairs": 37,
+    "carry_with_real_target_interleave": 37,
+    "resumed_actual_decode_associations": 37,
+    "final_reset": {
+      "event": "p2_reset",
+      "window": 30,
+      "target_epoch": 140,
+      "released_blocks": 0,
+      "live_leases": 0,
+      "ready": 0,
+      "inflight": 0
+    }
+  },
+  "scope": "Exact all28Draftlayer allocatedpage bytes,inclusive unused NaNpayload bits;CPU states/actualDecode association separately audited."
+}

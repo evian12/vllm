@@ -1,0 +1,1889 @@
+{
+  "requests": 32,
+  "tokens": 4096,
+  "input_samples": 64,
+  "integer_field_byte_checks": 448,
+  "actual_forward_associations": [
+    {
+      "call": 1,
+      "window": 1,
+      "step": 1,
+      "req_ids": [
+        "cmpl-p0_validate_r0_2-0-b6f71cf6"
+      ],
+      "rows": 41
+    },
+    {
+      "call": 2,
+      "window": 1,
+      "step": 3,
+      "req_ids": [
+        "cmpl-p0_validate_r0_3-0-8ee58960",
+        "cmpl-p0_validate_r0_4-0-9784a626",
+        "cmpl-p0_validate_r0_1-0-a27fdeeb",
+        "cmpl-p0_validate_r0_0-0-8ee83c01"
+      ],
+      "rows": 128
+    },
+    {
+      "call": 3,
+      "window": 1,
+      "step": 4,
+      "req_ids": [
+        "cmpl-p0_validate_r0_5-0-b7155cff",
+        "cmpl-p0_validate_r0_6-0-a14b0ca8",
+        "cmpl-p0_validate_r0_7-0-8660f7e9",
+        "cmpl-p0_validate_r0_8-0-856be862"
+      ],
+      "rows": 151
+    },
+    {
+      "call": 4,
+      "window": 1,
+      "step": 5,
+      "req_ids": [
+        "cmpl-p0_validate_r0_9-0-b1f26986",
+        "cmpl-p0_validate_r0_10-0-b96c480e",
+        "cmpl-p0_validate_r0_11-0-921a6475",
+        "cmpl-p0_validate_r0_12-0-9a4722f8"
+      ],
+      "rows": 145
+    },
+    {
+      "call": 5,
+      "window": 1,
+      "step": 6,
+      "req_ids": [
+        "cmpl-p0_validate_r0_13-0-9f38f67b",
+        "cmpl-p0_validate_r0_14-0-95479227",
+        "cmpl-p0_validate_r0_15-0-b69105f4"
+      ],
+      "rows": 125
+    },
+    {
+      "call": 6,
+      "window": 2,
+      "step": 1,
+      "req_ids": [
+        "cmpl-p0_validate_r0_2-0-b6f71cf6",
+        "cmpl-p0_validate_r0_3-0-8ee58960",
+        "cmpl-p0_validate_r0_4-0-9784a626"
+      ],
+      "rows": 4
+    },
+    {
+      "call": 7,
+      "window": 2,
+      "step": 2,
+      "req_ids": [
+        "cmpl-p0_validate_r0_3-0-8ee58960",
+        "cmpl-p0_validate_r0_4-0-9784a626",
+        "cmpl-p0_validate_r0_1-0-a27fdeeb"
+      ],
+      "rows": 3
+    },
+    {
+      "call": 8,
+      "window": 2,
+      "step": 3,
+      "req_ids": [
+        "cmpl-p0_validate_r0_3-0-8ee58960",
+        "cmpl-p0_validate_r0_4-0-9784a626",
+        "cmpl-p0_validate_r0_0-0-8ee83c01",
+        "cmpl-p0_validate_r0_5-0-b7155cff"
+      ],
+      "rows": 6
+    },
+    {
+      "call": 9,
+      "window": 2,
+      "step": 4,
+      "req_ids": [
+        "cmpl-p0_validate_r0_4-0-9784a626",
+        "cmpl-p0_validate_r0_0-0-8ee83c01",
+        "cmpl-p0_validate_r0_6-0-a14b0ca8",
+        "cmpl-p0_validate_r0_7-0-8660f7e9"
+      ],
+      "rows": 6
+    },
+    {
+      "call": 10,
+      "window": 2,
+      "step": 5,
+      "req_ids": [
+        "cmpl-p0_validate_r0_4-0-9784a626",
+        "cmpl-p0_validate_r0_0-0-8ee83c01",
+        "cmpl-p0_validate_r0_8-0-856be862",
+        "cmpl-p0_validate_r0_9-0-b1f26986"
+      ],
+      "rows": 7
+    },
+    {
+      "call": 11,
+      "window": 2,
+      "step": 6,
+      "req_ids": [
+        "cmpl-p0_validate_r0_4-0-9784a626",
+        "cmpl-p0_validate_r0_9-0-b1f26986",
+        "cmpl-p0_validate_r0_10-0-b96c480e",
+        "cmpl-p0_validate_r0_11-0-921a6475"
+      ],
+      "rows": 7
+    },
+    {
+      "call": 12,
+      "window": 2,
+      "step": 7,
+      "req_ids": [
+        "cmpl-p0_validate_r0_4-0-9784a626",
+        "cmpl-p0_validate_r0_11-0-921a6475",
+        "cmpl-p0_validate_r0_12-0-9a4722f8",
+        "cmpl-p0_validate_r0_13-0-9f38f67b"
+      ],
+      "rows": 6
+    },
+    {
+      "call": 13,
+      "window": 2,
+      "step": 8,
+      "req_ids": [
+        "cmpl-p0_validate_r0_4-0-9784a626",
+        "cmpl-p0_validate_r0_12-0-9a4722f8",
+        "cmpl-p0_validate_r0_14-0-95479227",
+        "cmpl-p0_validate_r0_15-0-b69105f4"
+      ],
+      "rows": 5
+    },
+    {
+      "call": 14,
+      "window": 3,
+      "step": 1,
+      "req_ids": [
+        "cmpl-p0_validate_r0_12-0-9a4722f8",
+        "cmpl-p0_validate_r0_15-0-b69105f4",
+        "cmpl-p0_validate_r0_2-0-b6f71cf6"
+      ],
+      "rows": 4
+    },
+    {
+      "call": 15,
+      "window": 3,
+      "step": 2,
+      "req_ids": [
+        "cmpl-p0_validate_r0_12-0-9a4722f8",
+        "cmpl-p0_validate_r0_15-0-b69105f4",
+        "cmpl-p0_validate_r0_3-0-8ee58960",
+        "cmpl-p0_validate_r0_1-0-a27fdeeb"
+      ],
+      "rows": 5
+    },
+    {
+      "call": 16,
+      "window": 3,
+      "step": 3,
+      "req_ids": [
+        "cmpl-p0_validate_r0_12-0-9a4722f8",
+        "cmpl-p0_validate_r0_0-0-8ee83c01",
+        "cmpl-p0_validate_r0_5-0-b7155cff",
+        "cmpl-p0_validate_r0_6-0-a14b0ca8"
+      ],
+      "rows": 6
+    },
+    {
+      "call": 17,
+      "window": 3,
+      "step": 4,
+      "req_ids": [
+        "cmpl-p0_validate_r0_12-0-9a4722f8",
+        "cmpl-p0_validate_r0_7-0-8660f7e9",
+        "cmpl-p0_validate_r0_8-0-856be862",
+        "cmpl-p0_validate_r0_9-0-b1f26986"
+      ],
+      "rows": 6
+    },
+    {
+      "call": 18,
+      "window": 3,
+      "step": 5,
+      "req_ids": [
+        "cmpl-p0_validate_r0_4-0-9784a626",
+        "cmpl-p0_validate_r0_10-0-b96c480e",
+        "cmpl-p0_validate_r0_11-0-921a6475",
+        "cmpl-p0_validate_r0_13-0-9f38f67b"
+      ],
+      "rows": 7
+    },
+    {
+      "call": 19,
+      "window": 3,
+      "step": 6,
+      "req_ids": [
+        "cmpl-p0_validate_r0_14-0-95479227"
+      ],
+      "rows": 2
+    },
+    {
+      "call": 20,
+      "window": 4,
+      "step": 1,
+      "req_ids": [
+        "cmpl-p0_validate_r0_2-0-b6f71cf6",
+        "cmpl-p0_validate_r0_3-0-8ee58960",
+        "cmpl-p0_validate_r0_1-0-a27fdeeb"
+      ],
+      "rows": 3
+    },
+    {
+      "call": 21,
+      "window": 4,
+      "step": 2,
+      "req_ids": [
+        "cmpl-p0_validate_r0_15-0-b69105f4"
+      ],
+      "rows": 1
+    },
+    {
+      "call": 22,
+      "window": 4,
+      "step": 3,
+      "req_ids": [
+        "cmpl-p0_validate_r0_0-0-8ee83c01",
+        "cmpl-p0_validate_r0_5-0-b7155cff",
+        "cmpl-p0_validate_r0_6-0-a14b0ca8",
+        "cmpl-p0_validate_r0_12-0-9a4722f8"
+      ],
+      "rows": 6
+    },
+    {
+      "call": 23,
+      "window": 4,
+      "step": 4,
+      "req_ids": [
+        "cmpl-p0_validate_r0_5-0-b7155cff",
+        "cmpl-p0_validate_r0_12-0-9a4722f8",
+        "cmpl-p0_validate_r0_4-0-9784a626",
+        "cmpl-p0_validate_r0_7-0-8660f7e9"
+      ],
+      "rows": 4
+    },
+    {
+      "call": 24,
+      "window": 4,
+      "step": 5,
+      "req_ids": [
+        "cmpl-p0_validate_r0_12-0-9a4722f8",
+        "cmpl-p0_validate_r0_4-0-9784a626",
+        "cmpl-p0_validate_r0_8-0-856be862",
+        "cmpl-p0_validate_r0_9-0-b1f26986"
+      ],
+      "rows": 8
+    },
+    {
+      "call": 25,
+      "window": 4,
+      "step": 6,
+      "req_ids": [
+        "cmpl-p0_validate_r0_9-0-b1f26986",
+        "cmpl-p0_validate_r0_10-0-b96c480e",
+        "cmpl-p0_validate_r0_11-0-921a6475",
+        "cmpl-p0_validate_r0_13-0-9f38f67b"
+      ],
+      "rows": 7
+    },
+    {
+      "call": 26,
+      "window": 4,
+      "step": 7,
+      "req_ids": [
+        "cmpl-p0_validate_r0_9-0-b1f26986",
+        "cmpl-p0_validate_r0_11-0-921a6475",
+        "cmpl-p0_validate_r0_14-0-95479227"
+      ],
+      "rows": 3
+    },
+    {
+      "call": 27,
+      "window": 4,
+      "step": 8,
+      "req_ids": [
+        "cmpl-p0_validate_r0_9-0-b1f26986"
+      ],
+      "rows": 1
+    },
+    {
+      "call": 28,
+      "window": 5,
+      "step": 1,
+      "req_ids": [
+        "cmpl-p0_validate_r0_9-0-b1f26986",
+        "cmpl-p0_validate_r0_2-0-b6f71cf6",
+        "cmpl-p0_validate_r0_3-0-8ee58960"
+      ],
+      "rows": 4
+    },
+    {
+      "call": 29,
+      "window": 5,
+      "step": 2,
+      "req_ids": [
+        "cmpl-p0_validate_r0_9-0-b1f26986",
+        "cmpl-p0_validate_r0_1-0-a27fdeeb",
+        "cmpl-p0_validate_r0_15-0-b69105f4"
+      ],
+      "rows": 4
+    },
+    {
+      "call": 30,
+      "window": 5,
+      "step": 3,
+      "req_ids": [
+        "cmpl-p0_validate_r0_9-0-b1f26986",
+        "cmpl-p0_validate_r0_0-0-8ee83c01",
+        "cmpl-p0_validate_r0_5-0-b7155cff",
+        "cmpl-p0_validate_r0_6-0-a14b0ca8"
+      ],
+      "rows": 6
+    },
+    {
+      "call": 31,
+      "window": 5,
+      "step": 4,
+      "req_ids": [
+        "cmpl-p0_validate_r0_9-0-b1f26986",
+        "cmpl-p0_validate_r0_0-0-8ee83c01",
+        "cmpl-p0_validate_r0_5-0-b7155cff",
+        "cmpl-p0_validate_r0_4-0-9784a626"
+      ],
+      "rows": 4
+    },
+    {
+      "call": 32,
+      "window": 5,
+      "step": 5,
+      "req_ids": [
+        "cmpl-p0_validate_r0_0-0-8ee83c01",
+        "cmpl-p0_validate_r0_5-0-b7155cff",
+        "cmpl-p0_validate_r0_7-0-8660f7e9",
+        "cmpl-p0_validate_r0_8-0-856be862"
+      ],
+      "rows": 8
+    },
+    {
+      "call": 33,
+      "window": 5,
+      "step": 6,
+      "req_ids": [
+        "cmpl-p0_validate_r0_0-0-8ee83c01",
+        "cmpl-p0_validate_r0_5-0-b7155cff",
+        "cmpl-p0_validate_r0_10-0-b96c480e",
+        "cmpl-p0_validate_r0_11-0-921a6475"
+      ],
+      "rows": 5
+    },
+    {
+      "call": 34,
+      "window": 5,
+      "step": 7,
+      "req_ids": [
+        "cmpl-p0_validate_r0_0-0-8ee83c01",
+        "cmpl-p0_validate_r0_5-0-b7155cff",
+        "cmpl-p0_validate_r0_10-0-b96c480e",
+        "cmpl-p0_validate_r0_12-0-9a4722f8"
+      ],
+      "rows": 7
+    },
+    {
+      "call": 35,
+      "window": 5,
+      "step": 8,
+      "req_ids": [
+        "cmpl-p0_validate_r0_0-0-8ee83c01",
+        "cmpl-p0_validate_r0_5-0-b7155cff",
+        "cmpl-p0_validate_r0_10-0-b96c480e",
+        "cmpl-p0_validate_r0_12-0-9a4722f8"
+      ],
+      "rows": 4
+    },
+    {
+      "call": 36,
+      "window": 6,
+      "step": 1,
+      "req_ids": [
+        "cmpl-p0_validate_r0_0-0-8ee83c01",
+        "cmpl-p0_validate_r0_5-0-b7155cff",
+        "cmpl-p0_validate_r0_10-0-b96c480e",
+        "cmpl-p0_validate_r0_12-0-9a4722f8"
+      ],
+      "rows": 4
+    },
+    {
+      "call": 37,
+      "window": 6,
+      "step": 2,
+      "req_ids": [
+        "cmpl-p0_validate_r0_0-0-8ee83c01",
+        "cmpl-p0_validate_r0_5-0-b7155cff",
+        "cmpl-p0_validate_r0_10-0-b96c480e",
+        "cmpl-p0_validate_r0_12-0-9a4722f8"
+      ],
+      "rows": 4
+    },
+    {
+      "call": 38,
+      "window": 6,
+      "step": 3,
+      "req_ids": [
+        "cmpl-p0_validate_r0_10-0-b96c480e",
+        "cmpl-p0_validate_r0_12-0-9a4722f8",
+        "cmpl-p0_validate_r0_2-0-b6f71cf6",
+        "cmpl-p0_validate_r0_3-0-8ee58960"
+      ],
+      "rows": 6
+    },
+    {
+      "call": 39,
+      "window": 6,
+      "step": 4,
+      "req_ids": [
+        "cmpl-p0_validate_r0_10-0-b96c480e",
+        "cmpl-p0_validate_r0_3-0-8ee58960",
+        "cmpl-p0_validate_r0_1-0-a27fdeeb",
+        "cmpl-p0_validate_r0_13-0-9f38f67b"
+      ],
+      "rows": 9
+    },
+    {
+      "call": 40,
+      "window": 6,
+      "step": 5,
+      "req_ids": [
+        "cmpl-p0_validate_r0_10-0-b96c480e",
+        "cmpl-p0_validate_r0_3-0-8ee58960",
+        "cmpl-p0_validate_r0_6-0-a14b0ca8",
+        "cmpl-p0_validate_r0_9-0-b1f26986"
+      ],
+      "rows": 5
+    },
+    {
+      "call": 41,
+      "window": 6,
+      "step": 6,
+      "req_ids": [
+        "cmpl-p0_validate_r0_6-0-a14b0ca8",
+        "cmpl-p0_validate_r0_9-0-b1f26986",
+        "cmpl-p0_validate_r0_4-0-9784a626",
+        "cmpl-p0_validate_r0_7-0-8660f7e9"
+      ],
+      "rows": 5
+    },
+    {
+      "call": 42,
+      "window": 6,
+      "step": 7,
+      "req_ids": [
+        "cmpl-p0_validate_r0_6-0-a14b0ca8",
+        "cmpl-p0_validate_r0_8-0-856be862",
+        "cmpl-p0_validate_r0_11-0-921a6475",
+        "cmpl-p0_validate_r0_14-0-95479227"
+      ],
+      "rows": 12
+    },
+    {
+      "call": 43,
+      "window": 6,
+      "step": 8,
+      "req_ids": [
+        "cmpl-p0_validate_r0_6-0-a14b0ca8",
+        "cmpl-p0_validate_r0_11-0-921a6475",
+        "cmpl-p0_validate_r0_14-0-95479227",
+        "cmpl-p0_validate_r0_15-0-b69105f4"
+      ],
+      "rows": 7
+    },
+    {
+      "call": 44,
+      "window": 7,
+      "step": 1,
+      "req_ids": [
+        "cmpl-p0_validate_r0_6-0-a14b0ca8",
+        "cmpl-p0_validate_r0_2-0-b6f71cf6",
+        "cmpl-p0_validate_r0_0-0-8ee83c01"
+      ],
+      "rows": 5
+    },
+    {
+      "call": 45,
+      "window": 7,
+      "step": 2,
+      "req_ids": [
+        "cmpl-p0_validate_r0_6-0-a14b0ca8",
+        "cmpl-p0_validate_r0_5-0-b7155cff",
+        "cmpl-p0_validate_r0_12-0-9a4722f8"
+      ],
+      "rows": 4
+    },
+    {
+      "call": 46,
+      "window": 7,
+      "step": 3,
+      "req_ids": [
+        "cmpl-p0_validate_r0_6-0-a14b0ca8",
+        "cmpl-p0_validate_r0_5-0-b7155cff",
+        "cmpl-p0_validate_r0_12-0-9a4722f8",
+        "cmpl-p0_validate_r0_3-0-8ee58960"
+      ],
+      "rows": 4
+    },
+    {
+      "call": 47,
+      "window": 7,
+      "step": 4,
+      "req_ids": [
+        "cmpl-p0_validate_r0_6-0-a14b0ca8",
+        "cmpl-p0_validate_r0_5-0-b7155cff",
+        "cmpl-p0_validate_r0_12-0-9a4722f8",
+        "cmpl-p0_validate_r0_3-0-8ee58960"
+      ],
+      "rows": 4
+    },
+    {
+      "call": 48,
+      "window": 7,
+      "step": 5,
+      "req_ids": [
+        "cmpl-p0_validate_r0_5-0-b7155cff",
+        "cmpl-p0_validate_r0_3-0-8ee58960",
+        "cmpl-p0_validate_r0_1-0-a27fdeeb",
+        "cmpl-p0_validate_r0_9-0-b1f26986"
+      ],
+      "rows": 9
+    },
+    {
+      "call": 49,
+      "window": 7,
+      "step": 6,
+      "req_ids": [
+        "cmpl-p0_validate_r0_5-0-b7155cff",
+        "cmpl-p0_validate_r0_3-0-8ee58960",
+        "cmpl-p0_validate_r0_9-0-b1f26986",
+        "cmpl-p0_validate_r0_4-0-9784a626"
+      ],
+      "rows": 5
+    },
+    {
+      "call": 50,
+      "window": 7,
+      "step": 7,
+      "req_ids": [
+        "cmpl-p0_validate_r0_5-0-b7155cff",
+        "cmpl-p0_validate_r0_3-0-8ee58960",
+        "cmpl-p0_validate_r0_9-0-b1f26986",
+        "cmpl-p0_validate_r0_7-0-8660f7e9"
+      ],
+      "rows": 5
+    },
+    {
+      "call": 51,
+      "window": 7,
+      "step": 8,
+      "req_ids": [
+        "cmpl-p0_validate_r0_5-0-b7155cff",
+        "cmpl-p0_validate_r0_8-0-856be862",
+        "cmpl-p0_validate_r0_10-0-b96c480e",
+        "cmpl-p0_validate_r0_11-0-921a6475"
+      ],
+      "rows": 12
+    },
+    {
+      "call": 52,
+      "window": 8,
+      "step": 1,
+      "req_ids": [
+        "cmpl-p0_validate_r0_5-0-b7155cff",
+        "cmpl-p0_validate_r0_10-0-b96c480e",
+        "cmpl-p0_validate_r0_11-0-921a6475"
+      ],
+      "rows": 3
+    },
+    {
+      "call": 53,
+      "window": 8,
+      "step": 2,
+      "req_ids": [
+        "cmpl-p0_validate_r0_10-0-b96c480e",
+        "cmpl-p0_validate_r0_11-0-921a6475",
+        "cmpl-p0_validate_r0_2-0-b6f71cf6",
+        "cmpl-p0_validate_r0_13-0-9f38f67b"
+      ],
+      "rows": 12
+    },
+    {
+      "call": 54,
+      "window": 8,
+      "step": 3,
+      "req_ids": [
+        "cmpl-p0_validate_r0_10-0-b96c480e",
+        "cmpl-p0_validate_r0_11-0-921a6475",
+        "cmpl-p0_validate_r0_0-0-8ee83c01",
+        "cmpl-p0_validate_r0_6-0-a14b0ca8"
+      ],
+      "rows": 5
+    },
+    {
+      "call": 55,
+      "window": 8,
+      "step": 4,
+      "req_ids": [
+        "cmpl-p0_validate_r0_10-0-b96c480e",
+        "cmpl-p0_validate_r0_0-0-8ee83c01",
+        "cmpl-p0_validate_r0_6-0-a14b0ca8",
+        "cmpl-p0_validate_r0_1-0-a27fdeeb"
+      ],
+      "rows": 5
+    },
+    {
+      "call": 56,
+      "window": 8,
+      "step": 5,
+      "req_ids": [
+        "cmpl-p0_validate_r0_10-0-b96c480e",
+        "cmpl-p0_validate_r0_0-0-8ee83c01",
+        "cmpl-p0_validate_r0_6-0-a14b0ca8",
+        "cmpl-p0_validate_r0_1-0-a27fdeeb"
+      ],
+      "rows": 4
+    },
+    {
+      "call": 57,
+      "window": 8,
+      "step": 6,
+      "req_ids": [
+        "cmpl-p0_validate_r0_10-0-b96c480e",
+        "cmpl-p0_validate_r0_0-0-8ee83c01",
+        "cmpl-p0_validate_r0_6-0-a14b0ca8",
+        "cmpl-p0_validate_r0_4-0-9784a626"
+      ],
+      "rows": 5
+    },
+    {
+      "call": 58,
+      "window": 8,
+      "step": 7,
+      "req_ids": [
+        "cmpl-p0_validate_r0_10-0-b96c480e",
+        "cmpl-p0_validate_r0_0-0-8ee83c01",
+        "cmpl-p0_validate_r0_6-0-a14b0ca8",
+        "cmpl-p0_validate_r0_3-0-8ee58960"
+      ],
+      "rows": 4
+    },
+    {
+      "call": 59,
+      "window": 8,
+      "step": 8,
+      "req_ids": [
+        "cmpl-p0_validate_r0_0-0-8ee83c01",
+        "cmpl-p0_validate_r0_6-0-a14b0ca8",
+        "cmpl-p0_validate_r0_9-0-b1f26986",
+        "cmpl-p0_validate_r0_12-0-9a4722f8"
+      ],
+      "rows": 9
+    },
+    {
+      "call": 60,
+      "window": 9,
+      "step": 1,
+      "req_ids": [
+        "cmpl-p0_validate_r0_0-0-8ee83c01",
+        "cmpl-p0_validate_r0_6-0-a14b0ca8",
+        "cmpl-p0_validate_r0_9-0-b1f26986",
+        "cmpl-p0_validate_r0_12-0-9a4722f8"
+      ],
+      "rows": 4
+    },
+    {
+      "call": 61,
+      "window": 9,
+      "step": 2,
+      "req_ids": [
+        "cmpl-p0_validate_r0_0-0-8ee83c01",
+        "cmpl-p0_validate_r0_6-0-a14b0ca8",
+        "cmpl-p0_validate_r0_12-0-9a4722f8",
+        "cmpl-p0_validate_r0_7-0-8660f7e9"
+      ],
+      "rows": 6
+    },
+    {
+      "call": 62,
+      "window": 9,
+      "step": 3,
+      "req_ids": [
+        "cmpl-p0_validate_r0_5-0-b7155cff",
+        "cmpl-p0_validate_r0_8-0-856be862",
+        "cmpl-p0_validate_r0_14-0-95479227",
+        "cmpl-p0_validate_r0_15-0-b69105f4"
+      ],
+      "rows": 29
+    },
+    {
+      "call": 63,
+      "window": 9,
+      "step": 4,
+      "req_ids": [
+        "cmpl-p0_validate_r0_5-0-b7155cff",
+        "cmpl-p0_validate_r0_8-0-856be862",
+        "cmpl-p0_validate_r0_15-0-b69105f4",
+        "cmpl-p0_validate_r0_2-0-b6f71cf6"
+      ],
+      "rows": 4
+    },
+    {
+      "call": 64,
+      "window": 9,
+      "step": 5,
+      "req_ids": [
+        "cmpl-p0_validate_r0_5-0-b7155cff",
+        "cmpl-p0_validate_r0_15-0-b69105f4",
+        "cmpl-p0_validate_r0_4-0-9784a626",
+        "cmpl-p0_validate_r0_1-0-a27fdeeb"
+      ],
+      "rows": 6
+    }
+  ],
+  "fields": [
+    {
+      "call": 1,
+      "sample": 1,
+      "requests": 1,
+      "tokens": 41,
+      "checks": [
+        {
+          "field": "ids",
+          "shape": [
+            41
+          ],
+          "dtype": "torch.int32",
+          "byte_exact": true
+        },
+        {
+          "field": "positions",
+          "shape": [
+            41
+          ],
+          "dtype": "torch.int64",
+          "byte_exact": true
+        },
+        {
+          "field": "query_start_loc",
+          "shape": [
+            2
+          ],
+          "dtype": "torch.int32",
+          "byte_exact": true
+        },
+        {
+          "field": "seq_lens",
+          "shape": [
+            1
+          ],
+          "dtype": "torch.int32",
+          "byte_exact": true
+        },
+        {
+          "field": "block_table_tensor",
+          "shape": [
+            1,
+            4
+          ],
+          "dtype": "torch.int32",
+          "byte_exact": true
+        },
+        {
+          "field": "slot_mapping",
+          "shape": [
+            41
+          ],
+          "dtype": "torch.int64",
+          "byte_exact": true
+        },
+        {
+          "field": "last_indices",
+          "shape": [
+            1
+          ],
+          "dtype": "torch.int64",
+          "byte_exact": true
+        }
+      ],
+      "cpu_shadow_independent": true
+    },
+    {
+      "call": 2,
+      "sample": 2,
+      "requests": 4,
+      "tokens": 128,
+      "checks": [
+        {
+          "field": "ids",
+          "shape": [
+            128
+          ],
+          "dtype": "torch.int32",
+          "byte_exact": true
+        },
+        {
+          "field": "positions",
+          "shape": [
+            128
+          ],
+          "dtype": "torch.int64",
+          "byte_exact": true
+        },
+        {
+          "field": "query_start_loc",
+          "shape": [
+            5
+          ],
+          "dtype": "torch.int32",
+          "byte_exact": true
+        },
+        {
+          "field": "seq_lens",
+          "shape": [
+            4
+          ],
+          "dtype": "torch.int32",
+          "byte_exact": true
+        },
+        {
+          "field": "block_table_tensor",
+          "shape": [
+            4,
+            4
+          ],
+          "dtype": "torch.int32",
+          "byte_exact": true
+        },
+        {
+          "field": "slot_mapping",
+          "shape": [
+            128
+          ],
+          "dtype": "torch.int64",
+          "byte_exact": true
+        },
+        {
+          "field": "last_indices",
+          "shape": [
+            4
+          ],
+          "dtype": "torch.int64",
+          "byte_exact": true
+        }
+      ],
+      "cpu_shadow_independent": true
+    }
+  ],
+  "runtime": [
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-pinned-inputs-20261113/vllm/v1/spec_decode/cdb_av_inputs.py",
+      "calls": 1,
+      "h2d_enqueues": 1,
+      "bytes_copied": 912,
+      "source_waits": 0,
+      "capacity": 1024,
+      "growths": 1,
+      "pinned": true,
+      "non_blocking": true,
+      "fresh_device_payload": true,
+      "fresh_cpu_query_shadow": true,
+      "device": "cuda:0"
+    }
+  ],
+  "k_actual_hist": {
+    "1": 597,
+    "3": 117,
+    "2": 257,
+    "8": 69,
+    "6": 35,
+    "5": 37,
+    "4": 53,
+    "7": 15
+  },
+  "stop_reasons": {
+    "low_confidence": 1111,
+    "max_k": 69
+  },
+  "ready": 1180,
+  "handoff": 1180,
+  "verified": 1180,
+  "graph_audit": {
+    "draft_checks": 679,
+    "target_checks": 240,
+    "all_checks_pass": true,
+    "new_query5_to8_checks": 34,
+    "new_actual_max_query_hist": {
+      "7": 4,
+      "6": 10,
+      "5": 16,
+      "8": 4
+    },
+    "new_shape_examples": [
+      {
+        "action": "capture",
+        "phase": "mixed_prefill_decode",
+        "rows": 12,
+        "seq_bucket": 128,
+        "query_lengths": [
+          1,
+          3,
+          7,
+          1
+        ],
+        "capture_query_lengths": [
+          1,
+          3,
+          7,
+          1
+        ],
+        "static_max_query_len": 8,
+        "dynamic_layout": true,
+        "kv_exact": true,
+        "token_exact": true,
+        "logits_close": true,
+        "max_abs": 0.0,
+        "dynamic_token_exact": true,
+        "dynamic_kv_exact": true,
+        "dynamic_max_abs": 0.0
+      },
+      {
+        "action": "replay",
+        "phase": "mixed_prefill_decode",
+        "rows": 9,
+        "seq_bucket": 128,
+        "query_lengths": [
+          1,
+          1,
+          1,
+          6
+        ],
+        "capture_query_lengths": [
+          1,
+          1,
+          4,
+          3
+        ],
+        "static_max_query_len": 8,
+        "dynamic_layout": true,
+        "kv_exact": true,
+        "token_exact": true,
+        "logits_close": true,
+        "max_abs": 0.0,
+        "dynamic_token_exact": true,
+        "dynamic_kv_exact": true,
+        "dynamic_max_abs": 0.0
+      },
+      {
+        "action": "replay",
+        "phase": "mixed_prefill_decode",
+        "rows": 12,
+        "seq_bucket": 128,
+        "query_lengths": [
+          1,
+          1,
+          6,
+          4
+        ],
+        "capture_query_lengths": [
+          1,
+          3,
+          7,
+          1
+        ],
+        "static_max_query_len": 8,
+        "dynamic_layout": true,
+        "kv_exact": true,
+        "token_exact": true,
+        "logits_close": true,
+        "max_abs": 0.0,
+        "dynamic_token_exact": true,
+        "dynamic_kv_exact": true,
+        "dynamic_max_abs": 0.0
+      },
+      {
+        "action": "capture",
+        "phase": "mixed_prefill_decode",
+        "rows": 7,
+        "seq_bucket": 128,
+        "query_lengths": [
+          1,
+          1,
+          5
+        ],
+        "capture_query_lengths": [
+          1,
+          1,
+          5
+        ],
+        "static_max_query_len": 8,
+        "dynamic_layout": true,
+        "kv_exact": true,
+        "token_exact": true,
+        "logits_close": true,
+        "max_abs": 0.0,
+        "dynamic_token_exact": true,
+        "dynamic_kv_exact": true,
+        "dynamic_max_abs": 0.0
+      },
+      {
+        "action": "replay",
+        "phase": "mixed_prefill_decode",
+        "rows": 8,
+        "seq_bucket": 128,
+        "query_lengths": [
+          1,
+          1,
+          5,
+          1
+        ],
+        "capture_query_lengths": [
+          1,
+          1,
+          4,
+          2
+        ],
+        "static_max_query_len": 8,
+        "dynamic_layout": true,
+        "kv_exact": true,
+        "token_exact": true,
+        "logits_close": true,
+        "max_abs": 0.0,
+        "dynamic_token_exact": true,
+        "dynamic_kv_exact": true,
+        "dynamic_max_abs": 0.0
+      }
+    ],
+    "q8_key_layouts": [
+      {
+        "key": [
+          6,
+          64,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            2,
+            2
+          ],
+          [
+            1,
+            1,
+            3,
+            1
+          ],
+          [
+            1,
+            2,
+            1,
+            2
+          ],
+          [
+            1,
+            2,
+            2,
+            1
+          ],
+          [
+            2,
+            1,
+            1,
+            2
+          ]
+        ]
+      },
+      {
+        "key": [
+          7,
+          64,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            1,
+            4
+          ],
+          [
+            1,
+            1,
+            2,
+            3
+          ],
+          [
+            1,
+            2,
+            2,
+            2
+          ],
+          [
+            2,
+            2,
+            1,
+            2
+          ]
+        ]
+      },
+      {
+        "key": [
+          4,
+          64,
+          3
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            2
+          ],
+          [
+            1,
+            2,
+            1
+          ]
+        ]
+      },
+      {
+        "key": [
+          4,
+          128,
+          3
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            2
+          ],
+          [
+            1,
+            2,
+            1
+          ]
+        ]
+      },
+      {
+        "key": [
+          5,
+          128,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            1,
+            2
+          ],
+          [
+            1,
+            1,
+            2,
+            1
+          ],
+          [
+            1,
+            2,
+            1,
+            1
+          ]
+        ]
+      },
+      {
+        "key": [
+          9,
+          128,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            1,
+            6
+          ],
+          [
+            1,
+            1,
+            2,
+            5
+          ],
+          [
+            1,
+            1,
+            4,
+            3
+          ],
+          [
+            1,
+            2,
+            2,
+            4
+          ],
+          [
+            1,
+            3,
+            3,
+            2
+          ]
+        ]
+      },
+      {
+        "key": [
+          12,
+          128,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            2,
+            8
+          ],
+          [
+            1,
+            1,
+            6,
+            4
+          ],
+          [
+            1,
+            2,
+            2,
+            7
+          ],
+          [
+            1,
+            3,
+            7,
+            1
+          ]
+        ]
+      },
+      {
+        "key": [
+          6,
+          128,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            1,
+            3
+          ],
+          [
+            1,
+            1,
+            2,
+            2
+          ],
+          [
+            1,
+            2,
+            1,
+            2
+          ],
+          [
+            1,
+            2,
+            2,
+            1
+          ],
+          [
+            1,
+            3,
+            1,
+            1
+          ]
+        ]
+      },
+      {
+        "key": [
+          7,
+          128,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            1,
+            4
+          ],
+          [
+            1,
+            1,
+            2,
+            3
+          ],
+          [
+            1,
+            1,
+            3,
+            2
+          ],
+          [
+            1,
+            2,
+            1,
+            3
+          ],
+          [
+            1,
+            2,
+            2,
+            2
+          ]
+        ]
+      },
+      {
+        "key": [
+          8,
+          128,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            2,
+            4
+          ],
+          [
+            1,
+            1,
+            4,
+            2
+          ],
+          [
+            1,
+            1,
+            5,
+            1
+          ],
+          [
+            1,
+            2,
+            1,
+            4
+          ],
+          [
+            1,
+            2,
+            3,
+            2
+          ],
+          [
+            2,
+            2,
+            2,
+            2
+          ]
+        ]
+      },
+      {
+        "key": [
+          7,
+          256,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            1,
+            4
+          ],
+          [
+            1,
+            1,
+            2,
+            3
+          ],
+          [
+            1,
+            1,
+            3,
+            2
+          ],
+          [
+            1,
+            1,
+            4,
+            1
+          ],
+          [
+            1,
+            2,
+            1,
+            3
+          ],
+          [
+            1,
+            2,
+            2,
+            2
+          ],
+          [
+            1,
+            2,
+            3,
+            1
+          ],
+          [
+            1,
+            3,
+            1,
+            2
+          ],
+          [
+            1,
+            3,
+            2,
+            1
+          ],
+          [
+            2,
+            1,
+            2,
+            2
+          ],
+          [
+            2,
+            2,
+            2,
+            1
+          ]
+        ]
+      },
+      {
+        "key": [
+          6,
+          256,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            1,
+            3
+          ],
+          [
+            1,
+            1,
+            2,
+            2
+          ],
+          [
+            1,
+            1,
+            3,
+            1
+          ],
+          [
+            1,
+            2,
+            1,
+            2
+          ],
+          [
+            1,
+            2,
+            2,
+            1
+          ]
+        ]
+      },
+      {
+        "key": [
+          5,
+          256,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            1,
+            2
+          ],
+          [
+            1,
+            1,
+            2,
+            1
+          ],
+          [
+            1,
+            2,
+            1,
+            1
+          ]
+        ]
+      },
+      {
+        "key": [
+          10,
+          256,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            1,
+            7
+          ],
+          [
+            1,
+            1,
+            2,
+            6
+          ],
+          [
+            1,
+            1,
+            4,
+            4
+          ],
+          [
+            1,
+            1,
+            5,
+            3
+          ],
+          [
+            1,
+            3,
+            4,
+            2
+          ],
+          [
+            2,
+            3,
+            2,
+            3
+          ]
+        ]
+      },
+      {
+        "key": [
+          5,
+          256,
+          3
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            3
+          ],
+          [
+            1,
+            2,
+            2
+          ],
+          [
+            1,
+            3,
+            1
+          ],
+          [
+            2,
+            1,
+            2
+          ],
+          [
+            2,
+            2,
+            1
+          ]
+        ]
+      },
+      {
+        "key": [
+          4,
+          256,
+          3
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            2
+          ],
+          [
+            1,
+            2,
+            1
+          ],
+          [
+            2,
+            1,
+            1
+          ]
+        ]
+      },
+      {
+        "key": [
+          9,
+          256,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            1,
+            6
+          ],
+          [
+            1,
+            1,
+            3,
+            4
+          ],
+          [
+            1,
+            1,
+            4,
+            3
+          ],
+          [
+            1,
+            1,
+            5,
+            2
+          ],
+          [
+            1,
+            1,
+            6,
+            1
+          ],
+          [
+            1,
+            2,
+            3,
+            3
+          ],
+          [
+            1,
+            3,
+            3,
+            2
+          ],
+          [
+            1,
+            3,
+            4,
+            1
+          ]
+        ]
+      },
+      {
+        "key": [
+          8,
+          256,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            1,
+            5
+          ],
+          [
+            1,
+            1,
+            2,
+            4
+          ],
+          [
+            1,
+            1,
+            3,
+            3
+          ],
+          [
+            1,
+            1,
+            4,
+            2
+          ],
+          [
+            1,
+            1,
+            5,
+            1
+          ],
+          [
+            1,
+            2,
+            2,
+            3
+          ],
+          [
+            1,
+            2,
+            3,
+            2
+          ],
+          [
+            1,
+            2,
+            4,
+            1
+          ],
+          [
+            1,
+            3,
+            2,
+            2
+          ],
+          [
+            2,
+            1,
+            3,
+            2
+          ]
+        ]
+      },
+      {
+        "key": [
+          6,
+          256,
+          3
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            4
+          ],
+          [
+            2,
+            1,
+            3
+          ],
+          [
+            2,
+            2,
+            2
+          ]
+        ]
+      },
+      {
+        "key": [
+          10,
+          256,
+          3
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            8
+          ],
+          [
+            1,
+            7,
+            2
+          ]
+        ]
+      },
+      {
+        "key": [
+          12,
+          256,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            2,
+            8
+          ],
+          [
+            1,
+            1,
+            6,
+            4
+          ],
+          [
+            1,
+            4,
+            3,
+            4
+          ],
+          [
+            1,
+            5,
+            2,
+            4
+          ]
+        ]
+      }
+    ],
+    "draft_layers": 28,
+    "target_layers": 36,
+    "errors": [],
+    "ready_reasons": {
+      "low_confidence": 1111,
+      "max_k": 69
+    },
+    "cleanup": {
+      "port_closed": true,
+      "gpu3_memory_mib": 15,
+      "time": 1794541442.8701994
+    },
+    "carry_snapshot_pairs": 153,
+    "carry_with_real_target_interleave": 153,
+    "resumed_actual_decode_associations": 153,
+    "final_reset": {
+      "event": "p2_reset",
+      "window": 109,
+      "target_epoch": 583,
+      "released_blocks": 0,
+      "live_leases": 0,
+      "ready": 0,
+      "inflight": 0
+    }
+  },
+  "source": {
+    "commit": "1096679a1401517852a18248564bc8f66b181508",
+    "source": "/home/yypan/CDB-AV/worktrees/cdb-pinned-inputs-20261113",
+    "files": {
+      "vllm/v1/spec_decode/cdb_av_inputs.py": "ae52269a85ae059cc731744a14f3dbc6e8bea62adb55b24e1c89d73666d9384c",
+      "scripts/cdb_av/stress_waiting_512.py": "544ad4b6dea58c7b253474b2ac9e78e0b742f837f391012d9f5bd82207091cc5",
+      "vllm/v1/spec_decode/cdb_av_refill.py": "42c40858155aac1520910c75136fcff054a3cf40674b90d24b4be7a682f185d8",
+      "vllm/v1/spec_decode/cdb_av_config.py": "3e07b2f6a0b37644e48169a5878570795b634dd250906932440ae6d4f9eacff2",
+      "vllm/v1/spec_decode/cdb_av_kv_reuse.py": "2738ef579b080daa4f7f73f1d6aea7b66d57d4cf8e15bb5639758ad80ed73a7d",
+      "vllm/v1/spec_decode/cdb_av_persistent.py": "727fa44f7f4c8bd364eec79ba023f8e65db09ecac4287c6e0d37e3f269ff0cf1",
+      "vllm/v1/spec_decode/cdb_av_target_graph.py": "7ddc3870a78dab7b296a66c858ac3cfda6c143ee171dd837b85623f356d542e6",
+      "vllm/v1/spec_decode/cdb_av_metadata.py": "9dfdf1c58479a8754d897ecb7a65a04b12ba445c61d6c48f41aa0abab047854d",
+      "vllm/model_executor/layers/cdb_exact_qknorm.py": "4a9ee0b783c76a2f3ed3de23ae72ff6252ae580eef572caf4d16413075e61416",
+      "vllm/model_executor/models/qwen3.py": "e1525f18a207c4f7cfad9af669fbbd41262a543e244e9c73998a971189052a02",
+      "experiments/cdb_exact_qknorm/kernel.cu": "50e1e325ebf9dbdc67261900600675fe7caec566508666a9ca4dace782a2a4b2",
+      "experiments/cdb_exact_qknorm/binding.cpp": "f7da259851041a278a348287ac9afe757cb559cb7f200af58030da6e3dab61f7"
+    }
+  }
+}

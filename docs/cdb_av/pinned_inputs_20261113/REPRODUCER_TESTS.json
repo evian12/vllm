@@ -1,0 +1,28 @@
+{
+  "tests": 3,
+  "passed": true,
+  "dry_run": {
+    "command": [
+      "/home/yypan/CDB-AV/.venv/bin/python",
+      "-u",
+      "/home/yypan/CDB-AV/results/pinned_dry_example_not_started/run_model.py",
+      "validate",
+      "8",
+      "0",
+      "24",
+      "1",
+      "1"
+    ],
+    "requests": 32,
+    "warmup": 0,
+    "source": "/home/yypan/CDB-AV/worktrees/cdb-pinned-inputs-20261113",
+    "async_scheduling": false,
+    "generated_script_sha256": {
+      "harness.py": "61f114ab061f795262036e705a32f56e6f3408713d05656f82d85525264d77f4",
+      "run_model.py": "597388f15b619cfd92ab047d71875c1f8e8bd01bd042217aaea887be941a0a67",
+      "run_pair.py": "bd0adc70893b5944dc5d9dba5b8855cc1ef919a079ebf18dd27fdc5ff2a56cc9",
+      "audit.py": "87407aef789bc54daeda8be2bedf007cc1cdbb7efa2255b607b1f7d84b9b22ef",
+      "analyze_model.py": "ab6b351ee85faf452de071f9a82312efa3965f8c6f05dc52afb4082335ca7d13"
+    }
+  }
+}
