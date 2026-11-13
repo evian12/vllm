@@ -1,0 +1,14 @@
+{
+  "requests": 2,
+  "output_tokens": 64,
+  "post_checks": 54,
+  "row2_byte_checks": 8,
+  "all_logits_packets_byte_exact": true,
+  "all_linked_to_actual_forward": true,
+  "cleanup": {
+    "port_closed": true,
+    "gpu3_memory_mib": 15,
+    "time": 1794551404.2670734
+  },
+  "time": 1794551404.3198144
+}

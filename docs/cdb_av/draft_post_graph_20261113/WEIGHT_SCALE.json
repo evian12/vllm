@@ -1,0 +1,19 @@
+{
+  "models": {
+    "target": {
+      "layers": 36,
+      "linear_weight_bytes_per_layer": 385875968,
+      "linear_weight_bytes_all_layers": 13891534848,
+      "head_weight_bytes": 1244659712,
+      "full_read_linear_plus_head_bytes": 15136194560
+    },
+    "draft": {
+      "layers": 28,
+      "linear_weight_bytes_per_layer": 100663296,
+      "linear_weight_bytes_all_layers": 2818572288,
+      "head_weight_bytes": 622329856,
+      "full_read_linear_plus_head_bytes": 3440902144
+    }
+  },
+  "scope": "Read-only config/header-derived BF16 matrix-byte scale. Not measured DRAM traffic or bandwidth. Embedding lookups, attention,cache hits,workspace and repeated reads are not modeled."
+}

@@ -1,0 +1,36 @@
+[
+  {
+    "args": [
+      "--mode",
+      "validate",
+      "--on",
+      "1",
+      "--out",
+      "/home/yypan/CDB-AV/results/post_future_validation",
+      "--dry-run"
+    ],
+    "returncode": 0,
+    "stdout": "{\n  \"command\": [\n    \"/home/yypan/CDB-AV/.venv/bin/python\",\n    \"-u\",\n    \"/home/yypan/CDB-AV/results/post_future_validation/run_model.py\",\n    \"validate\",\n    \"8\",\n    \"0\",\n    \"24\",\n    \"1\",\n    \"1\"\n  ],\n  \"requests\": 32,\n  \"warmup\": 0,\n  \"source\": \"/home/yypan/CDB-AV/worktrees/cdb-draft-post-graph-20261113\",\n  \"async_scheduling\": false,\n  \"generated_script_sha256\": {\n    \"harness.py\": \"c8483d7cbba324e4337dcac97e12fd4e5d9b2c5f6b75b5833c151d79f8c7005c\",\n    \"run_model.py\": \"e0e47eaaff677a6510df3b68626143d6744c7bb4fc157f9e40f5994cb6a9511b\",\n    \"run_pair.py\": \"61ba8bb765b605186351c6ca60aaa09e6b980ee44cb6468ab7bece24ed38ca8e\",\n    \"audit.py\": \"87407aef789bc54daeda8be2bedf007cc1cdbb7efa2255b607b1f7d84b9b22ef\",\n    \"analyze_model.py\": \"dd629be26480975a4449697bc4ce236b36eec656f9382a66c10a52e0d9d07e16\"\n  }\n}\n",
+    "stderr": ""
+  },
+  {
+    "args": [
+      "--out",
+      "/home/yypan/CDB-AV/results/draft_post_graph_20261113",
+      "--dry-run"
+    ],
+    "returncode": 2,
+    "stdout": "",
+    "stderr": "usage: reproduce_isolated.py [-h] --out OUT [--mode {validate,perf}]\n                             [--on {0,1}] [--dry-run]\nreproduce_isolated.py: error: refusing to overwrite existing output\n"
+  },
+  {
+    "args": [
+      "--out",
+      "relative",
+      "--dry-run"
+    ],
+    "returncode": 2,
+    "stdout": "",
+    "stderr": "usage: reproduce_isolated.py [-h] --out OUT [--mode {validate,perf}]\n                             [--on {0,1}] [--dry-run]\nreproduce_isolated.py: error: --out must be absolute\n"
+  }
+]

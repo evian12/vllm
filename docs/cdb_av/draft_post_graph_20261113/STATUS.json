@@ -1,0 +1,63 @@
+{
+  "overall": "Partial Implementation",
+  "runtime": "629c220b364e6a2806292a01c31b49caaeb46d27",
+  "new_flag_default": 0,
+  "recommendation": "Keep post graph OFF: no stable paired gain; preserve experimental implementation",
+  "summary": {
+    "0": {
+      "tps": {
+        "mean": 239.15,
+        "sample_sd": 1.28200117004627
+      },
+      "mean_s": {
+        "mean": 8.519719643682643,
+        "sample_sd": 0.04555694991955407
+      },
+      "p50_s": {
+        "mean": 8.640640868494907,
+        "sample_sd": 0.03729069294720335
+      },
+      "p95_s": {
+        "mean": 10.40686902406936,
+        "sample_sd": 0.07506314005012839
+      }
+    },
+    "1": {
+      "tps": {
+        "mean": 239.86633333333333,
+        "sample_sd": 0.6313234775717722
+      },
+      "mean_s": {
+        "mean": 8.499092356340649,
+        "sample_sd": 0.022826685973563264
+      },
+      "p50_s": {
+        "mean": 8.661017183059206,
+        "sample_sd": 0.09865766770343588
+      },
+      "p95_s": {
+        "mean": 10.416390895765897,
+        "sample_sd": 0.04423713365418401
+      }
+    }
+  },
+  "paired_changes": {
+    "tps_change_pct": {
+      "mean": 0.30123205217730264,
+      "sample_sd": 0.5401225885342414
+    },
+    "p95_change_pct": {
+      "mean": 0.09308272670985514,
+      "sample_sd": 0.3701807360067775
+    }
+  },
+  "formal_requests": 3072,
+  "formal_success": 3072,
+  "model_requests": 34,
+  "physical_carry_checks": 157,
+  "cpu_passed": 447,
+  "true_cuda_cases": 6,
+  "strict_full_output_equivalence": false,
+  "global_optimality": false,
+  "model_paths": "/home/yypan/CDB-AV/worktrees/cdb-draft-post-graph-20261113"
+}

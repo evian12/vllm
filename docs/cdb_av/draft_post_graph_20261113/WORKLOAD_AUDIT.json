@@ -1,0 +1,124 @@
+{
+  "scope": "32-request heavy audit; not formal performance workload",
+  "ready": 1135,
+  "mean_k": 2.388546255506608,
+  "candidate_tokens": 2711,
+  "accepted_tokens": 1891,
+  "mean_accepted_per_verified": 1.666079295154185,
+  "logical_draft_forward_events_excluding_diagnostic_replays": 753,
+  "forward_phases": {
+    "mixed_prefill": 48,
+    "mixed_prefill_decode": 574,
+    "decode": 131
+  },
+  "forward_logical_rows": {
+    "1": 37,
+    "4": 556,
+    "3": 130,
+    "2": 30
+  },
+  "forward_mean_logical_rows": 3.600265604249668,
+  "target_calls": 582,
+  "target_mean_scheduled_requests": 3.8694158075601375,
+  "target_mean_verification_requests": 1.9501718213058419,
+  "idle_no_gpu_ticks": 47,
+  "reused_prefix_tokens": 114471,
+  "missing_prefill_tokens": 3889,
+  "reuse_fraction_of_context_preparation_tokens": 0.9671426157485637,
+  "intra_admission_events": 622,
+  "intra_admitted_requests": 1135,
+  "intra_actual_same_window_following_forward": 1135,
+  "strict_after_progress_join_items": 992,
+  "after_other_ready_join_items": 976,
+  "join_examples": [
+    {
+      "prior_step": true,
+      "prior_ready_ids": [
+        "cmpl-p0_validate_r0_0-0-89f207cc"
+      ],
+      "req_id": "cmpl-p0_validate_r0_4-0-b3afeacd",
+      "window": 1,
+      "after_step": 2,
+      "next_forward_step": 3,
+      "phase": "mixed_prefill",
+      "forward_req_ids": [
+        "cmpl-p0_validate_r0_4-0-b3afeacd",
+        "cmpl-p0_validate_r0_1-0-bc119e49",
+        "cmpl-p0_validate_r0_3-0-a536090c",
+        "cmpl-p0_validate_r0_2-0-8ecd3d1b"
+      ]
+    },
+    {
+      "prior_step": true,
+      "prior_ready_ids": [
+        "cmpl-p0_validate_r0_0-0-89f207cc"
+      ],
+      "req_id": "cmpl-p0_validate_r0_1-0-bc119e49",
+      "window": 1,
+      "after_step": 2,
+      "next_forward_step": 3,
+      "phase": "mixed_prefill",
+      "forward_req_ids": [
+        "cmpl-p0_validate_r0_4-0-b3afeacd",
+        "cmpl-p0_validate_r0_1-0-bc119e49",
+        "cmpl-p0_validate_r0_3-0-a536090c",
+        "cmpl-p0_validate_r0_2-0-8ecd3d1b"
+      ]
+    },
+    {
+      "prior_step": true,
+      "prior_ready_ids": [
+        "cmpl-p0_validate_r0_0-0-89f207cc"
+      ],
+      "req_id": "cmpl-p0_validate_r0_3-0-a536090c",
+      "window": 1,
+      "after_step": 2,
+      "next_forward_step": 3,
+      "phase": "mixed_prefill",
+      "forward_req_ids": [
+        "cmpl-p0_validate_r0_4-0-b3afeacd",
+        "cmpl-p0_validate_r0_1-0-bc119e49",
+        "cmpl-p0_validate_r0_3-0-a536090c",
+        "cmpl-p0_validate_r0_2-0-8ecd3d1b"
+      ]
+    },
+    {
+      "prior_step": true,
+      "prior_ready_ids": [
+        "cmpl-p0_validate_r0_0-0-89f207cc"
+      ],
+      "req_id": "cmpl-p0_validate_r0_2-0-8ecd3d1b",
+      "window": 1,
+      "after_step": 2,
+      "next_forward_step": 3,
+      "phase": "mixed_prefill",
+      "forward_req_ids": [
+        "cmpl-p0_validate_r0_4-0-b3afeacd",
+        "cmpl-p0_validate_r0_1-0-bc119e49",
+        "cmpl-p0_validate_r0_3-0-a536090c",
+        "cmpl-p0_validate_r0_2-0-8ecd3d1b"
+      ]
+    },
+    {
+      "prior_step": true,
+      "prior_ready_ids": [
+        "cmpl-p0_validate_r0_0-0-89f207cc",
+        "cmpl-p0_validate_r0_4-0-b3afeacd",
+        "cmpl-p0_validate_r0_1-0-bc119e49",
+        "cmpl-p0_validate_r0_3-0-a536090c",
+        "cmpl-p0_validate_r0_2-0-8ecd3d1b"
+      ],
+      "req_id": "cmpl-p0_validate_r0_5-0-a8b4a966",
+      "window": 1,
+      "after_step": 3,
+      "next_forward_step": 4,
+      "phase": "mixed_prefill",
+      "forward_req_ids": [
+        "cmpl-p0_validate_r0_5-0-a8b4a966",
+        "cmpl-p0_validate_r0_6-0-9a181cd7",
+        "cmpl-p0_validate_r0_7-0-9c559814",
+        "cmpl-p0_validate_r0_8-0-90570a25"
+      ]
+    }
+  ]
+}

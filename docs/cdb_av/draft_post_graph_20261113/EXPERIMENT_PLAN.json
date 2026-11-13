@@ -1,0 +1,36 @@
+{
+  "scope": "only Draft head/native confidence Graph flag; pinned inputs1/QKboth1 fixed; H8/HF.8/K8/maxseq4/noasync",
+  "sequence_after_correctness_gate": [
+    [
+      0,
+      0
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      1,
+      1
+    ],
+    [
+      1,
+      0
+    ],
+    [
+      2,
+      0
+    ],
+    [
+      2,
+      1
+    ]
+  ],
+  "formal_requests_per_arm": 512,
+  "warmup_per_new_service": 128,
+  "concurrency": 16,
+  "output_tokens_per_request": 128,
+  "repeats": 3,
+  "stop_on_correctness_failure": true,
+  "acceptance": "No end-to-end gain claim from component. Report all three paired runs and P95, no adaptive extension."
+}

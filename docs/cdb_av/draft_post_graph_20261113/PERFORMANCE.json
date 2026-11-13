@@ -1,0 +1,221 @@
+{
+  "source": {
+    "commit": "629c220b364e6a2806292a01c31b49caaeb46d27",
+    "source": "/home/yypan/CDB-AV/worktrees/cdb-draft-post-graph-20261113",
+    "files": {
+      "vllm/v1/spec_decode/cdb_av_post_graph.py": "020ecdab1a629cd303dbc37af9e8eacf2ea9008edc4f7c597fa77c6620f1b175",
+      "vllm/v1/spec_decode/cdb_av_inputs.py": "ae52269a85ae059cc731744a14f3dbc6e8bea62adb55b24e1c89d73666d9384c",
+      "scripts/cdb_av/stress_waiting_512.py": "544ad4b6dea58c7b253474b2ac9e78e0b742f837f391012d9f5bd82207091cc5",
+      "vllm/v1/spec_decode/cdb_av_refill.py": "7c0f5d04e35aa02650e6e43f4df87c00147821f00ff06ca551d432cab1dfd564",
+      "vllm/v1/spec_decode/cdb_av_config.py": "3e07b2f6a0b37644e48169a5878570795b634dd250906932440ae6d4f9eacff2",
+      "vllm/v1/spec_decode/cdb_av_kv_reuse.py": "2738ef579b080daa4f7f73f1d6aea7b66d57d4cf8e15bb5639758ad80ed73a7d",
+      "vllm/v1/spec_decode/cdb_av_persistent.py": "727fa44f7f4c8bd364eec79ba023f8e65db09ecac4287c6e0d37e3f269ff0cf1",
+      "vllm/v1/spec_decode/cdb_av_target_graph.py": "7ddc3870a78dab7b296a66c858ac3cfda6c143ee171dd837b85623f356d542e6",
+      "vllm/v1/spec_decode/cdb_av_metadata.py": "9dfdf1c58479a8754d897ecb7a65a04b12ba445c61d6c48f41aa0abab047854d",
+      "vllm/model_executor/layers/cdb_exact_qknorm.py": "4a9ee0b783c76a2f3ed3de23ae72ff6252ae580eef572caf4d16413075e61416",
+      "vllm/model_executor/models/qwen3.py": "e1525f18a207c4f7cfad9af669fbbd41262a543e244e9c73998a971189052a02",
+      "experiments/cdb_exact_qknorm/kernel.cu": "50e1e325ebf9dbdc67261900600675fe7caec566508666a9ca4dace782a2a4b2",
+      "experiments/cdb_exact_qknorm/binding.cpp": "f7da259851041a278a348287ac9afe757cb559cb7f200af58030da6e3dab61f7"
+    }
+  },
+  "arms": [
+    {
+      "rep": 0,
+      "post": 0,
+      "requests": 512,
+      "tokens": 65536,
+      "tps": 237.703,
+      "wall_s": 275.705,
+      "mean_s": 8.571687122572257,
+      "p50_s": 8.65809673955664,
+      "p95_s": 10.491663903696463,
+      "cleanup": {
+        "port_closed": true,
+        "gpu3_memory_mib": 15,
+        "time": 1794549419.5942972
+      },
+      "post_graph_last": null
+    },
+    {
+      "rep": 0,
+      "post": 1,
+      "requests": 512,
+      "tokens": 65536,
+      "tps": 239.843,
+      "wall_s": 273.246,
+      "mean_s": 8.497995730234834,
+      "p50_s": 8.691298577468842,
+      "p95_s": 10.45811055172235,
+      "cleanup": {
+        "port_closed": true,
+        "gpu3_memory_mib": 15,
+        "time": 1794549807.493258
+      },
+      "post_graph_last": {
+        "source": "/home/yypan/CDB-AV/worktrees/cdb-draft-post-graph-20261113/vllm/v1/spec_decode/cdb_av_post_graph.py",
+        "action": "replay",
+        "calls": 13312,
+        "rows": 4,
+        "captures": 4,
+        "cached_shapes": 4,
+        "validated": 0,
+        "stateless_head_and_confidence": true
+      }
+    },
+    {
+      "rep": 1,
+      "post": 0,
+      "requests": 512,
+      "tokens": 65536,
+      "tps": 240.144,
+      "wall_s": 272.903,
+      "mean_s": 8.486666849183166,
+      "p50_s": 8.59782385546714,
+      "p95_s": 10.348920176411049,
+      "cleanup": {
+        "port_closed": true,
+        "gpu3_memory_mib": 15,
+        "time": 1794550580.961645
+      },
+      "post_graph_last": null
+    },
+    {
+      "rep": 1,
+      "post": 1,
+      "requests": 512,
+      "tokens": 65536,
+      "tps": 240.509,
+      "wall_s": 272.489,
+      "mean_s": 8.476833748274657,
+      "p50_s": 8.550768056884408,
+      "p95_s": 10.370006046257913,
+      "cleanup": {
+        "port_closed": true,
+        "gpu3_memory_mib": 15,
+        "time": 1794550194.6880968
+      },
+      "post_graph_last": {
+        "source": "/home/yypan/CDB-AV/worktrees/cdb-draft-post-graph-20261113/vllm/v1/spec_decode/cdb_av_post_graph.py",
+        "action": "replay",
+        "calls": 13312,
+        "rows": 4,
+        "captures": 4,
+        "cached_shapes": 4,
+        "validated": 0,
+        "stateless_head_and_confidence": true
+      }
+    },
+    {
+      "rep": 2,
+      "post": 0,
+      "requests": 512,
+      "tokens": 65536,
+      "tps": 239.603,
+      "wall_s": 273.519,
+      "mean_s": 8.500804959292509,
+      "p50_s": 8.666002010460943,
+      "p95_s": 10.380022992100567,
+      "cleanup": {
+        "port_closed": true,
+        "gpu3_memory_mib": 15,
+        "time": 1794550968.151642
+      },
+      "post_graph_last": null
+    },
+    {
+      "rep": 2,
+      "post": 1,
+      "requests": 512,
+      "tokens": 65536,
+      "tps": 239.247,
+      "wall_s": 273.926,
+      "mean_s": 8.522447590512456,
+      "p50_s": 8.740984914824367,
+      "p95_s": 10.421056089317426,
+      "cleanup": {
+        "port_closed": true,
+        "gpu3_memory_mib": 15,
+        "time": 1794551355.6281557
+      },
+      "post_graph_last": {
+        "source": "/home/yypan/CDB-AV/worktrees/cdb-draft-post-graph-20261113/vllm/v1/spec_decode/cdb_av_post_graph.py",
+        "action": "replay",
+        "calls": 14336,
+        "rows": 4,
+        "captures": 4,
+        "cached_shapes": 4,
+        "validated": 0,
+        "stateless_head_and_confidence": true
+      }
+    }
+  ],
+  "summary": {
+    "0": {
+      "tps": {
+        "mean": 239.15,
+        "sample_sd": 1.28200117004627
+      },
+      "mean_s": {
+        "mean": 8.519719643682643,
+        "sample_sd": 0.04555694991955407
+      },
+      "p50_s": {
+        "mean": 8.640640868494907,
+        "sample_sd": 0.03729069294720335
+      },
+      "p95_s": {
+        "mean": 10.40686902406936,
+        "sample_sd": 0.07506314005012839
+      }
+    },
+    "1": {
+      "tps": {
+        "mean": 239.86633333333333,
+        "sample_sd": 0.6313234775717722
+      },
+      "mean_s": {
+        "mean": 8.499092356340649,
+        "sample_sd": 0.022826685973563264
+      },
+      "p50_s": {
+        "mean": 8.661017183059206,
+        "sample_sd": 0.09865766770343588
+      },
+      "p95_s": {
+        "mean": 10.416390895765897,
+        "sample_sd": 0.04423713365418401
+      }
+    }
+  },
+  "pairs": [
+    {
+      "rep": 0,
+      "tps_change_pct": 0.900283126422452,
+      "p95_change_pct": -0.3198096344116719,
+      "same_text_hash": 163
+    },
+    {
+      "rep": 1,
+      "tps_change_pct": 0.15199213805050515,
+      "p95_change_pct": 0.20374946842209862,
+      "same_text_hash": 146
+    },
+    {
+      "rep": 2,
+      "tps_change_pct": -0.14857910794104923,
+      "p95_change_pct": 0.3953083461191387,
+      "same_text_hash": 179
+    }
+  ],
+  "paired_changes": {
+    "tps_change_pct": {
+      "mean": 0.30123205217730264,
+      "sample_sd": 0.5401225885342414
+    },
+    "p95_change_pct": {
+      "mean": 0.09308272670985514,
+      "sample_sd": 0.3701807360067775
+    }
+  },
+  "note": "Same source/config except post graph; fixed three pairs. Hash mismatch not classified as harmless; strict output equivalence unproven."
+}

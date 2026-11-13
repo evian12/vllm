@@ -1,0 +1,59 @@
+{
+  "comparisons": 30,
+  "logical_weights_exact": true,
+  "outputs_byte_exact": 14,
+  "faster": 7,
+  "slower": 23,
+  "finite": true,
+  "scores": [
+    {
+      "model": "draft",
+      "M": 1,
+      "row_us_estimate": 3849.3068889347887,
+      "column_us_estimate": 4250.424324563055,
+      "gain_percent": -9.437115097196823,
+      "scope": "sum of isolated component medians,not real backbone or end-to-end latency"
+    },
+    {
+      "model": "draft",
+      "M": 4,
+      "row_us_estimate": 4290.20636805305,
+      "column_us_estimate": 4137.0210065083065,
+      "gain_percent": 3.7027939017895806,
+      "scope": "sum of isolated component medians,not real backbone or end-to-end latency"
+    },
+    {
+      "model": "draft",
+      "M": 16,
+      "row_us_estimate": 4341.170385931477,
+      "column_us_estimate": 4410.859377603188,
+      "gain_percent": -1.5799413607599289,
+      "scope": "sum of isolated component medians,not real backbone or end-to-end latency"
+    },
+    {
+      "model": "target",
+      "M": 1,
+      "row_us_estimate": 16241.461858153343,
+      "column_us_estimate": 16923.43609035015,
+      "gain_percent": -4.029762209966769,
+      "scope": "sum of isolated component medians,not real backbone or end-to-end latency"
+    },
+    {
+      "model": "target",
+      "M": 4,
+      "row_us_estimate": 16847.247749567032,
+      "column_us_estimate": 16555.83957582712,
+      "gain_percent": 1.7601534033066413,
+      "scope": "sum of isolated component medians,not real backbone or end-to-end latency"
+    },
+    {
+      "model": "target",
+      "M": 16,
+      "row_us_estimate": 17021.092861890793,
+      "column_us_estimate": 17213.927194476128,
+      "gain_percent": -1.12022277314624,
+      "scope": "sum of isolated component medians,not real backbone or end-to-end latency"
+    }
+  ],
+  "verdict": "Do not integrate whole-model column layout: inconsistent component gains and output-byte differences; isolated down-projection gains are not system evidence."
+}

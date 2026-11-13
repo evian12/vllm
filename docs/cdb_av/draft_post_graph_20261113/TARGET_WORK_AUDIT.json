@@ -1,0 +1,10 @@
+{
+  "scope": "32-request diagnostic trace only; no scheduler policy changed",
+  "target_positive_work_calls": 582,
+  "target_with_verification": 505,
+  "target_without_verification_but_with_scheduled_tokens": 77,
+  "zero_scheduled_target_calls": 0,
+  "nonverify_query_rows_eq1": 270,
+  "nonverify_query_rows_gt1": 27,
+  "note": "Scheduled query rows are real positive work. q=1 is not a proof of useless Forward; could be AR or one-token prefill. No skip optimization justified solely by lack of verification candidates."
+}

@@ -1,0 +1,62 @@
+[
+  {
+    "rep": 0,
+    "on": 0,
+    "nvml_samples": 276,
+    "gpu_util_mean": 80.66304347826087,
+    "memory_mib_max": 22545.0,
+    "power_w_mean": 252.11253623188406,
+    "temp_c_mean": 60.01449275362319,
+    "sm_clock_mhz_mean": 2658.4239130434785
+  },
+  {
+    "rep": 0,
+    "on": 1,
+    "nvml_samples": 274,
+    "gpu_util_mean": 81.3905109489051,
+    "memory_mib_max": 22607.0,
+    "power_w_mean": 253.49846715328468,
+    "temp_c_mean": 60.693430656934304,
+    "sm_clock_mhz_mean": 2655.0547445255474
+  },
+  {
+    "rep": 1,
+    "on": 0,
+    "nvml_samples": 273,
+    "gpu_util_mean": 81.41758241758242,
+    "memory_mib_max": 22545.0,
+    "power_w_mean": 253.7395238095238,
+    "temp_c_mean": 60.71062271062271,
+    "sm_clock_mhz_mean": 2663.5164835164837
+  },
+  {
+    "rep": 1,
+    "on": 1,
+    "nvml_samples": 273,
+    "gpu_util_mean": 82.31135531135531,
+    "memory_mib_max": 22605.0,
+    "power_w_mean": 254.90824175824176,
+    "temp_c_mean": 60.879120879120876,
+    "sm_clock_mhz_mean": 2667.3076923076924
+  },
+  {
+    "rep": 2,
+    "on": 0,
+    "nvml_samples": 274,
+    "gpu_util_mean": 82.02554744525547,
+    "memory_mib_max": 22539.0,
+    "power_w_mean": 253.76536496350366,
+    "temp_c_mean": 60.40510948905109,
+    "sm_clock_mhz_mean": 2669.9452554744526
+  },
+  {
+    "rep": 2,
+    "on": 1,
+    "nvml_samples": 274,
+    "gpu_util_mean": 81.93430656934306,
+    "memory_mib_max": 22627.0,
+    "power_w_mean": 253.1628102189781,
+    "temp_c_mean": 60.58029197080292,
+    "sm_clock_mhz_mean": 2660.7481751824816
+  }
+]
