@@ -1,0 +1,987 @@
+{
+  "summary": {
+    "draft": {
+      "checks": 896,
+      "layers": 28,
+      "nonzero_position_checks": 672,
+      "row_sizes": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        10,
+        11,
+        20,
+        126,
+        130,
+        151,
+        163
+      ]
+    },
+    "target": {
+      "checks": 1152,
+      "layers": 36,
+      "nonzero_position_checks": 1116,
+      "row_sizes": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        10,
+        14,
+        19,
+        21,
+        123,
+        126,
+        147,
+        159
+      ]
+    }
+  },
+  "runtime": [
+    {
+      "event": "runtime",
+      "pid": 1905752,
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-exact-qknorm-rope-20261113/vllm/model_executor/layers/cdb_exact_qknorm.py",
+      "binary": "/disk14T/yypan/CDB-AV-runtime/results/exact_qknorm_20261113/build/cdb_exact_qknorm_20261113.so",
+      "binary_sha256": "9c41246a74673bcdfe9eeec0c092a71bf7dd4f52881367b8c991a0a462fb9016"
+    }
+  ],
+  "enqueued": [
+    {
+      "event": "forward_enqueued",
+      "role": "target",
+      "prefix": "model.layers.0.self_attn",
+      "rows": 4,
+      "device": "cuda:0"
+    },
+    {
+      "event": "forward_enqueued",
+      "role": "draft",
+      "prefix": "draft_model.model.layers.0.self_attn",
+      "rows": 4,
+      "device": "cuda:0"
+    }
+  ],
+  "fallback": {
+    "row_or_layout_domain": 64
+  },
+  "graph_audit": {
+    "draft_checks": 644,
+    "target_checks": 328,
+    "all_checks_pass": true,
+    "new_query5_to8_checks": 46,
+    "new_actual_max_query_hist": {
+      "8": 2,
+      "5": 21,
+      "6": 16,
+      "7": 7
+    },
+    "new_shape_examples": [
+      {
+        "action": "capture",
+        "phase": "mixed_prefill_decode",
+        "rows": 11,
+        "seq_bucket": 64,
+        "query_lengths": [
+          1,
+          1,
+          1,
+          8
+        ],
+        "capture_query_lengths": [
+          1,
+          1,
+          1,
+          8
+        ],
+        "static_max_query_len": 8,
+        "dynamic_layout": true,
+        "kv_exact": true,
+        "token_exact": true,
+        "logits_close": true,
+        "max_abs": 0.0,
+        "dynamic_token_exact": true,
+        "dynamic_kv_exact": true,
+        "dynamic_max_abs": 0.0
+      },
+      {
+        "action": "capture",
+        "phase": "mixed_prefill_decode",
+        "rows": 8,
+        "seq_bucket": 128,
+        "query_lengths": [
+          1,
+          1,
+          1,
+          5
+        ],
+        "capture_query_lengths": [
+          1,
+          1,
+          1,
+          5
+        ],
+        "static_max_query_len": 8,
+        "dynamic_layout": true,
+        "kv_exact": true,
+        "token_exact": true,
+        "logits_close": true,
+        "max_abs": 0.0,
+        "dynamic_token_exact": true,
+        "dynamic_kv_exact": true,
+        "dynamic_max_abs": 0.0
+      },
+      {
+        "action": "capture",
+        "phase": "mixed_prefill_decode",
+        "rows": 10,
+        "seq_bucket": 128,
+        "query_lengths": [
+          1,
+          1,
+          2,
+          6
+        ],
+        "capture_query_lengths": [
+          1,
+          1,
+          2,
+          6
+        ],
+        "static_max_query_len": 8,
+        "dynamic_layout": true,
+        "kv_exact": true,
+        "token_exact": true,
+        "logits_close": true,
+        "max_abs": 0.0,
+        "dynamic_token_exact": true,
+        "dynamic_kv_exact": true,
+        "dynamic_max_abs": 0.0
+      },
+      {
+        "action": "replay",
+        "phase": "mixed_prefill_decode",
+        "rows": 8,
+        "seq_bucket": 128,
+        "query_lengths": [
+          1,
+          1,
+          1,
+          5
+        ],
+        "capture_query_lengths": [
+          1,
+          1,
+          1,
+          5
+        ],
+        "static_max_query_len": 8,
+        "dynamic_layout": true,
+        "kv_exact": true,
+        "token_exact": true,
+        "logits_close": true,
+        "max_abs": 0.0,
+        "dynamic_token_exact": true,
+        "dynamic_kv_exact": true,
+        "dynamic_max_abs": 0.0
+      },
+      {
+        "action": "replay",
+        "phase": "mixed_prefill_decode",
+        "rows": 8,
+        "seq_bucket": 128,
+        "query_lengths": [
+          1,
+          1,
+          1,
+          5
+        ],
+        "capture_query_lengths": [
+          1,
+          1,
+          1,
+          5
+        ],
+        "static_max_query_len": 8,
+        "dynamic_layout": true,
+        "kv_exact": true,
+        "token_exact": true,
+        "logits_close": true,
+        "max_abs": 0.0,
+        "dynamic_token_exact": true,
+        "dynamic_kv_exact": true,
+        "dynamic_max_abs": 0.0
+      }
+    ],
+    "q8_key_layouts": [
+      {
+        "key": [
+          7,
+          64,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            2,
+            3
+          ],
+          [
+            1,
+            1,
+            3,
+            2
+          ]
+        ]
+      },
+      {
+        "key": [
+          4,
+          64,
+          3
+        ],
+        "layouts": [
+          [
+            1,
+            2,
+            1
+          ],
+          [
+            2,
+            1,
+            1
+          ]
+        ]
+      },
+      {
+        "key": [
+          8,
+          64,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            3,
+            3
+          ],
+          [
+            2,
+            2,
+            2,
+            2
+          ]
+        ]
+      },
+      {
+        "key": [
+          6,
+          64,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            1,
+            3
+          ],
+          [
+            1,
+            2,
+            1,
+            2
+          ]
+        ]
+      },
+      {
+        "key": [
+          7,
+          128,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            1,
+            4
+          ],
+          [
+            1,
+            1,
+            2,
+            3
+          ],
+          [
+            1,
+            1,
+            3,
+            2
+          ],
+          [
+            1,
+            1,
+            4,
+            1
+          ],
+          [
+            1,
+            4,
+            1,
+            1
+          ]
+        ]
+      },
+      {
+        "key": [
+          8,
+          128,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            1,
+            5
+          ],
+          [
+            1,
+            1,
+            2,
+            4
+          ],
+          [
+            1,
+            1,
+            3,
+            3
+          ],
+          [
+            1,
+            1,
+            5,
+            1
+          ],
+          [
+            1,
+            2,
+            1,
+            4
+          ],
+          [
+            1,
+            2,
+            2,
+            3
+          ],
+          [
+            2,
+            3,
+            1,
+            2
+          ]
+        ]
+      },
+      {
+        "key": [
+          6,
+          128,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            1,
+            3
+          ],
+          [
+            1,
+            1,
+            2,
+            2
+          ],
+          [
+            1,
+            1,
+            3,
+            1
+          ],
+          [
+            1,
+            2,
+            1,
+            2
+          ],
+          [
+            1,
+            2,
+            2,
+            1
+          ]
+        ]
+      },
+      {
+        "key": [
+          5,
+          128,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            1,
+            2
+          ],
+          [
+            1,
+            1,
+            2,
+            1
+          ],
+          [
+            1,
+            2,
+            1,
+            1
+          ]
+        ]
+      },
+      {
+        "key": [
+          10,
+          128,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            2,
+            6
+          ],
+          [
+            1,
+            1,
+            6,
+            2
+          ]
+        ]
+      },
+      {
+        "key": [
+          5,
+          128,
+          3
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            3
+          ],
+          [
+            1,
+            2,
+            2
+          ]
+        ]
+      },
+      {
+        "key": [
+          11,
+          128,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            1,
+            8
+          ],
+          [
+            1,
+            1,
+            2,
+            7
+          ],
+          [
+            1,
+            1,
+            5,
+            4
+          ],
+          [
+            1,
+            2,
+            6,
+            2
+          ],
+          [
+            1,
+            3,
+            4,
+            3
+          ]
+        ]
+      },
+      {
+        "key": [
+          9,
+          128,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            1,
+            6
+          ],
+          [
+            1,
+            1,
+            2,
+            5
+          ],
+          [
+            1,
+            1,
+            3,
+            4
+          ],
+          [
+            1,
+            1,
+            6,
+            1
+          ],
+          [
+            2,
+            2,
+            3,
+            2
+          ]
+        ]
+      },
+      {
+        "key": [
+          7,
+          256,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            1,
+            4
+          ],
+          [
+            1,
+            1,
+            2,
+            3
+          ],
+          [
+            1,
+            1,
+            3,
+            2
+          ],
+          [
+            1,
+            1,
+            4,
+            1
+          ],
+          [
+            1,
+            2,
+            1,
+            3
+          ],
+          [
+            1,
+            2,
+            2,
+            2
+          ],
+          [
+            1,
+            3,
+            1,
+            2
+          ],
+          [
+            2,
+            2,
+            2,
+            1
+          ]
+        ]
+      },
+      {
+        "key": [
+          5,
+          256,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            1,
+            2
+          ],
+          [
+            1,
+            1,
+            2,
+            1
+          ],
+          [
+            1,
+            2,
+            1,
+            1
+          ]
+        ]
+      },
+      {
+        "key": [
+          10,
+          256,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            3,
+            5
+          ],
+          [
+            1,
+            1,
+            4,
+            4
+          ],
+          [
+            1,
+            1,
+            6,
+            2
+          ],
+          [
+            1,
+            2,
+            3,
+            4
+          ],
+          [
+            1,
+            2,
+            4,
+            3
+          ],
+          [
+            1,
+            2,
+            5,
+            2
+          ],
+          [
+            1,
+            4,
+            2,
+            3
+          ],
+          [
+            1,
+            6,
+            2,
+            1
+          ]
+        ]
+      },
+      {
+        "key": [
+          6,
+          256,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            1,
+            3
+          ],
+          [
+            1,
+            1,
+            2,
+            2
+          ],
+          [
+            1,
+            1,
+            3,
+            1
+          ],
+          [
+            1,
+            2,
+            1,
+            2
+          ],
+          [
+            1,
+            2,
+            2,
+            1
+          ]
+        ]
+      },
+      {
+        "key": [
+          11,
+          256,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            2,
+            7
+          ],
+          [
+            1,
+            1,
+            3,
+            6
+          ],
+          [
+            1,
+            1,
+            6,
+            3
+          ],
+          [
+            1,
+            2,
+            4,
+            4
+          ]
+        ]
+      },
+      {
+        "key": [
+          8,
+          256,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            1,
+            5
+          ],
+          [
+            1,
+            1,
+            2,
+            4
+          ],
+          [
+            1,
+            1,
+            3,
+            3
+          ],
+          [
+            1,
+            1,
+            4,
+            2
+          ],
+          [
+            1,
+            1,
+            5,
+            1
+          ],
+          [
+            1,
+            2,
+            1,
+            4
+          ],
+          [
+            1,
+            3,
+            1,
+            3
+          ],
+          [
+            2,
+            2,
+            2,
+            2
+          ]
+        ]
+      },
+      {
+        "key": [
+          4,
+          256,
+          3
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            2
+          ],
+          [
+            1,
+            2,
+            1
+          ]
+        ]
+      },
+      {
+        "key": [
+          9,
+          256,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            1,
+            6
+          ],
+          [
+            1,
+            1,
+            2,
+            5
+          ],
+          [
+            1,
+            1,
+            4,
+            3
+          ],
+          [
+            1,
+            2,
+            4,
+            2
+          ],
+          [
+            1,
+            4,
+            3,
+            1
+          ]
+        ]
+      },
+      {
+        "key": [
+          13,
+          256,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            5,
+            6
+          ],
+          [
+            1,
+            6,
+            5,
+            1
+          ]
+        ]
+      },
+      {
+        "key": [
+          12,
+          256,
+          4
+        ],
+        "layouts": [
+          [
+            1,
+            1,
+            5,
+            5
+          ],
+          [
+            1,
+            3,
+            1,
+            7
+          ],
+          [
+            1,
+            3,
+            3,
+            5
+          ],
+          [
+            1,
+            5,
+            2,
+            4
+          ]
+        ]
+      }
+    ],
+    "draft_layers": 28,
+    "target_layers": 36,
+    "errors": [],
+    "ready_reasons": {
+      "low_confidence": 1042,
+      "max_k": 67
+    },
+    "cleanup": {
+      "port_closed": true,
+      "gpu3_memory_mib": 15,
+      "time": 1794523674.7501624
+    },
+    "carry_snapshot_pairs": 169,
+    "carry_with_real_target_interleave": 169,
+    "resumed_actual_decode_associations": 169,
+    "final_reset": {
+      "event": "p2_reset",
+      "window": 100,
+      "target_epoch": 575,
+      "released_blocks": 0,
+      "live_leases": 0,
+      "ready": 0,
+      "inflight": 0
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "cpu_suite": {
+    "passed": 400,
+    "skipped_gpu": 5,
+    "log_sha256": "5dc12b8daa7ef149a0c35ebb694e30a40a55f4d8358a39aff3cac3520a35d798"
+  },
+  "negative_gpu_api": {
+    "passed": 14,
+    "log_sha256": "b56afa19e2288fdca741ab057d2250be436ba075b0a787da4730a936c6ec10c6"
+  },
+  "independent_operator": {
+    "cases": 106,
+    "nonempty": 104,
+    "empty": 2,
+    "result_sha256": "8b87cbd5b8e20bb808261958bdd03ecf4175876eda4e213ad93254215eb9b3f8"
+  },
+  "boundary_script": {
+    "archived_path": "/home/yypan/CDB-AV/results/exact_qknorm_20261113/boundary_validate.py",
+    "sha256": "a0496d4b312729138f236d3e46ec2c3347aaf07252e671c37e65eeedb4c4fa93"
+  },
+  "archive": "All raw logs/validators/binaries retained at /home/yypan/CDB-AV/results/exact_qknorm_20261113;weights and binaries are not added to Git."
+}
