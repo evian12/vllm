@@ -166,6 +166,8 @@ class RefillSession:
         self.builder = proposer.attn_metadata_builder or proposer._get_attention_metadata_builder()
         validate_ragged_graph_backend(self.graph_query_bound, self.builder)
         self.block_size = self.builder.kv_cache_spec.block_size
+        from vllm.v1.spec_decode.cdb_av_inputs import get_input_stager
+        self._input_stager = get_input_stager(proposer)
         self.policy = os.getenv('CDB_AV_K_POLICY', 'manual').strip().lower()
         self.threshold = float(os.getenv('CDB_AV_HF_THRESHOLD', '0.4'))
         if self.policy not in ('manual', 'hf_confidence', 'replay_acceptance',
@@ -784,22 +786,35 @@ class RefillSession:
                 last_indices.append(offset + qlen - 1)
                 offset += qlen
 
-            ids = torch.tensor(
-                [token for part in ids_parts for token in part],
-                dtype=torch.int32, device=self.p.device)
-            positions = torch.tensor(
-                [pos for part in pos_parts for pos in part],
-                dtype=torch.int64, device=self.p.device)
-            cad = self._metadata(block_rows, seqs, qlens, slots)
+            ids_cpu = [token for part in ids_parts for token in part]
+            positions_cpu = [pos for part in pos_parts for pos in part]
+            stager = getattr(self, '_input_stager', None)
+            if stager is None:
+                ids = torch.tensor(ids_cpu, dtype=torch.int32, device=self.p.device)
+                positions = torch.tensor(positions_cpu, dtype=torch.int64, device=self.p.device)
+                cad = self._metadata(block_rows, seqs, qlens, slots)
+            else:
+                profiler = getattr(self, '_draft_stage_profiler', None)
+                tick = (time.perf_counter() if profiler is not None
+                        and profiler.has_capacity else None)
+                fields = stager.pack(ids_cpu,positions_cpu,block_rows,seqs,
+                                     qlens,slots,last_indices)
+                ids = fields.pop('ids')
+                positions = fields.pop('positions')
+                indices = fields.pop('last_indices')
+                cad = CommonAttentionMetadata(
+                    **fields, num_reqs=len(block_rows),num_actual_tokens=len(ids_cpu),
+                    max_query_len=max(qlens),max_seq_len=max(seqs),causal=True,
+                    _seq_lens_cpu=None,_num_computed_tokens_cpu=None)
+                if tick is not None:
+                    self._draft_stage_metadata_ms = (time.perf_counter()-tick)*1000
             phase = ('mixed_prefill_decode' if pending and decode_ids else
                      'mixed_prefill' if pending else 'decode')
             if len(last_indices) != len(worked):
                 raise RuntimeError('Mixed Batch Logits/request alignment mismatch')
-
-            logits = self._forward(
-                ids, positions, cad,
-                torch.tensor(last_indices, dtype=torch.long, device=self.p.device),
-                worked, phase)
+            if stager is None:
+                indices = torch.tensor(last_indices,dtype=torch.long,device=self.p.device)
+            logits = self._forward(ids, positions, cad, indices, worked, phase)
             if decode_assoc:
                 emit('association', window=self.window,
                      step=self.steps_completed + 1, rows=decode_assoc)
