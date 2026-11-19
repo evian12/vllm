@@ -1,0 +1,20 @@
+{
+  "time": 1795113276.268297,
+  "code_implemented": true,
+  "cpu_passed": 308,
+  "cpu_skipped": 8,
+  "feature_cpu_passed": 26,
+  "cuda_primitive_cases": 160,
+  "model_gate_passed": true,
+  "formal_performance": "running; no speedup claim",
+  "source_commit": "a22f968f684d79f5d79b974236bb63d53a20953d",
+  "live_controller": {
+    "state": "running",
+    "time": 1795113089.196625,
+    "pid": 3748962,
+    "tag": "pair_seed42_fused0",
+    "cap": 8,
+    "seed": 42
+  },
+  "goal_exceed_native_sd": false
+}

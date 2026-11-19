@@ -1,0 +1,472 @@
+{
+  "model": "llama",
+  "warmup_requests": 64,
+  "measured_requests": 16,
+  "target_scope": [
+    {
+      "model": "LlamaForCausalLM",
+      "layers": 32,
+      "fa_version": 2,
+      "llama_opt_in": true,
+      "dtype": "torch.bfloat16"
+    }
+  ],
+  "draft_graph_checks": 706,
+  "target_graph_checks": 192,
+  "cap": 8,
+  "completed": 16,
+  "ready": 1202,
+  "verified": 1202,
+  "K_values": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8
+  ],
+  "reasons": [
+    "low_confidence",
+    "max_k"
+  ],
+  "carry_byte_checks": 216,
+  "cross_target_checks": 216,
+  "cleanup": {
+    "event": "p2_reset",
+    "window": 127,
+    "target_epoch": 654,
+    "released_blocks": 0,
+    "live_leases": 0,
+    "ready": 0,
+    "inflight": 0
+  },
+  "metadata_checks": [
+    {
+      "call": 1,
+      "requests": 1,
+      "tokens": 1,
+      "source_width": 4,
+      "destination_width": 4,
+      "checks": {
+        "query_start_loc": true,
+        "seq_lens": true,
+        "block_table_tensor": true,
+        "slot_mapping": true
+      }
+    },
+    {
+      "call": 2,
+      "requests": 4,
+      "tokens": 4,
+      "source_width": 5,
+      "destination_width": 8,
+      "checks": {
+        "query_start_loc": true,
+        "seq_lens": true,
+        "block_table_tensor": true,
+        "slot_mapping": true
+      }
+    },
+    {
+      "call": 3,
+      "requests": 4,
+      "tokens": 4,
+      "source_width": 5,
+      "destination_width": 8,
+      "checks": {
+        "query_start_loc": true,
+        "seq_lens": true,
+        "block_table_tensor": true,
+        "slot_mapping": true
+      }
+    },
+    {
+      "call": 4,
+      "requests": 4,
+      "tokens": 4,
+      "source_width": 6,
+      "destination_width": 8,
+      "checks": {
+        "query_start_loc": true,
+        "seq_lens": true,
+        "block_table_tensor": true,
+        "slot_mapping": true
+      }
+    },
+    {
+      "call": 5,
+      "requests": 4,
+      "tokens": 4,
+      "source_width": 22,
+      "destination_width": 32,
+      "checks": {
+        "query_start_loc": true,
+        "seq_lens": true,
+        "block_table_tensor": true,
+        "slot_mapping": true
+      }
+    },
+    {
+      "call": 6,
+      "requests": 4,
+      "tokens": 4,
+      "source_width": 22,
+      "destination_width": 32,
+      "checks": {
+        "query_start_loc": true,
+        "seq_lens": true,
+        "block_table_tensor": true,
+        "slot_mapping": true
+      }
+    },
+    {
+      "call": 7,
+      "requests": 3,
+      "tokens": 3,
+      "source_width": 22,
+      "destination_width": 32,
+      "checks": {
+        "query_start_loc": true,
+        "seq_lens": true,
+        "block_table_tensor": true,
+        "slot_mapping": true
+      }
+    },
+    {
+      "call": 8,
+      "requests": 4,
+      "tokens": 4,
+      "source_width": 16,
+      "destination_width": 16,
+      "checks": {
+        "query_start_loc": true,
+        "seq_lens": true,
+        "block_table_tensor": true,
+        "slot_mapping": true
+      }
+    },
+    {
+      "call": 9,
+      "requests": 4,
+      "tokens": 4,
+      "source_width": 16,
+      "destination_width": 16,
+      "checks": {
+        "query_start_loc": true,
+        "seq_lens": true,
+        "block_table_tensor": true,
+        "slot_mapping": true
+      }
+    },
+    {
+      "call": 10,
+      "requests": 4,
+      "tokens": 4,
+      "source_width": 23,
+      "destination_width": 32,
+      "checks": {
+        "query_start_loc": true,
+        "seq_lens": true,
+        "block_table_tensor": true,
+        "slot_mapping": true
+      }
+    },
+    {
+      "call": 11,
+      "requests": 4,
+      "tokens": 4,
+      "source_width": 23,
+      "destination_width": 32,
+      "checks": {
+        "query_start_loc": true,
+        "seq_lens": true,
+        "block_table_tensor": true,
+        "slot_mapping": true
+      }
+    },
+    {
+      "call": 12,
+      "requests": 3,
+      "tokens": 3,
+      "source_width": 23,
+      "destination_width": 32,
+      "checks": {
+        "query_start_loc": true,
+        "seq_lens": true,
+        "block_table_tensor": true,
+        "slot_mapping": true
+      }
+    },
+    {
+      "call": 13,
+      "requests": 3,
+      "tokens": 3,
+      "source_width": 6,
+      "destination_width": 8,
+      "checks": {
+        "query_start_loc": true,
+        "seq_lens": true,
+        "block_table_tensor": true,
+        "slot_mapping": true
+      }
+    },
+    {
+      "call": 14,
+      "requests": 4,
+      "tokens": 4,
+      "source_width": 7,
+      "destination_width": 8,
+      "checks": {
+        "query_start_loc": true,
+        "seq_lens": true,
+        "block_table_tensor": true,
+        "slot_mapping": true
+      }
+    },
+    {
+      "call": 15,
+      "requests": 4,
+      "tokens": 4,
+      "source_width": 7,
+      "destination_width": 8,
+      "checks": {
+        "query_start_loc": true,
+        "seq_lens": true,
+        "block_table_tensor": true,
+        "slot_mapping": true
+      }
+    },
+    {
+      "call": 16,
+      "requests": 3,
+      "tokens": 3,
+      "source_width": 7,
+      "destination_width": 8,
+      "checks": {
+        "query_start_loc": true,
+        "seq_lens": true,
+        "block_table_tensor": true,
+        "slot_mapping": true
+      }
+    },
+    {
+      "call": 17,
+      "requests": 4,
+      "tokens": 4,
+      "source_width": 6,
+      "destination_width": 8,
+      "checks": {
+        "query_start_loc": true,
+        "seq_lens": true,
+        "block_table_tensor": true,
+        "slot_mapping": true
+      }
+    },
+    {
+      "call": 18,
+      "requests": 4,
+      "tokens": 5,
+      "source_width": 30,
+      "destination_width": 64,
+      "checks": {
+        "query_start_loc": true,
+        "seq_lens": true,
+        "block_table_tensor": true,
+        "slot_mapping": true
+      }
+    },
+    {
+      "call": 19,
+      "requests": 4,
+      "tokens": 5,
+      "source_width": 30,
+      "destination_width": 64,
+      "checks": {
+        "query_start_loc": true,
+        "seq_lens": true,
+        "block_table_tensor": true,
+        "slot_mapping": true
+      }
+    },
+    {
+      "call": 20,
+      "requests": 4,
+      "tokens": 4,
+      "source_width": 30,
+      "destination_width": 32,
+      "checks": {
+        "query_start_loc": true,
+        "seq_lens": true,
+        "block_table_tensor": true,
+        "slot_mapping": true
+      }
+    },
+    {
+      "call": 21,
+      "requests": 4,
+      "tokens": 4,
+      "source_width": 30,
+      "destination_width": 32,
+      "checks": {
+        "query_start_loc": true,
+        "seq_lens": true,
+        "block_table_tensor": true,
+        "slot_mapping": true
+      }
+    },
+    {
+      "call": 22,
+      "requests": 4,
+      "tokens": 4,
+      "source_width": 30,
+      "destination_width": 32,
+      "checks": {
+        "query_start_loc": true,
+        "seq_lens": true,
+        "block_table_tensor": true,
+        "slot_mapping": true
+      }
+    },
+    {
+      "call": 23,
+      "requests": 4,
+      "tokens": 4,
+      "source_width": 30,
+      "destination_width": 32,
+      "checks": {
+        "query_start_loc": true,
+        "seq_lens": true,
+        "block_table_tensor": true,
+        "slot_mapping": true
+      }
+    },
+    {
+      "call": 24,
+      "requests": 4,
+      "tokens": 6,
+      "source_width": 24,
+      "destination_width": 64,
+      "checks": {
+        "query_start_loc": true,
+        "seq_lens": true,
+        "block_table_tensor": true,
+        "slot_mapping": true
+      }
+    },
+    {
+      "call": 25,
+      "requests": 4,
+      "tokens": 5,
+      "source_width": 24,
+      "destination_width": 64,
+      "checks": {
+        "query_start_loc": true,
+        "seq_lens": true,
+        "block_table_tensor": true,
+        "slot_mapping": true
+      }
+    },
+    {
+      "call": 26,
+      "requests": 4,
+      "tokens": 4,
+      "source_width": 24,
+      "destination_width": 32,
+      "checks": {
+        "query_start_loc": true,
+        "seq_lens": true,
+        "block_table_tensor": true,
+        "slot_mapping": true
+      }
+    },
+    {
+      "call": 27,
+      "requests": 4,
+      "tokens": 5,
+      "source_width": 24,
+      "destination_width": 64,
+      "checks": {
+        "query_start_loc": true,
+        "seq_lens": true,
+        "block_table_tensor": true,
+        "slot_mapping": true
+      }
+    },
+    {
+      "call": 28,
+      "requests": 3,
+      "tokens": 3,
+      "source_width": 5,
+      "destination_width": 8,
+      "checks": {
+        "query_start_loc": true,
+        "seq_lens": true,
+        "block_table_tensor": true,
+        "slot_mapping": true
+      }
+    },
+    {
+      "call": 29,
+      "requests": 4,
+      "tokens": 4,
+      "source_width": 17,
+      "destination_width": 32,
+      "checks": {
+        "query_start_loc": true,
+        "seq_lens": true,
+        "block_table_tensor": true,
+        "slot_mapping": true
+      }
+    },
+    {
+      "call": 30,
+      "requests": 4,
+      "tokens": 4,
+      "source_width": 31,
+      "destination_width": 32,
+      "checks": {
+        "query_start_loc": true,
+        "seq_lens": true,
+        "block_table_tensor": true,
+        "slot_mapping": true
+      }
+    },
+    {
+      "call": 31,
+      "requests": 4,
+      "tokens": 6,
+      "source_width": 31,
+      "destination_width": 64,
+      "checks": {
+        "query_start_loc": true,
+        "seq_lens": true,
+        "block_table_tensor": true,
+        "slot_mapping": true
+      }
+    },
+    {
+      "call": 32,
+      "requests": 3,
+      "tokens": 3,
+      "source_width": 25,
+      "destination_width": 32,
+      "checks": {
+        "query_start_loc": true,
+        "seq_lens": true,
+        "block_table_tensor": true,
+        "slot_mapping": true
+      }
+    }
+  ],
+  "metadata_implementation_runtime": [
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-draft-meta-copy-20261120/vllm/v1/spec_decode/cdb_av_draft_meta_copy.py",
+      "calls": 1,
+      "metadata_kernel_calls": 1,
+      "integer_copy_only": true,
+      "extra_model_rows": 0
+    }
+  ]
+}

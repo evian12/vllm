@@ -1,0 +1,974 @@
+{
+  "cases": 160,
+  "all_four_fields_byte_exact": true,
+  "source_unchanged": true,
+  "retained_destinations": 160,
+  "records": [
+    {
+      "requests": 1,
+      "tokens": 1,
+      "source_width": 1,
+      "destination_width": 1
+    },
+    {
+      "requests": 1,
+      "tokens": 1,
+      "source_width": 1,
+      "destination_width": 2
+    },
+    {
+      "requests": 1,
+      "tokens": 1,
+      "source_width": 2,
+      "destination_width": 2
+    },
+    {
+      "requests": 1,
+      "tokens": 1,
+      "source_width": 1,
+      "destination_width": 17
+    },
+    {
+      "requests": 1,
+      "tokens": 1,
+      "source_width": 17,
+      "destination_width": 17
+    },
+    {
+      "requests": 1,
+      "tokens": 1,
+      "source_width": 1,
+      "destination_width": 64
+    },
+    {
+      "requests": 1,
+      "tokens": 1,
+      "source_width": 17,
+      "destination_width": 64
+    },
+    {
+      "requests": 1,
+      "tokens": 1,
+      "source_width": 64,
+      "destination_width": 64
+    },
+    {
+      "requests": 1,
+      "tokens": 1,
+      "source_width": 17,
+      "destination_width": 1024
+    },
+    {
+      "requests": 1,
+      "tokens": 1,
+      "source_width": 1024,
+      "destination_width": 1024
+    },
+    {
+      "requests": 1,
+      "tokens": 2,
+      "source_width": 1,
+      "destination_width": 1
+    },
+    {
+      "requests": 1,
+      "tokens": 2,
+      "source_width": 1,
+      "destination_width": 2
+    },
+    {
+      "requests": 1,
+      "tokens": 2,
+      "source_width": 2,
+      "destination_width": 2
+    },
+    {
+      "requests": 1,
+      "tokens": 2,
+      "source_width": 1,
+      "destination_width": 17
+    },
+    {
+      "requests": 1,
+      "tokens": 2,
+      "source_width": 17,
+      "destination_width": 17
+    },
+    {
+      "requests": 1,
+      "tokens": 2,
+      "source_width": 1,
+      "destination_width": 64
+    },
+    {
+      "requests": 1,
+      "tokens": 2,
+      "source_width": 17,
+      "destination_width": 64
+    },
+    {
+      "requests": 1,
+      "tokens": 2,
+      "source_width": 64,
+      "destination_width": 64
+    },
+    {
+      "requests": 1,
+      "tokens": 2,
+      "source_width": 17,
+      "destination_width": 1024
+    },
+    {
+      "requests": 1,
+      "tokens": 2,
+      "source_width": 1024,
+      "destination_width": 1024
+    },
+    {
+      "requests": 1,
+      "tokens": 4,
+      "source_width": 1,
+      "destination_width": 1
+    },
+    {
+      "requests": 1,
+      "tokens": 4,
+      "source_width": 1,
+      "destination_width": 2
+    },
+    {
+      "requests": 1,
+      "tokens": 4,
+      "source_width": 2,
+      "destination_width": 2
+    },
+    {
+      "requests": 1,
+      "tokens": 4,
+      "source_width": 1,
+      "destination_width": 17
+    },
+    {
+      "requests": 1,
+      "tokens": 4,
+      "source_width": 17,
+      "destination_width": 17
+    },
+    {
+      "requests": 1,
+      "tokens": 4,
+      "source_width": 1,
+      "destination_width": 64
+    },
+    {
+      "requests": 1,
+      "tokens": 4,
+      "source_width": 17,
+      "destination_width": 64
+    },
+    {
+      "requests": 1,
+      "tokens": 4,
+      "source_width": 64,
+      "destination_width": 64
+    },
+    {
+      "requests": 1,
+      "tokens": 4,
+      "source_width": 17,
+      "destination_width": 1024
+    },
+    {
+      "requests": 1,
+      "tokens": 4,
+      "source_width": 1024,
+      "destination_width": 1024
+    },
+    {
+      "requests": 1,
+      "tokens": 8,
+      "source_width": 1,
+      "destination_width": 1
+    },
+    {
+      "requests": 1,
+      "tokens": 8,
+      "source_width": 1,
+      "destination_width": 2
+    },
+    {
+      "requests": 1,
+      "tokens": 8,
+      "source_width": 2,
+      "destination_width": 2
+    },
+    {
+      "requests": 1,
+      "tokens": 8,
+      "source_width": 1,
+      "destination_width": 17
+    },
+    {
+      "requests": 1,
+      "tokens": 8,
+      "source_width": 17,
+      "destination_width": 17
+    },
+    {
+      "requests": 1,
+      "tokens": 8,
+      "source_width": 1,
+      "destination_width": 64
+    },
+    {
+      "requests": 1,
+      "tokens": 8,
+      "source_width": 17,
+      "destination_width": 64
+    },
+    {
+      "requests": 1,
+      "tokens": 8,
+      "source_width": 64,
+      "destination_width": 64
+    },
+    {
+      "requests": 1,
+      "tokens": 8,
+      "source_width": 17,
+      "destination_width": 1024
+    },
+    {
+      "requests": 1,
+      "tokens": 8,
+      "source_width": 1024,
+      "destination_width": 1024
+    },
+    {
+      "requests": 2,
+      "tokens": 2,
+      "source_width": 1,
+      "destination_width": 1
+    },
+    {
+      "requests": 2,
+      "tokens": 2,
+      "source_width": 1,
+      "destination_width": 2
+    },
+    {
+      "requests": 2,
+      "tokens": 2,
+      "source_width": 2,
+      "destination_width": 2
+    },
+    {
+      "requests": 2,
+      "tokens": 2,
+      "source_width": 1,
+      "destination_width": 17
+    },
+    {
+      "requests": 2,
+      "tokens": 2,
+      "source_width": 17,
+      "destination_width": 17
+    },
+    {
+      "requests": 2,
+      "tokens": 2,
+      "source_width": 1,
+      "destination_width": 64
+    },
+    {
+      "requests": 2,
+      "tokens": 2,
+      "source_width": 17,
+      "destination_width": 64
+    },
+    {
+      "requests": 2,
+      "tokens": 2,
+      "source_width": 64,
+      "destination_width": 64
+    },
+    {
+      "requests": 2,
+      "tokens": 2,
+      "source_width": 17,
+      "destination_width": 1024
+    },
+    {
+      "requests": 2,
+      "tokens": 2,
+      "source_width": 1024,
+      "destination_width": 1024
+    },
+    {
+      "requests": 2,
+      "tokens": 3,
+      "source_width": 1,
+      "destination_width": 1
+    },
+    {
+      "requests": 2,
+      "tokens": 3,
+      "source_width": 1,
+      "destination_width": 2
+    },
+    {
+      "requests": 2,
+      "tokens": 3,
+      "source_width": 2,
+      "destination_width": 2
+    },
+    {
+      "requests": 2,
+      "tokens": 3,
+      "source_width": 1,
+      "destination_width": 17
+    },
+    {
+      "requests": 2,
+      "tokens": 3,
+      "source_width": 17,
+      "destination_width": 17
+    },
+    {
+      "requests": 2,
+      "tokens": 3,
+      "source_width": 1,
+      "destination_width": 64
+    },
+    {
+      "requests": 2,
+      "tokens": 3,
+      "source_width": 17,
+      "destination_width": 64
+    },
+    {
+      "requests": 2,
+      "tokens": 3,
+      "source_width": 64,
+      "destination_width": 64
+    },
+    {
+      "requests": 2,
+      "tokens": 3,
+      "source_width": 17,
+      "destination_width": 1024
+    },
+    {
+      "requests": 2,
+      "tokens": 3,
+      "source_width": 1024,
+      "destination_width": 1024
+    },
+    {
+      "requests": 2,
+      "tokens": 7,
+      "source_width": 1,
+      "destination_width": 1
+    },
+    {
+      "requests": 2,
+      "tokens": 7,
+      "source_width": 1,
+      "destination_width": 2
+    },
+    {
+      "requests": 2,
+      "tokens": 7,
+      "source_width": 2,
+      "destination_width": 2
+    },
+    {
+      "requests": 2,
+      "tokens": 7,
+      "source_width": 1,
+      "destination_width": 17
+    },
+    {
+      "requests": 2,
+      "tokens": 7,
+      "source_width": 17,
+      "destination_width": 17
+    },
+    {
+      "requests": 2,
+      "tokens": 7,
+      "source_width": 1,
+      "destination_width": 64
+    },
+    {
+      "requests": 2,
+      "tokens": 7,
+      "source_width": 17,
+      "destination_width": 64
+    },
+    {
+      "requests": 2,
+      "tokens": 7,
+      "source_width": 64,
+      "destination_width": 64
+    },
+    {
+      "requests": 2,
+      "tokens": 7,
+      "source_width": 17,
+      "destination_width": 1024
+    },
+    {
+      "requests": 2,
+      "tokens": 7,
+      "source_width": 1024,
+      "destination_width": 1024
+    },
+    {
+      "requests": 2,
+      "tokens": 16,
+      "source_width": 1,
+      "destination_width": 1
+    },
+    {
+      "requests": 2,
+      "tokens": 16,
+      "source_width": 1,
+      "destination_width": 2
+    },
+    {
+      "requests": 2,
+      "tokens": 16,
+      "source_width": 2,
+      "destination_width": 2
+    },
+    {
+      "requests": 2,
+      "tokens": 16,
+      "source_width": 1,
+      "destination_width": 17
+    },
+    {
+      "requests": 2,
+      "tokens": 16,
+      "source_width": 17,
+      "destination_width": 17
+    },
+    {
+      "requests": 2,
+      "tokens": 16,
+      "source_width": 1,
+      "destination_width": 64
+    },
+    {
+      "requests": 2,
+      "tokens": 16,
+      "source_width": 17,
+      "destination_width": 64
+    },
+    {
+      "requests": 2,
+      "tokens": 16,
+      "source_width": 64,
+      "destination_width": 64
+    },
+    {
+      "requests": 2,
+      "tokens": 16,
+      "source_width": 17,
+      "destination_width": 1024
+    },
+    {
+      "requests": 2,
+      "tokens": 16,
+      "source_width": 1024,
+      "destination_width": 1024
+    },
+    {
+      "requests": 3,
+      "tokens": 3,
+      "source_width": 1,
+      "destination_width": 1
+    },
+    {
+      "requests": 3,
+      "tokens": 3,
+      "source_width": 1,
+      "destination_width": 2
+    },
+    {
+      "requests": 3,
+      "tokens": 3,
+      "source_width": 2,
+      "destination_width": 2
+    },
+    {
+      "requests": 3,
+      "tokens": 3,
+      "source_width": 1,
+      "destination_width": 17
+    },
+    {
+      "requests": 3,
+      "tokens": 3,
+      "source_width": 17,
+      "destination_width": 17
+    },
+    {
+      "requests": 3,
+      "tokens": 3,
+      "source_width": 1,
+      "destination_width": 64
+    },
+    {
+      "requests": 3,
+      "tokens": 3,
+      "source_width": 17,
+      "destination_width": 64
+    },
+    {
+      "requests": 3,
+      "tokens": 3,
+      "source_width": 64,
+      "destination_width": 64
+    },
+    {
+      "requests": 3,
+      "tokens": 3,
+      "source_width": 17,
+      "destination_width": 1024
+    },
+    {
+      "requests": 3,
+      "tokens": 3,
+      "source_width": 1024,
+      "destination_width": 1024
+    },
+    {
+      "requests": 3,
+      "tokens": 5,
+      "source_width": 1,
+      "destination_width": 1
+    },
+    {
+      "requests": 3,
+      "tokens": 5,
+      "source_width": 1,
+      "destination_width": 2
+    },
+    {
+      "requests": 3,
+      "tokens": 5,
+      "source_width": 2,
+      "destination_width": 2
+    },
+    {
+      "requests": 3,
+      "tokens": 5,
+      "source_width": 1,
+      "destination_width": 17
+    },
+    {
+      "requests": 3,
+      "tokens": 5,
+      "source_width": 17,
+      "destination_width": 17
+    },
+    {
+      "requests": 3,
+      "tokens": 5,
+      "source_width": 1,
+      "destination_width": 64
+    },
+    {
+      "requests": 3,
+      "tokens": 5,
+      "source_width": 17,
+      "destination_width": 64
+    },
+    {
+      "requests": 3,
+      "tokens": 5,
+      "source_width": 64,
+      "destination_width": 64
+    },
+    {
+      "requests": 3,
+      "tokens": 5,
+      "source_width": 17,
+      "destination_width": 1024
+    },
+    {
+      "requests": 3,
+      "tokens": 5,
+      "source_width": 1024,
+      "destination_width": 1024
+    },
+    {
+      "requests": 3,
+      "tokens": 11,
+      "source_width": 1,
+      "destination_width": 1
+    },
+    {
+      "requests": 3,
+      "tokens": 11,
+      "source_width": 1,
+      "destination_width": 2
+    },
+    {
+      "requests": 3,
+      "tokens": 11,
+      "source_width": 2,
+      "destination_width": 2
+    },
+    {
+      "requests": 3,
+      "tokens": 11,
+      "source_width": 1,
+      "destination_width": 17
+    },
+    {
+      "requests": 3,
+      "tokens": 11,
+      "source_width": 17,
+      "destination_width": 17
+    },
+    {
+      "requests": 3,
+      "tokens": 11,
+      "source_width": 1,
+      "destination_width": 64
+    },
+    {
+      "requests": 3,
+      "tokens": 11,
+      "source_width": 17,
+      "destination_width": 64
+    },
+    {
+      "requests": 3,
+      "tokens": 11,
+      "source_width": 64,
+      "destination_width": 64
+    },
+    {
+      "requests": 3,
+      "tokens": 11,
+      "source_width": 17,
+      "destination_width": 1024
+    },
+    {
+      "requests": 3,
+      "tokens": 11,
+      "source_width": 1024,
+      "destination_width": 1024
+    },
+    {
+      "requests": 3,
+      "tokens": 24,
+      "source_width": 1,
+      "destination_width": 1
+    },
+    {
+      "requests": 3,
+      "tokens": 24,
+      "source_width": 1,
+      "destination_width": 2
+    },
+    {
+      "requests": 3,
+      "tokens": 24,
+      "source_width": 2,
+      "destination_width": 2
+    },
+    {
+      "requests": 3,
+      "tokens": 24,
+      "source_width": 1,
+      "destination_width": 17
+    },
+    {
+      "requests": 3,
+      "tokens": 24,
+      "source_width": 17,
+      "destination_width": 17
+    },
+    {
+      "requests": 3,
+      "tokens": 24,
+      "source_width": 1,
+      "destination_width": 64
+    },
+    {
+      "requests": 3,
+      "tokens": 24,
+      "source_width": 17,
+      "destination_width": 64
+    },
+    {
+      "requests": 3,
+      "tokens": 24,
+      "source_width": 64,
+      "destination_width": 64
+    },
+    {
+      "requests": 3,
+      "tokens": 24,
+      "source_width": 17,
+      "destination_width": 1024
+    },
+    {
+      "requests": 3,
+      "tokens": 24,
+      "source_width": 1024,
+      "destination_width": 1024
+    },
+    {
+      "requests": 4,
+      "tokens": 4,
+      "source_width": 1,
+      "destination_width": 1
+    },
+    {
+      "requests": 4,
+      "tokens": 4,
+      "source_width": 1,
+      "destination_width": 2
+    },
+    {
+      "requests": 4,
+      "tokens": 4,
+      "source_width": 2,
+      "destination_width": 2
+    },
+    {
+      "requests": 4,
+      "tokens": 4,
+      "source_width": 1,
+      "destination_width": 17
+    },
+    {
+      "requests": 4,
+      "tokens": 4,
+      "source_width": 17,
+      "destination_width": 17
+    },
+    {
+      "requests": 4,
+      "tokens": 4,
+      "source_width": 1,
+      "destination_width": 64
+    },
+    {
+      "requests": 4,
+      "tokens": 4,
+      "source_width": 17,
+      "destination_width": 64
+    },
+    {
+      "requests": 4,
+      "tokens": 4,
+      "source_width": 64,
+      "destination_width": 64
+    },
+    {
+      "requests": 4,
+      "tokens": 4,
+      "source_width": 17,
+      "destination_width": 1024
+    },
+    {
+      "requests": 4,
+      "tokens": 4,
+      "source_width": 1024,
+      "destination_width": 1024
+    },
+    {
+      "requests": 4,
+      "tokens": 6,
+      "source_width": 1,
+      "destination_width": 1
+    },
+    {
+      "requests": 4,
+      "tokens": 6,
+      "source_width": 1,
+      "destination_width": 2
+    },
+    {
+      "requests": 4,
+      "tokens": 6,
+      "source_width": 2,
+      "destination_width": 2
+    },
+    {
+      "requests": 4,
+      "tokens": 6,
+      "source_width": 1,
+      "destination_width": 17
+    },
+    {
+      "requests": 4,
+      "tokens": 6,
+      "source_width": 17,
+      "destination_width": 17
+    },
+    {
+      "requests": 4,
+      "tokens": 6,
+      "source_width": 1,
+      "destination_width": 64
+    },
+    {
+      "requests": 4,
+      "tokens": 6,
+      "source_width": 17,
+      "destination_width": 64
+    },
+    {
+      "requests": 4,
+      "tokens": 6,
+      "source_width": 64,
+      "destination_width": 64
+    },
+    {
+      "requests": 4,
+      "tokens": 6,
+      "source_width": 17,
+      "destination_width": 1024
+    },
+    {
+      "requests": 4,
+      "tokens": 6,
+      "source_width": 1024,
+      "destination_width": 1024
+    },
+    {
+      "requests": 4,
+      "tokens": 14,
+      "source_width": 1,
+      "destination_width": 1
+    },
+    {
+      "requests": 4,
+      "tokens": 14,
+      "source_width": 1,
+      "destination_width": 2
+    },
+    {
+      "requests": 4,
+      "tokens": 14,
+      "source_width": 2,
+      "destination_width": 2
+    },
+    {
+      "requests": 4,
+      "tokens": 14,
+      "source_width": 1,
+      "destination_width": 17
+    },
+    {
+      "requests": 4,
+      "tokens": 14,
+      "source_width": 17,
+      "destination_width": 17
+    },
+    {
+      "requests": 4,
+      "tokens": 14,
+      "source_width": 1,
+      "destination_width": 64
+    },
+    {
+      "requests": 4,
+      "tokens": 14,
+      "source_width": 17,
+      "destination_width": 64
+    },
+    {
+      "requests": 4,
+      "tokens": 14,
+      "source_width": 64,
+      "destination_width": 64
+    },
+    {
+      "requests": 4,
+      "tokens": 14,
+      "source_width": 17,
+      "destination_width": 1024
+    },
+    {
+      "requests": 4,
+      "tokens": 14,
+      "source_width": 1024,
+      "destination_width": 1024
+    },
+    {
+      "requests": 4,
+      "tokens": 32,
+      "source_width": 1,
+      "destination_width": 1
+    },
+    {
+      "requests": 4,
+      "tokens": 32,
+      "source_width": 1,
+      "destination_width": 2
+    },
+    {
+      "requests": 4,
+      "tokens": 32,
+      "source_width": 2,
+      "destination_width": 2
+    },
+    {
+      "requests": 4,
+      "tokens": 32,
+      "source_width": 1,
+      "destination_width": 17
+    },
+    {
+      "requests": 4,
+      "tokens": 32,
+      "source_width": 17,
+      "destination_width": 17
+    },
+    {
+      "requests": 4,
+      "tokens": 32,
+      "source_width": 1,
+      "destination_width": 64
+    },
+    {
+      "requests": 4,
+      "tokens": 32,
+      "source_width": 17,
+      "destination_width": 64
+    },
+    {
+      "requests": 4,
+      "tokens": 32,
+      "source_width": 64,
+      "destination_width": 64
+    },
+    {
+      "requests": 4,
+      "tokens": 32,
+      "source_width": 17,
+      "destination_width": 1024
+    },
+    {
+      "requests": 4,
+      "tokens": 32,
+      "source_width": 1024,
+      "destination_width": 1024
+    }
+  ],
+  "torch": "2.9.1+cu129",
+  "cuda": "12.9",
+  "source": "/home/yypan/CDB-AV/worktrees/cdb-draft-meta-copy-20261120/vllm/v1/spec_decode/cdb_av_draft_meta_copy.py",
+  "source_sha256": "1bd01271e6ece503a41c3f66ec3117b334542dc464ab8826d7205c91778acb2d",
+  "commit": "a22f968f684d79f5d79b974236bb63d53a20953d",
+  "scope": "Integer metadata primitive only. No model/KV/throughput acceptance claim."
+}

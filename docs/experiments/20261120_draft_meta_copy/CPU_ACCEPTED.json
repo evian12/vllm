@@ -1,0 +1,14 @@
+{
+  "commit": "a22f968f684d79f5d79b974236bb63d53a20953d",
+  "remote_head": "a22f968f684d79f5d79b974236bb63d53a20953d",
+  "tests": [
+    "tests/v1/spec_decode/test_cdb_av_draft_meta_copy.py",
+    "tests/v1/spec_decode/test_cdb_av_ragged_sequence_floor.py",
+    "tests/v1/spec_decode/test_cdb_av_draft_decode_graph.py",
+    "tests/v1/spec_decode/test_cdb_av_config.py",
+    "tests/v1/spec_decode/test_cdb_av_inputs.py",
+    "tests/v1/spec_decode/test_cdb_av_kv_reuse.py",
+    "tests/v1/spec_decode/test_cdb_av_kv_reuse_ownership.py",
+    "tests/v1/spec_decode/test_cdb_av_persistent_queue.py"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "passed": 308,
+  "skipped": 8,
+  "elapsed_s": 51.1,
+  "skipped_note": "Eight existing pinned-input GPU cases require CDB_PINNED_GPU_TEST=1; not counted as passed.",
+  "original_log": "/home/yypan/CDB-AV/results/draft_meta_copy_20261120/cpu_tests.log",
+  "sha256": "cb83e0ea5a5c1a0f99c75e30a67f2c143864a90c5718bb341795e9a7d4acab33",
+  "validation": {
+    "status": "pass",
+    "static_python_files": 3,
+    "static_shell_files": 0,
+    "workflow_tests": 15,
+    "extra_tests": [
+      {
+        "path": "tests/v1/spec_decode/test_cdb_av_draft_meta_copy.py",
+        "tests": 26
+      }
+    ],
+    "staged_paths": []
+  }
+}

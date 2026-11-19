@@ -1,0 +1,64 @@
+{
+  "source": {
+    "source": "/home/yypan/CDB-AV/worktrees/cdb-draft-meta-copy-20261120",
+    "worktree": "/home/yypan/CDB-AV/worktrees/cdb-draft-meta-copy-20261120",
+    "commit": "a22f968f684d79f5d79b974236bb63d53a20953d",
+    "branch": "codex/cdb-draft-meta-copy-20261120",
+    "remote_head": "a22f968f684d79f5d79b974236bb63d53a20953d",
+    "parent": "008c04f89f319b51b26187e81f93406b2322b9c9",
+    "hashes": {
+      "tests/v1/spec_decode/test_cdb_av_draft_meta_copy.py": "27f2353d73d0901464c1c64599a0fd010d773b942d5d2b8280d502810affab64",
+      "tests/v1/spec_decode/test_cdb_av_target_graph_llama.py": "1b77c0829174d2bb95ae53e907264b368761f89cfc9d1b8a3f54560f52938205",
+      "vllm/v1/spec_decode/cdb_av_acceptance.py": "425f4a9a1c35cc09e0d7f867b3c4afcaaa6f2dd2eb3b5239b6df8f33aed74f11",
+      "vllm/v1/spec_decode/cdb_av_config.py": "fed13ea23e59f4c485b804766a1e235e4e2a2d1635e329104a1d07377f84bd9b",
+      "vllm/v1/spec_decode/cdb_av_draft_meta_copy.py": "1bd01271e6ece503a41c3f66ec3117b334542dc464ab8826d7205c91778acb2d",
+      "vllm/v1/spec_decode/cdb_av_kv_reuse.py": "fd0a094645b9b9a3df9f6d7b004453d3406bb170f3089e7dd559b147209ed3a4",
+      "vllm/v1/spec_decode/cdb_av_persistent.py": "727fa44f7f4c8bd364eec79ba023f8e65db09ecac4287c6e0d37e3f269ff0cf1",
+      "vllm/v1/spec_decode/cdb_av_refill.py": "ca923064501df9c816eb2de24ad3a958deeb3ebc419589556451367e177a4762",
+      "vllm/v1/spec_decode/cdb_av_target_graph.py": "9821d169eec1e48cae476168da59c0f55d205aed35a4d848b12f4a81c3f6f804"
+    }
+  },
+  "family": "llama",
+  "GPU": 3,
+  "port": 18084,
+  "H": 8,
+  "k_cap": 8,
+  "HF_threshold": 0.8,
+  "max_num_seqs": 4,
+  "max_model_len": 1024,
+  "max_num_batched_tokens": 1024,
+  "requests": 512,
+  "client_concurrency": 16,
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "warmup_requests": 128,
+  "warmup_output_tokens": 128,
+  "output_tokens_per_formal_run": 101003,
+  "order": [
+    [
+      0,
+      1
+    ],
+    [
+      1,
+      0
+    ],
+    [
+      0,
+      1
+    ]
+  ],
+  "candidate": "Fused integer-only copy into existing Draft Graph metadata buffers",
+  "independent_flag": "CDB_AV_DRAFT_META_COPY",
+  "fixed_draft_sequence_floor": 1024,
+  "target_spec_metadata_packing": 0,
+  "request_policy_and_model_math_changes": false,
+  "client_sha256": "218cb899acb5777f6e46ddb6fdff3070465fcac71275434691d5b12804e03027",
+  "observer_sha256": "f17b1e9255234a1dd8fa5e00550feeb5c16e00c53604360679e6635fd6b187f5",
+  "data_sha256": "59e2e785a02b33966d3a5a794896a38be1226420fa75e6280bf576ed96ce6e4d",
+  "target": "/disk14T/yypan/models/Llama-3.1-8B-Instruct",
+  "draft": "/disk14T/yypan/CDB-AV-runtime/baseline-comparison-20261113/models/Llama-3.2-1B-Instruct"
+}
