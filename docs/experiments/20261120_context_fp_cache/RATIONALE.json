@@ -1,0 +1,6 @@
+{
+  "previous": "/home/yypan/CDB-AV/results/target_seq_floor_20261120/ANALYSIS.json",
+  "fixed_target_floor": 1024,
+  "throughput_tradeoff": "Prior matched3pairs+1.063%;E2EP95flat,TTFTP95+16.7ms disclosed",
+  "candidate": "Memoized original digest only after COMPLETE typed immutable prefix equality"
+}

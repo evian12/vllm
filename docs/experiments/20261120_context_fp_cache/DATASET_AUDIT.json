@@ -1,0 +1,16 @@
+{
+  "rows": 512,
+  "sha256": "59e2e785a02b33966d3a5a794896a38be1226420fa75e6280bf576ed96ce6e4d",
+  "formal_output_token_budget": {
+    "min": 16,
+    "max": 384,
+    "total": 101003
+  },
+  "prompt_tokens": {
+    "llama_min": 39,
+    "llama_max": 575,
+    "llama_total": 54203
+  },
+  "request_arrival": "Closed-loop sixteen worker coroutines; immediately replace each completed HTTP request, not uniform/Poisson arrival",
+  "warmup": "128 requests x128output tokens excluded per formal service; gate64x<=64+16x<=64"
+}

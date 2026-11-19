@@ -1,0 +1,75 @@
+{
+  "source": {
+    "source": "/home/yypan/CDB-AV/worktrees/cdb-context-fp-cache-20261120",
+    "worktree": "/home/yypan/CDB-AV/worktrees/cdb-context-fp-cache-20261120",
+    "commit": "f2ab684c06ba4f41fb9ac4f6afa2393695ed8444",
+    "branch": "codex/cdb-context-fp-cache-20261120",
+    "remote_head": "f2ab684c06ba4f41fb9ac4f6afa2393695ed8444",
+    "parent": "23eaa57d50af9c740088d0f375acc59c3cf2474d",
+    "hashes": {
+      "tests/v1/spec_decode/test_cdb_av_context_cache.py": "cc864bfe072ef2cab3b253a1b24efd6cd5e621e0c585b394c618decdcd36937b",
+      "tests/v1/spec_decode/test_cdb_av_context_wire.py": "d75a5077458e55a3a335415a7204e724fbeb5e3fbf7aa4c5e8f46fda767c5a99",
+      "tests/v1/spec_decode/test_cdb_av_target_graph_llama.py": "1b77c0829174d2bb95ae53e907264b368761f89cfc9d1b8a3f54560f52938205",
+      "tests/v1/spec_decode/test_cdb_av_target_sequence_floor.py": "fec046e9887d569baac0d7f99ccb9c9770e6912387873af5942888e5b1692abb",
+      "vllm/v1/spec_decode/cdb_av_acceptance.py": "425f4a9a1c35cc09e0d7f867b3c4afcaaa6f2dd2eb3b5239b6df8f33aed74f11",
+      "vllm/v1/spec_decode/cdb_av_config.py": "fed13ea23e59f4c485b804766a1e235e4e2a2d1635e329104a1d07377f84bd9b",
+      "vllm/v1/spec_decode/cdb_av_context_cache.py": "34bd4f3a3d5fa3f783cf2b0079807831c35049424524b6e81b528901fa9ba28a",
+      "vllm/v1/spec_decode/cdb_av_fingerprint.py": "7545088e94f666de847411643ce921e2cb75e6e935a3d150db2ea2cfb425aaa7",
+      "vllm/v1/spec_decode/cdb_av_kv_reuse.py": "fd0a094645b9b9a3df9f6d7b004453d3406bb170f3089e7dd559b147209ed3a4",
+      "vllm/v1/spec_decode/cdb_av_persistent.py": "727fa44f7f4c8bd364eec79ba023f8e65db09ecac4287c6e0d37e3f269ff0cf1",
+      "vllm/v1/spec_decode/cdb_av_refill.py": "34b53fc4735d59f26495d917c249fc987c74b64ebdc9d369bb11cbe8c080676c",
+      "vllm/v1/spec_decode/cdb_av_refill_queue.py": "4f425f9da6e2e32bbda71eed3554dd6468942fd48e1c9956e600d932f75de576",
+      "vllm/v1/spec_decode/cdb_av_target_graph.py": "9821d169eec1e48cae476168da59c0f55d205aed35a4d848b12f4a81c3f6f804",
+      "vllm/v1/worker/gpu_model_runner.py": "72f22dc2fe56341a88414c095e1bdb2f791cfee0a94ed31682a94849bd96aa08"
+    },
+    "runtime_code_changed": true
+  },
+  "H": 8,
+  "HF_threshold": 0.8,
+  "k_cap": 8,
+  "requests": 512,
+  "client_concurrency": 16,
+  "max_num_seqs": 4,
+  "max_model_len": 1024,
+  "max_num_batched_tokens": 1024,
+  "target": "/disk14T/yypan/models/Llama-3.1-8B-Instruct",
+  "draft": "/disk14T/yypan/CDB-AV-runtime/baseline-comparison-20261113/models/Llama-3.2-1B-Instruct",
+  "GPU": 3,
+  "port": 18084,
+  "dtype": "bfloat16",
+  "attention_backend": "FLASH_ATTN/FA2",
+  "independent_variable": "CDB_AV_CONTEXT_FINGERPRINT_CACHE",
+  "values": [
+    0,
+    1
+  ],
+  "fixed_draft_sequence_floor": 1024,
+  "fixed_target_sequence_floor": 1024,
+  "other_experimental_optimizations": 0,
+  "repetitions": 3,
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "order": [
+    [
+      0,
+      1
+    ],
+    [
+      1,
+      0
+    ],
+    [
+      0,
+      1
+    ]
+  ],
+  "warmup_requests": 128,
+  "warmup_output_tokens": 128,
+  "measured_output_tokens_per_run": 101003,
+  "client_sha256": "218cb899acb5777f6e46ddb6fdff3070465fcac71275434691d5b12804e03027",
+  "observer_sha256": "f17b1e9255234a1dd8fa5e00550feeb5c16e00c53604360679e6635fd6b187f5",
+  "data_sha256": "59e2e785a02b33966d3a5a794896a38be1226420fa75e6280bf576ed96ce6e4d"
+}

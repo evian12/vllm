@@ -1,0 +1,538 @@
+{
+  "model": "llama",
+  "warmup_requests": 64,
+  "measured_requests": 16,
+  "target_scope": [
+    {
+      "model": "LlamaForCausalLM",
+      "layers": 32,
+      "fa_version": 2,
+      "llama_opt_in": true,
+      "dtype": "torch.bfloat16"
+    }
+  ],
+  "draft_graph_checks": 706,
+  "target_graph_checks": 410,
+  "cap": 8,
+  "completed": 16,
+  "ready": 1199,
+  "verified": 1199,
+  "K_values": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8
+  ],
+  "reasons": [
+    "low_confidence",
+    "max_k"
+  ],
+  "carry_byte_checks": 215,
+  "cross_target_checks": 215,
+  "cleanup": {
+    "event": "p2_reset",
+    "window": 129,
+    "target_epoch": 657,
+    "released_blocks": 0,
+    "live_leases": 0,
+    "ready": 0,
+    "inflight": 0
+  },
+  "target_sequence_floor": 1024,
+  "target_floor_checked_forwards": 410,
+  "target_floor_cache_keys": [
+    "[8, 4, 9, 1024, 64, 0, \"bounded\"]",
+    "[18, 4, 9, 1024, 64, 0, \"bounded\"]",
+    "[5, 3, 9, 1024, 64, 0, \"bounded\"]",
+    "[14, 4, 9, 1024, 64, 0, \"bounded\"]",
+    "[4, 4, 1, 1024, 64, 0, \"bounded\"]",
+    "[5, 4, 9, 1024, 64, 0, \"bounded\"]",
+    "[16, 4, 9, 1024, 64, 0, \"bounded\"]",
+    "[12, 4, 9, 1024, 64, 0, \"bounded\"]",
+    "[11, 4, 9, 1024, 64, 0, \"bounded\"]",
+    "[10, 4, 9, 1024, 64, 0, \"bounded\"]",
+    "[9, 4, 9, 1024, 64, 0, \"bounded\"]",
+    "[13, 4, 9, 1024, 64, 0, \"bounded\"]",
+    "[19, 4, 9, 1024, 64, 0, \"bounded\"]",
+    "[15, 4, 9, 1024, 64, 0, \"bounded\"]",
+    "[6, 4, 9, 1024, 64, 0, \"bounded\"]",
+    "[6, 3, 9, 1024, 64, 0, \"bounded\"]",
+    "[7, 4, 9, 1024, 64, 0, \"bounded\"]"
+  ],
+  "fingerprint_checks": [
+    {
+      "sample": 1,
+      "request_id": "cmpl-baseline-26177a131057-0-0-89283062",
+      "context_tokens": 46,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 2,
+      "request_id": "cmpl-baseline-26177a131057-0-0-89283062",
+      "context_tokens": 46,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 3,
+      "request_id": "cmpl-baseline-26177a131057-0-0-89283062",
+      "context_tokens": 46,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 4,
+      "request_id": "cmpl-baseline-26177a131057-0-0-89283062",
+      "context_tokens": 46,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 5,
+      "request_id": "cmpl-baseline-26177a131057-0-0-89283062",
+      "context_tokens": 46,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 6,
+      "request_id": "cmpl-baseline-26177a131057-1-0-9ca8543b",
+      "context_tokens": 42,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 7,
+      "request_id": "cmpl-baseline-26177a131057-2-0-a2fa916c",
+      "context_tokens": 51,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 8,
+      "request_id": "cmpl-baseline-26177a131057-3-0-9466ed6c",
+      "context_tokens": 77,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 9,
+      "request_id": "cmpl-baseline-26177a131057-0-0-89283062",
+      "context_tokens": 46,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 10,
+      "request_id": "cmpl-baseline-26177a131057-1-0-9ca8543b",
+      "context_tokens": 42,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 11,
+      "request_id": "cmpl-baseline-26177a131057-2-0-a2fa916c",
+      "context_tokens": 51,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 12,
+      "request_id": "cmpl-baseline-26177a131057-3-0-9466ed6c",
+      "context_tokens": 77,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 13,
+      "request_id": "cmpl-baseline-26177a131057-0-0-89283062",
+      "context_tokens": 46,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 14,
+      "request_id": "cmpl-baseline-26177a131057-1-0-9ca8543b",
+      "context_tokens": 42,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 15,
+      "request_id": "cmpl-baseline-26177a131057-2-0-a2fa916c",
+      "context_tokens": 51,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 16,
+      "request_id": "cmpl-baseline-26177a131057-3-0-9466ed6c",
+      "context_tokens": 77,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 17,
+      "request_id": "cmpl-baseline-26177a131057-0-0-89283062",
+      "context_tokens": 46,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 18,
+      "request_id": "cmpl-baseline-26177a131057-1-0-9ca8543b",
+      "context_tokens": 42,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 19,
+      "request_id": "cmpl-baseline-26177a131057-2-0-a2fa916c",
+      "context_tokens": 51,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 20,
+      "request_id": "cmpl-baseline-26177a131057-3-0-9466ed6c",
+      "context_tokens": 77,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 21,
+      "request_id": "cmpl-baseline-26177a131057-4-0-8c6861ab",
+      "context_tokens": 450,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 22,
+      "request_id": "cmpl-baseline-26177a131057-0-0-89283062",
+      "context_tokens": 46,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 23,
+      "request_id": "cmpl-baseline-26177a131057-1-0-9ca8543b",
+      "context_tokens": 42,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 24,
+      "request_id": "cmpl-baseline-26177a131057-2-0-a2fa916c",
+      "context_tokens": 51,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 25,
+      "request_id": "cmpl-baseline-26177a131057-3-0-9466ed6c",
+      "context_tokens": 77,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 26,
+      "request_id": "cmpl-baseline-26177a131057-4-0-8c6861ab",
+      "context_tokens": 450,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 27,
+      "request_id": "cmpl-baseline-26177a131057-0-0-89283062",
+      "context_tokens": 46,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 28,
+      "request_id": "cmpl-baseline-26177a131057-1-0-9ca8543b",
+      "context_tokens": 42,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 29,
+      "request_id": "cmpl-baseline-26177a131057-2-0-a2fa916c",
+      "context_tokens": 51,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 30,
+      "request_id": "cmpl-baseline-26177a131057-3-0-9466ed6c",
+      "context_tokens": 77,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 31,
+      "request_id": "cmpl-baseline-26177a131057-4-0-8c6861ab",
+      "context_tokens": 450,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 32,
+      "request_id": "cmpl-baseline-26177a131057-0-0-89283062",
+      "context_tokens": 46,
+      "fingerprint_exact": true
+    }
+  ],
+  "fingerprint_runtime": [
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-context-fp-cache-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 1,
+      "hits": 0,
+      "misses": 1,
+      "fallbacks": 0,
+      "entries": 1,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-context-fp-cache-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 1024,
+      "hits": 970,
+      "misses": 54,
+      "fallbacks": 0,
+      "entries": 16,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-context-fp-cache-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 2048,
+      "hits": 1948,
+      "misses": 100,
+      "fallbacks": 0,
+      "entries": 16,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-context-fp-cache-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 3072,
+      "hits": 2921,
+      "misses": 151,
+      "fallbacks": 0,
+      "entries": 15,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-context-fp-cache-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 4096,
+      "hits": 3900,
+      "misses": 196,
+      "fallbacks": 0,
+      "entries": 14,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-context-fp-cache-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 5120,
+      "hits": 4868,
+      "misses": 252,
+      "fallbacks": 0,
+      "entries": 13,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-context-fp-cache-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 6144,
+      "hits": 5837,
+      "misses": 307,
+      "fallbacks": 0,
+      "entries": 15,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-context-fp-cache-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 7168,
+      "hits": 6809,
+      "misses": 359,
+      "fallbacks": 0,
+      "entries": 16,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-context-fp-cache-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 8192,
+      "hits": 7776,
+      "misses": 416,
+      "fallbacks": 0,
+      "entries": 14,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-context-fp-cache-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 9216,
+      "hits": 8750,
+      "misses": 466,
+      "fallbacks": 0,
+      "entries": 16,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-context-fp-cache-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 10240,
+      "hits": 9716,
+      "misses": 524,
+      "fallbacks": 0,
+      "entries": 16,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-context-fp-cache-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 11264,
+      "hits": 10688,
+      "misses": 576,
+      "fallbacks": 0,
+      "entries": 15,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-context-fp-cache-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 12288,
+      "hits": 11662,
+      "misses": 626,
+      "fallbacks": 0,
+      "entries": 16,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-context-fp-cache-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 13312,
+      "hits": 12624,
+      "misses": 688,
+      "fallbacks": 0,
+      "entries": 16,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-context-fp-cache-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 14336,
+      "hits": 13600,
+      "misses": 736,
+      "fallbacks": 0,
+      "entries": 16,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-context-fp-cache-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 15360,
+      "hits": 14577,
+      "misses": 783,
+      "fallbacks": 0,
+      "entries": 15,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-context-fp-cache-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 16384,
+      "hits": 15551,
+      "misses": 833,
+      "fallbacks": 0,
+      "entries": 13,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-context-fp-cache-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 17408,
+      "hits": 16520,
+      "misses": 888,
+      "fallbacks": 0,
+      "entries": 8,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-context-fp-cache-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 18432,
+      "hits": 17490,
+      "misses": 942,
+      "fallbacks": 0,
+      "entries": 2,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-context-fp-cache-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 19456,
+      "hits": 18459,
+      "misses": 997,
+      "fallbacks": 0,
+      "entries": 16,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-context-fp-cache-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 20480,
+      "hits": 19435,
+      "misses": 1045,
+      "fallbacks": 0,
+      "entries": 16,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-context-fp-cache-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 21504,
+      "hits": 20408,
+      "misses": 1096,
+      "fallbacks": 0,
+      "entries": 15,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-context-fp-cache-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 22528,
+      "hits": 21379,
+      "misses": 1149,
+      "fallbacks": 0,
+      "entries": 11,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true
+    }
+  ]
+}
