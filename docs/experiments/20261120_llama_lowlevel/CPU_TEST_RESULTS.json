@@ -1,0 +1,34 @@
+{
+  "records": [
+    {
+      "original_path": "/home/yypan/CDB-AV/results/spec_metadata_joint_20261120/cpu_tests.log",
+      "sha256": "43dd7bdab6fca527f45230d57a3b673da14fe395e8e15ccb51b9830368ab14d2",
+      "passed": 234,
+      "elapsed_s": 44.95
+    },
+    {
+      "original_path": "/home/yypan/CDB-AV/results/spec_metadata_20261119/cpu_tests.log",
+      "sha256": "565771c46de0b375d1f7f5d02dd93d91f039582384f0580e26ed61148ab76563",
+      "passed": 28,
+      "elapsed_s": 6.17
+    },
+    {
+      "original_path": "/home/yypan/CDB-AV/results/spec_metadata_20261119/validate.log",
+      "sha256": "ba85b228015562930b1541f4b1494d5e3e2bd0fa61ec662dcdac5d55d843d254",
+      "validation": {
+        "status": "pass",
+        "static_python_files": 3,
+        "static_shell_files": 0,
+        "workflow_tests": 15,
+        "extra_tests": [
+          {
+            "path": "tests/v1/spec_decode/test_cdb_av_spec_metadata.py",
+            "tests": 30
+          }
+        ],
+        "staged_paths": []
+      }
+    }
+  ],
+  "note": "Initial standalone28 tests preceded final validation30; joint current234 includes final feature and regression cases."
+}

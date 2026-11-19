@@ -1,0 +1,935 @@
+{
+  "model": "llama",
+  "warmup_requests": 64,
+  "measured_requests": 16,
+  "target_scope": [
+    {
+      "model": "LlamaForCausalLM",
+      "layers": 32,
+      "fa_version": 2,
+      "llama_opt_in": true,
+      "dtype": "torch.bfloat16"
+    }
+  ],
+  "draft_graph_checks": 692,
+  "target_graph_checks": 195,
+  "cap": 8,
+  "completed": 16,
+  "ready": 1218,
+  "verified": 1218,
+  "K_values": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8
+  ],
+  "reasons": [
+    "low_confidence",
+    "max_k"
+  ],
+  "carry_byte_checks": 208,
+  "cross_target_checks": 208,
+  "cleanup": {
+    "event": "p2_reset",
+    "window": 127,
+    "target_epoch": 658,
+    "released_blocks": 0,
+    "live_leases": 0,
+    "ready": 0,
+    "inflight": 0
+  },
+  "metadata_checks": [
+    {
+      "sample": 1,
+      "req_ids": [
+        "cmpl-baseline-c0610ac05a38-0-0-9d81510f",
+        "cmpl-baseline-c0610ac05a38-14-0-b945f599",
+        "cmpl-baseline-c0610ac05a38-1-0-911bc6c2",
+        "cmpl-baseline-c0610ac05a38-3-0-9525e461"
+      ],
+      "num_draft_tokens": [
+        5,
+        0,
+        2,
+        1
+      ],
+      "checks": {
+        "cu_num_draft_tokens": true,
+        "cu_num_sampled_tokens": true,
+        "logits_indices": true,
+        "target_logits_indices": true,
+        "bonus_logits_indices": true,
+        "draft_token_ids": true
+      },
+      "metadata_payload_bytes": 240,
+      "optimized_payload_copy_calls": 1,
+      "native_transfer_calls": 5,
+      "source_waits": 0,
+      "note": "Extra native copies/gathers excluded from performance."
+    },
+    {
+      "sample": 2,
+      "req_ids": [
+        "cmpl-baseline-c0610ac05a38-2-0-a195b064",
+        "cmpl-baseline-c0610ac05a38-14-0-b945f599",
+        "cmpl-baseline-c0610ac05a38-5-0-b19516f3",
+        "cmpl-baseline-c0610ac05a38-3-0-9525e461"
+      ],
+      "num_draft_tokens": [
+        4,
+        0,
+        1,
+        0
+      ],
+      "checks": {
+        "cu_num_draft_tokens": true,
+        "cu_num_sampled_tokens": true,
+        "logits_indices": true,
+        "target_logits_indices": true,
+        "bonus_logits_indices": true,
+        "draft_token_ids": true
+      },
+      "metadata_payload_bytes": 208,
+      "optimized_payload_copy_calls": 1,
+      "native_transfer_calls": 5,
+      "source_waits": 0,
+      "note": "Extra native copies/gathers excluded from performance."
+    },
+    {
+      "sample": 3,
+      "req_ids": [
+        "cmpl-baseline-c0610ac05a38-4-0-89da558e",
+        "cmpl-baseline-c0610ac05a38-14-0-b945f599",
+        "cmpl-baseline-c0610ac05a38-5-0-b19516f3",
+        "cmpl-baseline-c0610ac05a38-3-0-9525e461"
+      ],
+      "num_draft_tokens": [
+        3,
+        0,
+        0,
+        0
+      ],
+      "checks": {
+        "cu_num_draft_tokens": true,
+        "cu_num_sampled_tokens": true,
+        "logits_indices": true,
+        "target_logits_indices": true,
+        "bonus_logits_indices": true,
+        "draft_token_ids": true
+      },
+      "metadata_payload_bytes": 160,
+      "optimized_payload_copy_calls": 1,
+      "native_transfer_calls": 5,
+      "source_waits": 0,
+      "note": "Extra native copies/gathers excluded from performance."
+    },
+    {
+      "sample": 4,
+      "req_ids": [
+        "cmpl-baseline-c0610ac05a38-4-0-89da558e",
+        "cmpl-baseline-c0610ac05a38-14-0-b945f599",
+        "cmpl-baseline-c0610ac05a38-5-0-b19516f3",
+        "cmpl-baseline-c0610ac05a38-8-0-80dcf71c"
+      ],
+      "num_draft_tokens": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "checks": {
+        "cu_num_draft_tokens": true,
+        "cu_num_sampled_tokens": true,
+        "logits_indices": true,
+        "target_logits_indices": true,
+        "bonus_logits_indices": true,
+        "draft_token_ids": true
+      },
+      "metadata_payload_bytes": 128,
+      "optimized_payload_copy_calls": 1,
+      "native_transfer_calls": 5,
+      "source_waits": 0,
+      "note": "Extra native copies/gathers excluded from performance."
+    },
+    {
+      "sample": 5,
+      "req_ids": [
+        "cmpl-baseline-c0610ac05a38-15-0-b7dc48cf",
+        "cmpl-baseline-c0610ac05a38-6-0-b16fcf44",
+        "cmpl-baseline-c0610ac05a38-7-0-891edfc3",
+        "cmpl-baseline-c0610ac05a38-10-0-93909ef1"
+      ],
+      "num_draft_tokens": [
+        0,
+        4,
+        4,
+        2
+      ],
+      "checks": {
+        "cu_num_draft_tokens": true,
+        "cu_num_sampled_tokens": true,
+        "logits_indices": true,
+        "target_logits_indices": true,
+        "bonus_logits_indices": true,
+        "draft_token_ids": true
+      },
+      "metadata_payload_bytes": 288,
+      "optimized_payload_copy_calls": 1,
+      "native_transfer_calls": 5,
+      "source_waits": 0,
+      "note": "Extra native copies/gathers excluded from performance."
+    },
+    {
+      "sample": 6,
+      "req_ids": [
+        "cmpl-baseline-c0610ac05a38-15-0-b7dc48cf",
+        "cmpl-baseline-c0610ac05a38-11-0-a4c9b19f",
+        "cmpl-baseline-c0610ac05a38-12-0-ae5ddb46",
+        "cmpl-baseline-c0610ac05a38-13-0-b85b5642"
+      ],
+      "num_draft_tokens": [
+        0,
+        3,
+        1,
+        1
+      ],
+      "checks": {
+        "cu_num_draft_tokens": true,
+        "cu_num_sampled_tokens": true,
+        "logits_indices": true,
+        "target_logits_indices": true,
+        "bonus_logits_indices": true,
+        "draft_token_ids": true
+      },
+      "metadata_payload_bytes": 208,
+      "optimized_payload_copy_calls": 1,
+      "native_transfer_calls": 5,
+      "source_waits": 0,
+      "note": "Extra native copies/gathers excluded from performance."
+    },
+    {
+      "sample": 7,
+      "req_ids": [
+        "cmpl-baseline-c0610ac05a38-15-0-b7dc48cf",
+        "cmpl-baseline-c0610ac05a38-1-0-911bc6c2",
+        "cmpl-baseline-c0610ac05a38-12-0-ae5ddb46",
+        "cmpl-baseline-c0610ac05a38-13-0-b85b5642"
+      ],
+      "num_draft_tokens": [
+        0,
+        3,
+        0,
+        0
+      ],
+      "checks": {
+        "cu_num_draft_tokens": true,
+        "cu_num_sampled_tokens": true,
+        "logits_indices": true,
+        "target_logits_indices": true,
+        "bonus_logits_indices": true,
+        "draft_token_ids": true
+      },
+      "metadata_payload_bytes": 160,
+      "optimized_payload_copy_calls": 1,
+      "native_transfer_calls": 5,
+      "source_waits": 0,
+      "note": "Extra native copies/gathers excluded from performance."
+    },
+    {
+      "sample": 8,
+      "req_ids": [
+        "cmpl-baseline-c0610ac05a38-15-0-b7dc48cf",
+        "cmpl-baseline-c0610ac05a38-0-0-9d81510f",
+        "cmpl-baseline-c0610ac05a38-2-0-a195b064",
+        "cmpl-baseline-c0610ac05a38-9-0-918a74d6"
+      ],
+      "num_draft_tokens": [
+        0,
+        4,
+        2,
+        8
+      ],
+      "checks": {
+        "cu_num_draft_tokens": true,
+        "cu_num_sampled_tokens": true,
+        "logits_indices": true,
+        "target_logits_indices": true,
+        "bonus_logits_indices": true,
+        "draft_token_ids": true
+      },
+      "metadata_payload_bytes": 368,
+      "optimized_payload_copy_calls": 1,
+      "native_transfer_calls": 5,
+      "source_waits": 0,
+      "note": "Extra native copies/gathers excluded from performance."
+    },
+    {
+      "sample": 9,
+      "req_ids": [
+        "cmpl-baseline-c0610ac05a38-15-0-b7dc48cf",
+        "cmpl-baseline-c0610ac05a38-5-0-b19516f3",
+        "cmpl-baseline-c0610ac05a38-2-0-a195b064",
+        "cmpl-baseline-c0610ac05a38-9-0-918a74d6"
+      ],
+      "num_draft_tokens": [
+        0,
+        1,
+        0,
+        0
+      ],
+      "checks": {
+        "cu_num_draft_tokens": true,
+        "cu_num_sampled_tokens": true,
+        "logits_indices": true,
+        "target_logits_indices": true,
+        "bonus_logits_indices": true,
+        "draft_token_ids": true
+      },
+      "metadata_payload_bytes": 128,
+      "optimized_payload_copy_calls": 1,
+      "native_transfer_calls": 5,
+      "source_waits": 0,
+      "note": "Extra native copies/gathers excluded from performance."
+    },
+    {
+      "sample": 10,
+      "req_ids": [
+        "cmpl-baseline-c0610ac05a38-15-0-b7dc48cf",
+        "cmpl-baseline-c0610ac05a38-5-0-b19516f3",
+        "cmpl-baseline-c0610ac05a38-4-0-89da558e",
+        "cmpl-baseline-c0610ac05a38-9-0-918a74d6"
+      ],
+      "num_draft_tokens": [
+        0,
+        0,
+        2,
+        0
+      ],
+      "checks": {
+        "cu_num_draft_tokens": true,
+        "cu_num_sampled_tokens": true,
+        "logits_indices": true,
+        "target_logits_indices": true,
+        "bonus_logits_indices": true,
+        "draft_token_ids": true
+      },
+      "metadata_payload_bytes": 128,
+      "optimized_payload_copy_calls": 1,
+      "native_transfer_calls": 5,
+      "source_waits": 0,
+      "note": "Extra native copies/gathers excluded from performance."
+    },
+    {
+      "sample": 11,
+      "req_ids": [
+        "cmpl-baseline-c0610ac05a38-15-0-b7dc48cf",
+        "cmpl-baseline-c0610ac05a38-8-0-80dcf71c",
+        "cmpl-baseline-c0610ac05a38-9-0-918a74d6"
+      ],
+      "num_draft_tokens": [
+        0,
+        2,
+        0
+      ],
+      "checks": {
+        "cu_num_draft_tokens": true,
+        "cu_num_sampled_tokens": true,
+        "logits_indices": true,
+        "target_logits_indices": true,
+        "bonus_logits_indices": true,
+        "draft_token_ids": true
+      },
+      "metadata_payload_bytes": 128,
+      "optimized_payload_copy_calls": 1,
+      "native_transfer_calls": 5,
+      "source_waits": 0,
+      "note": "Extra native copies/gathers excluded from performance."
+    },
+    {
+      "sample": 12,
+      "req_ids": [
+        "cmpl-baseline-c0610ac05a38-15-0-b7dc48cf",
+        "cmpl-baseline-c0610ac05a38-8-0-80dcf71c",
+        "cmpl-baseline-c0610ac05a38-9-0-918a74d6",
+        "cmpl-baseline-c0610ac05a38-14-0-b945f599"
+      ],
+      "num_draft_tokens": [
+        0,
+        0,
+        0,
+        2
+      ],
+      "checks": {
+        "cu_num_draft_tokens": true,
+        "cu_num_sampled_tokens": true,
+        "logits_indices": true,
+        "target_logits_indices": true,
+        "bonus_logits_indices": true,
+        "draft_token_ids": true
+      },
+      "metadata_payload_bytes": 128,
+      "optimized_payload_copy_calls": 1,
+      "native_transfer_calls": 5,
+      "source_waits": 0,
+      "note": "Extra native copies/gathers excluded from performance."
+    },
+    {
+      "sample": 13,
+      "req_ids": [
+        "cmpl-baseline-c0610ac05a38-15-0-b7dc48cf",
+        "cmpl-baseline-c0610ac05a38-7-0-891edfc3",
+        "cmpl-baseline-c0610ac05a38-9-0-918a74d6",
+        "cmpl-baseline-c0610ac05a38-14-0-b945f599"
+      ],
+      "num_draft_tokens": [
+        0,
+        1,
+        0,
+        0
+      ],
+      "checks": {
+        "cu_num_draft_tokens": true,
+        "cu_num_sampled_tokens": true,
+        "logits_indices": true,
+        "target_logits_indices": true,
+        "bonus_logits_indices": true,
+        "draft_token_ids": true
+      },
+      "metadata_payload_bytes": 128,
+      "optimized_payload_copy_calls": 1,
+      "native_transfer_calls": 5,
+      "source_waits": 0,
+      "note": "Extra native copies/gathers excluded from performance."
+    },
+    {
+      "sample": 14,
+      "req_ids": [
+        "cmpl-baseline-c0610ac05a38-15-0-b7dc48cf",
+        "cmpl-baseline-c0610ac05a38-3-0-9525e461",
+        "cmpl-baseline-c0610ac05a38-6-0-b16fcf44",
+        "cmpl-baseline-c0610ac05a38-14-0-b945f599"
+      ],
+      "num_draft_tokens": [
+        0,
+        6,
+        3,
+        0
+      ],
+      "checks": {
+        "cu_num_draft_tokens": true,
+        "cu_num_sampled_tokens": true,
+        "logits_indices": true,
+        "target_logits_indices": true,
+        "bonus_logits_indices": true,
+        "draft_token_ids": true
+      },
+      "metadata_payload_bytes": 288,
+      "optimized_payload_copy_calls": 1,
+      "native_transfer_calls": 5,
+      "source_waits": 0,
+      "note": "Extra native copies/gathers excluded from performance."
+    },
+    {
+      "sample": 15,
+      "req_ids": [
+        "cmpl-baseline-c0610ac05a38-15-0-b7dc48cf",
+        "cmpl-baseline-c0610ac05a38-1-0-911bc6c2",
+        "cmpl-baseline-c0610ac05a38-10-0-93909ef1",
+        "cmpl-baseline-c0610ac05a38-11-0-a4c9b19f"
+      ],
+      "num_draft_tokens": [
+        0,
+        2,
+        3,
+        1
+      ],
+      "checks": {
+        "cu_num_draft_tokens": true,
+        "cu_num_sampled_tokens": true,
+        "logits_indices": true,
+        "target_logits_indices": true,
+        "bonus_logits_indices": true,
+        "draft_token_ids": true
+      },
+      "metadata_payload_bytes": 208,
+      "optimized_payload_copy_calls": 1,
+      "native_transfer_calls": 5,
+      "source_waits": 0,
+      "note": "Extra native copies/gathers excluded from performance."
+    },
+    {
+      "sample": 16,
+      "req_ids": [
+        "cmpl-baseline-c0610ac05a38-15-0-b7dc48cf",
+        "cmpl-baseline-c0610ac05a38-0-0-9d81510f",
+        "cmpl-baseline-c0610ac05a38-10-0-93909ef1",
+        "cmpl-baseline-c0610ac05a38-11-0-a4c9b19f"
+      ],
+      "num_draft_tokens": [
+        0,
+        3,
+        0,
+        0
+      ],
+      "checks": {
+        "cu_num_draft_tokens": true,
+        "cu_num_sampled_tokens": true,
+        "logits_indices": true,
+        "target_logits_indices": true,
+        "bonus_logits_indices": true,
+        "draft_token_ids": true
+      },
+      "metadata_payload_bytes": 160,
+      "optimized_payload_copy_calls": 1,
+      "native_transfer_calls": 5,
+      "source_waits": 0,
+      "note": "Extra native copies/gathers excluded from performance."
+    },
+    {
+      "sample": 17,
+      "req_ids": [
+        "cmpl-baseline-c0610ac05a38-15-0-b7dc48cf",
+        "cmpl-baseline-c0610ac05a38-2-0-a195b064",
+        "cmpl-baseline-c0610ac05a38-4-0-89da558e"
+      ],
+      "num_draft_tokens": [
+        0,
+        2,
+        1
+      ],
+      "checks": {
+        "cu_num_draft_tokens": true,
+        "cu_num_sampled_tokens": true,
+        "logits_indices": true,
+        "target_logits_indices": true,
+        "bonus_logits_indices": true,
+        "draft_token_ids": true
+      },
+      "metadata_payload_bytes": 144,
+      "optimized_payload_copy_calls": 1,
+      "native_transfer_calls": 5,
+      "source_waits": 0,
+      "note": "Extra native copies/gathers excluded from performance."
+    },
+    {
+      "sample": 18,
+      "req_ids": [
+        "cmpl-baseline-c0610ac05a38-5-0-b19516f3",
+        "cmpl-baseline-c0610ac05a38-8-0-80dcf71c",
+        "cmpl-baseline-c0610ac05a38-12-0-ae5ddb46",
+        "cmpl-baseline-c0610ac05a38-13-0-b85b5642"
+      ],
+      "num_draft_tokens": [
+        3,
+        2,
+        7,
+        8
+      ],
+      "checks": {
+        "cu_num_draft_tokens": true,
+        "cu_num_sampled_tokens": true,
+        "logits_indices": true,
+        "target_logits_indices": true,
+        "bonus_logits_indices": true,
+        "draft_token_ids": true
+      },
+      "metadata_payload_bytes": 480,
+      "optimized_payload_copy_calls": 1,
+      "native_transfer_calls": 5,
+      "source_waits": 0,
+      "note": "Extra native copies/gathers excluded from performance."
+    },
+    {
+      "sample": 19,
+      "req_ids": [
+        "cmpl-baseline-c0610ac05a38-3-0-9525e461",
+        "cmpl-baseline-c0610ac05a38-6-0-b16fcf44",
+        "cmpl-baseline-c0610ac05a38-7-0-891edfc3",
+        "cmpl-baseline-c0610ac05a38-9-0-918a74d6"
+      ],
+      "num_draft_tokens": [
+        2,
+        1,
+        3,
+        1
+      ],
+      "checks": {
+        "cu_num_draft_tokens": true,
+        "cu_num_sampled_tokens": true,
+        "logits_indices": true,
+        "target_logits_indices": true,
+        "bonus_logits_indices": true,
+        "draft_token_ids": true
+      },
+      "metadata_payload_bytes": 240,
+      "optimized_payload_copy_calls": 1,
+      "native_transfer_calls": 5,
+      "source_waits": 0,
+      "note": "Extra native copies/gathers excluded from performance."
+    },
+    {
+      "sample": 20,
+      "req_ids": [
+        "cmpl-baseline-c0610ac05a38-1-0-911bc6c2",
+        "cmpl-baseline-c0610ac05a38-6-0-b16fcf44",
+        "cmpl-baseline-c0610ac05a38-7-0-891edfc3",
+        "cmpl-baseline-c0610ac05a38-9-0-918a74d6"
+      ],
+      "num_draft_tokens": [
+        1,
+        0,
+        0,
+        0
+      ],
+      "checks": {
+        "cu_num_draft_tokens": true,
+        "cu_num_sampled_tokens": true,
+        "logits_indices": true,
+        "target_logits_indices": true,
+        "bonus_logits_indices": true,
+        "draft_token_ids": true
+      },
+      "metadata_payload_bytes": 128,
+      "optimized_payload_copy_calls": 1,
+      "native_transfer_calls": 5,
+      "source_waits": 0,
+      "note": "Extra native copies/gathers excluded from performance."
+    },
+    {
+      "sample": 21,
+      "req_ids": [
+        "cmpl-baseline-c0610ac05a38-14-0-b945f599",
+        "cmpl-baseline-c0610ac05a38-6-0-b16fcf44",
+        "cmpl-baseline-c0610ac05a38-7-0-891edfc3",
+        "cmpl-baseline-c0610ac05a38-9-0-918a74d6"
+      ],
+      "num_draft_tokens": [
+        4,
+        0,
+        0,
+        0
+      ],
+      "checks": {
+        "cu_num_draft_tokens": true,
+        "cu_num_sampled_tokens": true,
+        "logits_indices": true,
+        "target_logits_indices": true,
+        "bonus_logits_indices": true,
+        "draft_token_ids": true
+      },
+      "metadata_payload_bytes": 160,
+      "optimized_payload_copy_calls": 1,
+      "native_transfer_calls": 5,
+      "source_waits": 0,
+      "note": "Extra native copies/gathers excluded from performance."
+    },
+    {
+      "sample": 22,
+      "req_ids": [
+        "cmpl-baseline-c0610ac05a38-14-0-b945f599",
+        "cmpl-baseline-c0610ac05a38-10-0-93909ef1",
+        "cmpl-baseline-c0610ac05a38-7-0-891edfc3",
+        "cmpl-baseline-c0610ac05a38-9-0-918a74d6"
+      ],
+      "num_draft_tokens": [
+        0,
+        2,
+        0,
+        0
+      ],
+      "checks": {
+        "cu_num_draft_tokens": true,
+        "cu_num_sampled_tokens": true,
+        "logits_indices": true,
+        "target_logits_indices": true,
+        "bonus_logits_indices": true,
+        "draft_token_ids": true
+      },
+      "metadata_payload_bytes": 128,
+      "optimized_payload_copy_calls": 1,
+      "native_transfer_calls": 5,
+      "source_waits": 0,
+      "note": "Extra native copies/gathers excluded from performance."
+    },
+    {
+      "sample": 23,
+      "req_ids": [
+        "cmpl-baseline-c0610ac05a38-14-0-b945f599",
+        "cmpl-baseline-c0610ac05a38-10-0-93909ef1",
+        "cmpl-baseline-c0610ac05a38-11-0-a4c9b19f",
+        "cmpl-baseline-c0610ac05a38-9-0-918a74d6"
+      ],
+      "num_draft_tokens": [
+        0,
+        0,
+        2,
+        0
+      ],
+      "checks": {
+        "cu_num_draft_tokens": true,
+        "cu_num_sampled_tokens": true,
+        "logits_indices": true,
+        "target_logits_indices": true,
+        "bonus_logits_indices": true,
+        "draft_token_ids": true
+      },
+      "metadata_payload_bytes": 128,
+      "optimized_payload_copy_calls": 1,
+      "native_transfer_calls": 5,
+      "source_waits": 0,
+      "note": "Extra native copies/gathers excluded from performance."
+    },
+    {
+      "sample": 24,
+      "req_ids": [
+        "cmpl-baseline-c0610ac05a38-14-0-b945f599",
+        "cmpl-baseline-c0610ac05a38-10-0-93909ef1",
+        "cmpl-baseline-c0610ac05a38-11-0-a4c9b19f",
+        "cmpl-baseline-c0610ac05a38-0-0-9d81510f"
+      ],
+      "num_draft_tokens": [
+        0,
+        0,
+        0,
+        3
+      ],
+      "checks": {
+        "cu_num_draft_tokens": true,
+        "cu_num_sampled_tokens": true,
+        "logits_indices": true,
+        "target_logits_indices": true,
+        "bonus_logits_indices": true,
+        "draft_token_ids": true
+      },
+      "metadata_payload_bytes": 160,
+      "optimized_payload_copy_calls": 1,
+      "native_transfer_calls": 5,
+      "source_waits": 0,
+      "note": "Extra native copies/gathers excluded from performance."
+    },
+    {
+      "sample": 25,
+      "req_ids": [
+        "cmpl-baseline-c0610ac05a38-14-0-b945f599",
+        "cmpl-baseline-c0610ac05a38-4-0-89da558e",
+        "cmpl-baseline-c0610ac05a38-5-0-b19516f3",
+        "cmpl-baseline-c0610ac05a38-15-0-b7dc48cf"
+      ],
+      "num_draft_tokens": [
+        0,
+        1,
+        1,
+        1
+      ],
+      "checks": {
+        "cu_num_draft_tokens": true,
+        "cu_num_sampled_tokens": true,
+        "logits_indices": true,
+        "target_logits_indices": true,
+        "bonus_logits_indices": true,
+        "draft_token_ids": true
+      },
+      "metadata_payload_bytes": 160,
+      "optimized_payload_copy_calls": 1,
+      "native_transfer_calls": 5,
+      "source_waits": 0,
+      "note": "Extra native copies/gathers excluded from performance."
+    },
+    {
+      "sample": 26,
+      "req_ids": [
+        "cmpl-baseline-c0610ac05a38-14-0-b945f599",
+        "cmpl-baseline-c0610ac05a38-8-0-80dcf71c",
+        "cmpl-baseline-c0610ac05a38-5-0-b19516f3",
+        "cmpl-baseline-c0610ac05a38-15-0-b7dc48cf"
+      ],
+      "num_draft_tokens": [
+        0,
+        1,
+        0,
+        0
+      ],
+      "checks": {
+        "cu_num_draft_tokens": true,
+        "cu_num_sampled_tokens": true,
+        "logits_indices": true,
+        "target_logits_indices": true,
+        "bonus_logits_indices": true,
+        "draft_token_ids": true
+      },
+      "metadata_payload_bytes": 128,
+      "optimized_payload_copy_calls": 1,
+      "native_transfer_calls": 5,
+      "source_waits": 0,
+      "note": "Extra native copies/gathers excluded from performance."
+    },
+    {
+      "sample": 27,
+      "req_ids": [
+        "cmpl-baseline-c0610ac05a38-1-0-911bc6c2",
+        "cmpl-baseline-c0610ac05a38-2-0-a195b064",
+        "cmpl-baseline-c0610ac05a38-3-0-9525e461",
+        "cmpl-baseline-c0610ac05a38-15-0-b7dc48cf"
+      ],
+      "num_draft_tokens": [
+        1,
+        6,
+        1,
+        0
+      ],
+      "checks": {
+        "cu_num_draft_tokens": true,
+        "cu_num_sampled_tokens": true,
+        "logits_indices": true,
+        "target_logits_indices": true,
+        "bonus_logits_indices": true,
+        "draft_token_ids": true
+      },
+      "metadata_payload_bytes": 240,
+      "optimized_payload_copy_calls": 1,
+      "native_transfer_calls": 5,
+      "source_waits": 0,
+      "note": "Extra native copies/gathers excluded from performance."
+    },
+    {
+      "sample": 28,
+      "req_ids": [
+        "cmpl-baseline-c0610ac05a38-6-0-b16fcf44",
+        "cmpl-baseline-c0610ac05a38-2-0-a195b064",
+        "cmpl-baseline-c0610ac05a38-3-0-9525e461",
+        "cmpl-baseline-c0610ac05a38-15-0-b7dc48cf"
+      ],
+      "num_draft_tokens": [
+        2,
+        0,
+        0,
+        0
+      ],
+      "checks": {
+        "cu_num_draft_tokens": true,
+        "cu_num_sampled_tokens": true,
+        "logits_indices": true,
+        "target_logits_indices": true,
+        "bonus_logits_indices": true,
+        "draft_token_ids": true
+      },
+      "metadata_payload_bytes": 128,
+      "optimized_payload_copy_calls": 1,
+      "native_transfer_calls": 5,
+      "source_waits": 0,
+      "note": "Extra native copies/gathers excluded from performance."
+    },
+    {
+      "sample": 29,
+      "req_ids": [
+        "cmpl-baseline-c0610ac05a38-9-0-918a74d6",
+        "cmpl-baseline-c0610ac05a38-15-0-b7dc48cf"
+      ],
+      "num_draft_tokens": [
+        2,
+        0
+      ],
+      "checks": {
+        "cu_num_draft_tokens": true,
+        "cu_num_sampled_tokens": true,
+        "logits_indices": true,
+        "target_logits_indices": true,
+        "bonus_logits_indices": true,
+        "draft_token_ids": true
+      },
+      "metadata_payload_bytes": 112,
+      "optimized_payload_copy_calls": 1,
+      "native_transfer_calls": 5,
+      "source_waits": 0,
+      "note": "Extra native copies/gathers excluded from performance."
+    },
+    {
+      "sample": 30,
+      "req_ids": [
+        "cmpl-baseline-c0610ac05a38-0-0-9d81510f",
+        "cmpl-baseline-c0610ac05a38-11-0-a4c9b19f",
+        "cmpl-baseline-c0610ac05a38-12-0-ae5ddb46",
+        "cmpl-baseline-c0610ac05a38-13-0-b85b5642"
+      ],
+      "num_draft_tokens": [
+        2,
+        1,
+        8,
+        8
+      ],
+      "checks": {
+        "cu_num_draft_tokens": true,
+        "cu_num_sampled_tokens": true,
+        "logits_indices": true,
+        "target_logits_indices": true,
+        "bonus_logits_indices": true,
+        "draft_token_ids": true
+      },
+      "metadata_payload_bytes": 480,
+      "optimized_payload_copy_calls": 1,
+      "native_transfer_calls": 5,
+      "source_waits": 0,
+      "note": "Extra native copies/gathers excluded from performance."
+    },
+    {
+      "sample": 31,
+      "req_ids": [
+        "cmpl-baseline-c0610ac05a38-4-0-89da558e",
+        "cmpl-baseline-c0610ac05a38-10-0-93909ef1",
+        "cmpl-baseline-c0610ac05a38-14-0-b945f599",
+        "cmpl-baseline-c0610ac05a38-13-0-b85b5642"
+      ],
+      "num_draft_tokens": [
+        1,
+        2,
+        1,
+        0
+      ],
+      "checks": {
+        "cu_num_draft_tokens": true,
+        "cu_num_sampled_tokens": true,
+        "logits_indices": true,
+        "target_logits_indices": true,
+        "bonus_logits_indices": true,
+        "draft_token_ids": true
+      },
+      "metadata_payload_bytes": 160,
+      "optimized_payload_copy_calls": 1,
+      "native_transfer_calls": 5,
+      "source_waits": 0,
+      "note": "Extra native copies/gathers excluded from performance."
+    },
+    {
+      "sample": 32,
+      "req_ids": [
+        "cmpl-baseline-c0610ac05a38-5-0-b19516f3",
+        "cmpl-baseline-c0610ac05a38-7-0-891edfc3",
+        "cmpl-baseline-c0610ac05a38-14-0-b945f599",
+        "cmpl-baseline-c0610ac05a38-13-0-b85b5642"
+      ],
+      "num_draft_tokens": [
+        2,
+        8,
+        0,
+        0
+      ],
+      "checks": {
+        "cu_num_draft_tokens": true,
+        "cu_num_sampled_tokens": true,
+        "logits_indices": true,
+        "target_logits_indices": true,
+        "bonus_logits_indices": true,
+        "draft_token_ids": true
+      },
+      "metadata_payload_bytes": 288,
+      "optimized_payload_copy_calls": 1,
+      "native_transfer_calls": 5,
+      "source_waits": 0,
+      "note": "Extra native copies/gathers excluded from performance."
+    }
+  ]
+}

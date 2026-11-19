@@ -1,0 +1,58 @@
+{
+  "requests": 512,
+  "completed": 512,
+  "failed": 0,
+  "elapsed_s": 373.83300894033164,
+  "measurement_start_wall": 1795092195.8023527,
+  "first_dispatch_wall": 1795092195.8027844,
+  "last_completion_wall": 1795092569.6357932,
+  "first_dispatch_s": 0.0004317034035921097,
+  "last_completion_s": 373.83344064373523,
+  "drain_s": null,
+  "output_tokens": 101003,
+  "throughput_tok_s": 270.18213369200186,
+  "open_requests": null,
+  "arrival_window_s": null,
+  "open_workload": null,
+  "latency_s": {
+    "ttft": {
+      "p50": 0.10670068580657244,
+      "p95": 0.3498261696193367
+    },
+    "e2e": {
+      "p50": 11.322623210027814,
+      "p95": 21.617809959547593
+    },
+    "tpot": {
+      "p50": 0.057609825718073965,
+      "p95": 0.07171101930390784
+    },
+    "scheduled_ttft": {
+      "p50": null,
+      "p95": null
+    },
+    "scheduled_e2e": {
+      "p50": null,
+      "p95": null
+    }
+  },
+  "itl_s": {
+    "p50": 0.025307213421911,
+    "p95": 0.1586118437815457
+  },
+  "dispatch_lag_s": {
+    "p50": null,
+    "p95": null
+  },
+  "arrival_timing_qualified": true,
+  "delivery_itl_s": {
+    "p50": 0.02316952869296074,
+    "p95": 0.271443385630846
+  },
+  "itl_definition": "Client delivery: all token IDs in one SSE chunk share its receive timestamp; zero intervals within a burst are retained. GPU-internal generation time is not inferred.",
+  "itl_coverage_requests": 4,
+  "slo_compliance": null,
+  "slo_note": "No predefined thresholds; multi-token stream chunks do not expose exact token ITL.",
+  "plan_sha256": "526f1227efb2385aa23f8e276cb373d30b2a72d45ba34620d6cfc4ca058c5a3b",
+  "smoke": false
+}

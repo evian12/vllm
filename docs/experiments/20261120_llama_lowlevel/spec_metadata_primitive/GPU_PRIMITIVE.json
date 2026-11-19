@@ -1,0 +1,1823 @@
+{
+  "cases": [
+    {
+      "requests": 4,
+      "drafts": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "scheduled": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 64
+    },
+    {
+      "requests": 4,
+      "drafts": [
+        8,
+        8,
+        8,
+        8
+      ],
+      "scheduled": [
+        9,
+        18,
+        27,
+        36
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 848
+    },
+    {
+      "requests": 1,
+      "drafts": [
+        0
+      ],
+      "scheduled": [
+        27
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 64
+    },
+    {
+      "requests": 4,
+      "drafts": [
+        6,
+        6,
+        6,
+        7
+      ],
+      "scheduled": [
+        32,
+        45,
+        93,
+        123
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 704
+    },
+    {
+      "requests": 3,
+      "drafts": [
+        3,
+        1,
+        8
+      ],
+      "scheduled": [
+        43,
+        77,
+        106
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 208
+    },
+    {
+      "requests": 4,
+      "drafts": [
+        4,
+        3,
+        4,
+        2
+      ],
+      "scheduled": [
+        9,
+        40,
+        89,
+        95
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 416
+    },
+    {
+      "requests": 4,
+      "drafts": [
+        7,
+        2,
+        5,
+        1
+      ],
+      "scheduled": [
+        45,
+        83,
+        106,
+        111
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 256
+    },
+    {
+      "requests": 4,
+      "drafts": [
+        4,
+        8,
+        6,
+        7
+      ],
+      "scheduled": [
+        42,
+        60,
+        85,
+        116
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 704
+    },
+    {
+      "requests": 2,
+      "drafts": [
+        0,
+        4
+      ],
+      "scheduled": [
+        8,
+        50
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 112
+    },
+    {
+      "requests": 3,
+      "drafts": [
+        8,
+        6,
+        3
+      ],
+      "scheduled": [
+        57,
+        84,
+        104
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 496
+    },
+    {
+      "requests": 4,
+      "drafts": [
+        3,
+        0,
+        4,
+        7
+      ],
+      "scheduled": [
+        13,
+        37,
+        48,
+        90
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 256
+    },
+    {
+      "requests": 2,
+      "drafts": [
+        2,
+        2
+      ],
+      "scheduled": [
+        31,
+        67
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 160
+    },
+    {
+      "requests": 4,
+      "drafts": [
+        3,
+        1,
+        7,
+        5
+      ],
+      "scheduled": [
+        39,
+        45,
+        68,
+        112
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 256
+    },
+    {
+      "requests": 4,
+      "drafts": [
+        3,
+        7,
+        7,
+        3
+      ],
+      "scheduled": [
+        48,
+        70,
+        89,
+        127
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 560
+    },
+    {
+      "requests": 3,
+      "drafts": [
+        1,
+        7,
+        1
+      ],
+      "scheduled": [
+        42,
+        50,
+        91
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 192
+    },
+    {
+      "requests": 4,
+      "drafts": [
+        7,
+        5,
+        4,
+        6
+      ],
+      "scheduled": [
+        21,
+        66,
+        98,
+        127
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 608
+    },
+    {
+      "requests": 3,
+      "drafts": [
+        5,
+        0,
+        1
+      ],
+      "scheduled": [
+        18,
+        24,
+        47
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 160
+    },
+    {
+      "requests": 3,
+      "drafts": [
+        5,
+        4,
+        7
+      ],
+      "scheduled": [
+        34,
+        42,
+        88
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 464
+    },
+    {
+      "requests": 3,
+      "drafts": [
+        5,
+        5,
+        4
+      ],
+      "scheduled": [
+        10,
+        43,
+        87
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 256
+    },
+    {
+      "requests": 2,
+      "drafts": [
+        5,
+        0
+      ],
+      "scheduled": [
+        23,
+        45
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 208
+    },
+    {
+      "requests": 4,
+      "drafts": [
+        1,
+        2,
+        3,
+        8
+      ],
+      "scheduled": [
+        44,
+        48,
+        63,
+        113
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 256
+    },
+    {
+      "requests": 1,
+      "drafts": [
+        7
+      ],
+      "scheduled": [
+        22
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 240
+    },
+    {
+      "requests": 4,
+      "drafts": [
+        2,
+        3,
+        5,
+        1
+      ],
+      "scheduled": [
+        30,
+        59,
+        104,
+        155
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 208
+    },
+    {
+      "requests": 3,
+      "drafts": [
+        3,
+        3,
+        3
+      ],
+      "scheduled": [
+        44,
+        64,
+        76
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 304
+    },
+    {
+      "requests": 2,
+      "drafts": [
+        0,
+        0
+      ],
+      "scheduled": [
+        5,
+        44
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 64
+    },
+    {
+      "requests": 3,
+      "drafts": [
+        6,
+        4,
+        6
+      ],
+      "scheduled": [
+        15,
+        65,
+        97
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 464
+    },
+    {
+      "requests": 4,
+      "drafts": [
+        1,
+        4,
+        6,
+        4
+      ],
+      "scheduled": [
+        24,
+        37,
+        63,
+        79
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 256
+    },
+    {
+      "requests": 2,
+      "drafts": [
+        6,
+        5
+      ],
+      "scheduled": [
+        37,
+        61
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 352
+    },
+    {
+      "requests": 4,
+      "drafts": [
+        0,
+        3,
+        1,
+        3
+      ],
+      "scheduled": [
+        49,
+        71,
+        118,
+        146
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 160
+    },
+    {
+      "requests": 3,
+      "drafts": [
+        4,
+        2,
+        6
+      ],
+      "scheduled": [
+        53,
+        69,
+        114
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 368
+    },
+    {
+      "requests": 2,
+      "drafts": [
+        6,
+        7
+      ],
+      "scheduled": [
+        29,
+        73
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 240
+    },
+    {
+      "requests": 2,
+      "drafts": [
+        0,
+        0
+      ],
+      "scheduled": [
+        23,
+        69
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 64
+    },
+    {
+      "requests": 1,
+      "drafts": [
+        4
+      ],
+      "scheduled": [
+        40
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 112
+    },
+    {
+      "requests": 1,
+      "drafts": [
+        6
+      ],
+      "scheduled": [
+        22
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 208
+    },
+    {
+      "requests": 4,
+      "drafts": [
+        5,
+        4,
+        1,
+        4
+      ],
+      "scheduled": [
+        48,
+        53,
+        92,
+        121
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 256
+    },
+    {
+      "requests": 3,
+      "drafts": [
+        5,
+        3,
+        2
+      ],
+      "scheduled": [
+        37,
+        48,
+        80
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 320
+    },
+    {
+      "requests": 1,
+      "drafts": [
+        5
+      ],
+      "scheduled": [
+        37
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 144
+    },
+    {
+      "requests": 1,
+      "drafts": [
+        6
+      ],
+      "scheduled": [
+        27
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 208
+    },
+    {
+      "requests": 4,
+      "drafts": [
+        0,
+        1,
+        4,
+        1
+      ],
+      "scheduled": [
+        17,
+        52,
+        64,
+        99
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 160
+    },
+    {
+      "requests": 1,
+      "drafts": [
+        1
+      ],
+      "scheduled": [
+        31
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 96
+    },
+    {
+      "requests": 4,
+      "drafts": [
+        1,
+        2,
+        8,
+        8
+      ],
+      "scheduled": [
+        31,
+        56,
+        82,
+        121
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 304
+    },
+    {
+      "requests": 3,
+      "drafts": [
+        2,
+        0,
+        1
+      ],
+      "scheduled": [
+        50,
+        71,
+        97
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 160
+    },
+    {
+      "requests": 2,
+      "drafts": [
+        7,
+        0
+      ],
+      "scheduled": [
+        12,
+        26
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 160
+    },
+    {
+      "requests": 2,
+      "drafts": [
+        6,
+        4
+      ],
+      "scheduled": [
+        29,
+        80
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 304
+    },
+    {
+      "requests": 1,
+      "drafts": [
+        5
+      ],
+      "scheduled": [
+        33
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 144
+    },
+    {
+      "requests": 2,
+      "drafts": [
+        7,
+        2
+      ],
+      "scheduled": [
+        55,
+        74
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 304
+    },
+    {
+      "requests": 3,
+      "drafts": [
+        4,
+        7,
+        3
+      ],
+      "scheduled": [
+        19,
+        28,
+        50
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 256
+    },
+    {
+      "requests": 4,
+      "drafts": [
+        0,
+        8,
+        4,
+        1
+      ],
+      "scheduled": [
+        16,
+        52,
+        72,
+        79
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 416
+    },
+    {
+      "requests": 3,
+      "drafts": [
+        6,
+        1,
+        2
+      ],
+      "scheduled": [
+        19,
+        53,
+        92
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 192
+    },
+    {
+      "requests": 3,
+      "drafts": [
+        8,
+        6,
+        2
+      ],
+      "scheduled": [
+        14,
+        51,
+        99
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 464
+    },
+    {
+      "requests": 4,
+      "drafts": [
+        2,
+        2,
+        0,
+        1
+      ],
+      "scheduled": [
+        30,
+        60,
+        79,
+        96
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 160
+    },
+    {
+      "requests": 4,
+      "drafts": [
+        4,
+        7,
+        8,
+        2
+      ],
+      "scheduled": [
+        15,
+        70,
+        110,
+        127
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 608
+    },
+    {
+      "requests": 3,
+      "drafts": [
+        4,
+        8,
+        2
+      ],
+      "scheduled": [
+        54,
+        109,
+        121
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 256
+    },
+    {
+      "requests": 1,
+      "drafts": [
+        4
+      ],
+      "scheduled": [
+        7
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 160
+    },
+    {
+      "requests": 2,
+      "drafts": [
+        3,
+        8
+      ],
+      "scheduled": [
+        53,
+        69
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 208
+    },
+    {
+      "requests": 4,
+      "drafts": [
+        0,
+        6,
+        7,
+        8
+      ],
+      "scheduled": [
+        12,
+        63,
+        76,
+        110
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 608
+    },
+    {
+      "requests": 2,
+      "drafts": [
+        2,
+        0
+      ],
+      "scheduled": [
+        41,
+        58
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 96
+    },
+    {
+      "requests": 3,
+      "drafts": [
+        3,
+        3,
+        7
+      ],
+      "scheduled": [
+        8,
+        48,
+        93
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 400
+    },
+    {
+      "requests": 2,
+      "drafts": [
+        2,
+        0
+      ],
+      "scheduled": [
+        49,
+        97
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 96
+    },
+    {
+      "requests": 1,
+      "drafts": [
+        0
+      ],
+      "scheduled": [
+        7
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 64
+    },
+    {
+      "requests": 1,
+      "drafts": [
+        7
+      ],
+      "scheduled": [
+        52
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 144
+    },
+    {
+      "requests": 1,
+      "drafts": [
+        6
+      ],
+      "scheduled": [
+        15
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 208
+    },
+    {
+      "requests": 2,
+      "drafts": [
+        5,
+        6
+      ],
+      "scheduled": [
+        49,
+        58
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 208
+    },
+    {
+      "requests": 1,
+      "drafts": [
+        2
+      ],
+      "scheduled": [
+        18
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 112
+    },
+    {
+      "requests": 4,
+      "drafts": [
+        6,
+        2,
+        8,
+        4
+      ],
+      "scheduled": [
+        32,
+        56,
+        72,
+        123
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 304
+    },
+    {
+      "requests": 1,
+      "drafts": [
+        1
+      ],
+      "scheduled": [
+        13
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 96
+    },
+    {
+      "requests": 2,
+      "drafts": [
+        1,
+        0
+      ],
+      "scheduled": [
+        35,
+        84
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 96
+    },
+    {
+      "requests": 1,
+      "drafts": [
+        2
+      ],
+      "scheduled": [
+        28
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 112
+    },
+    {
+      "requests": 4,
+      "drafts": [
+        6,
+        6,
+        5,
+        3
+      ],
+      "scheduled": [
+        16,
+        66,
+        112,
+        117
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 304
+    },
+    {
+      "requests": 3,
+      "drafts": [
+        0,
+        6,
+        7
+      ],
+      "scheduled": [
+        7,
+        35,
+        49
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 400
+    },
+    {
+      "requests": 3,
+      "drafts": [
+        8,
+        0,
+        3
+      ],
+      "scheduled": [
+        57,
+        73,
+        83
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 208
+    },
+    {
+      "requests": 2,
+      "drafts": [
+        4,
+        5
+      ],
+      "scheduled": [
+        20,
+        73
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 304
+    },
+    {
+      "requests": 3,
+      "drafts": [
+        2,
+        8,
+        8
+      ],
+      "scheduled": [
+        27,
+        37,
+        75
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 304
+    },
+    {
+      "requests": 3,
+      "drafts": [
+        1,
+        5,
+        7
+      ],
+      "scheduled": [
+        7,
+        49,
+        64
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 400
+    },
+    {
+      "requests": 3,
+      "drafts": [
+        3,
+        0,
+        8
+      ],
+      "scheduled": [
+        12,
+        42,
+        60
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 208
+    },
+    {
+      "requests": 4,
+      "drafts": [
+        6,
+        7,
+        3,
+        4
+      ],
+      "scheduled": [
+        38,
+        85,
+        131,
+        136
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 560
+    },
+    {
+      "requests": 3,
+      "drafts": [
+        0,
+        2,
+        7
+      ],
+      "scheduled": [
+        13,
+        55,
+        86
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 192
+    },
+    {
+      "requests": 1,
+      "drafts": [
+        3
+      ],
+      "scheduled": [
+        30
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 144
+    },
+    {
+      "requests": 4,
+      "drafts": [
+        5,
+        8,
+        7,
+        6
+      ],
+      "scheduled": [
+        36,
+        59,
+        87,
+        99
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 400
+    },
+    {
+      "requests": 2,
+      "drafts": [
+        8,
+        3
+      ],
+      "scheduled": [
+        14,
+        50
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 352
+    },
+    {
+      "requests": 4,
+      "drafts": [
+        7,
+        2,
+        4,
+        4
+      ],
+      "scheduled": [
+        20,
+        36,
+        52,
+        106
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 304
+    },
+    {
+      "requests": 3,
+      "drafts": [
+        7,
+        7,
+        8
+      ],
+      "scheduled": [
+        13,
+        65,
+        77
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 608
+    },
+    {
+      "requests": 2,
+      "drafts": [
+        5,
+        3
+      ],
+      "scheduled": [
+        13,
+        26
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 160
+    },
+    {
+      "requests": 4,
+      "drafts": [
+        2,
+        2,
+        8,
+        1
+      ],
+      "scheduled": [
+        48,
+        97,
+        135,
+        145
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 416
+    },
+    {
+      "requests": 1,
+      "drafts": [
+        2
+      ],
+      "scheduled": [
+        31
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 96
+    },
+    {
+      "requests": 1,
+      "drafts": [
+        4
+      ],
+      "scheduled": [
+        10
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 160
+    },
+    {
+      "requests": 3,
+      "drafts": [
+        0,
+        6,
+        0
+      ],
+      "scheduled": [
+        10,
+        25,
+        67
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 160
+    },
+    {
+      "requests": 1,
+      "drafts": [
+        3
+      ],
+      "scheduled": [
+        33
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 144
+    },
+    {
+      "requests": 3,
+      "drafts": [
+        6,
+        7,
+        3
+      ],
+      "scheduled": [
+        48,
+        71,
+        124
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 256
+    },
+    {
+      "requests": 3,
+      "drafts": [
+        6,
+        7,
+        7
+      ],
+      "scheduled": [
+        49,
+        83,
+        93
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 560
+    },
+    {
+      "requests": 2,
+      "drafts": [
+        1,
+        8
+      ],
+      "scheduled": [
+        13,
+        33
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 192
+    },
+    {
+      "requests": 1,
+      "drafts": [
+        5
+      ],
+      "scheduled": [
+        34
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 192
+    },
+    {
+      "requests": 4,
+      "drafts": [
+        3,
+        2,
+        0,
+        0
+      ],
+      "scheduled": [
+        22,
+        71,
+        98,
+        143
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 160
+    },
+    {
+      "requests": 1,
+      "drafts": [
+        0
+      ],
+      "scheduled": [
+        42
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 64
+    },
+    {
+      "requests": 1,
+      "drafts": [
+        0
+      ],
+      "scheduled": [
+        21
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 64
+    },
+    {
+      "requests": 4,
+      "drafts": [
+        6,
+        0,
+        7,
+        7
+      ],
+      "scheduled": [
+        47,
+        93,
+        112,
+        168
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 560
+    },
+    {
+      "requests": 2,
+      "drafts": [
+        7,
+        5
+      ],
+      "scheduled": [
+        46,
+        83
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 208
+    },
+    {
+      "requests": 3,
+      "drafts": [
+        5,
+        7,
+        6
+      ],
+      "scheduled": [
+        12,
+        61,
+        94
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 512
+    },
+    {
+      "requests": 2,
+      "drafts": [
+        4,
+        8
+      ],
+      "scheduled": [
+        47,
+        97
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 208
+    },
+    {
+      "requests": 2,
+      "drafts": [
+        7,
+        3
+      ],
+      "scheduled": [
+        42,
+        77
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 304
+    },
+    {
+      "requests": 1,
+      "drafts": [
+        2
+      ],
+      "scheduled": [
+        6
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 96
+    },
+    {
+      "requests": 1,
+      "drafts": [
+        3
+      ],
+      "scheduled": [
+        27
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 144
+    },
+    {
+      "requests": 1,
+      "drafts": [
+        3
+      ],
+      "scheduled": [
+        34
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 96
+    },
+    {
+      "requests": 1,
+      "drafts": [
+        3
+      ],
+      "scheduled": [
+        22
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 144
+    },
+    {
+      "requests": 3,
+      "drafts": [
+        3,
+        6,
+        2
+      ],
+      "scheduled": [
+        25,
+        50,
+        62
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 208
+    },
+    {
+      "requests": 3,
+      "drafts": [
+        2,
+        2,
+        7
+      ],
+      "scheduled": [
+        50,
+        86,
+        139
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 352
+    },
+    {
+      "requests": 4,
+      "drafts": [
+        4,
+        6,
+        2,
+        4
+      ],
+      "scheduled": [
+        31,
+        86,
+        131,
+        160
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 256
+    },
+    {
+      "requests": 3,
+      "drafts": [
+        1,
+        7,
+        4
+      ],
+      "scheduled": [
+        28,
+        74,
+        110
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 368
+    },
+    {
+      "requests": 1,
+      "drafts": [
+        2
+      ],
+      "scheduled": [
+        11
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 96
+    },
+    {
+      "requests": 3,
+      "drafts": [
+        0,
+        1,
+        5
+      ],
+      "scheduled": [
+        35,
+        62,
+        111
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 224
+    },
+    {
+      "requests": 4,
+      "drafts": [
+        1,
+        8,
+        5,
+        5
+      ],
+      "scheduled": [
+        6,
+        46,
+        88,
+        123
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 304
+    },
+    {
+      "requests": 1,
+      "drafts": [
+        4
+      ],
+      "scheduled": [
+        51
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 160
+    },
+    {
+      "requests": 3,
+      "drafts": [
+        1,
+        8,
+        8
+      ],
+      "scheduled": [
+        10,
+        59,
+        88
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 288
+    },
+    {
+      "requests": 3,
+      "drafts": [
+        4,
+        7,
+        8
+      ],
+      "scheduled": [
+        44,
+        98,
+        154
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 544
+    },
+    {
+      "requests": 1,
+      "drafts": [
+        2
+      ],
+      "scheduled": [
+        39
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 96
+    },
+    {
+      "requests": 3,
+      "drafts": [
+        0,
+        0,
+        4
+      ],
+      "scheduled": [
+        31,
+        40,
+        53
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 176
+    },
+    {
+      "requests": 1,
+      "drafts": [
+        5
+      ],
+      "scheduled": [
+        6
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 144
+    },
+    {
+      "requests": 3,
+      "drafts": [
+        4,
+        4,
+        6
+      ],
+      "scheduled": [
+        31,
+        72,
+        117
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 416
+    },
+    {
+      "requests": 4,
+      "drafts": [
+        7,
+        4,
+        4,
+        2
+      ],
+      "scheduled": [
+        37,
+        48,
+        99,
+        144
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 304
+    },
+    {
+      "requests": 1,
+      "drafts": [
+        7
+      ],
+      "scheduled": [
+        13
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 240
+    },
+    {
+      "requests": 3,
+      "drafts": [
+        0,
+        4,
+        5
+      ],
+      "scheduled": [
+        37,
+        62,
+        114
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 192
+    },
+    {
+      "requests": 4,
+      "drafts": [
+        1,
+        6,
+        6,
+        3
+      ],
+      "scheduled": [
+        38,
+        89,
+        136,
+        178
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 464
+    },
+    {
+      "requests": 3,
+      "drafts": [
+        2,
+        7,
+        3
+      ],
+      "scheduled": [
+        29,
+        52,
+        71
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 208
+    },
+    {
+      "requests": 1,
+      "drafts": [
+        8
+      ],
+      "scheduled": [
+        16
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 256
+    },
+    {
+      "requests": 1,
+      "drafts": [
+        8
+      ],
+      "scheduled": [
+        36
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 160
+    },
+    {
+      "requests": 2,
+      "drafts": [
+        6,
+        3
+      ],
+      "scheduled": [
+        13,
+        53
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 304
+    },
+    {
+      "requests": 1,
+      "drafts": [
+        4
+      ],
+      "scheduled": [
+        52
+      ],
+      "dtype": "<class 'numpy.int32'>",
+      "bytes": 112
+    },
+    {
+      "requests": 4,
+      "drafts": [
+        3,
+        7,
+        5,
+        4
+      ],
+      "scheduled": [
+        10,
+        36,
+        74,
+        128
+      ],
+      "dtype": "<class 'numpy.int64'>",
+      "bytes": 560
+    }
+  ],
+  "passed": 128,
+  "source_waits": 1,
+  "growths": 1,
+  "source": {
+    "vllm/v1/spec_decode/cdb_av_spec_metadata.py": "a42e19a3d43dc2f8a82d1c03819f78bc8c578a59aed8cb0c00d0d23a39565f63",
+    "vllm/v1/worker/gpu_model_runner.py": "ddd45e015589b98213dc4f75b1ee4a38af15984d30b8c515bc771def88b0796f"
+  },
+  "torch": "2.9.1+cu129",
+  "cuda": "12.9",
+  "actual_module": "/home/yypan/CDB-AV/worktrees/cdb-spec-metadata-20261119/vllm/v1/spec_decode/cdb_av_spec_metadata.py",
+  "held_payloads": 128,
+  "all_metadata_and_draft_ids_exact": true,
+  "note": "CUDA primitive correctness/lifetime only, no model or performance claim."
+}

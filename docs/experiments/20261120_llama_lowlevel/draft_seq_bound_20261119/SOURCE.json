@@ -1,0 +1,17 @@
+{
+  "source": "/home/yypan/CDB-AV/worktrees/cdb-llama-sharegpt-20261119",
+  "commit": "008c04f89f319b51b26187e81f93406b2322b9c9",
+  "branch": "codex/cdb-draft-seq-bound-20261119",
+  "remote_head": "ccfd19da75969e79c242e860f18403eadad0e589",
+  "hashes": {
+    "tests/v1/spec_decode/test_cdb_av_target_graph_llama.py": "1b77c0829174d2bb95ae53e907264b368761f89cfc9d1b8a3f54560f52938205",
+    "vllm/v1/spec_decode/cdb_av_acceptance.py": "425f4a9a1c35cc09e0d7f867b3c4afcaaa6f2dd2eb3b5239b6df8f33aed74f11",
+    "vllm/v1/spec_decode/cdb_av_config.py": "fed13ea23e59f4c485b804766a1e235e4e2a2d1635e329104a1d07377f84bd9b",
+    "vllm/v1/spec_decode/cdb_av_kv_reuse.py": "fd0a094645b9b9a3df9f6d7b004453d3406bb170f3089e7dd559b147209ed3a4",
+    "vllm/v1/spec_decode/cdb_av_persistent.py": "727fa44f7f4c8bd364eec79ba023f8e65db09ecac4287c6e0d37e3f269ff0cf1",
+    "vllm/v1/spec_decode/cdb_av_refill.py": "34b53fc4735d59f26495d917c249fc987c74b64ebdc9d369bb11cbe8c080676c",
+    "vllm/v1/spec_decode/cdb_av_target_graph.py": "9821d169eec1e48cae476168da59c0f55d205aed35a4d848b12f4a81c3f6f804"
+  },
+  "worktree": "/home/yypan/CDB-AV/worktrees/cdb-draft-seq-bound-20261119",
+  "parent": "8ed540f6bcf3204bd298dd12765d4c673f781efa"
+}

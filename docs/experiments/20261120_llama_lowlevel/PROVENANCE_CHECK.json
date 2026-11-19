@@ -1,0 +1,26 @@
+[
+  {
+    "experiment": "draft_seq_bound_20261119",
+    "worktree": "/home/yypan/CDB-AV/worktrees/cdb-draft-seq-bound-20261119",
+    "commit": "008c04f89f319b51b26187e81f93406b2322b9c9",
+    "remote_verified_sha": "008c04f89f319b51b26187e81f93406b2322b9c9",
+    "source_hashes_match": true,
+    "inherited_base_fields_are_not_runtime_evidence": true
+  },
+  {
+    "experiment": "llama_linear_20261119",
+    "worktree": "/home/yypan/CDB-AV/worktrees/cdb-llama-linear-20261119",
+    "commit": "d17d4ec22d4df0b2a48c019b50e8f9810989bfbd",
+    "remote_verified_sha": "d17d4ec22d4df0b2a48c019b50e8f9810989bfbd",
+    "source_hashes_match": true,
+    "inherited_base_fields_are_not_runtime_evidence": true
+  },
+  {
+    "experiment": "spec_metadata_joint_20261120",
+    "worktree": "/home/yypan/CDB-AV/worktrees/cdb-spec-metadata-joint-20261120",
+    "commit": "a27d8b157b5dd6955c8899119606bbb1897d6dfd",
+    "remote_verified_sha": "a27d8b157b5dd6955c8899119606bbb1897d6dfd",
+    "source_hashes_match": true,
+    "inherited_base_fields_are_not_runtime_evidence": true
+  }
+]

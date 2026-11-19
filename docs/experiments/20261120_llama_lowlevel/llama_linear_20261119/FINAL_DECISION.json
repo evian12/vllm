@@ -1,0 +1,62 @@
+{
+  "decision": "keep_disabled",
+  "flag": "CDB_AV_DRAFT_DOWN_PAD32",
+  "enabled_value": "1",
+  "source_commit": "d17d4ec22d4df0b2a48c019b50e8f9810989bfbd",
+  "repetitions_per_arm": 3,
+  "completed_requests": 3072,
+  "measured_output_tokens": 606018,
+  "groups": {
+    "0": {
+      "n": 3,
+      "tps": [
+        269.12200963952614,
+        270.9791502355456,
+        270.4703071574997
+      ],
+      "mean_tps": 270.19048901085716,
+      "sd_tps": 0.9596699665711815,
+      "mean_run_e2e_p95": 21.943003170626856,
+      "mean_run_ttft_p95": 0.35809370501277343,
+      "verify_events": 68405.0,
+      "candidates": 183981.0,
+      "accepted": 147607.0,
+      "target_iterations": 40342.0,
+      "acceptance_rate": 0.80229480218066,
+      "mean_verified_K": 2.689584094729917,
+      "verify_events_per_target_iteration": 1.6956273858509743,
+      "draft_dispatches": 48722,
+      "mean_draft_request_rows": 3.7761380895693937
+    },
+    "1": {
+      "n": 3,
+      "tps": [
+        269.0089027057691,
+        270.9512463419353,
+        272.7264852932607
+      ],
+      "mean_tps": 270.8955447803217,
+      "sd_tps": 1.8594171322432635,
+      "mean_run_e2e_p95": 22.165979478585843,
+      "mean_run_ttft_p95": 0.35172976992713906,
+      "verify_events": 68115.0,
+      "candidates": 183840.0,
+      "accepted": 147418.0,
+      "target_iterations": 40412.0,
+      "acceptance_rate": 0.8018820713664055,
+      "mean_verified_K": 2.698964985685972,
+      "verify_events_per_target_iteration": 1.6855142037018707,
+      "draft_dispatches": 48679,
+      "mean_draft_request_rows": 3.7765771687996876
+    }
+  },
+  "mean_paired_tps_change_pct": 0.26061431834858056,
+  "sd_paired_tps_change_pct": 0.49696581243996113,
+  "ratio_of_means_change_pct": 0.2609476640150099,
+  "exact_output_requests": [
+    185,
+    179,
+    190
+  ],
+  "strict_output_equivalence": false
+}
