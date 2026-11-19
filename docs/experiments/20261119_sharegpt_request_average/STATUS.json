@@ -1,0 +1,36 @@
+{
+  "state": "stopped_by_user_selection",
+  "time": 1795071076.8121858,
+  "reason": "Retain HF0.8 and resume low-level work; no remaining historical-average arms launched",
+  "completed": [
+    {
+      "mode": "hf",
+      "seed": 42,
+      "directory": "/disk14T/yypan/CDB-AV-runtime/results/request_avg_sharegpt_gpu3_20261119/pair0_hf_seed42",
+      "tps": 228.0776987825362,
+      "e2e_p95": 27.804355916474016,
+      "ttft_p95": 0.6551211825571952
+    },
+    {
+      "mode": "average",
+      "seed": 42,
+      "directory": "/disk14T/yypan/CDB-AV-runtime/results/request_avg_sharegpt_gpu3_20261119/pair0_average_seed42",
+      "tps": 218.0333267337257,
+      "e2e_p95": 28.895322662917895,
+      "ttft_p95": 1.197033239901066
+    },
+    {
+      "mode": "average",
+      "seed": 43,
+      "directory": "/disk14T/yypan/CDB-AV-runtime/results/request_avg_sharegpt_gpu3_20261119/pair1_average_seed43",
+      "tps": 218.61917496002928,
+      "e2e_p95": 28.808284540381276,
+      "ttft_p95": 1.0833112677093593
+    }
+  ],
+  "paired_comparisons": 1,
+  "average_repetitions": 2,
+  "hf_repetitions": 1,
+  "controller_exit": "expected preflight guard",
+  "strict_output_equivalence": false
+}
