@@ -1,0 +1,9 @@
+{
+  "paired_mean_pct": 0.19007901250132445,
+  "paired_sample_sd_pct": 0.6423732853377776,
+  "ratio_of_means_pct": 0.1897203409549686,
+  "completed": 3072,
+  "output_tokens": 606018,
+  "recommendation": "OFF; no reproducible end-to-end gain established",
+  "source_commit": "8ed540f6bcf3204bd298dd12765d4c673f781efa"
+}

@@ -1,0 +1,22 @@
+{
+  "bound_reuse": 99,
+  "target_checks": 241,
+  "draft_checks": 577,
+  "handoff_verified": 1223,
+  "cross_target_carry_checks": 218,
+  "cleanup": {
+    "event": "p2_reset",
+    "window": 127,
+    "target_epoch": 649,
+    "released_blocks": 0,
+    "live_leases": 0,
+    "ready": 0,
+    "inflight": 0
+  },
+  "release": {
+    "port_closed": true,
+    "memory_mib": 15,
+    "our_gpu_pids": [],
+    "time": 1795079522.957202
+  }
+}

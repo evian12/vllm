@@ -1,0 +1,161 @@
+{
+  "model": "llama",
+  "warmup_requests": 64,
+  "measured_requests": 16,
+  "target_scope": [
+    {
+      "model": "LlamaForCausalLM",
+      "layers": 32,
+      "fa_version": 2,
+      "llama_opt_in": true,
+      "dtype": "torch.bfloat16"
+    }
+  ],
+  "draft_graph_checks": 556,
+  "target_graph_checks": 190,
+  "cap": 8,
+  "completed": 16,
+  "ready": 1188,
+  "verified": 1188,
+  "K_values": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8
+  ],
+  "reasons": [
+    "low_confidence",
+    "max_k"
+  ],
+  "carry_byte_checks": 210,
+  "cross_target_checks": 210,
+  "cleanup": {
+    "event": "p2_reset",
+    "window": 122,
+    "target_epoch": 634,
+    "released_blocks": 0,
+    "live_leases": 0,
+    "ready": 0,
+    "inflight": 0
+  },
+  "installations": [
+    {
+      "layers": 16,
+      "weight_shape": [
+        2048,
+        8192
+      ],
+      "live_M": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        12,
+        16
+      ],
+      "gemm_M": 32,
+      "accumulation": "fp32",
+      "weights_changed": false,
+      "model_rows_changed": false
+    }
+  ],
+  "projection_checks": [
+    {
+      "sample": 1,
+      "projection": "draft_model.model.layers.0.mlp.down_proj",
+      "live_M": 4,
+      "gemm_M": 32,
+      "output_shape": [
+        4,
+        2048
+      ],
+      "weight_shape": [
+        2048,
+        8192
+      ],
+      "accumulation": "fp32",
+      "comparison": "unchanged native projection, same actual input/weight",
+      "byte_exact": false,
+      "max_abs": 0.000244140625,
+      "rms": 5.643273198074894e-06,
+      "rel_l2": 0.0001953371426020428,
+      "projected_argmax_equal_rows": 4,
+      "note": "Projection argmax is not a generated token; diagnostic extra GEMM excluded from performance."
+    },
+    {
+      "sample": 2,
+      "projection": "draft_model.model.layers.1.mlp.down_proj",
+      "live_M": 4,
+      "gemm_M": 32,
+      "output_shape": [
+        4,
+        2048
+      ],
+      "weight_shape": [
+        2048,
+        8192
+      ],
+      "accumulation": "fp32",
+      "comparison": "unchanged native projection, same actual input/weight",
+      "byte_exact": false,
+      "max_abs": 0.00048828125,
+      "rms": 1.370570134895388e-05,
+      "rel_l2": 0.00034545002571773287,
+      "projected_argmax_equal_rows": 4,
+      "note": "Projection argmax is not a generated token; diagnostic extra GEMM excluded from performance."
+    },
+    {
+      "sample": 3,
+      "projection": "draft_model.model.layers.2.mlp.down_proj",
+      "live_M": 4,
+      "gemm_M": 32,
+      "output_shape": [
+        4,
+        2048
+      ],
+      "weight_shape": [
+        2048,
+        8192
+      ],
+      "accumulation": "fp32",
+      "comparison": "unchanged native projection, same actual input/weight",
+      "byte_exact": false,
+      "max_abs": 0.000244140625,
+      "rms": 8.357272236025892e-06,
+      "rel_l2": 0.0001870693381698208,
+      "projected_argmax_equal_rows": 4,
+      "note": "Projection argmax is not a generated token; diagnostic extra GEMM excluded from performance."
+    },
+    {
+      "sample": 4,
+      "projection": "draft_model.model.layers.3.mlp.down_proj",
+      "live_M": 4,
+      "gemm_M": 32,
+      "output_shape": [
+        4,
+        2048
+      ],
+      "weight_shape": [
+        2048,
+        8192
+      ],
+      "accumulation": "fp32",
+      "comparison": "unchanged native projection, same actual input/weight",
+      "byte_exact": false,
+      "max_abs": 0.000244140625,
+      "rms": 7.325828391913092e-06,
+      "rel_l2": 0.00013526747211833475,
+      "projected_argmax_equal_rows": 4,
+      "note": "Projection argmax is not a generated token; diagnostic extra GEMM excluded from performance."
+    }
+  ]
+}

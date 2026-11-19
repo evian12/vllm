@@ -1,0 +1,47 @@
+{
+  "model": "llama",
+  "warmup_requests": 64,
+  "measured_requests": 16,
+  "target_scope": [
+    {
+      "model": "LlamaForCausalLM",
+      "layers": 32,
+      "fa_version": 2,
+      "llama_opt_in": true,
+      "dtype": "torch.bfloat16"
+    }
+  ],
+  "draft_graph_checks": 703,
+  "target_graph_checks": 193,
+  "cap": 8,
+  "completed": 16,
+  "ready": 1223,
+  "verified": 1223,
+  "K_values": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8
+  ],
+  "reasons": [
+    "low_confidence",
+    "max_k"
+  ],
+  "carry_byte_checks": 210,
+  "cross_target_checks": 210,
+  "cleanup": {
+    "event": "p2_reset",
+    "window": 126,
+    "target_epoch": 655,
+    "released_blocks": 0,
+    "live_leases": 0,
+    "ready": 0,
+    "inflight": 0
+  },
+  "ragged_sequence_floor": 1024,
+  "dynamic_floor_checks": 365
+}

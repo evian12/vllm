@@ -1,0 +1,380 @@
+{
+  "total_uncovered_us": 324954.96826171875,
+  "groups": {
+    "same_cpu_scope_target_input_prepare_inputs": {
+      "count": 131,
+      "sum_us": 7369.46142578125,
+      "median_us": 34.01611328125,
+      "max_us": 274.8173828125
+    },
+    "between_scopes_or_unattributed": {
+      "count": 463,
+      "sum_us": 137736.0634765625,
+      "median_us": 68.60791015625,
+      "max_us": 4493.38623046875
+    },
+    "same_cpu_scope_target_input_calc_spec_decode_metadata": {
+      "count": 232,
+      "sum_us": 6874.67529296875,
+      "median_us": 26.52783203125,
+      "max_us": 102.27197265625
+    },
+    "same_cpu_scope_target_forward": {
+      "count": 5124,
+      "sum_us": 96438.44287109375,
+      "median_us": 0.67333984375,
+      "max_us": 1037.6337890625
+    },
+    "same_cpu_scope_target_sampling": {
+      "count": 418,
+      "sum_us": 733.69873046875,
+      "median_us": 0.671875,
+      "max_us": 122.529296875
+    },
+    "same_cpu_scope_draft_forward": {
+      "count": 1310,
+      "sum_us": 69995.14892578125,
+      "median_us": 39.151611328125,
+      "max_us": 598.56103515625
+    },
+    "same_graph_launch": {
+      "count": 9220,
+      "sum_us": 503.7353515625,
+      "median_us": 0.06396484375,
+      "max_us": 0.416015625
+    },
+    "same_cpu_scope_draft_step_with_sampling": {
+      "count": 592,
+      "sum_us": 3509.458984375,
+      "median_us": 0.64013671875,
+      "max_us": 2572.9345703125
+    },
+    "same_cpu_scope_clear_slots": {
+      "count": 66,
+      "sum_us": 1794.283203125,
+      "median_us": 25.599853515625,
+      "max_us": 96.7998046875
+    }
+  },
+  "transitions": {
+    "target_forward -> target_forward": {
+      "count": 8629,
+      "sum_us": 96631.080078125,
+      "median_us": 0.60791015625,
+      "max_us": 1037.6337890625
+    },
+    "draft_forward -> draft_forward": {
+      "count": 7025,
+      "sum_us": 70306.2470703125,
+      "median_us": 0.06396484375,
+      "max_us": 598.56103515625
+    },
+    "draft_step_with_sampling -> target_input_prepare_inputs": {
+      "count": 29,
+      "sum_us": 47489.44482421875,
+      "median_us": 1539.20263671875,
+      "max_us": 2880.0712890625
+    },
+    "target_sampling -> draft_metadata_pack": {
+      "count": 32,
+      "sum_us": 27993.7255859375,
+      "median_us": 807.106201171875,
+      "max_us": 1858.69189453125
+    },
+    "target_input_build_attention_metadata -> target_forward": {
+      "count": 29,
+      "sum_us": 16505.02783203125,
+      "median_us": 531.873046875,
+      "max_us": 1351.458984375
+    },
+    "draft_step_with_sampling -> draft_metadata_pack": {
+      "count": 5,
+      "sum_us": 14761.6953125,
+      "median_us": 3256.93505859375,
+      "max_us": 4493.38623046875
+    },
+    "draft_metadata_pack -> draft_forward": {
+      "count": 37,
+      "sum_us": 9535.41357421875,
+      "median_us": 224.671875,
+      "max_us": 517.9853515625
+    },
+    "target_input_prepare_inputs -> target_input_prepare_inputs": {
+      "count": 131,
+      "sum_us": 7369.46142578125,
+      "median_us": 34.01611328125,
+      "max_us": 274.8173828125
+    },
+    "target_input_calc_spec_decode_metadata -> target_input_calc_spec_decode_metadata": {
+      "count": 232,
+      "sum_us": 6874.67529296875,
+      "median_us": 26.52783203125,
+      "max_us": 102.27197265625
+    },
+    "target_input_prepare_inputs -> target_input_build_attention_metadata": {
+      "count": 29,
+      "sum_us": 5451.8525390625,
+      "median_us": 180.51171875,
+      "max_us": 327.0732421875
+    },
+    "target_input_prepare_inputs -> target_input_calc_spec_decode_metadata": {
+      "count": 29,
+      "sum_us": 3649.64013671875,
+      "median_us": 124.4482421875,
+      "max_us": 165.12158203125
+    },
+    "draft_step_with_sampling -> draft_step_with_sampling": {
+      "count": 592,
+      "sum_us": 3509.458984375,
+      "median_us": 0.64013671875,
+      "max_us": 2572.9345703125
+    },
+    "clear_slots -> target_input_prepare_inputs": {
+      "count": 2,
+      "sum_us": 3415.0146484375,
+      "median_us": 1707.50732421875,
+      "max_us": 1938.755859375
+    },
+    "target_input_calc_spec_decode_metadata -> target_input_prepare_inputs": {
+      "count": 29,
+      "sum_us": 2237.861328125,
+      "median_us": 73.439453125,
+      "max_us": 97.087890625
+    },
+    "target_input_prepare_inputs -> target_forward": {
+      "count": 3,
+      "sum_us": 2098.91650390625,
+      "median_us": 682.7861328125,
+      "max_us": 800.67333984375
+    },
+    "clear_slots -> clear_slots": {
+      "count": 66,
+      "sum_us": 1794.283203125,
+      "median_us": 25.599853515625,
+      "max_us": 96.7998046875
+    },
+    "target_input_prepare_input_ids -> target_input_prepare_inputs": {
+      "count": 32,
+      "sum_us": 1772.0693359375,
+      "median_us": 52.4638671875,
+      "max_us": 76.83203125
+    },
+    "target_input_prepare_inputs -> target_input_prepare_input_ids": {
+      "count": 32,
+      "sum_us": 1727.53173828125,
+      "median_us": 54.1279296875,
+      "max_us": 66.751953125
+    },
+    "target_sampling -> target_sampling": {
+      "count": 418,
+      "sum_us": 733.69873046875,
+      "median_us": 0.671875,
+      "max_us": 122.529296875
+    },
+    "draft_forward -> draft_logits": {
+      "count": 37,
+      "sum_us": 524.06787109375,
+      "median_us": 0.83203125,
+      "max_us": 86.49609375
+    },
+    "draft_step_with_sampling -> clear_slots": {
+      "count": 2,
+      "sum_us": 297.08984375,
+      "median_us": 148.544921875,
+      "max_us": 148.76904296875
+    },
+    "unknown -> target_logits": {
+      "count": 32,
+      "sum_us": 197.248046875,
+      "median_us": 0.767822265625,
+      "max_us": 174.11279296875
+    },
+    "draft_logits -> draft_step_with_sampling": {
+      "count": 37,
+      "sum_us": 28.06689453125,
+      "median_us": 0.76806640625,
+      "max_us": 0.92822265625
+    },
+    "target_forward -> unknown": {
+      "count": 32,
+      "sum_us": 25.57080078125,
+      "median_us": 0.76806640625,
+      "max_us": 2.52880859375
+    },
+    "target_logits -> target_sampling": {
+      "count": 32,
+      "sum_us": 23.39404296875,
+      "median_us": 0.751708984375,
+      "max_us": 0.89599609375
+    },
+    "unknown -> unknown": {
+      "count": 3,
+      "sum_us": 2.4326171875,
+      "median_us": 0.8642578125,
+      "max_us": 0.896484375
+    }
+  },
+  "largest_intervals": [
+    {
+      "us": 4493.38623046875,
+      "classification": "between_scopes_or_unattributed",
+      "previous": "draft_step_with_sampling",
+      "next": "draft_metadata_pack",
+      "previous_api": "cudaMemcpyAsync",
+      "next_api": "cudaMemcpyAsync"
+    },
+    {
+      "us": 3675.080078125,
+      "classification": "between_scopes_or_unattributed",
+      "previous": "draft_step_with_sampling",
+      "next": "draft_metadata_pack",
+      "previous_api": "cudaMemcpyAsync",
+      "next_api": "cudaMemcpyAsync"
+    },
+    {
+      "us": 3256.93505859375,
+      "classification": "between_scopes_or_unattributed",
+      "previous": "draft_step_with_sampling",
+      "next": "draft_metadata_pack",
+      "previous_api": "cudaMemcpyAsync",
+      "next_api": "cudaMemcpyAsync"
+    },
+    {
+      "us": 2880.0712890625,
+      "classification": "between_scopes_or_unattributed",
+      "previous": "draft_step_with_sampling",
+      "next": "target_input_prepare_inputs",
+      "previous_api": "cudaMemcpyAsync",
+      "next_api": "cudaMemcpyAsync"
+    },
+    {
+      "us": 2688.7734375,
+      "classification": "between_scopes_or_unattributed",
+      "previous": "draft_step_with_sampling",
+      "next": "target_input_prepare_inputs",
+      "previous_api": "cudaMemcpyAsync",
+      "next_api": "cudaMemcpyAsync"
+    },
+    {
+      "us": 2572.9345703125,
+      "classification": "same_cpu_scope_draft_step_with_sampling",
+      "previous": "draft_step_with_sampling",
+      "next": "draft_step_with_sampling",
+      "previous_api": "cudaLaunchKernel",
+      "next_api": "cudaLaunchKernel"
+    },
+    {
+      "us": 2502.94970703125,
+      "classification": "between_scopes_or_unattributed",
+      "previous": "draft_step_with_sampling",
+      "next": "target_input_prepare_inputs",
+      "previous_api": "cudaMemcpyAsync",
+      "next_api": "cudaMemcpyAsync"
+    },
+    {
+      "us": 2433.44482421875,
+      "classification": "between_scopes_or_unattributed",
+      "previous": "draft_step_with_sampling",
+      "next": "target_input_prepare_inputs",
+      "previous_api": "cudaMemcpyAsync",
+      "next_api": "cudaMemcpyAsync"
+    },
+    {
+      "us": 2276.740234375,
+      "classification": "between_scopes_or_unattributed",
+      "previous": "draft_step_with_sampling",
+      "next": "draft_metadata_pack",
+      "previous_api": "cudaMemcpyAsync",
+      "next_api": "cudaMemcpyAsync"
+    },
+    {
+      "us": 2018.81982421875,
+      "classification": "between_scopes_or_unattributed",
+      "previous": "draft_step_with_sampling",
+      "next": "target_input_prepare_inputs",
+      "previous_api": "cudaMemcpyAsync",
+      "next_api": "cudaMemcpyAsync"
+    },
+    {
+      "us": 2005.79736328125,
+      "classification": "between_scopes_or_unattributed",
+      "previous": "draft_step_with_sampling",
+      "next": "target_input_prepare_inputs",
+      "previous_api": "cudaMemcpyAsync",
+      "next_api": "cudaMemcpyAsync"
+    },
+    {
+      "us": 1964.51611328125,
+      "classification": "between_scopes_or_unattributed",
+      "previous": "draft_step_with_sampling",
+      "next": "target_input_prepare_inputs",
+      "previous_api": "cudaMemcpyAsync",
+      "next_api": "cudaMemcpyAsync"
+    },
+    {
+      "us": 1938.755859375,
+      "classification": "between_scopes_or_unattributed",
+      "previous": "clear_slots",
+      "next": "target_input_prepare_inputs",
+      "previous_api": "cudaLaunchKernel",
+      "next_api": "cudaMemcpyAsync"
+    },
+    {
+      "us": 1858.69189453125,
+      "classification": "between_scopes_or_unattributed",
+      "previous": "target_sampling",
+      "next": "draft_metadata_pack",
+      "previous_api": "cudaMemcpyAsync",
+      "next_api": "cudaMemcpyAsync"
+    },
+    {
+      "us": 1719.3310546875,
+      "classification": "between_scopes_or_unattributed",
+      "previous": "draft_step_with_sampling",
+      "next": "target_input_prepare_inputs",
+      "previous_api": "cudaMemcpyAsync",
+      "next_api": "cudaMemcpyAsync"
+    },
+    {
+      "us": 1678.2119140625,
+      "classification": "between_scopes_or_unattributed",
+      "previous": "draft_step_with_sampling",
+      "next": "target_input_prepare_inputs",
+      "previous_api": "cudaMemcpyAsync",
+      "next_api": "cudaMemcpyAsync"
+    },
+    {
+      "us": 1610.0830078125,
+      "classification": "between_scopes_or_unattributed",
+      "previous": "draft_step_with_sampling",
+      "next": "target_input_prepare_inputs",
+      "previous_api": "cudaMemcpyAsync",
+      "next_api": "cudaMemcpyAsync"
+    },
+    {
+      "us": 1604.89990234375,
+      "classification": "between_scopes_or_unattributed",
+      "previous": "draft_step_with_sampling",
+      "next": "target_input_prepare_inputs",
+      "previous_api": "cudaMemcpyAsync",
+      "next_api": "cudaMemcpyAsync"
+    },
+    {
+      "us": 1601.123046875,
+      "classification": "between_scopes_or_unattributed",
+      "previous": "draft_step_with_sampling",
+      "next": "target_input_prepare_inputs",
+      "previous_api": "cudaMemcpyAsync",
+      "next_api": "cudaMemcpyAsync"
+    },
+    {
+      "us": 1592.9638671875,
+      "classification": "between_scopes_or_unattributed",
+      "previous": "target_sampling",
+      "next": "draft_metadata_pack",
+      "previous_api": "cudaMemcpyAsync",
+      "next_api": "cudaMemcpyAsync"
+    }
+  ],
+  "note": "Observed trace union gaps only. Profiler overhead or incomplete GPU coverage may contribute; these are not proven hardware idle or wholly removable overhead. CPU scopes are launch owners, not causal explanations."
+}

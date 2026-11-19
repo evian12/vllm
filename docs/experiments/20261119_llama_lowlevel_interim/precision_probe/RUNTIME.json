@@ -1,0 +1,8 @@
+{
+  "torch": "2.9.1+cu129",
+  "cuda": "12.9",
+  "device": "NVIDIA GeForce RTX 4090",
+  "dtype": "torch.bfloat16",
+  "script_sha256": "4704aafed462b4131ecc760bf5e8e06933d1e5444ec64acaedcd46da2ef11202",
+  "preferred_blas": "_BlasBackend.Cublas"
+}
