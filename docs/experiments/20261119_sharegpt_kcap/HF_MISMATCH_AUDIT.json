@@ -1,0 +1,150 @@
+{
+  "reference": "/home/yypan/CDB-AV/results/request_avg_sharegpt_gpu3_20261119/gate_reference_retry1",
+  "results": {
+    "4": {
+      "counts": {
+        "verified": 283,
+        "draft_candidates": 708,
+        "accepted": 434,
+        "unaccepted_candidates": 274,
+        "tokens_after_first_rejection": 104,
+        "exact_reference_context": 43,
+        "reference_agrees_on_generated_span": 40,
+        "low_confidence_stops": 179,
+        "rounds_continued_past_first_rejection": 55,
+        "nonterminal_rounds_continued_past_first_rejection": 49,
+        "K_ge2_first_candidate_rejected": 31,
+        "no_exact_reference_context": 240,
+        "low_confidence_stops_all_generated_candidates_accepted": 62,
+        "low_confidence_stops_with_longer_accepted_fixed8_reference": 6,
+        "additional_output_opportunity_in_aligned_reference": 22,
+        "additional_output_opportunity_bounded_by_current_cap": 11,
+        "reference_acceptance_within_HF_span_differs": 2,
+        "reference_draft_prefix_differs": 1
+      },
+      "examples": {
+        "continued_past_first_rejection": {
+          "trace_key": "measurement:AUgvPni_0",
+          "fingerprint": "0b6823900bcf8db65b021f883babffc8",
+          "context_tokens": 55,
+          "remaining_output_tokens": 63,
+          "actual_K": 4,
+          "accepted": 0,
+          "stop_reason": "max_k",
+          "confidence": 1.0
+        },
+        "high_confidence_first_rejection": {
+          "trace_key": "measurement:AUgvPni_0",
+          "fingerprint": "0b6823900bcf8db65b021f883babffc8",
+          "context_tokens": 55,
+          "remaining_output_tokens": 63,
+          "actual_K": 4,
+          "accepted": 0,
+          "stop_reason": "max_k",
+          "confidence": 1.0
+        },
+        "low_confidence_all_accepted": {
+          "trace_key": "measurement:9h7mgwL_0",
+          "fingerprint": "bff250bbb55ce167fbc41b84b6ceff2f",
+          "context_tokens": 66,
+          "remaining_output_tokens": 56,
+          "actual_K": 1,
+          "accepted": 1,
+          "stop_reason": "low_confidence",
+          "confidence": 0.6229996085166931
+        },
+        "longer_aligned_reference": {
+          "trace_key": "measurement:2mWmf2Y_0",
+          "fingerprint": "8aa4361feaac927365bfcfd20f7294a5",
+          "context_tokens": 48,
+          "remaining_output_tokens": 49,
+          "actual_K": 2,
+          "accepted": 2,
+          "stop_reason": "low_confidence",
+          "confidence": 0.7198019623756409,
+          "reference_accepted": 8,
+          "additional_output": 6,
+          "current_cap_additional_output": 2
+        }
+      }
+    },
+    "8": {
+      "counts": {
+        "verified": 232,
+        "draft_candidates": 726,
+        "accepted": 421,
+        "unaccepted_candidates": 305,
+        "tokens_after_first_rejection": 150,
+        "low_confidence_stops": 208,
+        "exact_reference_context": 34,
+        "reference_agrees_on_generated_span": 30,
+        "rounds_continued_past_first_rejection": 56,
+        "nonterminal_rounds_continued_past_first_rejection": 48,
+        "K_ge2_first_candidate_rejected": 21,
+        "no_exact_reference_context": 198,
+        "low_confidence_stops_all_generated_candidates_accepted": 70,
+        "low_confidence_stops_with_longer_accepted_fixed8_reference": 5,
+        "additional_output_opportunity_in_aligned_reference": 12,
+        "additional_output_opportunity_bounded_by_current_cap": 12,
+        "reference_draft_prefix_differs": 2,
+        "reference_acceptance_within_HF_span_differs": 2,
+        "longer_reference_but_output_budget_already_satisfied": 1
+      },
+      "examples": {
+        "continued_past_first_rejection": {
+          "trace_key": "measurement:AUgvPni_0",
+          "fingerprint": "0b6823900bcf8db65b021f883babffc8",
+          "context_tokens": 55,
+          "remaining_output_tokens": 63,
+          "actual_K": 8,
+          "accepted": 0,
+          "stop_reason": "max_k",
+          "confidence": 0.9996224045753479
+        },
+        "high_confidence_first_rejection": {
+          "trace_key": "measurement:AUgvPni_0",
+          "fingerprint": "0b6823900bcf8db65b021f883babffc8",
+          "context_tokens": 55,
+          "remaining_output_tokens": 63,
+          "actual_K": 8,
+          "accepted": 0,
+          "stop_reason": "max_k",
+          "confidence": 0.9996224045753479
+        },
+        "low_confidence_all_accepted": {
+          "trace_key": "measurement:Lwml2xJ_0",
+          "fingerprint": "5409616374594b970c7411a0ee359795",
+          "context_tokens": 26,
+          "remaining_output_tokens": 15,
+          "actual_K": 4,
+          "accepted": 4,
+          "stop_reason": "low_confidence",
+          "confidence": 0.615393877029419
+        },
+        "longer_aligned_reference": {
+          "trace_key": "measurement:Lwml2xJ_0",
+          "fingerprint": "5409616374594b970c7411a0ee359795",
+          "context_tokens": 26,
+          "remaining_output_tokens": 15,
+          "actual_K": 4,
+          "accepted": 4,
+          "stop_reason": "low_confidence",
+          "confidence": 0.615393877029419,
+          "reference_accepted": 5,
+          "additional_output": 1,
+          "current_cap_additional_output": 1
+        }
+      }
+    }
+  },
+  "notes": [
+    "Sixteen short GPU functional requests per cap, not the complete 512-request workload; no population-wide misclassification rate or TPS attribution is inferred.",
+    "HF ready tokens are joined to actual Target verification using request ID and exact context fingerprint, with token identity assertions.",
+    "K>=2 and first-candidate rejection proves HF continued after a high-confidence incorrect candidate: prior tokens had to pass the threshold to continue.",
+    "All generated candidates accepted after low-confidence stop is only a possible early-stop signal. Without a longer reference its ungenerated suffix is unknown.",
+    "Longer-reference evidence additionally requires the same trace key, complete official-context fingerprint/length, prompt/output budget, identical generated Draft prefix and agreement on acceptance within the HF span. Terminal output clipping is excluded.",
+    "The fixed8 reference is a separate execution with different batch/query shapes. Aligned observations are conditional evidence, not proof of identical counterfactual execution or an end-to-end speedup.",
+    "The current-cap opportunity clamps the reference accepted depth to the HF service cap, separating HF early stops from the maximum-K limit.",
+    "Counts of extra request token rows do not equal saved GPU Forward calls because other active requests may still require those steps."
+  ]
+}

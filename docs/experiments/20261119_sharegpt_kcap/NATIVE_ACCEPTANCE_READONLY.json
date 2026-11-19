@@ -1,0 +1,176 @@
+{
+  "source": "/home/yypan/CDB-AV/baseline-comparison-20261113/baseline_experiments/results/closed_loop",
+  "repetitions": 3,
+  "formal_requests_per_arm": 512,
+  "client_concurrency": 16,
+  "results": {
+    "qwen_K1": {
+      "verifications": 170144.0,
+      "candidates": 170144.0,
+      "accepted": 132016.0,
+      "positions": {
+        "1": 132016.0
+      },
+      "tps": [
+        272.56520419820066,
+        276.40240101629587,
+        275.9359383246279
+      ],
+      "candidate_acceptance_rate": 0.7759074666165131,
+      "mean_accepted_draft_depth": 0.7759074666165131,
+      "unconditional_position_rates": {
+        "1": 0.7759074666165131
+      },
+      "conditional_position_rates": {
+        "1": 0.7759074666165131
+      },
+      "mean_tps": 274.9678478463748,
+      "sample_sd_tps": 2.093781085921644
+    },
+    "qwen_K2": {
+      "verifications": 127215.0,
+      "candidates": 254430.0,
+      "accepted": 175483.0,
+      "positions": {
+        "1": 98252.0,
+        "2": 77231.0
+      },
+      "tps": [
+        201.28490265661716,
+        199.0399864136732,
+        203.815933224243
+      ],
+      "candidate_acceptance_rate": 0.6897103329009944,
+      "mean_accepted_draft_depth": 1.3794206658019887,
+      "unconditional_position_rates": {
+        "1": 0.7723303069606572,
+        "2": 0.6070903588413316
+      },
+      "conditional_position_rates": {
+        "1": 0.7723303069606572,
+        "2": 0.7860501567398119
+      },
+      "mean_tps": 201.38027409817778,
+      "sample_sd_tps": 2.3894013409737083
+    },
+    "qwen_K4": {
+      "verifications": 94781.0,
+      "candidates": 379124.0,
+      "accepted": 209085.0,
+      "positions": {
+        "1": 72550.0,
+        "2": 56612.0,
+        "3": 44345.0,
+        "4": 35578.0
+      },
+      "tps": [
+        153.92366104659416,
+        155.35445555888,
+        154.52869586015746
+      ],
+      "candidate_acceptance_rate": 0.5514950253742839,
+      "mean_accepted_draft_depth": 2.2059801014971354,
+      "unconditional_position_rates": {
+        "1": 0.7654487713782299,
+        "2": 0.5972927063440985,
+        "3": 0.46786803262257204,
+        "4": 0.37537059115223514
+      },
+      "conditional_position_rates": {
+        "1": 0.7654487713782299,
+        "2": 0.7803170227429359,
+        "3": 0.7833144916272169,
+        "4": 0.8023001465779682
+      },
+      "mean_tps": 154.6022708218772,
+      "sample_sd_tps": 0.7182292046003615
+    },
+    "llama_K1": {
+      "verifications": 166927.0,
+      "candidates": 166927.0,
+      "accepted": 135216.0,
+      "positions": {
+        "1": 135216.0
+      },
+      "tps": [
+        316.4227559125484,
+        317.5130979107657,
+        316.6854529247496
+      ],
+      "candidate_acceptance_rate": 0.8100307319966212,
+      "mean_accepted_draft_depth": 0.8100307319966212,
+      "unconditional_position_rates": {
+        "1": 0.8100307319966212
+      },
+      "conditional_position_rates": {
+        "1": 0.8100307319966212
+      },
+      "mean_tps": 316.8737689160212,
+      "sample_sd_tps": 0.5690418285992539
+    },
+    "llama_K2": {
+      "verifications": 122854.0,
+      "candidates": 245708.0,
+      "accepted": 179930.0,
+      "positions": {
+        "1": 98883.0,
+        "2": 81047.0
+      },
+      "tps": [
+        343.0177450054773,
+        340.93844857724054,
+        334.6207723944676
+      ],
+      "candidate_acceptance_rate": 0.7322919888648314,
+      "mean_accepted_draft_depth": 1.4645839777296628,
+      "unconditional_position_rates": {
+        "1": 0.8048822179172025,
+        "2": 0.6597017598124603
+      },
+      "conditional_position_rates": {
+        "1": 0.8048822179172025,
+        "2": 0.8196252136363177
+      },
+      "mean_tps": 339.5256553257285,
+      "sample_sd_tps": 4.373131124966435
+    },
+    "llama_K4": {
+      "verifications": 88887.0,
+      "candidates": 355548.0,
+      "accepted": 214967.0,
+      "positions": {
+        "1": 70590.0,
+        "2": 57343.0,
+        "3": 47446.0,
+        "4": 39588.0
+      },
+      "tps": [
+        335.9889505856851,
+        346.90560422790463,
+        340.3252826822335
+      ],
+      "candidate_acceptance_rate": 0.6046075354101275,
+      "mean_accepted_draft_depth": 2.41843014164051,
+      "unconditional_position_rates": {
+        "1": 0.7941543757804853,
+        "2": 0.6451224588522506,
+        "3": 0.5337788428004095,
+        "4": 0.44537446420736443
+      },
+      "conditional_position_rates": {
+        "1": 0.7941543757804853,
+        "2": 0.8123388581952118,
+        "3": 0.8274070069581292,
+        "4": 0.834380137419382
+      },
+      "mean_tps": 341.0732791652744,
+      "sample_sd_tps": 5.496631308358563
+    }
+  },
+  "notes": [
+    "Read-only historical counters; no native tests launched.",
+    "Acceptance is Target verifier sampled Draft depth before terminal API output clipping; excludes bonus/correction.",
+    "Position j unconditional rate means probability acceptance prefix reaches j; conditional denominator is accepted position j-1, or verification count for j1.",
+    "Llama uses different models (8B/1B), tokenizer and physicalGPU3; Qwen8B/1.7B native usedGPU1. Cross-model timing is descriptive, not a controlled acceptance-only attribution."
+  ]
+}

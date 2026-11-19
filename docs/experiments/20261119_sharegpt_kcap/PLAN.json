@@ -1,0 +1,56 @@
+{
+  "source": "/home/yypan/CDB-AV/worktrees/cdb-cpu-hotpath-20261113",
+  "commit": "673c0c422e743aa39689ce6c65ec391047e28292",
+  "gpu": 3,
+  "port": 18084,
+  "H": 8,
+  "HF_threshold": 0.8,
+  "k_caps": [
+    4,
+    8
+  ],
+  "model_target": "/disk14T/yypan/models/Qwen3-8B",
+  "model_draft": "/disk14T/yypan/models/Qwen3-1.7B",
+  "requests": 512,
+  "concurrency": 16,
+  "repetitions": 3,
+  "warmup_requests": 128,
+  "warmup_output_tokens_per_request": 128,
+  "formal_output_tokens": 101003,
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "pairing": {
+    "42": [
+      8,
+      4
+    ],
+    "43": [
+      4,
+      8
+    ],
+    "44": [
+      8,
+      4
+    ]
+  },
+  "max_num_seqs": 4,
+  "max_model_len": 1024,
+  "max_num_batched_tokens": 1024,
+  "dtype": "bfloat16",
+  "attention": "FLASH_ATTN v2",
+  "async_scheduling": false,
+  "enforce_eager": true,
+  "manual_draft_and_target_graphs": true,
+  "production_code_modified": false,
+  "data_sha256": "59e2e785a02b33966d3a5a794896a38be1226420fa75e6280bf576ed96ce6e4d",
+  "client_sha256": "218cb899acb5777f6e46ddb6fdff3070465fcac71275434691d5b12804e03027",
+  "observer_sha256": "f17b1e9255234a1dd8fa5e00550feeb5c16e00c53604360679e6635fd6b187f5",
+  "notes": [
+    "Real server cap4, not client tag or uniform fixed K4. HF remains active for request-specific K1..cap.",
+    "Changing server cap changes Target maximum query domain (5 vs9), so compare end-to-end configurations.",
+    "No native AR/SD reruns; preserved historical native GPU1 reference is not same-physical-card causal control."
+  ]
+}

@@ -1,0 +1,60 @@
+[
+  {
+    "cap": 4,
+    "completed": 16,
+    "ready": 283,
+    "verified": 283,
+    "K_values": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "reasons": [
+      "low_confidence",
+      "max_k"
+    ],
+    "carry_byte_checks": 38,
+    "cross_target_checks": 38,
+    "cleanup": {
+      "event": "p2_reset",
+      "window": 28,
+      "target_epoch": 145,
+      "released_blocks": 0,
+      "live_leases": 0,
+      "ready": 0,
+      "inflight": 0
+    }
+  },
+  {
+    "cap": 8,
+    "completed": 16,
+    "ready": 232,
+    "verified": 232,
+    "K_values": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "reasons": [
+      "low_confidence",
+      "max_k"
+    ],
+    "carry_byte_checks": 49,
+    "cross_target_checks": 49,
+    "cleanup": {
+      "event": "p2_reset",
+      "window": 28,
+      "target_epoch": 147,
+      "released_blocks": 0,
+      "live_leases": 0,
+      "ready": 0,
+      "inflight": 0
+    }
+  }
+]

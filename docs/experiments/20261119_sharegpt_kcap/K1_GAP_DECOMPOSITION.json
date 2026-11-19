@@ -1,0 +1,54 @@
+{
+  "native_K1_seed42": {
+    "tps": 272.56520419820066,
+    "wall_s": 370.56454178411514,
+    "target_calls": 14370,
+    "draft_calls": 14370,
+    "output_per_target_call": 7.028740431454419,
+    "effective_cycle_ms": 25.787372427565423,
+    "verify_requests_per_target": 3.9454418928322896
+  },
+  "CDB_seed42": [
+    {
+      "cap": 4,
+      "tps": 231.771464365521,
+      "wall_s": 435.787038221024,
+      "target_calls": 14100.0,
+      "draft_dispatches": 17138,
+      "target_token_rows": 162707,
+      "draft_token_rows": 149782,
+      "output_per_target_call": 7.163333333333333,
+      "effective_cycle_ms": 30.906882143335036,
+      "verify_requests_per_target": 1.7797872340425531,
+      "accepted_draft_per_target": 3.3112056737588653,
+      "mean_verified_K": 2.60290894600518,
+      "candidate_acceptance": 0.7147581139007961,
+      "pure_AR_calls": 1526,
+      "target_AR_rows": 29270,
+      "ready_wait_ms": 146.10070932937091,
+      "needed_tps_gain_pct": 17.600846568559824,
+      "needed_wall_reduction_pct": 14.966598525546114
+    },
+    {
+      "cap": 8,
+      "tps": 229.05572764926734,
+      "wall_s": 440.9538282956928,
+      "target_calls": 14923.0,
+      "draft_dispatches": 16438,
+      "target_token_rows": 164972,
+      "draft_token_rows": 153192,
+      "output_per_target_call": 6.768277156067815,
+      "effective_cycle_ms": 29.548604723962526,
+      "verify_requests_per_target": 1.2526301681967433,
+      "accepted_draft_per_target": 2.869195202037124,
+      "mean_verified_K": 3.3938907612475258,
+      "candidate_acceptance": 0.6748999085779137,
+      "pure_AR_calls": 3713,
+      "target_AR_rows": 39815,
+      "ready_wait_ms": 188.12418500045098,
+      "needed_tps_gain_pct": 18.995148907848105,
+      "needed_wall_reduction_pct": 15.96296074435628
+    }
+  ],
+  "interpretation": "Effective cycle is whole measured wall time per Target call, including Draft, CPU, wait and prefill; it is not Target GPU Forward latency. Descriptive same seed/load but native GPU1 vs CDB GPU3 and different compiler coverage. Prometheus iteration_tokens_total_sum is output/prompt work, not actual Target input tensor rows; never use it as Forward compute."
+}
