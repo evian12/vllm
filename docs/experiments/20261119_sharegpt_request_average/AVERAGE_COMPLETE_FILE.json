@@ -1,0 +1,30 @@
+{
+  "path": "/disk14T/yypan/CDB-AV-runtime/results/request_avg_sharegpt_gpu3_20261119/REQUEST_AVERAGE_COMPLETE.jsonl",
+  "sha256": "27d862c583f5310e90048b0f157a2415d739972d74f1705b5bd6d3a189f52aab",
+  "summary": {
+    "measured_requests": 512,
+    "observed_requests": 512,
+    "requests_without_verification": [],
+    "original_c16_observed": 437,
+    "coverage_c1_observed": 75,
+    "alias_records": 512,
+    "observations": 10851,
+    "accepted_draft_tokens": 34210,
+    "k_distribution": {
+      "1": 7,
+      "2": 60,
+      "3": 180,
+      "4": 149,
+      "5": 63,
+      "6": 30,
+      "7": 9,
+      "8": 14
+    },
+    "references": [
+      "/disk14T/yypan/CDB-AV-runtime/results/request_avg_sharegpt_gpu3_20261119/reference_full8_seed42",
+      "/disk14T/yypan/CDB-AV-runtime/results/request_avg_sharegpt_gpu3_20261119/reference_missing8_c1_seed42"
+    ],
+    "sha256": "27d862c583f5310e90048b0f157a2415d739972d74f1705b5bd6d3a189f52aab",
+    "definition": "Per-request ceil(mean accepted Draft tokens) clamped [1,8]; bonus/correction excluded. Missing C16 observations are collected separately at C1 with original prompt/output budget and fixed K8. Collection provenance is retained; neither collection is a performance arm or a per-round optimal oracle."
+  }
+}

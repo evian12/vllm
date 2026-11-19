@@ -1,0 +1,21 @@
+{
+  "counts": {
+    "observations": 10851,
+    "acceptance_less_than_mean_K": 6143,
+    "acceptance_equal_mean_K": 1022,
+    "acceptance_greater_than_mean_K": 3686,
+    "zero_acceptance": 2591,
+    "at_cap_8_right_censored": 1918
+  },
+  "fraction": {
+    "acceptance_less_than_mean_K": 0.5661229379780666,
+    "acceptance_equal_mean_K": 0.09418486775412405,
+    "acceptance_greater_than_mean_K": 0.33969219426780944,
+    "zero_acceptance": 0.23877983595981936,
+    "at_cap_8_right_censored": 0.17675790249746567
+  },
+  "request_mean_acceptance": 3.3529226056468864,
+  "chosen_K_request_mean": 3.775390625,
+  "median_within_request_acceptance_sd": 2.6983609326139497,
+  "definition": "Descriptive comparisons on reference observations only, not replay counterfactuals. Native sampled verification acceptance is recorded before final output-budget clipping; API delivered tokens may be fewer in the terminal verification. Acceptance=8 is censored by the collection cap, not evidence that 8 is optimal."
+}

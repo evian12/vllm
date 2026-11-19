@@ -1,0 +1,23 @@
+{
+  "PLAN.json": "5e1128dc1f7003b1a64be479b5b9243511ea53dee0df473618a8e1e55f6ff712",
+  "SOURCE.json": "a57d45b43016f783f50d92779ff7f19089265de9920cb45d2eda3aff1c5c8cbe",
+  "REFERENCE_VARIABILITY.json": "edcbd61687e817a539bb850e3295844527398de9471345073ba4b63fa426ecc3",
+  "AVERAGE_COMPLETE_FILE.json": "19c3c627bd3272d862c2ef50d150f97d2fcfc1ba92bd05177a712dc43d823e95",
+  "SUPPLEMENT_AUDIT.json": "9fca1ef4b440cce56d0ea0d2b4b63a912b0210cb9f5321296e3c02eded202ad0",
+  "REFERENCE_ACCEPTANCE_ANALYSIS.json": "d451625015245885c22f8af3778a6502c857b4b7da2765deaf74895471d603fe",
+  "FUNCTIONAL_ACCEPTED.json": "8ecf7ad00abf9736945f8971c7a392febbc70d36d893915398765f7cffaf1bca",
+  "snapshot/audit_supplement.py": "4c043725fd61ae18cfa8b17cc8bb459e569e4e1381749c198d4b2dcf2a53bec8",
+  "snapshot/controller_complete_v2.py": "59d28c9e3350d0635cce313185263f08cb646612ef8e65651baed36b3e0ce765",
+  "snapshot/benchmark.py": "218cb899acb5777f6e46ddb6fdff3070465fcac71275434691d5b12804e03027",
+  "snapshot/analyze.py": "18bb8272adbb1d8231ec1d116b3de424e52cfa9d0cd3183d65631c621a36864e",
+  "snapshot/build_complete.py": "87f3cc4a8f7316166a4fd735ef8fa5c11b749af9ea115b1adfc9f1bc7e36dbaa",
+  "snapshot/sitecustomize.py": "c64aae11c40c5bc52469c8ae8a62a0a1c6524bbc854d994f0b58b382881877f6",
+  "snapshot/test_build_average.py": "3800a079e02084825565310eeb978f83f5bd79a3aa42d5bcc791a7880565a50d",
+  "snapshot/test_observer.py": "00986d40668a86ea1501262ed6d04a7f76cfc06432337dacdaeee61a6c4187d0",
+  "snapshot/test_complete.py": "92a6afecf29ed5b023be48399655de1520692bbfcd0a2c90ca35d062601f7c91",
+  "snapshot/test_protocol.py": "4e50122bb39c4c613530523db6fc8b4c1d2e8754e2221d10dcc5930814eed4c0",
+  "snapshot/test_supplement_audit.py": "1100dc2c8714178f473364681a2d908b126f4f006c47713e5eaaca040d97b203",
+  "snapshot/manual_observer.py": "f17b1e9255234a1dd8fa5e00550feeb5c16e00c53604360679e6635fd6b187f5",
+  "snapshot/driver.py": "5fbfaac47f4847ff575cf4325b08becf3b0b5c96ce6c1e57096a6c982c6e2abf",
+  "snapshot/build_average.py": "e530190bf1fe8b1b17e3f71b37ef5f3292dd3962b183b44c7657dc720b7f8883"
+}

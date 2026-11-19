@@ -1,0 +1,46 @@
+{
+  "source": "/home/yypan/CDB-AV/worktrees/cdb-request-avg-sharegpt-20261119",
+  "base_commit": "673c0c422e743aa39689ce6c65ec391047e28292",
+  "gpu": 3,
+  "port": 18084,
+  "H": 8,
+  "cap": 8,
+  "HF_threshold_control": 0.8,
+  "reference": "manual fixed8, no HF stop; per-request accepted Draft count excludes bonus/correction",
+  "mean_rule": "ceil(accepted_total/verified_count), clamped1..8; no observations -> explicit fixed_max fallback",
+  "phase_aliases": "warmup uses formal-reference mean for same prompt; warmup never contributes observations",
+  "reference_repetitions": 1,
+  "performance_seeds": [
+    42,
+    43,
+    44
+  ],
+  "performance_order": [
+    [
+      "hf",
+      "average"
+    ],
+    [
+      "average",
+      "hf"
+    ],
+    [
+      "hf",
+      "average"
+    ]
+  ],
+  "requests": 512,
+  "concurrency": 16,
+  "warmup": [
+    128,
+    16,
+    128
+  ],
+  "data_sha256": "59e2e785a02b33966d3a5a794896a38be1226420fa75e6280bf576ed96ce6e4d",
+  "client_sha256": "218cb899acb5777f6e46ddb6fdff3070465fcac71275434691d5b12804e03027",
+  "dependency": "/home/yypan/CDB-AV/results/sharegpt_h_sweep_gpu3_20261119_1016/COMPLETE.json",
+  "native_rerun": false,
+  "interpretation": "offline in-sample historical mean ablation; not online causal or per-context optimal oracle; all experimental services released after each run",
+  "observer_sha256": "f17b1e9255234a1dd8fa5e00550feeb5c16e00c53604360679e6635fd6b187f5",
+  "observer_note": "CDB _forward logical dispatch and input-row counters include Graph replay dispatches; no GPU reads or added synchronization; capture-internal extra executions are not counted. CPU-only scheduled Verify/Prefill/AR/other row counters and Ready-to-schedule wait histogram apply equally to HF and average arms."
+}

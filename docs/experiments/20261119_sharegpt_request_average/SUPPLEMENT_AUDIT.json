@@ -1,0 +1,41 @@
+{
+  "requests": 75,
+  "verified": 1631,
+  "ready": 1631,
+  "K_values": [
+    8
+  ],
+  "release_events": 75,
+  "cleanup": {
+    "outstanding_logged_owners": 0,
+    "unverified_handoffs": 0,
+    "reset": null,
+    "reset_note": "No reset event is inferred when absent; release ledger and final service metrics are checked separately."
+  },
+  "events": {
+    "p2_runtime_config": 1,
+    "target_ready_select": 1781,
+    "p2_target_begin": 1706,
+    "p2_target_commit": 1706,
+    "p2_reuse_plan": 1631,
+    "k_policy_config": 1,
+    "p2_window_begin": 1631,
+    "reuse_pending_prefill": 1631,
+    "p2_ar_target_bypass": 11417,
+    "ready": 1631,
+    "p2_handoff": 1631,
+    "p2_boundary": 1631,
+    "p2_verified": 1631,
+    "reuse_cache_consumed": 1556,
+    "reuse_lease_release": 75
+  },
+  "output_tokens": 5783,
+  "concurrency": 1,
+  "final_service_metrics_zero": true,
+  "service_released": {
+    "port_closed": true,
+    "memory_mib": 15,
+    "our_gpu_pids": [],
+    "time": 1795062285.359073
+  }
+}

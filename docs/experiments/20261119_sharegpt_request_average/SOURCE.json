@@ -1,0 +1,13 @@
+{
+  "source": "/home/yypan/CDB-AV/worktrees/cdb-request-avg-sharegpt-20261119",
+  "commit": "8c94d2ac950c2b4a46ff308a827cb0874a814d37",
+  "branch": "codex/cdb-request-avg-sharegpt-20261119",
+  "remote_head": "8c94d2ac950c2b4a46ff308a827cb0874a814d37",
+  "hashes": {
+    "vllm/v1/spec_decode/cdb_av_config.py": "d50290c5b0ca82c661f7274280fa656a155df1cbdef5f005c45375623c095bff",
+    "vllm/v1/spec_decode/cdb_av_acceptance.py": "83d77408fd0fa68279087e20a6e21d4fdc5bc020a1274702c4f06967430dae06",
+    "vllm/v1/spec_decode/cdb_av_persistent.py": "06918e9f881d737e3ca793132d15e091ae9c467b7e03e0f84b7583391ae20e7a",
+    "vllm/v1/spec_decode/cdb_av_refill.py": "0aaa3020f78eec11881bcccb1e873078d092e99fd67591af32802ad68c06aa5f",
+    "tests/v1/spec_decode/test_cdb_av_history_k_fallback.py": "bd6659f00486fd6823690800224c5f0471065e83db569ce32e77e512eb141782"
+  }
+}

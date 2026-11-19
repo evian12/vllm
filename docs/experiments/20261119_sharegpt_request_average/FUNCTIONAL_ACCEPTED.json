@@ -1,0 +1,48 @@
+[
+  {
+    "mode": "reference",
+    "ready": 144,
+    "verified": 144,
+    "K_values": [
+      8
+    ],
+    "observed_trace_keys": 15,
+    "requested_trace_keys": 16,
+    "carry_byte_checks": 119,
+    "cross_target_checks": 119,
+    "cleanup": {
+      "event": "p2_reset",
+      "window": 44,
+      "target_epoch": 169,
+      "released_blocks": 0,
+      "live_leases": 0,
+      "ready": 0,
+      "inflight": 0
+    }
+  },
+  {
+    "mode": "average",
+    "ready": 211,
+    "verified": 211,
+    "K_values": [
+      2,
+      3,
+      4,
+      5,
+      8
+    ],
+    "observed_trace_keys": 16,
+    "requested_trace_keys": 16,
+    "carry_byte_checks": 65,
+    "cross_target_checks": 65,
+    "cleanup": {
+      "event": "p2_reset",
+      "window": 30,
+      "target_epoch": 156,
+      "released_blocks": 0,
+      "live_leases": 0,
+      "ready": 0,
+      "inflight": 0
+    }
+  }
+]

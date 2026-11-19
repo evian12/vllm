@@ -1,0 +1,41 @@
+{
+  "verified": 9220,
+  "unique_requests": 437,
+  "candidates": 73760,
+  "accepted_draft_tokens": 29919,
+  "accepted_depth": {
+    "7": 288,
+    "0": 2136,
+    "2": 1184,
+    "5": 525,
+    "8": 1733,
+    "6": 403,
+    "4": 673,
+    "3": 829,
+    "1": 1449
+  },
+  "all_phases_ready_K": {
+    "8": 10826
+  },
+  "all_phases_k_sources": {
+    "configured": 10826
+  },
+  "full_events": {
+    "p2_runtime_config": 1,
+    "target_ready_select": 21000,
+    "p2_target_begin": 20998,
+    "p2_target_commit": 2747,
+    "p2_reuse_plan": 10826,
+    "k_policy_config": 1,
+    "p2_window_begin": 2745,
+    "reuse_pending_prefill": 10826,
+    "ready": 10826,
+    "p2_handoff": 10826,
+    "p2_boundary": 2745,
+    "p2_verified": 10826,
+    "reuse_cache_consumed": 10269,
+    "reuse_lease_release": 557,
+    "p2_ar_target_bypass": 964
+  },
+  "note": "Reference collection with detailed trace; not paired performance arm"
+}
