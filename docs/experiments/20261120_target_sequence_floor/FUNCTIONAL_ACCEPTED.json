@@ -1,0 +1,66 @@
+{
+  "model": "llama",
+  "warmup_requests": 64,
+  "measured_requests": 16,
+  "target_scope": [
+    {
+      "model": "LlamaForCausalLM",
+      "layers": 32,
+      "fa_version": 2,
+      "llama_opt_in": true,
+      "dtype": "torch.bfloat16"
+    }
+  ],
+  "draft_graph_checks": 706,
+  "target_graph_checks": 410,
+  "cap": 8,
+  "completed": 16,
+  "ready": 1199,
+  "verified": 1199,
+  "K_values": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8
+  ],
+  "reasons": [
+    "low_confidence",
+    "max_k"
+  ],
+  "carry_byte_checks": 215,
+  "cross_target_checks": 215,
+  "cleanup": {
+    "event": "p2_reset",
+    "window": 129,
+    "target_epoch": 657,
+    "released_blocks": 0,
+    "live_leases": 0,
+    "ready": 0,
+    "inflight": 0
+  },
+  "target_sequence_floor": 1024,
+  "target_floor_checked_forwards": 410,
+  "target_floor_cache_keys": [
+    "[5, 4, 9, 1024, 64, 0, \"bounded\"]",
+    "[14, 4, 9, 1024, 64, 0, \"bounded\"]",
+    "[10, 4, 9, 1024, 64, 0, \"bounded\"]",
+    "[9, 4, 9, 1024, 64, 0, \"bounded\"]",
+    "[11, 4, 9, 1024, 64, 0, \"bounded\"]",
+    "[19, 4, 9, 1024, 64, 0, \"bounded\"]",
+    "[6, 3, 9, 1024, 64, 0, \"bounded\"]",
+    "[5, 3, 9, 1024, 64, 0, \"bounded\"]",
+    "[6, 4, 9, 1024, 64, 0, \"bounded\"]",
+    "[4, 4, 1, 1024, 64, 0, \"bounded\"]",
+    "[13, 4, 9, 1024, 64, 0, \"bounded\"]",
+    "[15, 4, 9, 1024, 64, 0, \"bounded\"]",
+    "[7, 4, 9, 1024, 64, 0, \"bounded\"]",
+    "[18, 4, 9, 1024, 64, 0, \"bounded\"]",
+    "[12, 4, 9, 1024, 64, 0, \"bounded\"]",
+    "[16, 4, 9, 1024, 64, 0, \"bounded\"]",
+    "[8, 4, 9, 1024, 64, 0, \"bounded\"]"
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "decision": "keep_disabled_no_established_throughput_gain",
+  "source_commit": "a22f968f684d79f5d79b974236bb63d53a20953d",
+  "flag": "CDB_AV_DRAFT_META_COPY",
+  "recommended_value": 0,
+  "groups": {
+    "0": {
+      "n": 3,
+      "tps": [
+        275.81474184100693,
+        276.471888388591,
+        275.9889657971261
+      ],
+      "mean_tps": 276.09186534224136,
+      "sd_tps": 0.340443289754864,
+      "mean_run_e2e_p95": 21.700318940589202,
+      "mean_run_ttft_p95": 0.3509735560510307,
+      "verify_events": 68120.0,
+      "candidates": 183619.0,
+      "accepted": 147297.0,
+      "target_iterations": 40435.0,
+      "acceptance_rate": 0.802188226708565,
+      "mean_verified_K": 2.6955226071638285,
+      "verify_events_per_target_iteration": 1.684679114628416,
+      "draft_dispatches": 48585,
+      "mean_draft_request_rows": 3.779335185756921
+    },
+    "1": {
+      "n": 3,
+      "tps": [
+        275.36508650082817,
+        276.3678144830832,
+        276.65532685975467
+      ],
+      "mean_tps": 276.129409281222,
+      "sd_tps": 0.6773535459097738,
+      "mean_run_e2e_p95": 22.013366065640003,
+      "mean_run_ttft_p95": 0.35302995204304655,
+      "verify_events": 68163.0,
+      "candidates": 183592.0,
+      "accepted": 147260.0,
+      "target_iterations": 40437.0,
+      "acceptance_rate": 0.8021046668700161,
+      "mean_verified_K": 2.6934260522570894,
+      "verify_events_per_target_iteration": 1.6856591735291935,
+      "draft_dispatches": 48614,
+      "mean_draft_request_rows": 3.7765252807833134
+    }
+  },
+  "paired_changes_pct": [
+    -0.16302803003835908,
+    -0.037643576030255144,
+    0.2414448203405195
+  ],
+  "ratio_of_means_change_pct": 0.013598350293353434,
+  "mean_paired_change_pct": 0.013591071423968426,
+  "sd_paired_change_pct": 0.20704664570628187,
+  "exact_output_requests": [
+    230,
+    201,
+    218
+  ],
+  "strict_output_equivalence": false,
+  "completed_requests": 3072,
+  "failed": 0,
+  "measured_output_tokens": 606018,
+  "all_own_services_released": true
+}

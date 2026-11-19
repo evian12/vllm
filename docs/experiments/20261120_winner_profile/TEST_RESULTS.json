@@ -1,0 +1,16 @@
+{
+  "instrumentation_cpu": {
+    "passed": 22,
+    "skipped": 0,
+    "elapsed_s": 2.48,
+    "raw_log": "/home/yypan/CDB-AV/results/llama_winner_profile_20261120/CPU_TESTS_RECOVERY.log",
+    "sha256": "e82091d694af88ff8debc878eb9191d769c013b82749c08d8d9abcb472be54aa"
+  },
+  "pinned_input_gpu_reservation": {
+    "passed": 38,
+    "skipped": 0,
+    "elapsed_s": 7.64,
+    "raw_log": "/home/yypan/CDB-AV/results/llama_winner_profile_20261120/GPU_INPUT_TESTS.log",
+    "sha256": "a450d21b0a13d822cc65bb496c99ecb4924256391699df3a0fdab9303da74738"
+  }
+}

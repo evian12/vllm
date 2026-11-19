@@ -1,0 +1,13 @@
+{
+  "evidence": "/home/yypan/CDB-AV/results/llama_winner_profile_20261120/winner_cap8/ACTION_SUMMARY.json",
+  "sha256": "8653c0c5e60cee91d02d7cde867cd286ac608f0d764c49577b190f9908f65a6f",
+  "observed_cache": {
+    "captured": 24,
+    "unique_domains_without_sequence_bound": 10,
+    "key_budget": 24,
+    "actual_sequence_floor": 0,
+    "budget_fallbacks": 35,
+    "budget_fallbacks_with_bound_only_match": 19
+  },
+  "purpose": "Reduce duplicate sequence-bound keys. Existing runtime switch only; no policy/H/K changes."
+}

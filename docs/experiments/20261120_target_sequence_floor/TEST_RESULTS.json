@@ -1,0 +1,22 @@
+{
+  "cpu": {
+    "passed": 186,
+    "skipped": 0,
+    "elapsed_s": 32.44,
+    "raw_log": "/home/yypan/CDB-AV/results/target_seq_floor_20261120/CPU_TESTS.log",
+    "sha256": "0ef8f87581c874774607b21d1c16319f108d78ac651adc146a56d78650842372"
+  },
+  "validation": {
+    "status": "pass",
+    "static_python_files": 1,
+    "static_shell_files": 0,
+    "workflow_tests": 15,
+    "extra_tests": [
+      {
+        "path": "tests/v1/spec_decode/test_cdb_av_target_sequence_floor.py",
+        "tests": 6
+      }
+    ],
+    "staged_paths": []
+  }
+}

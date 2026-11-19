@@ -1,0 +1,1004 @@
+{
+  "groups": {
+    "target_fallback_budget": {
+      "calls": 35,
+      "cpu_inclusive_us": 742069.607,
+      "kernel_count": 11529,
+      "kernel_sum_us": 562505.0760000075,
+      "memory_count": 64,
+      "memory_sum_us": 35.43000000000001,
+      "tokens": {
+        "8": 1,
+        "5": 8,
+        "16": 6,
+        "7": 1,
+        "9": 2,
+        "12": 4,
+        "4": 2,
+        "6": 4,
+        "17": 1,
+        "3": 1,
+        "11": 2,
+        "10": 2,
+        "20": 1
+      }
+    },
+    "target_replay": {
+      "calls": 29,
+      "cpu_inclusive_us": 35948.97200000001,
+      "kernel_count": 9751,
+      "kernel_sum_us": 467038.9730000095,
+      "memory_count": 174,
+      "memory_sum_us": 176.67900000000003,
+      "tokens": {
+        "9": 3,
+        "6": 5,
+        "8": 3,
+        "13": 3,
+        "4": 4,
+        "5": 5,
+        "11": 1,
+        "10": 3,
+        "7": 2
+      }
+    },
+    "draft_graph": {
+      "calls": 72,
+      "cpu_inclusive_us": 64178.41500000001,
+      "kernel_count": 13317,
+      "kernel_sum_us": 244429.94399999807,
+      "memory_count": 335,
+      "memory_sum_us": 316.93099999999913,
+      "tokens": {
+        "6": 12,
+        "4": 18,
+        "3": 8,
+        "5": 12,
+        "7": 5,
+        "9": 2,
+        "8": 7,
+        "2": 2,
+        "10": 3,
+        "11": 3
+      }
+    },
+    "draft_eager": {
+      "calls": 5,
+      "cpu_inclusive_us": 55589.236000000004,
+      "kernel_count": 921,
+      "kernel_sum_us": 17336.716999999997,
+      "memory_count": 15,
+      "memory_sum_us": 14.175000000000004,
+      "tokens": {
+        "30": 1,
+        "14": 1,
+        "27": 1,
+        "10": 1,
+        "16": 1
+      }
+    }
+  },
+  "cpu_scopes": {
+    "CDB::worker_rpc::execute_model": {
+      "calls": 65,
+      "inclusive_sum_us": 1007190.2969999997,
+      "median_inclusive_us": 21647.381,
+      "outside_nested_cdb_ranges_us": 141136.9464140625
+    },
+    "CDB::worker_rpc::sample_tokens": {
+      "calls": 64,
+      "inclusive_sum_us": 544396.0830000001,
+      "median_inclusive_us": 1413.0884999999998,
+      "outside_nested_cdb_ranges_us": 2872.7797773437533
+    },
+    "CDB::worker_rpc::cdb_refill_rpc::p2_step": {
+      "calls": 77,
+      "inclusive_sum_us": 402186.5899999998,
+      "median_inclusive_us": 4647.489,
+      "outside_nested_cdb_ranges_us": 5666.863437500004
+    },
+    "CDB::worker_rpc::cdb_refill_rpc::p2_prepare": {
+      "calls": 62,
+      "inclusive_sum_us": 13199.523000000005,
+      "median_inclusive_us": 185.31900000000002,
+      "outside_nested_cdb_ranges_us": 2794.9360859374997
+    },
+    "CDB::worker_rpc::cdb_refill_rpc::p2_boundary": {
+      "calls": 10,
+      "inclusive_sum_us": 1499.1950000000002,
+      "median_inclusive_us": 139.563,
+      "outside_nested_cdb_ranges_us": 1499.1950000000002
+    },
+    "CDB::worker_rpc::cdb_refill_rpc::p2_open": {
+      "calls": 10,
+      "inclusive_sum_us": 1385.6929999999998,
+      "median_inclusive_us": 130.06799999999998,
+      "outside_nested_cdb_ranges_us": 1385.6929999999998
+    },
+    "CDB::worker_rpc::cdb_refill_rpc::p2_drop": {
+      "calls": 2,
+      "inclusive_sum_us": 406.082,
+      "median_inclusive_us": 203.041,
+      "outside_nested_cdb_ranges_us": 406.082
+    },
+    "CDB::engine_draft_advance": {
+      "calls": 77,
+      "inclusive_sum_us": 465493.94900000014,
+      "median_inclusive_us": 5436.201,
+      "outside_nested_cdb_ranges_us": 12638.138453124997
+    },
+    "CDB::engine_reconcile": {
+      "calls": 240,
+      "inclusive_sum_us": 51338.662,
+      "median_inclusive_us": 197.5695,
+      "outside_nested_cdb_ranges_us": 50932.57996875
+    },
+    "CDB::draft_step_with_sampling": {
+      "calls": 77,
+      "inclusive_sum_us": 396519.7279999999,
+      "median_inclusive_us": 4561.258,
+      "outside_nested_cdb_ranges_us": 249496.5331757813
+    },
+    "CDB::target_storage_audit": {
+      "calls": 64,
+      "inclusive_sum_us": 8785.847999999998,
+      "median_inclusive_us": 125.29599999999999,
+      "outside_nested_cdb_ranges_us": 8785.847999999998
+    },
+    "CDB::draft_metadata_pack": {
+      "calls": 77,
+      "inclusive_sum_us": 23138.71700000001,
+      "median_inclusive_us": 284.271,
+      "outside_nested_cdb_ranges_us": 23138.71700000001
+    }
+  },
+  "dispatches": [
+    {
+      "action": "fallback_budget",
+      "key": [
+        8,
+        3,
+        9,
+        512,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 8
+    },
+    {
+      "action": "replay",
+      "key": [
+        9,
+        4,
+        9,
+        512,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 9
+    },
+    {
+      "action": "replay",
+      "key": [
+        6,
+        4,
+        9,
+        512,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 6
+    },
+    {
+      "action": "replay",
+      "key": [
+        8,
+        4,
+        9,
+        512,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 8
+    },
+    {
+      "action": "replay",
+      "key": [
+        13,
+        4,
+        9,
+        512,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 13
+    },
+    {
+      "action": "replay",
+      "key": [
+        4,
+        4,
+        1,
+        512,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 4
+    },
+    {
+      "action": "replay",
+      "key": [
+        5,
+        4,
+        9,
+        512,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 5
+    },
+    {
+      "action": "replay",
+      "key": [
+        5,
+        4,
+        9,
+        512,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 5
+    },
+    {
+      "action": "fallback_budget",
+      "key": [
+        5,
+        2,
+        9,
+        128,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 5
+    },
+    {
+      "action": "fallback_budget",
+      "key": [
+        16,
+        4,
+        9,
+        128,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 16
+    },
+    {
+      "action": "fallback_budget",
+      "key": [
+        5,
+        4,
+        9,
+        128,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 5
+    },
+    {
+      "action": "fallback_budget",
+      "key": [
+        7,
+        4,
+        9,
+        128,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 7
+    },
+    {
+      "action": "fallback_budget",
+      "key": [
+        9,
+        4,
+        9,
+        128,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 9
+    },
+    {
+      "action": "fallback_budget",
+      "key": [
+        12,
+        4,
+        9,
+        128,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 12
+    },
+    {
+      "action": "fallback_budget",
+      "key": [
+        4,
+        4,
+        1,
+        128,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 4
+    },
+    {
+      "action": "fallback_budget",
+      "key": [
+        6,
+        4,
+        9,
+        128,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 6
+    },
+    {
+      "action": "fallback_budget",
+      "key": [
+        4,
+        3,
+        9,
+        128,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 4
+    },
+    {
+      "action": "replay",
+      "key": [
+        6,
+        4,
+        9,
+        512,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 6
+    },
+    {
+      "action": "fallback_budget",
+      "key": [
+        16,
+        4,
+        9,
+        512,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 16
+    },
+    {
+      "action": "replay",
+      "key": [
+        5,
+        4,
+        9,
+        512,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 5
+    },
+    {
+      "action": "fallback_budget",
+      "key": [
+        16,
+        4,
+        9,
+        512,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 16
+    },
+    {
+      "action": "replay",
+      "key": [
+        4,
+        4,
+        1,
+        512,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 4
+    },
+    {
+      "action": "replay",
+      "key": [
+        11,
+        4,
+        9,
+        512,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 11
+    },
+    {
+      "action": "fallback_budget",
+      "key": [
+        17,
+        4,
+        9,
+        128,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 17
+    },
+    {
+      "action": "replay",
+      "key": [
+        10,
+        4,
+        9,
+        512,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 10
+    },
+    {
+      "action": "replay",
+      "key": [
+        6,
+        4,
+        9,
+        512,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 6
+    },
+    {
+      "action": "replay",
+      "key": [
+        8,
+        4,
+        9,
+        512,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 8
+    },
+    {
+      "action": "replay",
+      "key": [
+        8,
+        4,
+        9,
+        512,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 8
+    },
+    {
+      "action": "fallback_budget",
+      "key": [
+        6,
+        3,
+        9,
+        512,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 6
+    },
+    {
+      "action": "replay",
+      "key": [
+        13,
+        4,
+        9,
+        512,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 13
+    },
+    {
+      "action": "fallback_budget",
+      "key": [
+        16,
+        4,
+        9,
+        512,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 16
+    },
+    {
+      "action": "replay",
+      "key": [
+        6,
+        4,
+        9,
+        512,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 6
+    },
+    {
+      "action": "replay",
+      "key": [
+        5,
+        4,
+        9,
+        512,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 5
+    },
+    {
+      "action": "replay",
+      "key": [
+        4,
+        4,
+        1,
+        512,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 4
+    },
+    {
+      "action": "replay",
+      "key": [
+        9,
+        4,
+        9,
+        512,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 9
+    },
+    {
+      "action": "fallback_budget",
+      "key": [
+        3,
+        2,
+        9,
+        512,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 3
+    },
+    {
+      "action": "fallback_budget",
+      "key": [
+        11,
+        4,
+        9,
+        128,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 11
+    },
+    {
+      "action": "fallback_budget",
+      "key": [
+        10,
+        4,
+        9,
+        128,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 10
+    },
+    {
+      "action": "fallback_budget",
+      "key": [
+        12,
+        4,
+        9,
+        128,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 12
+    },
+    {
+      "action": "fallback_budget",
+      "key": [
+        5,
+        4,
+        9,
+        128,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 5
+    },
+    {
+      "action": "fallback_budget",
+      "key": [
+        5,
+        4,
+        9,
+        128,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 5
+    },
+    {
+      "action": "replay",
+      "key": [
+        5,
+        4,
+        9,
+        256,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 5
+    },
+    {
+      "action": "fallback_budget",
+      "key": [
+        5,
+        3,
+        9,
+        512,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 5
+    },
+    {
+      "action": "fallback_budget",
+      "key": [
+        16,
+        4,
+        9,
+        512,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 16
+    },
+    {
+      "action": "fallback_budget",
+      "key": [
+        10,
+        4,
+        9,
+        128,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 10
+    },
+    {
+      "action": "fallback_budget",
+      "key": [
+        5,
+        4,
+        9,
+        128,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 5
+    },
+    {
+      "action": "fallback_budget",
+      "key": [
+        12,
+        4,
+        9,
+        512,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 12
+    },
+    {
+      "action": "replay",
+      "key": [
+        10,
+        4,
+        9,
+        512,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 10
+    },
+    {
+      "action": "replay",
+      "key": [
+        7,
+        4,
+        9,
+        512,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 7
+    },
+    {
+      "action": "replay",
+      "key": [
+        6,
+        4,
+        9,
+        512,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 6
+    },
+    {
+      "action": "replay",
+      "key": [
+        10,
+        4,
+        9,
+        512,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 10
+    },
+    {
+      "action": "fallback_budget",
+      "key": [
+        11,
+        4,
+        9,
+        128,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 11
+    },
+    {
+      "action": "fallback_budget",
+      "key": [
+        12,
+        4,
+        9,
+        512,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 12
+    },
+    {
+      "action": "replay",
+      "key": [
+        4,
+        4,
+        1,
+        512,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 4
+    },
+    {
+      "action": "fallback_budget",
+      "key": [
+        6,
+        3,
+        9,
+        128,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 6
+    },
+    {
+      "action": "fallback_budget",
+      "key": [
+        16,
+        4,
+        9,
+        128,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 16
+    },
+    {
+      "action": "fallback_budget",
+      "key": [
+        5,
+        4,
+        9,
+        128,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 5
+    },
+    {
+      "action": "fallback_budget",
+      "key": [
+        9,
+        4,
+        9,
+        128,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 9
+    },
+    {
+      "action": "fallback_budget",
+      "key": [
+        6,
+        4,
+        9,
+        128,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 6
+    },
+    {
+      "action": "replay",
+      "key": [
+        9,
+        4,
+        9,
+        512,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 9
+    },
+    {
+      "action": "fallback_budget",
+      "key": [
+        5,
+        2,
+        9,
+        128,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 5
+    },
+    {
+      "action": "fallback_budget",
+      "key": [
+        20,
+        4,
+        9,
+        512,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 20
+    },
+    {
+      "action": "replay",
+      "key": [
+        13,
+        4,
+        9,
+        512,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 13
+    },
+    {
+      "action": "replay",
+      "key": [
+        7,
+        4,
+        9,
+        512,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 7
+    }
+  ],
+  "cache": {
+    "captured": 24,
+    "unique_domains_without_sequence_bound": 10,
+    "key_budget": 24,
+    "actual_sequence_floor": 0,
+    "budget_fallbacks": 35,
+    "budget_fallbacks_with_bound_only_match": 19
+  },
+  "ambiguous_gpu_api_correlations": 0,
+  "notes": [
+    "Diagnostic profiled slice only; no throughput claim.",
+    "Kernel ownership uses unique correlated CPU API inside parent, not GPU start time.",
+    "Outside nested ranges includes framework/profiler/Python work, not proven IPC cost.",
+    "Bound-only match is counterfactual key compatibility, not proof of replay validity or speedup."
+  ]
+}

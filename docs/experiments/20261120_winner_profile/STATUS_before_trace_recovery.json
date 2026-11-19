@@ -1,0 +1,6 @@
+{
+  "state": "failed",
+  "pid": 421713,
+  "time": 1795117373.3991911,
+  "error": "Traceback (most recent call last):\n  File \"/home/yypan/CDB-AV/results/llama_winner_profile_20261120/controller.py\", line 66, in <module>\n    subprocess.run([PY,str(R/'analyze_trace.py'),str(traces[0]),'--output',str(d/'TRACE_SUMMARY.json')],stdout=subprocess.DEVNULL,check=True,timeout=120)\n  File \"/usr/lib/python3.10/subprocess.py\", line 526, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['/home/yypan/CDB-AV/.venv/bin/python', '/disk14T/yypan/CDB-AV-runtime/results/llama_winner_profile_20261120/analyze_trace.py', '/disk14T/yypan/CDB-AV-runtime/results/llama_winner_profile_20261120/winner_cap8/trace/1795117254970001040-rank-0.1795117346418301300.pt.trace.json.gz', '--output', '/disk14T/yypan/CDB-AV-runtime/results/llama_winner_profile_20261120/winner_cap8/TRACE_SUMMARY.json']' returned non-zero exit status 1.\n"
+}

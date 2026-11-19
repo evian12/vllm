@@ -1,0 +1,23 @@
+{
+  "state": "completed",
+  "time": 1795118002.8673894,
+  "gpu_requests_completed": 16,
+  "gpu_requests_failed": 0,
+  "release": {
+    "port_closed": true,
+    "memory_mib": 15,
+    "our_gpu_pids": [],
+    "time": 1795117372.9470286
+  },
+  "executor": {
+    "pid": 428562,
+    "executor": "vllm.v1.executor.uniproc_executor.UniProcExecutor",
+    "backend": "uni",
+    "engine_source": "/home/yypan/CDB-AV/worktrees/cdb-draft-seq-bound-20261119/vllm/v1/engine/core.py",
+    "note": "Actual instance, not inferred from CLI or logical RPC labels."
+  },
+  "recovered_offline_trace_labels": true,
+  "original_failure": "/home/yypan/CDB-AV/results/llama_winner_profile_20261120/STATUS_before_trace_recovery.json",
+  "repair_manifest": "/home/yypan/CDB-AV/results/llama_winner_profile_20261120/winner_cap8/TRACE_REPAIR.json",
+  "no_gpu_rerun_for_recovery": true
+}
