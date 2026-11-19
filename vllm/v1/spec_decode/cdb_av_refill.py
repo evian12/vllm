@@ -179,6 +179,10 @@ class RefillSession:
         self.block_size = self.builder.kv_cache_spec.block_size
         from vllm.v1.spec_decode.cdb_av_inputs import get_input_stager
         self._input_stager = get_input_stager(proposer)
+        self._draft_metadata_copier = None
+        if os.getenv('CDB_AV_DRAFT_META_COPY', '0') != '0':
+            from vllm.v1.spec_decode.cdb_av_draft_meta_copy import get_metadata_copier
+            self._draft_metadata_copier = get_metadata_copier(proposer, self.builder)
         self.policy = os.getenv('CDB_AV_K_POLICY', 'manual').strip().lower()
         self.threshold = float(os.getenv('CDB_AV_HF_THRESHOLD', '0.4'))
         if self.policy not in ('manual', 'hf_confidence', 'replay_acceptance',
@@ -365,17 +369,23 @@ class RefillSession:
         if profile is not None:
             profile.start('metadata')
         dynamic_layout = len(key) == 4
-        if dynamic_layout:
-            # FlashAttention reads GPU query offsets at replay time. The key
-            # fixes request/token counts and the query upper bound; layouts move.
-            static_cad.query_start_loc.copy_(cad.query_start_loc)
-            static_cad.query_start_loc_cpu.copy_(cad.query_start_loc_cpu)
+        copier = getattr(self, '_draft_metadata_copier', None)
+        if copier is not None:
+            copier(cad, static_cad)
+            if dynamic_layout:
+                static_cad.query_start_loc_cpu.copy_(cad.query_start_loc_cpu)
+        else:
+            if dynamic_layout:
+                # FlashAttention reads GPU query offsets at replay time. The key
+                # fixes request/token counts and the query upper bound; layouts move.
+                static_cad.query_start_loc.copy_(cad.query_start_loc)
+                static_cad.query_start_loc_cpu.copy_(cad.query_start_loc_cpu)
 
-        width = cad.block_table_tensor.shape[1]
-        static_cad.block_table_tensor.zero_()
-        static_cad.block_table_tensor[:, :width].copy_(cad.block_table_tensor)
-        static_cad.seq_lens.copy_(cad.seq_lens)
-        static_cad.slot_mapping.copy_(cad.slot_mapping)
+            width = cad.block_table_tensor.shape[1]
+            static_cad.block_table_tensor.zero_()
+            static_cad.block_table_tensor[:, :width].copy_(cad.block_table_tensor)
+            static_cad.seq_lens.copy_(cad.seq_lens)
+            static_cad.slot_mapping.copy_(cad.slot_mapping)
         if profile is not None:
             profile.end('metadata')
 
