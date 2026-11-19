@@ -1,0 +1,1133 @@
+{
+  "rows": [
+    {
+      "scope": "draft_forward",
+      "M": 4,
+      "N": 2048,
+      "K": 2048,
+      "calls": 16,
+      "cpu_inclusive_us": 893.2080000000001
+    },
+    {
+      "scope": "draft_forward",
+      "M": 4,
+      "N": 2048,
+      "K": 8192,
+      "calls": 16,
+      "cpu_inclusive_us": 700.302
+    },
+    {
+      "scope": "draft_forward",
+      "M": 4,
+      "N": 3072,
+      "K": 2048,
+      "calls": 16,
+      "cpu_inclusive_us": 869.476
+    },
+    {
+      "scope": "draft_forward",
+      "M": 4,
+      "N": 16384,
+      "K": 2048,
+      "calls": 16,
+      "cpu_inclusive_us": 747.8040000000001
+    },
+    {
+      "scope": "draft_forward",
+      "M": 5,
+      "N": 2048,
+      "K": 2048,
+      "calls": 16,
+      "cpu_inclusive_us": 850.133
+    },
+    {
+      "scope": "draft_forward",
+      "M": 5,
+      "N": 2048,
+      "K": 8192,
+      "calls": 16,
+      "cpu_inclusive_us": 677.925
+    },
+    {
+      "scope": "draft_forward",
+      "M": 5,
+      "N": 3072,
+      "K": 2048,
+      "calls": 16,
+      "cpu_inclusive_us": 718.057
+    },
+    {
+      "scope": "draft_forward",
+      "M": 5,
+      "N": 16384,
+      "K": 2048,
+      "calls": 16,
+      "cpu_inclusive_us": 757.87
+    },
+    {
+      "scope": "draft_forward",
+      "M": 8,
+      "N": 2048,
+      "K": 2048,
+      "calls": 16,
+      "cpu_inclusive_us": 1294.5929999999998
+    },
+    {
+      "scope": "draft_forward",
+      "M": 8,
+      "N": 2048,
+      "K": 8192,
+      "calls": 16,
+      "cpu_inclusive_us": 1015.4079999999999
+    },
+    {
+      "scope": "draft_forward",
+      "M": 8,
+      "N": 3072,
+      "K": 2048,
+      "calls": 16,
+      "cpu_inclusive_us": 1015.5809999999998
+    },
+    {
+      "scope": "draft_forward",
+      "M": 8,
+      "N": 16384,
+      "K": 2048,
+      "calls": 16,
+      "cpu_inclusive_us": 1018.772
+    },
+    {
+      "scope": "draft_forward",
+      "M": 12,
+      "N": 2048,
+      "K": 2048,
+      "calls": 16,
+      "cpu_inclusive_us": 938.3639999999998
+    },
+    {
+      "scope": "draft_forward",
+      "M": 12,
+      "N": 2048,
+      "K": 8192,
+      "calls": 16,
+      "cpu_inclusive_us": 699.4549999999998
+    },
+    {
+      "scope": "draft_forward",
+      "M": 12,
+      "N": 3072,
+      "K": 2048,
+      "calls": 16,
+      "cpu_inclusive_us": 828.78
+    },
+    {
+      "scope": "draft_forward",
+      "M": 12,
+      "N": 16384,
+      "K": 2048,
+      "calls": 16,
+      "cpu_inclusive_us": 745.1120000000002
+    },
+    {
+      "scope": "draft_forward",
+      "M": 45,
+      "N": 2048,
+      "K": 2048,
+      "calls": 16,
+      "cpu_inclusive_us": 1275.24
+    },
+    {
+      "scope": "draft_forward",
+      "M": 45,
+      "N": 2048,
+      "K": 8192,
+      "calls": 16,
+      "cpu_inclusive_us": 1117.546
+    },
+    {
+      "scope": "draft_forward",
+      "M": 45,
+      "N": 3072,
+      "K": 2048,
+      "calls": 16,
+      "cpu_inclusive_us": 1360.5379999999998
+    },
+    {
+      "scope": "draft_forward",
+      "M": 45,
+      "N": 16384,
+      "K": 2048,
+      "calls": 16,
+      "cpu_inclusive_us": 999.394
+    },
+    {
+      "scope": "draft_forward",
+      "M": 46,
+      "N": 2048,
+      "K": 2048,
+      "calls": 16,
+      "cpu_inclusive_us": 1655.0100000000002
+    },
+    {
+      "scope": "draft_forward",
+      "M": 46,
+      "N": 2048,
+      "K": 8192,
+      "calls": 16,
+      "cpu_inclusive_us": 1446.995
+    },
+    {
+      "scope": "draft_forward",
+      "M": 46,
+      "N": 3072,
+      "K": 2048,
+      "calls": 16,
+      "cpu_inclusive_us": 1812.2130000000002
+    },
+    {
+      "scope": "draft_forward",
+      "M": 46,
+      "N": 16384,
+      "K": 2048,
+      "calls": 16,
+      "cpu_inclusive_us": 1325.569
+    },
+    {
+      "scope": "draft_forward",
+      "M": 49,
+      "N": 2048,
+      "K": 2048,
+      "calls": 16,
+      "cpu_inclusive_us": 1256.3619999999999
+    },
+    {
+      "scope": "draft_forward",
+      "M": 49,
+      "N": 2048,
+      "K": 8192,
+      "calls": 16,
+      "cpu_inclusive_us": 1108.8239999999998
+    },
+    {
+      "scope": "draft_forward",
+      "M": 49,
+      "N": 3072,
+      "K": 2048,
+      "calls": 16,
+      "cpu_inclusive_us": 1296.589
+    },
+    {
+      "scope": "draft_forward",
+      "M": 49,
+      "N": 16384,
+      "K": 2048,
+      "calls": 16,
+      "cpu_inclusive_us": 1023.875
+    },
+    {
+      "scope": "draft_forward",
+      "M": 64,
+      "N": 2048,
+      "K": 2048,
+      "calls": 16,
+      "cpu_inclusive_us": 1245.333
+    },
+    {
+      "scope": "draft_forward",
+      "M": 64,
+      "N": 2048,
+      "K": 8192,
+      "calls": 16,
+      "cpu_inclusive_us": 998.944
+    },
+    {
+      "scope": "draft_forward",
+      "M": 64,
+      "N": 3072,
+      "K": 2048,
+      "calls": 16,
+      "cpu_inclusive_us": 1098.72
+    },
+    {
+      "scope": "draft_forward",
+      "M": 64,
+      "N": 16384,
+      "K": 2048,
+      "calls": 16,
+      "cpu_inclusive_us": 859.7959999999999
+    },
+    {
+      "scope": "draft_forward",
+      "M": 97,
+      "N": 2048,
+      "K": 2048,
+      "calls": 16,
+      "cpu_inclusive_us": 1563.8329999999999
+    },
+    {
+      "scope": "draft_forward",
+      "M": 97,
+      "N": 2048,
+      "K": 8192,
+      "calls": 16,
+      "cpu_inclusive_us": 1545.611
+    },
+    {
+      "scope": "draft_forward",
+      "M": 97,
+      "N": 3072,
+      "K": 2048,
+      "calls": 16,
+      "cpu_inclusive_us": 1188.8670000000002
+    },
+    {
+      "scope": "draft_forward",
+      "M": 97,
+      "N": 16384,
+      "K": 2048,
+      "calls": 16,
+      "cpu_inclusive_us": 1266.742
+    },
+    {
+      "scope": "draft_forward",
+      "M": 105,
+      "N": 2048,
+      "K": 2048,
+      "calls": 16,
+      "cpu_inclusive_us": 1393.471
+    },
+    {
+      "scope": "draft_forward",
+      "M": 105,
+      "N": 2048,
+      "K": 8192,
+      "calls": 16,
+      "cpu_inclusive_us": 1244.1200000000001
+    },
+    {
+      "scope": "draft_forward",
+      "M": 105,
+      "N": 3072,
+      "K": 2048,
+      "calls": 16,
+      "cpu_inclusive_us": 979.2570000000001
+    },
+    {
+      "scope": "draft_forward",
+      "M": 105,
+      "N": 16384,
+      "K": 2048,
+      "calls": 16,
+      "cpu_inclusive_us": 1179.531
+    },
+    {
+      "scope": "draft_forward",
+      "M": 171,
+      "N": 2048,
+      "K": 2048,
+      "calls": 16,
+      "cpu_inclusive_us": 1271.062
+    },
+    {
+      "scope": "draft_forward",
+      "M": 171,
+      "N": 2048,
+      "K": 8192,
+      "calls": 16,
+      "cpu_inclusive_us": 1374.549
+    },
+    {
+      "scope": "draft_forward",
+      "M": 171,
+      "N": 3072,
+      "K": 2048,
+      "calls": 16,
+      "cpu_inclusive_us": 1378.9990000000003
+    },
+    {
+      "scope": "draft_forward",
+      "M": 171,
+      "N": 16384,
+      "K": 2048,
+      "calls": 16,
+      "cpu_inclusive_us": 1176.417
+    },
+    {
+      "scope": "draft_forward",
+      "M": 232,
+      "N": 2048,
+      "K": 2048,
+      "calls": 16,
+      "cpu_inclusive_us": 1242.291
+    },
+    {
+      "scope": "draft_forward",
+      "M": 232,
+      "N": 2048,
+      "K": 8192,
+      "calls": 16,
+      "cpu_inclusive_us": 1156.042
+    },
+    {
+      "scope": "draft_forward",
+      "M": 232,
+      "N": 3072,
+      "K": 2048,
+      "calls": 16,
+      "cpu_inclusive_us": 1295.5979999999997
+    },
+    {
+      "scope": "draft_forward",
+      "M": 232,
+      "N": 16384,
+      "K": 2048,
+      "calls": 16,
+      "cpu_inclusive_us": 1019.662
+    },
+    {
+      "scope": "draft_forward",
+      "M": 453,
+      "N": 2048,
+      "K": 2048,
+      "calls": 16,
+      "cpu_inclusive_us": 1074.381
+    },
+    {
+      "scope": "draft_forward",
+      "M": 453,
+      "N": 2048,
+      "K": 8192,
+      "calls": 16,
+      "cpu_inclusive_us": 1174.9930000000004
+    },
+    {
+      "scope": "draft_forward",
+      "M": 453,
+      "N": 3072,
+      "K": 2048,
+      "calls": 16,
+      "cpu_inclusive_us": 1029.816
+    },
+    {
+      "scope": "draft_forward",
+      "M": 453,
+      "N": 16384,
+      "K": 2048,
+      "calls": 16,
+      "cpu_inclusive_us": 1021.2779999999999
+    },
+    {
+      "scope": "draft_forward",
+      "M": 490,
+      "N": 2048,
+      "K": 2048,
+      "calls": 16,
+      "cpu_inclusive_us": 1122.0000000000002
+    },
+    {
+      "scope": "draft_forward",
+      "M": 490,
+      "N": 2048,
+      "K": 8192,
+      "calls": 16,
+      "cpu_inclusive_us": 1144.3960000000002
+    },
+    {
+      "scope": "draft_forward",
+      "M": 490,
+      "N": 3072,
+      "K": 2048,
+      "calls": 16,
+      "cpu_inclusive_us": 1039.0919999999999
+    },
+    {
+      "scope": "draft_forward",
+      "M": 490,
+      "N": 16384,
+      "K": 2048,
+      "calls": 16,
+      "cpu_inclusive_us": 1047.209
+    },
+    {
+      "scope": "draft_logits",
+      "M": 1,
+      "N": 128256,
+      "K": 2048,
+      "calls": 2,
+      "cpu_inclusive_us": 186.36399999999998
+    },
+    {
+      "scope": "draft_logits",
+      "M": 3,
+      "N": 128256,
+      "K": 2048,
+      "calls": 4,
+      "cpu_inclusive_us": 231.955
+    },
+    {
+      "scope": "draft_logits",
+      "M": 4,
+      "N": 128256,
+      "K": 2048,
+      "calls": 29,
+      "cpu_inclusive_us": 2104.8529999999996
+    },
+    {
+      "scope": "target_forward",
+      "M": 5,
+      "N": 4096,
+      "K": 4096,
+      "calls": 96,
+      "cpu_inclusive_us": 5287.665
+    },
+    {
+      "scope": "target_forward",
+      "M": 5,
+      "N": 4096,
+      "K": 14336,
+      "calls": 96,
+      "cpu_inclusive_us": 4186.343999999998
+    },
+    {
+      "scope": "target_forward",
+      "M": 5,
+      "N": 6144,
+      "K": 4096,
+      "calls": 96,
+      "cpu_inclusive_us": 4395.716999999999
+    },
+    {
+      "scope": "target_forward",
+      "M": 5,
+      "N": 28672,
+      "K": 4096,
+      "calls": 96,
+      "cpu_inclusive_us": 4719.765000000002
+    },
+    {
+      "scope": "target_forward",
+      "M": 6,
+      "N": 4096,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 1747.4320000000002
+    },
+    {
+      "scope": "target_forward",
+      "M": 6,
+      "N": 4096,
+      "K": 14336,
+      "calls": 32,
+      "cpu_inclusive_us": 1415.7749999999996
+    },
+    {
+      "scope": "target_forward",
+      "M": 6,
+      "N": 6144,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 1525.0379999999998
+    },
+    {
+      "scope": "target_forward",
+      "M": 6,
+      "N": 28672,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 1537.7579999999998
+    },
+    {
+      "scope": "target_forward",
+      "M": 7,
+      "N": 4096,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 1674.7920000000004
+    },
+    {
+      "scope": "target_forward",
+      "M": 7,
+      "N": 4096,
+      "K": 14336,
+      "calls": 32,
+      "cpu_inclusive_us": 1380.9179999999997
+    },
+    {
+      "scope": "target_forward",
+      "M": 7,
+      "N": 6144,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 1504.6599999999999
+    },
+    {
+      "scope": "target_forward",
+      "M": 7,
+      "N": 28672,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 1467.7939999999996
+    },
+    {
+      "scope": "target_forward",
+      "M": 9,
+      "N": 4096,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 2399.4619999999995
+    },
+    {
+      "scope": "target_forward",
+      "M": 9,
+      "N": 4096,
+      "K": 14336,
+      "calls": 32,
+      "cpu_inclusive_us": 2055.364
+    },
+    {
+      "scope": "target_forward",
+      "M": 9,
+      "N": 6144,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 2125.284
+    },
+    {
+      "scope": "target_forward",
+      "M": 9,
+      "N": 28672,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 2188.866
+    },
+    {
+      "scope": "target_forward",
+      "M": 10,
+      "N": 4096,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 1737.493
+    },
+    {
+      "scope": "target_forward",
+      "M": 10,
+      "N": 4096,
+      "K": 14336,
+      "calls": 32,
+      "cpu_inclusive_us": 1373.585
+    },
+    {
+      "scope": "target_forward",
+      "M": 10,
+      "N": 6144,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 1514.5880000000004
+    },
+    {
+      "scope": "target_forward",
+      "M": 10,
+      "N": 28672,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 1449.2139999999997
+    },
+    {
+      "scope": "target_forward",
+      "M": 11,
+      "N": 4096,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 1714.5639999999999
+    },
+    {
+      "scope": "target_forward",
+      "M": 11,
+      "N": 4096,
+      "K": 14336,
+      "calls": 32,
+      "cpu_inclusive_us": 1507.473
+    },
+    {
+      "scope": "target_forward",
+      "M": 11,
+      "N": 6144,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 1477.2659999999996
+    },
+    {
+      "scope": "target_forward",
+      "M": 11,
+      "N": 28672,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 1603.7720000000002
+    },
+    {
+      "scope": "target_forward",
+      "M": 13,
+      "N": 4096,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 1832.3039999999992
+    },
+    {
+      "scope": "target_forward",
+      "M": 13,
+      "N": 4096,
+      "K": 14336,
+      "calls": 32,
+      "cpu_inclusive_us": 1447.949
+    },
+    {
+      "scope": "target_forward",
+      "M": 13,
+      "N": 6144,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 1489.161
+    },
+    {
+      "scope": "target_forward",
+      "M": 13,
+      "N": 28672,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 1441.6960000000001
+    },
+    {
+      "scope": "target_forward",
+      "M": 14,
+      "N": 4096,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 1898.0830000000003
+    },
+    {
+      "scope": "target_forward",
+      "M": 14,
+      "N": 4096,
+      "K": 14336,
+      "calls": 32,
+      "cpu_inclusive_us": 1569.1970000000001
+    },
+    {
+      "scope": "target_forward",
+      "M": 14,
+      "N": 6144,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 1796.8059999999998
+    },
+    {
+      "scope": "target_forward",
+      "M": 14,
+      "N": 28672,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 1654.5499999999995
+    },
+    {
+      "scope": "target_forward",
+      "M": 18,
+      "N": 4096,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 1859.2409999999995
+    },
+    {
+      "scope": "target_forward",
+      "M": 18,
+      "N": 4096,
+      "K": 14336,
+      "calls": 32,
+      "cpu_inclusive_us": 1644.0469999999996
+    },
+    {
+      "scope": "target_forward",
+      "M": 18,
+      "N": 6144,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 1588.946
+    },
+    {
+      "scope": "target_forward",
+      "M": 18,
+      "N": 28672,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 1977.3959999999997
+    },
+    {
+      "scope": "target_forward",
+      "M": 24,
+      "N": 4096,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 2350.5840000000003
+    },
+    {
+      "scope": "target_forward",
+      "M": 24,
+      "N": 4096,
+      "K": 14336,
+      "calls": 32,
+      "cpu_inclusive_us": 2199.0660000000007
+    },
+    {
+      "scope": "target_forward",
+      "M": 24,
+      "N": 6144,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 2265.12
+    },
+    {
+      "scope": "target_forward",
+      "M": 24,
+      "N": 28672,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 2394.3660000000004
+    },
+    {
+      "scope": "target_forward",
+      "M": 45,
+      "N": 4096,
+      "K": 4096,
+      "calls": 96,
+      "cpu_inclusive_us": 10764.875999999997
+    },
+    {
+      "scope": "target_forward",
+      "M": 45,
+      "N": 4096,
+      "K": 14336,
+      "calls": 96,
+      "cpu_inclusive_us": 9511.796999999999
+    },
+    {
+      "scope": "target_forward",
+      "M": 45,
+      "N": 6144,
+      "K": 4096,
+      "calls": 96,
+      "cpu_inclusive_us": 8568.03
+    },
+    {
+      "scope": "target_forward",
+      "M": 45,
+      "N": 28672,
+      "K": 4096,
+      "calls": 96,
+      "cpu_inclusive_us": 8987.299
+    },
+    {
+      "scope": "target_forward",
+      "M": 51,
+      "N": 4096,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 2605.2250000000004
+    },
+    {
+      "scope": "target_forward",
+      "M": 51,
+      "N": 4096,
+      "K": 14336,
+      "calls": 32,
+      "cpu_inclusive_us": 2154.298
+    },
+    {
+      "scope": "target_forward",
+      "M": 51,
+      "N": 6144,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 1933.3589999999997
+    },
+    {
+      "scope": "target_forward",
+      "M": 51,
+      "N": 28672,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 2069.669999999999
+    },
+    {
+      "scope": "target_forward",
+      "M": 107,
+      "N": 4096,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 2249.4079999999994
+    },
+    {
+      "scope": "target_forward",
+      "M": 107,
+      "N": 4096,
+      "K": 14336,
+      "calls": 32,
+      "cpu_inclusive_us": 2595.4540000000006
+    },
+    {
+      "scope": "target_forward",
+      "M": 107,
+      "N": 6144,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 2446.778
+    },
+    {
+      "scope": "target_forward",
+      "M": 107,
+      "N": 28672,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 2360.4049999999997
+    },
+    {
+      "scope": "target_forward",
+      "M": 142,
+      "N": 4096,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 2742.2769999999996
+    },
+    {
+      "scope": "target_forward",
+      "M": 142,
+      "N": 4096,
+      "K": 14336,
+      "calls": 32,
+      "cpu_inclusive_us": 2388.8399999999997
+    },
+    {
+      "scope": "target_forward",
+      "M": 142,
+      "N": 6144,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 2419.133
+    },
+    {
+      "scope": "target_forward",
+      "M": 142,
+      "N": 28672,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 2844.5760000000005
+    },
+    {
+      "scope": "target_forward",
+      "M": 224,
+      "N": 4096,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 2309.4629999999997
+    },
+    {
+      "scope": "target_forward",
+      "M": 224,
+      "N": 4096,
+      "K": 14336,
+      "calls": 32,
+      "cpu_inclusive_us": 2306.456
+    },
+    {
+      "scope": "target_forward",
+      "M": 224,
+      "N": 6144,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 2409.938
+    },
+    {
+      "scope": "target_forward",
+      "M": 224,
+      "N": 28672,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 2102.9749999999995
+    },
+    {
+      "scope": "target_forward",
+      "M": 416,
+      "N": 4096,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 2925.026
+    },
+    {
+      "scope": "target_forward",
+      "M": 416,
+      "N": 4096,
+      "K": 14336,
+      "calls": 32,
+      "cpu_inclusive_us": 3068.409
+    },
+    {
+      "scope": "target_forward",
+      "M": 416,
+      "N": 6144,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 3490.2799999999997
+    },
+    {
+      "scope": "target_forward",
+      "M": 416,
+      "N": 28672,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 2876.202
+    },
+    {
+      "scope": "target_forward",
+      "M": 615,
+      "N": 4096,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 2979.37
+    },
+    {
+      "scope": "target_forward",
+      "M": 615,
+      "N": 4096,
+      "K": 14336,
+      "calls": 32,
+      "cpu_inclusive_us": 2645.109999999999
+    },
+    {
+      "scope": "target_forward",
+      "M": 615,
+      "N": 6144,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 2346.4760000000006
+    },
+    {
+      "scope": "target_forward",
+      "M": 615,
+      "N": 28672,
+      "K": 4096,
+      "calls": 32,
+      "cpu_inclusive_us": 2959.9680000000008
+    },
+    {
+      "scope": "target_logits",
+      "M": 1,
+      "N": 128256,
+      "K": 4096,
+      "calls": 1,
+      "cpu_inclusive_us": 79.221
+    },
+    {
+      "scope": "target_logits",
+      "M": 2,
+      "N": 128256,
+      "K": 4096,
+      "calls": 1,
+      "cpu_inclusive_us": 74.205
+    },
+    {
+      "scope": "target_logits",
+      "M": 4,
+      "N": 128256,
+      "K": 4096,
+      "calls": 10,
+      "cpu_inclusive_us": 763.967
+    },
+    {
+      "scope": "target_logits",
+      "M": 5,
+      "N": 128256,
+      "K": 4096,
+      "calls": 5,
+      "cpu_inclusive_us": 309.012
+    },
+    {
+      "scope": "target_logits",
+      "M": 6,
+      "N": 128256,
+      "K": 4096,
+      "calls": 3,
+      "cpu_inclusive_us": 175.539
+    },
+    {
+      "scope": "target_logits",
+      "M": 7,
+      "N": 128256,
+      "K": 4096,
+      "calls": 3,
+      "cpu_inclusive_us": 200.18200000000002
+    },
+    {
+      "scope": "target_logits",
+      "M": 9,
+      "N": 128256,
+      "K": 4096,
+      "calls": 2,
+      "cpu_inclusive_us": 189.565
+    },
+    {
+      "scope": "target_logits",
+      "M": 10,
+      "N": 128256,
+      "K": 4096,
+      "calls": 1,
+      "cpu_inclusive_us": 59.248
+    },
+    {
+      "scope": "target_logits",
+      "M": 11,
+      "N": 128256,
+      "K": 4096,
+      "calls": 1,
+      "cpu_inclusive_us": 52.203
+    },
+    {
+      "scope": "target_logits",
+      "M": 12,
+      "N": 128256,
+      "K": 4096,
+      "calls": 1,
+      "cpu_inclusive_us": 84.352
+    },
+    {
+      "scope": "target_logits",
+      "M": 13,
+      "N": 128256,
+      "K": 4096,
+      "calls": 1,
+      "cpu_inclusive_us": 52.293
+    },
+    {
+      "scope": "target_logits",
+      "M": 14,
+      "N": 128256,
+      "K": 4096,
+      "calls": 1,
+      "cpu_inclusive_us": 50.956
+    },
+    {
+      "scope": "target_logits",
+      "M": 18,
+      "N": 128256,
+      "K": 4096,
+      "calls": 1,
+      "cpu_inclusive_us": 54.463
+    },
+    {
+      "scope": "target_logits",
+      "M": 24,
+      "N": 128256,
+      "K": 4096,
+      "calls": 1,
+      "cpu_inclusive_us": 53.651
+    }
+  ],
+  "note": "Only actual eager aten::linear CPU events; Graph-replayed GEMMs have no corresponding CPU aten::linear and are excluded. CPU spans are not GPU kernel time; this diagnostic sample is not the formal512 distribution."
+}

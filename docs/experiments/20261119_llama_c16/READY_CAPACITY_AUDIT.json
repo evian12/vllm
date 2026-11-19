@@ -1,0 +1,157 @@
+{
+  "source": "/home/yypan/CDB-AV/results/sharegpt_llama_cdb_gpu3_20261119/gate_llama_warm64_cap8",
+  "phase": "64 warmup +16 short GPU diagnostic requests, not formal512 occurrence rates",
+  "counts": {
+    "target_forwards": 652,
+    "sum_verified_requests": 1225,
+    "ready_queue_ge4": 412,
+    "selected_0_when_ready_ge4": 20,
+    "ready_ge4_but_reserved_AR_capacity": 311,
+    "selected_3_when_ready_ge4": 88,
+    "selected_2_when_ready_ge4": 111,
+    "selected_1_when_ready_ge4": 92,
+    "selected_4_when_ready_ge4": 101
+  },
+  "examples": [
+    {
+      "selection": {
+        "event": "target_ready_select",
+        "window": 1,
+        "capacity": 4,
+        "non_ready_running": 4,
+        "ready_queue": 7,
+        "selected": [],
+        "deferred": [
+          "cmpl-baseline-79a99f030ae5-3-0-ae504de5",
+          "cmpl-baseline-79a99f030ae5-1-0-89baba00",
+          "cmpl-baseline-79a99f030ae5-0-0-8e8ce5c9",
+          "cmpl-baseline-79a99f030ae5-5-0-8f62043a",
+          "cmpl-baseline-79a99f030ae5-2-0-b655955b",
+          "cmpl-baseline-79a99f030ae5-4-0-b5d029b1",
+          "cmpl-baseline-79a99f030ae5-8-0-9de85248"
+        ],
+        "token_budget": 1024
+      },
+      "forward": {
+        "event": "p2_target_begin",
+        "target_epoch": 9,
+        "scheduled": {
+          "cmpl-baseline-79a99f030ae5-11-0-8a24ba63": 1,
+          "cmpl-baseline-79a99f030ae5-12-0-8ce6b06d": 1,
+          "cmpl-baseline-79a99f030ae5-13-0-846f38f0": 1,
+          "cmpl-baseline-79a99f030ae5-14-0-a15c7b33": 1
+        },
+        "frozen": [
+          "cmpl-baseline-79a99f030ae5-0-0-8e8ce5c9",
+          "cmpl-baseline-79a99f030ae5-1-0-89baba00",
+          "cmpl-baseline-79a99f030ae5-10-0-b5ad20be",
+          "cmpl-baseline-79a99f030ae5-2-0-b655955b",
+          "cmpl-baseline-79a99f030ae5-3-0-ae504de5",
+          "cmpl-baseline-79a99f030ae5-4-0-b5d029b1",
+          "cmpl-baseline-79a99f030ae5-5-0-8f62043a",
+          "cmpl-baseline-79a99f030ae5-6-0-a9983c15",
+          "cmpl-baseline-79a99f030ae5-7-0-b75657ca",
+          "cmpl-baseline-79a99f030ae5-8-0-9de85248",
+          "cmpl-baseline-79a99f030ae5-9-0-934e914e"
+        ],
+        "verify": []
+      }
+    },
+    {
+      "selection": {
+        "event": "target_ready_select",
+        "window": 2,
+        "capacity": 4,
+        "non_ready_running": 1,
+        "ready_queue": 7,
+        "selected": [
+          "cmpl-baseline-79a99f030ae5-3-0-ae504de5",
+          "cmpl-baseline-79a99f030ae5-1-0-89baba00",
+          "cmpl-baseline-79a99f030ae5-0-0-8e8ce5c9"
+        ],
+        "deferred": [
+          "cmpl-baseline-79a99f030ae5-5-0-8f62043a",
+          "cmpl-baseline-79a99f030ae5-2-0-b655955b",
+          "cmpl-baseline-79a99f030ae5-4-0-b5d029b1",
+          "cmpl-baseline-79a99f030ae5-8-0-9de85248"
+        ],
+        "token_budget": 1024
+      },
+      "forward": {
+        "event": "p2_target_begin",
+        "target_epoch": 10,
+        "scheduled": {
+          "cmpl-baseline-79a99f030ae5-0-0-8e8ce5c9": 6,
+          "cmpl-baseline-79a99f030ae5-1-0-89baba00": 3,
+          "cmpl-baseline-79a99f030ae5-3-0-ae504de5": 2,
+          "cmpl-baseline-79a99f030ae5-14-0-a15c7b33": 1
+        },
+        "frozen": [
+          "cmpl-baseline-79a99f030ae5-10-0-b5ad20be",
+          "cmpl-baseline-79a99f030ae5-11-0-8a24ba63",
+          "cmpl-baseline-79a99f030ae5-12-0-8ce6b06d",
+          "cmpl-baseline-79a99f030ae5-13-0-846f38f0",
+          "cmpl-baseline-79a99f030ae5-2-0-b655955b",
+          "cmpl-baseline-79a99f030ae5-4-0-b5d029b1",
+          "cmpl-baseline-79a99f030ae5-5-0-8f62043a",
+          "cmpl-baseline-79a99f030ae5-6-0-a9983c15",
+          "cmpl-baseline-79a99f030ae5-7-0-b75657ca",
+          "cmpl-baseline-79a99f030ae5-8-0-9de85248",
+          "cmpl-baseline-79a99f030ae5-9-0-934e914e"
+        ],
+        "verify": [
+          "cmpl-baseline-79a99f030ae5-0-0-8e8ce5c9",
+          "cmpl-baseline-79a99f030ae5-1-0-89baba00",
+          "cmpl-baseline-79a99f030ae5-3-0-ae504de5"
+        ]
+      }
+    },
+    {
+      "selection": {
+        "event": "target_ready_select",
+        "window": 2,
+        "capacity": 4,
+        "non_ready_running": 2,
+        "ready_queue": 4,
+        "selected": [
+          "cmpl-baseline-79a99f030ae5-5-0-8f62043a",
+          "cmpl-baseline-79a99f030ae5-2-0-b655955b"
+        ],
+        "deferred": [
+          "cmpl-baseline-79a99f030ae5-4-0-b5d029b1",
+          "cmpl-baseline-79a99f030ae5-8-0-9de85248"
+        ],
+        "token_budget": 1024
+      },
+      "forward": {
+        "event": "p2_target_begin",
+        "target_epoch": 11,
+        "scheduled": {
+          "cmpl-baseline-79a99f030ae5-2-0-b655955b": 5,
+          "cmpl-baseline-79a99f030ae5-3-0-ae504de5": 1,
+          "cmpl-baseline-79a99f030ae5-5-0-8f62043a": 2,
+          "cmpl-baseline-79a99f030ae5-14-0-a15c7b33": 1
+        },
+        "frozen": [
+          "cmpl-baseline-79a99f030ae5-0-0-8e8ce5c9",
+          "cmpl-baseline-79a99f030ae5-1-0-89baba00",
+          "cmpl-baseline-79a99f030ae5-10-0-b5ad20be",
+          "cmpl-baseline-79a99f030ae5-11-0-8a24ba63",
+          "cmpl-baseline-79a99f030ae5-12-0-8ce6b06d",
+          "cmpl-baseline-79a99f030ae5-13-0-846f38f0",
+          "cmpl-baseline-79a99f030ae5-4-0-b5d029b1",
+          "cmpl-baseline-79a99f030ae5-6-0-a9983c15",
+          "cmpl-baseline-79a99f030ae5-7-0-b75657ca",
+          "cmpl-baseline-79a99f030ae5-8-0-9de85248",
+          "cmpl-baseline-79a99f030ae5-9-0-934e914e"
+        ],
+        "verify": [
+          "cmpl-baseline-79a99f030ae5-2-0-b655955b",
+          "cmpl-baseline-79a99f030ae5-5-0-8f62043a"
+        ]
+      }
+    }
+  ],
+  "code_constraint": "select_ready_request_ids: available = max_num_running_reqs - len(non_ready_running); running AR/prefill rows reserve capacity before Ready selection",
+  "note": "A further scheduling-policy candidate only; no current policy or H/K change. Neither Ready wait nor this diagnostic count alone proves end-to-end benefit of changing it."
+}

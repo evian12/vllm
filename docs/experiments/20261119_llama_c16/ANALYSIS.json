@@ -1,0 +1,755 @@
+{
+  "runs": [
+    {
+      "directory": "/disk14T/yypan/CDB-AV-runtime/results/sharegpt_llama_cdb_gpu3_20261119/llama_seed42",
+      "mode": "hf",
+      "cap": 8,
+      "seed": 42,
+      "source_commit": "ccfd19da75969e79c242e860f18403eadad0e589",
+      "summary": {
+        "requests": 512,
+        "completed": 512,
+        "failed": 0,
+        "elapsed_s": 372.62162684462965,
+        "measurement_start_wall": 1795075529.3727448,
+        "first_dispatch_wall": 1795075529.3730764,
+        "last_completion_wall": 1795075901.9947033,
+        "first_dispatch_s": 0.0003315582871437073,
+        "last_completion_s": 372.6219584029168,
+        "drain_s": null,
+        "output_tokens": 101003,
+        "throughput_tok_s": 271.06048796817356,
+        "open_requests": null,
+        "arrival_window_s": null,
+        "open_workload": null,
+        "latency_s": {
+          "ttft": {
+            "p50": 0.11591091146692634,
+            "p95": 0.3495333889964968
+          },
+          "e2e": {
+            "p50": 11.63000108441338,
+            "p95": 22.08679613606073
+          },
+          "tpot": {
+            "p50": 0.05655645852517614,
+            "p95": 0.07149084756292158
+          },
+          "scheduled_ttft": {
+            "p50": null,
+            "p95": null
+          },
+          "scheduled_e2e": {
+            "p50": null,
+            "p95": null
+          }
+        },
+        "itl_s": {
+          "p50": 0.024960137903690338,
+          "p95": 0.03778851218521594
+        },
+        "dispatch_lag_s": {
+          "p50": null,
+          "p95": null
+        },
+        "arrival_timing_qualified": true,
+        "delivery_itl_s": {
+          "p50": 0.02308801468461752,
+          "p95": 0.2685831249691546
+        },
+        "itl_definition": "Client delivery: all token IDs in one SSE chunk share its receive timestamp; zero intervals within a burst are retained. GPU-internal generation time is not inferred.",
+        "itl_coverage_requests": 6,
+        "slo_compliance": null,
+        "slo_note": "No predefined thresholds; multi-token stream chunks do not expose exact token ITL.",
+        "plan_sha256": "526f1227efb2385aa23f8e276cb373d30b2a72d45ba34620d6cfc4ca058c5a3b",
+        "smoke": false
+      },
+      "verify_events": 22835.0,
+      "candidates": 61352.0,
+      "accepted": 49079.0,
+      "target_iterations": 13487.0,
+      "preemptions": 0.0,
+      "mean_verified_K": 2.686752791767024,
+      "acceptance_rate": 0.7999576215934281,
+      "verify_events_per_target_iteration": 1.693111885519389,
+      "observed": {
+        "target_forward_calls": 13487,
+        "cdb_target_request_rows": 52732,
+        "cdb_phase_mixed_prefill_decode_calls": 12447,
+        "cdb_ready_wait_bucket_2_ms": 8,
+        "cdb_target_pure_ar_with_waiting": 339,
+        "cdb_phase_decode_calls": 3313,
+        "cdb_draft_token_rows": 157095,
+        "cdb_phase_decode_request_rows": 11342,
+        "cdb_phase_mixed_prefill_decode_token_rows": 132178,
+        "cdb_phase_mixed_prefill_calls": 536,
+        "cdb_target_ar_rows": 29385,
+        "cdb_phase_mixed_prefill_decode_request_rows": 48291,
+        "cdb_ready_wait_bucket_50_ms": 188,
+        "cdb_draft_dispatches": 16296,
+        "cdb_target_token_rows": 167775,
+        "cdb_ready_wait_count": 22835,
+        "cdb_phase_decode_token_rows": 11342,
+        "cdb_target_schedules": 13487,
+        "cdb_phase_mixed_prefill_request_rows": 1719,
+        "cdb_target_other_rows": 0,
+        "cdb_ready_wait_bucket_100_ms": 4129,
+        "cdb_ready_wait_bucket_250_ms": 18165,
+        "cdb_target_verify_rows": 22835,
+        "cdb_target_prefill_rows": 512,
+        "cdb_target_pure_ar_calls": 1996,
+        "cdb_phase_mixed_prefill_token_rows": 13575,
+        "cdb_ready_wait_sum_ms": 3103282.7288946137,
+        "cdb_draft_request_rows": 61352,
+        "cdb_ready_wait_bucket_10_ms": 44,
+        "cdb_ready_wait_bucket_500_ms": 241,
+        "cdb_ready_wait_bucket_5_ms": 10,
+        "cdb_ready_wait_bucket_20_ms": 50
+      },
+      "mean_draft_request_rows": 3.764850270004909,
+      "mean_draft_token_rows": 9.640095729013256,
+      "ready_to_schedule_mean_ms": 135.90027277839343,
+      "ready_to_schedule_p95_upper_bound_ms": 250.0,
+      "interior": {
+        "events": {
+          "p2_runtime_config": 0,
+          "__total__": 172032,
+          "target_ready_select": 13391,
+          "p2_target_begin": 13391,
+          "p2_target_commit": 2045,
+          "p2_reuse_plan": 22686,
+          "k_policy_config": 0,
+          "p2_window_begin": 2045,
+          "reuse_pending_prefill": 22686,
+          "ready": 22686,
+          "p2_handoff": 22694,
+          "p2_boundary": 2045,
+          "p2_verified": 22696,
+          "reuse_cache_consumed": 22193,
+          "p2_ar_target_bypass": 2966,
+          "reuse_lease_release": 508
+        },
+        "k_actual": {
+          "1": 9539,
+          "2": 4824,
+          "5": 1024,
+          "4": 1727,
+          "3": 2577,
+          "8": 1745,
+          "6": 710,
+          "7": 540
+        },
+        "k_sources": {},
+        "stop_reasons": {
+          "low_confidence": 20941,
+          "max_k": 1745
+        },
+        "token_counts": {
+          "reused_tokens": 5503483,
+          "prefill_tokens": 116510,
+          "accepted_tokens": 48773,
+          "drafted_tokens": 60972
+        },
+        "replay": {},
+        "target_graph": {
+          "fallback_layout": 460,
+          "calls": 13312,
+          "fallback_warmup": 0,
+          "capture": 0,
+          "replay": 9173,
+          "fallback_budget": 3679
+        }
+      },
+      "gpu_mean": {
+        "utilization_pct": 79.4745308310992,
+        "memory_mib": 22622.898123324398,
+        "power_w": 254.23745308310993,
+        "temperature_c": 59.152815013404826,
+        "sm_clock_mhz": 2663.6058981233246
+      }
+    },
+    {
+      "directory": "/disk14T/yypan/CDB-AV-runtime/results/sharegpt_llama_cdb_gpu3_20261119/llama_seed43",
+      "mode": "hf",
+      "cap": 8,
+      "seed": 43,
+      "source_commit": "ccfd19da75969e79c242e860f18403eadad0e589",
+      "summary": {
+        "requests": 512,
+        "completed": 512,
+        "failed": 0,
+        "elapsed_s": 371.2128905504942,
+        "measurement_start_wall": 1795076009.6348531,
+        "first_dispatch_wall": 1795076009.635124,
+        "last_completion_wall": 1795076380.8480144,
+        "first_dispatch_s": 0.0002707354724407196,
+        "last_completion_s": 371.21316128596663,
+        "drain_s": null,
+        "output_tokens": 101003,
+        "throughput_tok_s": 272.0891503800326,
+        "open_requests": null,
+        "arrival_window_s": null,
+        "open_workload": null,
+        "latency_s": {
+          "ttft": {
+            "p50": 0.11467146500945091,
+            "p95": 0.3645211902447045
+          },
+          "e2e": {
+            "p50": 10.995519020594656,
+            "p95": 22.488761861482633
+          },
+          "tpot": {
+            "p50": 0.05712842927765879,
+            "p95": 0.07041039829364187
+          },
+          "scheduled_ttft": {
+            "p50": null,
+            "p95": null
+          },
+          "scheduled_e2e": {
+            "p50": null,
+            "p95": null
+          }
+        },
+        "itl_s": {
+          "p50": null,
+          "p95": null
+        },
+        "dispatch_lag_s": {
+          "p50": null,
+          "p95": null
+        },
+        "arrival_timing_qualified": true,
+        "delivery_itl_s": {
+          "p50": 0.023157712072134018,
+          "p95": 0.26730907754972577
+        },
+        "itl_definition": "Client delivery: all token IDs in one SSE chunk share its receive timestamp; zero intervals within a burst are retained. GPU-internal generation time is not inferred.",
+        "itl_coverage_requests": 0,
+        "slo_compliance": null,
+        "slo_note": "No predefined thresholds; multi-token stream chunks do not expose exact token ITL.",
+        "plan_sha256": "fe51cb83d405cfe920747b61321812e205de66cc804b4886777c3a7577aefad3",
+        "smoke": false
+      },
+      "verify_events": 22726.0,
+      "candidates": 61138.0,
+      "accepted": 49166.0,
+      "target_iterations": 13455.0,
+      "preemptions": 0.0,
+      "mean_verified_K": 2.690222652468538,
+      "acceptance_rate": 0.8041807059439301,
+      "verify_events_per_target_iteration": 1.6890375325157934,
+      "observed": {
+        "target_forward_calls": 13455,
+        "cdb_target_request_rows": 52628,
+        "cdb_phase_mixed_prefill_decode_calls": 12487,
+        "cdb_ready_wait_bucket_2_ms": 14,
+        "cdb_target_pure_ar_with_waiting": 366,
+        "cdb_phase_decode_calls": 3187,
+        "cdb_draft_token_rows": 156913,
+        "cdb_phase_decode_request_rows": 11016,
+        "cdb_phase_mixed_prefill_decode_token_rows": 131464,
+        "cdb_phase_mixed_prefill_calls": 503,
+        "cdb_target_ar_rows": 29390,
+        "cdb_phase_mixed_prefill_decode_request_rows": 48471,
+        "cdb_ready_wait_bucket_50_ms": 126,
+        "cdb_draft_dispatches": 16177,
+        "cdb_target_token_rows": 167457,
+        "cdb_ready_wait_count": 22726,
+        "cdb_phase_decode_token_rows": 11016,
+        "cdb_target_schedules": 13455,
+        "cdb_phase_mixed_prefill_request_rows": 1651,
+        "cdb_target_other_rows": 0,
+        "cdb_ready_wait_bucket_100_ms": 4065,
+        "cdb_ready_wait_bucket_250_ms": 18287,
+        "cdb_target_verify_rows": 22726,
+        "cdb_target_prefill_rows": 512,
+        "cdb_target_pure_ar_calls": 1924,
+        "cdb_phase_mixed_prefill_token_rows": 14433,
+        "cdb_ready_wait_sum_ms": 3096858.769898303,
+        "cdb_draft_request_rows": 61138,
+        "cdb_ready_wait_bucket_10_ms": 17,
+        "cdb_ready_wait_bucket_500_ms": 202,
+        "cdb_ready_wait_bucket_5_ms": 0,
+        "cdb_ready_wait_bucket_20_ms": 15
+      },
+      "mean_draft_request_rows": 3.7793163132842924,
+      "mean_draft_token_rows": 9.6997589169809,
+      "ready_to_schedule_mean_ms": 136.26941696287525,
+      "ready_to_schedule_p95_upper_bound_ms": 250.0,
+      "interior": {
+        "events": {
+          "p2_runtime_config": 0,
+          "__total__": 171008,
+          "target_ready_select": 13380,
+          "p2_target_begin": 13380,
+          "p2_target_commit": 2005,
+          "p2_reuse_plan": 22591,
+          "k_policy_config": 0,
+          "p2_window_begin": 2005,
+          "reuse_pending_prefill": 22591,
+          "ready": 22594,
+          "p2_handoff": 22594,
+          "p2_boundary": 2005,
+          "p2_verified": 22600,
+          "reuse_cache_consumed": 22095,
+          "p2_ar_target_bypass": 2661,
+          "reuse_lease_release": 507
+        },
+        "k_actual": {
+          "3": 2750,
+          "1": 9504,
+          "2": 4678,
+          "8": 1734,
+          "4": 1641,
+          "6": 731,
+          "7": 517,
+          "5": 1039
+        },
+        "k_sources": {},
+        "stop_reasons": {
+          "low_confidence": 20860,
+          "max_k": 1734
+        },
+        "token_counts": {
+          "reused_tokens": 5469457,
+          "prefill_tokens": 116543,
+          "accepted_tokens": 48856,
+          "drafted_tokens": 60765
+        },
+        "replay": {},
+        "target_graph": {
+          "fallback_layout": 468,
+          "calls": 13312,
+          "fallback_warmup": 0,
+          "capture": 0,
+          "replay": 8779,
+          "fallback_budget": 4065
+        }
+      },
+      "gpu_mean": {
+        "utilization_pct": 79.63072776280323,
+        "memory_mib": 22601.959568733153,
+        "power_w": 255.95196765498653,
+        "temperature_c": 59.77358490566038,
+        "sm_clock_mhz": 2657.3450134770887
+      }
+    },
+    {
+      "directory": "/disk14T/yypan/CDB-AV-runtime/results/sharegpt_llama_cdb_gpu3_20261119/llama_seed44",
+      "mode": "hf",
+      "cap": 8,
+      "seed": 44,
+      "source_commit": "ccfd19da75969e79c242e860f18403eadad0e589",
+      "summary": {
+        "requests": 512,
+        "completed": 512,
+        "failed": 0,
+        "elapsed_s": 370.75338994525373,
+        "measurement_start_wall": 1795076487.7089207,
+        "first_dispatch_wall": 1795076487.7091353,
+        "last_completion_wall": 1795076858.4625251,
+        "first_dispatch_s": 0.00021456461399793625,
+        "last_completion_s": 370.7536045098677,
+        "drain_s": null,
+        "output_tokens": 101003,
+        "throughput_tok_s": 272.42636949297844,
+        "open_requests": null,
+        "arrival_window_s": null,
+        "open_workload": null,
+        "latency_s": {
+          "ttft": {
+            "p50": 0.10871428484097123,
+            "p95": 0.3551932255271822
+          },
+          "e2e": {
+            "p50": 11.190604851581156,
+            "p95": 21.706521083787084
+          },
+          "tpot": {
+            "p50": 0.056739382239442894,
+            "p95": 0.07098545048557373
+          },
+          "scheduled_ttft": {
+            "p50": null,
+            "p95": null
+          },
+          "scheduled_e2e": {
+            "p50": null,
+            "p95": null
+          }
+        },
+        "itl_s": {
+          "p50": 0.02485288865864277,
+          "p95": 0.03520033182576299
+        },
+        "dispatch_lag_s": {
+          "p50": null,
+          "p95": null
+        },
+        "arrival_timing_qualified": true,
+        "delivery_itl_s": {
+          "p50": 0.023053043521940708,
+          "p95": 0.2688375716097653
+        },
+        "itl_definition": "Client delivery: all token IDs in one SSE chunk share its receive timestamp; zero intervals within a burst are retained. GPU-internal generation time is not inferred.",
+        "itl_coverage_requests": 4,
+        "slo_compliance": null,
+        "slo_note": "No predefined thresholds; multi-token stream chunks do not expose exact token ITL.",
+        "plan_sha256": "0f161c82e588d92fed873cfca8c19eebcb4ebb29ac7b79ea7b7f10ff0b156b44",
+        "smoke": false
+      },
+      "verify_events": 22634.0,
+      "candidates": 61207.0,
+      "accepted": 49087.0,
+      "target_iterations": 13474.0,
+      "preemptions": 0.0,
+      "mean_verified_K": 2.704206061677123,
+      "acceptance_rate": 0.8019834332674367,
+      "verify_events_per_target_iteration": 1.67982781653555,
+      "observed": {
+        "target_forward_calls": 13474,
+        "cdb_target_request_rows": 52699,
+        "cdb_phase_mixed_prefill_decode_calls": 12497,
+        "cdb_ready_wait_bucket_2_ms": 11,
+        "cdb_target_pure_ar_with_waiting": 366,
+        "cdb_phase_decode_calls": 3224,
+        "cdb_draft_token_rows": 156622,
+        "cdb_phase_decode_request_rows": 11305,
+        "cdb_phase_mixed_prefill_decode_token_rows": 132717,
+        "cdb_phase_mixed_prefill_calls": 445,
+        "cdb_target_ar_rows": 29553,
+        "cdb_phase_mixed_prefill_decode_request_rows": 48435,
+        "cdb_ready_wait_bucket_50_ms": 197,
+        "cdb_draft_dispatches": 16166,
+        "cdb_target_token_rows": 167597,
+        "cdb_ready_wait_count": 22634,
+        "cdb_phase_decode_token_rows": 11305,
+        "cdb_target_schedules": 13474,
+        "cdb_phase_mixed_prefill_request_rows": 1467,
+        "cdb_target_other_rows": 0,
+        "cdb_ready_wait_bucket_100_ms": 4026,
+        "cdb_ready_wait_bucket_250_ms": 18108,
+        "cdb_target_verify_rows": 22634,
+        "cdb_target_prefill_rows": 512,
+        "cdb_target_pure_ar_calls": 2031,
+        "cdb_phase_mixed_prefill_token_rows": 12600,
+        "cdb_ready_wait_sum_ms": 3090613.743419759,
+        "cdb_draft_request_rows": 61207,
+        "cdb_ready_wait_bucket_10_ms": 16,
+        "cdb_ready_wait_bucket_500_ms": 241,
+        "cdb_ready_wait_bucket_5_ms": 1,
+        "cdb_ready_wait_bucket_20_ms": 34
+      },
+      "mean_draft_request_rows": 3.786156130149697,
+      "mean_draft_token_rows": 9.688358282815786,
+      "ready_to_schedule_mean_ms": 136.54739522045415,
+      "ready_to_schedule_p95_upper_bound_ms": 250.0,
+      "interior": {
+        "events": {
+          "p2_runtime_config": 0,
+          "__total__": 171008,
+          "target_ready_select": 13413,
+          "p2_target_begin": 13413,
+          "p2_target_commit": 2027,
+          "p2_reuse_plan": 22545,
+          "k_policy_config": 0,
+          "p2_window_begin": 2027,
+          "reuse_pending_prefill": 22545,
+          "ready": 22546,
+          "p2_handoff": 22546,
+          "p2_boundary": 2027,
+          "p2_verified": 22559,
+          "reuse_cache_consumed": 22050,
+          "p2_ar_target_bypass": 2801,
+          "reuse_lease_release": 509
+        },
+        "k_actual": {
+          "2": 4683,
+          "4": 1626,
+          "3": 2690,
+          "8": 1790,
+          "1": 9452,
+          "5": 1075,
+          "6": 735,
+          "7": 495
+        },
+        "k_sources": {},
+        "stop_reasons": {
+          "low_confidence": 20756,
+          "max_k": 1790
+        },
+        "token_counts": {
+          "reused_tokens": 5487293,
+          "prefill_tokens": 116551,
+          "accepted_tokens": 48902,
+          "drafted_tokens": 60989
+        },
+        "replay": {},
+        "target_graph": {
+          "fallback_layout": 472,
+          "calls": 13312,
+          "fallback_warmup": 0,
+          "capture": 0,
+          "replay": 8985,
+          "fallback_budget": 3855
+        }
+      },
+      "gpu_mean": {
+        "utilization_pct": 79.42162162162163,
+        "memory_mib": 22539.0,
+        "power_w": 256.61886486486486,
+        "temperature_c": 59.91081081081081,
+        "sm_clock_mhz": 2657.472972972973
+      }
+    }
+  ],
+  "groups": {
+    "8": {
+      "n": 3,
+      "tps": [
+        271.06048796817356,
+        272.0891503800326,
+        272.42636949297844
+      ],
+      "mean_tps": 271.85866928039485,
+      "sd_tps": 0.7115119380013869,
+      "mean_run_e2e_p95": 22.094026360443483,
+      "mean_run_ttft_p95": 0.3564159349227945,
+      "verify_events": 68195.0,
+      "candidates": 183697.0,
+      "accepted": 147332.0,
+      "target_iterations": 40416.0,
+      "acceptance_rate": 0.802038138891762,
+      "mean_verified_K": 2.693701884302368,
+      "verify_events_per_target_iteration": 1.687326801266825,
+      "draft_dispatches": 48639,
+      "mean_draft_request_rows": 3.7767429429058987
+    }
+  },
+  "paired": [],
+  "notes": [
+    "Llama-3.1-8B/Llama-3.2-1B, HF0.8 H8 cap8. Generic low-level flags retained; Qwen-only QK normalization is not applicable. Native Llama references used the same physical GPU3 and public limits, with their original Torch compile/Graph configuration.",
+    "Diagnostic gates and warmup are excluded; no native baseline reruns.",
+    "Draft dispatch counters include logical Graph replays but not additional work internal to capture.",
+    "Interior snapshots exclude boundary tails.",
+    "Reported P95 summary is a mean of run percentiles, not a pooled percentile."
+  ],
+  "native_reference": {
+    "ar": {
+      "n": 3,
+      "mean_tps": 220.48171108324274,
+      "sd_tps": 0.38597314806183836,
+      "mean_run_e2e_p95": 18.38783490761804,
+      "mean_run_ttft_p95": 13.395171600983788,
+      "runs": [
+        {
+          "seed": 42,
+          "directory": "/home/yypan/CDB-AV/baseline-comparison-20261113/baseline_experiments/results/closed_loop/llama_sharegpt_closed16_ar_seed42",
+          "tps": 220.35061958625062,
+          "e2e_p95": 18.476904676528648,
+          "ttft_p95": 13.599981727823614,
+          "source": "1892993bc18e243e2c05841314c5e9c06a80c70d"
+        },
+        {
+          "seed": 43,
+          "directory": "/home/yypan/CDB-AV/baseline-comparison-20261113/baseline_experiments/results/closed_loop/llama_sharegpt_closed16_ar_seed43",
+          "tps": 220.91615591765125,
+          "e2e_p95": 18.54004022986628,
+          "ttft_p95": 13.38679445986636,
+          "source": "1892993bc18e243e2c05841314c5e9c06a80c70d"
+        },
+        {
+          "seed": 44,
+          "directory": "/home/yypan/CDB-AV/baseline-comparison-20261113/baseline_experiments/results/closed_loop/llama_sharegpt_closed16_ar_seed44",
+          "tps": 220.17835774582636,
+          "e2e_p95": 18.146559816459195,
+          "ttft_p95": 13.19873861526139,
+          "source": "1892993bc18e243e2c05841314c5e9c06a80c70d"
+        }
+      ]
+    },
+    "sd1": {
+      "n": 3,
+      "mean_tps": 316.8737689160212,
+      "sd_tps": 0.5690418285992539,
+      "mean_run_e2e_p95": 12.70450849526872,
+      "mean_run_ttft_p95": 9.374198699602857,
+      "runs": [
+        {
+          "seed": 42,
+          "directory": "/home/yypan/CDB-AV/baseline-comparison-20261113/baseline_experiments/results/closed_loop/llama_sharegpt_closed16_sd1_seed42",
+          "tps": 316.4227559125484,
+          "e2e_p95": 12.713864979520439,
+          "ttft_p95": 9.51578121576458,
+          "source": "1892993bc18e243e2c05841314c5e9c06a80c70d"
+        },
+        {
+          "seed": 43,
+          "directory": "/home/yypan/CDB-AV/baseline-comparison-20261113/baseline_experiments/results/closed_loop/llama_sharegpt_closed16_sd1_seed43",
+          "tps": 317.5130979107657,
+          "e2e_p95": 12.886998721957205,
+          "ttft_p95": 9.402850044285879,
+          "source": "1892993bc18e243e2c05841314c5e9c06a80c70d"
+        },
+        {
+          "seed": 44,
+          "directory": "/home/yypan/CDB-AV/baseline-comparison-20261113/baseline_experiments/results/closed_loop/llama_sharegpt_closed16_sd1_seed44",
+          "tps": 316.6854529247496,
+          "e2e_p95": 12.51266178432852,
+          "ttft_p95": 9.203964838758111,
+          "source": "1892993bc18e243e2c05841314c5e9c06a80c70d"
+        }
+      ]
+    },
+    "sd2": {
+      "n": 3,
+      "mean_tps": 339.5256553257285,
+      "sd_tps": 4.373131124966435,
+      "mean_run_e2e_p95": 11.889631297516948,
+      "mean_run_ttft_p95": 8.728697844812025,
+      "runs": [
+        {
+          "seed": 42,
+          "directory": "/home/yypan/CDB-AV/baseline-comparison-20261113/baseline_experiments/results/closed_loop/llama_sharegpt_closed16_sd2_seed42",
+          "tps": 343.0177450054773,
+          "e2e_p95": 11.718144073104487,
+          "ttft_p95": 8.82196647170931,
+          "source": "1892993bc18e243e2c05841314c5e9c06a80c70d"
+        },
+        {
+          "seed": 43,
+          "directory": "/home/yypan/CDB-AV/baseline-comparison-20261113/baseline_experiments/results/closed_loop/llama_sharegpt_closed16_sd2_seed43",
+          "tps": 340.93844857724054,
+          "e2e_p95": 12.169205038622021,
+          "ttft_p95": 8.739997522253542,
+          "source": "1892993bc18e243e2c05841314c5e9c06a80c70d"
+        },
+        {
+          "seed": 44,
+          "directory": "/home/yypan/CDB-AV/baseline-comparison-20261113/baseline_experiments/results/closed_loop/llama_sharegpt_closed16_sd2_seed44",
+          "tps": 334.6207723944676,
+          "e2e_p95": 11.781544780824333,
+          "ttft_p95": 8.624129540473222,
+          "source": "1892993bc18e243e2c05841314c5e9c06a80c70d"
+        }
+      ]
+    },
+    "sd4": {
+      "n": 3,
+      "mean_tps": 341.0732791652744,
+      "sd_tps": 5.496631308358563,
+      "mean_run_e2e_p95": 11.83189909189629,
+      "mean_run_ttft_p95": 8.765506054150562,
+      "runs": [
+        {
+          "seed": 42,
+          "directory": "/home/yypan/CDB-AV/baseline-comparison-20261113/baseline_experiments/results/closed_loop/llama_sharegpt_closed16_sd4_seed42",
+          "tps": 335.9889505856851,
+          "e2e_p95": 12.045061150053515,
+          "ttft_p95": 9.008832285180688,
+          "source": "1892993bc18e243e2c05841314c5e9c06a80c70d"
+        },
+        {
+          "seed": 43,
+          "directory": "/home/yypan/CDB-AV/baseline-comparison-20261113/baseline_experiments/results/closed_loop/llama_sharegpt_closed16_sd4_seed43",
+          "tps": 346.90560422790463,
+          "e2e_p95": 11.772020980436356,
+          "ttft_p95": 8.72674341867678,
+          "source": "1892993bc18e243e2c05841314c5e9c06a80c70d"
+        },
+        {
+          "seed": 44,
+          "directory": "/home/yypan/CDB-AV/baseline-comparison-20261113/baseline_experiments/results/closed_loop/llama_sharegpt_closed16_sd4_seed44",
+          "tps": 340.3252826822335,
+          "e2e_p95": 11.678615145199,
+          "ttft_p95": 8.560942458594218,
+          "source": "1892993bc18e243e2c05841314c5e9c06a80c70d"
+        }
+      ]
+    }
+  },
+  "relative_to_native_by_seed": {
+    "ar": [
+      {
+        "seed": 42,
+        "tps_change_pct": 23.013263351444245,
+        "e2e_p95_change_pct": 19.537317114147122,
+        "exact_output_requests": 158
+      },
+      {
+        "seed": 43,
+        "tps_change_pct": 23.163989183958368,
+        "e2e_p95_change_pct": 21.2983444623563,
+        "exact_output_requests": 175
+      },
+      {
+        "seed": 44,
+        "tps_change_pct": 23.729858048749342,
+        "e2e_p95_change_pct": 19.617830064401254,
+        "exact_output_requests": 171
+      }
+    ],
+    "sd1": [
+      {
+        "seed": 42,
+        "tps_change_pct": -14.33596892029847,
+        "e2e_p95_change_pct": 73.72212282919676,
+        "exact_output_requests": 161
+      },
+      {
+        "seed": 43,
+        "tps_change_pct": -14.306164951815337,
+        "e2e_p95_change_pct": 74.50736472228938,
+        "exact_output_requests": 165
+      },
+      {
+        "seed": 44,
+        "tps_change_pct": -13.97572355250809,
+        "e2e_p95_change_pct": 73.47644696169613,
+        "exact_output_requests": 181
+      }
+    ],
+    "sd2": [
+      {
+        "seed": 42,
+        "tps_change_pct": -20.977706863577783,
+        "e2e_p95_change_pct": 88.48373938970762,
+        "exact_output_requests": 149
+      },
+      {
+        "seed": 43,
+        "tps_change_pct": -20.194055110100006,
+        "e2e_p95_change_pct": 84.80058302994249,
+        "exact_output_requests": 168
+      },
+      {
+        "seed": 44,
+        "tps_change_pct": -18.58653378164202,
+        "e2e_p95_change_pct": 84.24172286062743,
+        "exact_output_requests": 166
+      }
+    ],
+    "sd4": [
+      {
+        "seed": 42,
+        "tps_change_pct": -19.32458269961864,
+        "e2e_p95_change_pct": 83.36806979151451,
+        "exact_output_requests": 163
+      },
+      {
+        "seed": 43,
+        "tps_change_pct": -21.566804610835945,
+        "e2e_p95_change_pct": 91.03569301189809,
+        "exact_output_requests": 176
+      },
+      {
+        "seed": 44,
+        "tps_change_pct": -19.95118101544434,
+        "e2e_p95_change_pct": 85.86553982567435,
+        "exact_output_requests": 170
+      }
+    ]
+  }
+}

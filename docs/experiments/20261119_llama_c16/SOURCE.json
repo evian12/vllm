@@ -1,0 +1,15 @@
+{
+  "source": "/home/yypan/CDB-AV/worktrees/cdb-llama-sharegpt-20261119",
+  "commit": "ccfd19da75969e79c242e860f18403eadad0e589",
+  "branch": "codex/cdb-llama-sharegpt-20261119",
+  "remote_head": "ccfd19da75969e79c242e860f18403eadad0e589",
+  "hashes": {
+    "vllm/v1/spec_decode/cdb_av_refill.py": "42c40858155aac1520910c75136fcff054a3cf40674b90d24b4be7a682f185d8",
+    "vllm/v1/spec_decode/cdb_av_persistent.py": "727fa44f7f4c8bd364eec79ba023f8e65db09ecac4287c6e0d37e3f269ff0cf1",
+    "vllm/v1/spec_decode/cdb_av_kv_reuse.py": "fd0a094645b9b9a3df9f6d7b004453d3406bb170f3089e7dd559b147209ed3a4",
+    "vllm/v1/spec_decode/cdb_av_config.py": "3e07b2f6a0b37644e48169a5878570795b634dd250906932440ae6d4f9eacff2",
+    "vllm/v1/spec_decode/cdb_av_target_graph.py": "a19b6040cdd2093724d80a0fda1125d9994238643b2c5baa61567e3013361bba",
+    "vllm/v1/spec_decode/cdb_av_acceptance.py": "425f4a9a1c35cc09e0d7f867b3c4afcaaa6f2dd2eb3b5239b6df8f33aed74f11",
+    "tests/v1/spec_decode/test_cdb_av_target_graph_llama.py": "1b77c0829174d2bb95ae53e907264b368761f89cfc9d1b8a3f54560f52938205"
+  }
+}

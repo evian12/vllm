@@ -1,0 +1,54 @@
+{
+  "source": {
+    "source": "/home/yypan/CDB-AV/worktrees/cdb-llama-sharegpt-20261119",
+    "commit": "ccfd19da75969e79c242e860f18403eadad0e589",
+    "branch": "codex/cdb-llama-sharegpt-20261119",
+    "remote_head": "ccfd19da75969e79c242e860f18403eadad0e589",
+    "hashes": {
+      "vllm/v1/spec_decode/cdb_av_refill.py": "42c40858155aac1520910c75136fcff054a3cf40674b90d24b4be7a682f185d8",
+      "vllm/v1/spec_decode/cdb_av_persistent.py": "727fa44f7f4c8bd364eec79ba023f8e65db09ecac4287c6e0d37e3f269ff0cf1",
+      "vllm/v1/spec_decode/cdb_av_kv_reuse.py": "fd0a094645b9b9a3df9f6d7b004453d3406bb170f3089e7dd559b147209ed3a4",
+      "vllm/v1/spec_decode/cdb_av_config.py": "3e07b2f6a0b37644e48169a5878570795b634dd250906932440ae6d4f9eacff2",
+      "vllm/v1/spec_decode/cdb_av_target_graph.py": "a19b6040cdd2093724d80a0fda1125d9994238643b2c5baa61567e3013361bba",
+      "vllm/v1/spec_decode/cdb_av_acceptance.py": "425f4a9a1c35cc09e0d7f867b3c4afcaaa6f2dd2eb3b5239b6df8f33aed74f11",
+      "tests/v1/spec_decode/test_cdb_av_target_graph_llama.py": "1b77c0829174d2bb95ae53e907264b368761f89cfc9d1b8a3f54560f52938205"
+    }
+  },
+  "family": "llama",
+  "target": "/disk14T/yypan/models/Llama-3.1-8B-Instruct",
+  "draft": "/disk14T/yypan/CDB-AV-runtime/baseline-comparison-20261113/models/Llama-3.2-1B-Instruct",
+  "GPU": 3,
+  "port": 18084,
+  "H": 8,
+  "k_cap": 8,
+  "HF_threshold": 0.8,
+  "max_num_seqs": 4,
+  "max_model_len": 1024,
+  "max_num_batched_tokens": 1024,
+  "requests": 512,
+  "client_concurrency": 16,
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "warmup_requests": 128,
+  "warmup_output_tokens": 128,
+  "formal_output_tokens": 101003,
+  "dtype": "bfloat16",
+  "backend": "FLASH_ATTN v2",
+  "async_scheduling": false,
+  "target_graph": true,
+  "draft_graph": true,
+  "llama_graph_opt_in": true,
+  "exact_qknorm": false,
+  "client_sha256": "218cb899acb5777f6e46ddb6fdff3070465fcac71275434691d5b12804e03027",
+  "observer_sha256": "f17b1e9255234a1dd8fa5e00550feeb5c16e00c53604360679e6635fd6b187f5",
+  "data_sha256": "59e2e785a02b33966d3a5a794896a38be1226420fa75e6280bf576ed96ce6e4d",
+  "notes": [
+    "Llama has no Qwen3 QK normalization; that specific optimization is not applicable and remains disabled.",
+    "Native Llama reference used this same physical GPU3, BF16/FA2, no async, same frozen prompts/order/budgets. Native Torch compile/graphs remain as originally configured.",
+    "No native baseline reruns. Runtime architecture guard is an opt-in extension; all KV/position/metadata guards remain.",
+    "First pass a short real GPU gate with Draft/Target Graph validation and cross-Target Carry byte checks; formal timing disables heavy validation."
+  ]
+}
