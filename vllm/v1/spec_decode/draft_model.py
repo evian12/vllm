@@ -353,6 +353,9 @@ class DraftModelProposer(SpecDecodeBaseProposer):
             - target_attn_layer_names
         )
         self.attn_layer_names = list(draft_attn_layer_names)
+        if os.getenv('CDB_AV_DRAFT_DOWN_PAD32', '0') != '0':
+            from vllm.v1.spec_decode.cdb_av_linear import configure
+            configure(self.model, draft_vllm_config)
 
 
 def create_vllm_config_for_draft_model(
