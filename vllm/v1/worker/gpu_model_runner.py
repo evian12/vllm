@@ -2192,6 +2192,13 @@ class GPUModelRunner(
         # [0, 1, 2, 5, 6, 9]
         target_logits_indices += arange
 
+        if os.getenv('CDB_AV_PACKED_SPEC_METADATA', '0') != '0':
+            from vllm.v1.spec_decode.cdb_av_spec_metadata import build
+            return build(self, num_draft_tokens, cu_num_draft_tokens,
+                         cu_num_sampled_tokens, logits_indices,
+                         target_logits_indices, bonus_logits_indices,
+                         int(cu_num_scheduled_tokens[-1]))
+
         # TODO: Optimize the CPU -> GPU copy.
         cu_num_draft_tokens = torch.from_numpy(cu_num_draft_tokens).to(
             self.device, non_blocking=True
