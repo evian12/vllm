@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Opt-in exact-row whole-Target graphs for synchronous Qwen3/FA2 CDB.
+"""Opt-in exact-row Target graphs for synchronous Qwen3/FA2 and gated Llama.
 
 Sampling and commit stay in GPUModelRunner. No native uniform/padding descriptor
 is forged. Query1 is always separate; mixed maximum query can use an explicit
@@ -21,15 +21,27 @@ from vllm.logger import init_logger
 logger = init_logger(__name__)
 
 
+def llama_graph_opt_in(env=None):
+    env = os.environ if env is None else env
+    value = env.get('CDB_AV_TARGET_GRAPH_LLAMA', '0')
+    if value not in ('0', '1'):
+        raise ValueError('CDB_AV_TARGET_GRAPH_LLAMA must be 0 or 1')
+    return value == '1'
+
+
 def validate_scope(*, persistent, refill, eager, async_scheduling,
                    prefix_caching, lora, model, dtype, quantization,
-                   parallel_sizes):
+                   parallel_sizes, allow_llama=False):
+    supported_model = model == 'Qwen3ForCausalLM' or (
+        allow_llama is True and model == 'LlamaForCausalLM')
     if (not persistent or not refill or not eager or async_scheduling
-            or prefix_caching or lora or model != 'Qwen3ForCausalLM'
+            or prefix_caching or lora or not supported_model
+            or type(allow_llama) is not bool
             or dtype != torch.bfloat16 or quantization is not None
             or len(parallel_sizes) != 4
             or any(type(n) is not int or n != 1 for n in parallel_sizes)):
         raise ValueError('Target full Graph requires synchronous eager Qwen3 '
+                         '(or opt-in Llama) '
                          'BF16 persistent refill, TP/PP/DP/DCP1, no prefix/LoRA/quantization')
 
 
@@ -134,6 +146,7 @@ class TargetFullGraph:
         self.model_ref = weakref.ref(runner.model)
         cfg = runner.vllm_config
         pc = cfg.parallel_config
+        allow_llama = llama_graph_opt_in()
         validate_scope(persistent=runner.cdb_persistent, refill=runner.cdb_refill,
             eager=cfg.model_config.enforce_eager,
             async_scheduling=cfg.scheduler_config.async_scheduling,
@@ -141,7 +154,8 @@ class TargetFullGraph:
             lora=cfg.lora_config is not None, model=type(runner.model).__name__,
             dtype=cfg.model_config.dtype, quantization=cfg.model_config.quantization,
             parallel_sizes=(pc.tensor_parallel_size, pc.pipeline_parallel_size,
-                pc.data_parallel_size, pc.decode_context_parallel_size))
+                pc.data_parallel_size, pc.decode_context_parallel_size),
+            allow_llama=allow_llama)
         model_modules = {id(m) for m in runner.model.modules()}
         self.layers = {name: layer for name, layer in
             cfg.compilation_config.static_forward_context.items()
@@ -151,6 +165,10 @@ class TargetFullGraph:
         if any(getattr(layer.impl, 'vllm_flash_attn_version', None) != 2
                for layer in self.layers.values()):
             raise ValueError('Target full Graph is restricted to FlashAttention2')
+        logger.info('[CDB_TARGET_GRAPH_SCOPE] %s', json.dumps(dict(
+            model=type(runner.model).__name__, layers=len(self.layers),
+            fa_version=2, llama_opt_in=allow_llama,
+            dtype=str(cfg.model_config.dtype))))
         self.capacity = cfg.scheduler_config.max_num_seqs
         self.max_query = cfg.speculative_config.num_speculative_tokens + 1
         self.max_model_len = cfg.model_config.max_model_len
