@@ -41,6 +41,17 @@ def is_enabled(name: str, default: bool = False) -> bool:
     return raw == "1"
 
 
+def get_history_k_fallback() -> str:
+    """Choose an explicit fallback for unmatched historical K observations."""
+    mode = os.getenv("CDB_AV_HISTORY_K_FALLBACK", "hf_confidence").strip()
+    if mode not in ("hf_confidence", "fixed_max"):
+        raise ValueError(
+            "CDB_AV_HISTORY_K_FALLBACK must be 'hf_confidence' or "
+            f"'fixed_max', got {mode!r}"
+        )
+    return mode
+
+
 def get_initial_admit_limit(capacity: int) -> int:
     """Return the maximum number of new requests admitted at a window start."""
     if capacity < 1:

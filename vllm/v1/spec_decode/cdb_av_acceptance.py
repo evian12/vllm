@@ -34,7 +34,10 @@ def conservative_replay_cap(accepted: int, observed_k: int, max_k: int) -> int:
 
 
 def should_stop(policy: str, k_source: str, confidence_stop: bool) -> bool:
-    """A matched replay uses its fixed cap; unmatched contexts use HF."""
+    """Historical caps and explicit fixed fallbacks bypass confidence stops."""
+    if (policy in ("replay_acceptance", "request_avg_acceptance")
+            and k_source == "fixed_max_fallback"):
+        return False
     if policy == "replay_acceptance" and k_source == "replay":
         return False
     if policy == "request_avg_acceptance" and k_source == "request_average":

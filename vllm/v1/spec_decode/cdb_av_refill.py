@@ -54,6 +54,7 @@ _REFILL_SUMMARY_EVENTS = {
 
 _LOW_LOG_COUNTS = Counter()
 _LOW_LOG_K = Counter()
+_LOW_LOG_K_SOURCES = Counter()
 _LOW_LOG_REASONS = Counter()
 _LOW_LOG_REUSE = Counter()
 _LOW_LOG_REPLAY = Counter()
@@ -70,6 +71,7 @@ def emit(event, **data):
             _LOW_LOG_COUNTS['__total__'] += 1
             if event == 'ready':
                 _LOW_LOG_K[data['k_actual']] += 1
+                _LOW_LOG_K_SOURCES[data.get('k_source', 'configured')] += 1
                 _LOW_LOG_REASONS[data['reason']] += 1
             elif event == 'p2_reuse_plan':
                 _LOW_LOG_REUSE['reused_tokens'] += data['reused_tokens']
@@ -83,6 +85,7 @@ def emit(event, **data):
                 logger.info('[CDB_AGG] %s', json.dumps(dict(
                     events=dict(_LOW_LOG_COUNTS),
                     k_actual=dict(_LOW_LOG_K),
+                    k_sources=dict(_LOW_LOG_K_SOURCES),
                     stop_reasons=dict(_LOW_LOG_REASONS),
                     token_counts=dict(_LOW_LOG_REUSE),
                     replay=dict(_LOW_LOG_REPLAY),
@@ -839,7 +842,7 @@ class RefillSession:
                 or (self.policy in ('replay_acceptance',
                                     'request_avg_acceptance') and any(
                     self.members[rid].get('k_source') not in
-                    ('replay', 'request_average')
+                    ('replay', 'request_average', 'fixed_max_fallback')
                     for rid in worked
                 ))
             )

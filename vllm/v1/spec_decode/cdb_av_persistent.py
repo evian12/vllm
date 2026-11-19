@@ -370,8 +370,11 @@ class PersistentDraftQueue:
         self.leases, self.contexts, self.carry = {}, {}, {}
         self.ready, self.inflight = {}, {}
         self.window = self.target_epoch = 0
-        from vllm.v1.spec_decode.cdb_av_config import get_window_h
+        from vllm.v1.spec_decode.cdb_av_config import (
+            get_history_k_fallback, get_window_h,
+        )
         self.horizon = get_window_h()
+        self.history_k_fallback = get_history_k_fallback()
         self.max_k = self.s.num_spec_tokens
         if type(self.max_k) is not int or self.max_k < 1:
             raise ValueError(
@@ -402,6 +405,7 @@ class PersistentDraftQueue:
             hf_threshold=os.getenv("CDB_AV_HF_THRESHOLD", "0.4"),
             kv_reuse=os.getenv("CDB_AV_KV_REUSE", "0"),
             intra_window=os.getenv("CDB_AV_INTRA_WINDOW", "1"),
+            history_k_fallback=self.history_k_fallback,
         )
         self._cdb_admit_limit = None
         self._cdb_admit_token_limit = None
@@ -951,6 +955,14 @@ class PersistentDraftQueue:
                      role='target_only_tail' if limited == 0 else 'draft')
             return limited, source
 
+        def history_source(matched, actual):
+            if actual == matched:
+                return matched
+            # Compatibility for lightweight queue fixtures and old subclasses;
+            # the normal EngineCore constructor fixes this setting at startup.
+            mode = getattr(self, "history_k_fallback", "hf_confidence")
+            return "fixed_max_fallback" if mode == "fixed_max" else "hf_fallback"
+
         if self.request_average is not None:
             extra = req.sampling_params.extra_args or {}
             fingerprint = token_fingerprint(req.prompt_token_ids)
@@ -961,8 +973,8 @@ class PersistentDraftQueue:
                  prompt_fingerprint=fingerprint, cap=decision.cap,
                  source=decision.source, mean_accepted=decision.mean_accepted,
                  verified_count=decision.verified_count)
-            return bounded(decision.cap, ('request_average' if decision.source ==
-                                  'request_average' else 'hf_fallback'))
+            return bounded(decision.cap, history_source(
+                "request_average", decision.source))
         if self.acceptance_replay is None:
             return bounded(get_request_k_cap(req.sampling_params.extra_args, self.max_k), 'configured')
         extra = req.sampling_params.extra_args or {}
@@ -973,7 +985,7 @@ class PersistentDraftQueue:
              trace_key=extra.get('cdb_trace_key'),
              fingerprint=context['fingerprint'], cap=decision.cap,
              source=decision.source, censored=decision.censored)
-        return bounded(decision.cap, ('replay' if decision.source == 'replay' else 'hf_fallback'))
+        return bounded(decision.cap, history_source("replay", decision.source))
 
     def plans(self):
         plans = []
