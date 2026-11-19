@@ -2,6 +2,10 @@
 """Persistent scheduler-side draft work, provenance and exclusive KV leases."""
 import os
 import time
+
+from vllm.v1.spec_decode.cdb_av_context_cache import (
+    ENABLED as CONTEXT_FP_CACHE, cached_context,
+)
 from vllm.v1.spec_decode.cdb_av_fingerprint import token_fingerprint
 from vllm.v1.spec_decode.cdb_av_work_queue import CDBDraftWorkQueue, DraftWorkStatus
 from vllm.v1.spec_decode.cdb_av_refill import emit
@@ -27,6 +31,8 @@ class RefillQueue:
     @staticmethod
     def context(req):
         tokens = list(req.prompt_token_ids) + list(req.output_token_ids)
+        if CONTEXT_FP_CACHE:
+            return cached_context(req, tokens, token_fingerprint)
         return dict(context_tokens=len(tokens),fingerprint=token_fingerprint(tokens))
 
     def begin(self, window):
