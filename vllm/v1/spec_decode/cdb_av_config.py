@@ -482,3 +482,16 @@ def validate_ragged_graph_backend(bound, builder):
             or cls.__name__ != 'FlashAttentionMetadataBuilder'
             or getattr(builder, 'aot_schedule', None) is not False):
         raise ValueError(f'Query{bound} Graph requires FlashAttention FA2 without AOT scheduling')
+
+
+def get_ragged_sequence_floor(max_model_len, env=None):
+    """Optional launch-bound floor; live lengths, token rows and slots stay exact."""
+    raw = (os.environ if env is None else env).get('CDB_AV_RAGGED_GRAPH_SEQ_FLOOR', '0')
+    try:
+        floor = int(raw)
+    except (TypeError, ValueError) as exc:
+        raise ValueError('Invalid ragged Graph sequence floor') from exc
+    if (type(raw) is not str or type(max_model_len) is not int or max_model_len < 1
+            or floor < 0 or floor > max_model_len or (floor and floor & (floor - 1))):
+        raise ValueError('Invalid ragged Graph sequence floor')
+    return floor

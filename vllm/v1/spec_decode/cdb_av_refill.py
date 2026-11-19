@@ -19,6 +19,7 @@ from vllm.v1.spec_decode.cdb_av_acceptance import should_stop
 from vllm.v1.spec_decode.cdb_av_config import (
     confidence_stop_flags,
     get_ragged_graph_query_bound,
+    get_ragged_sequence_floor,
     validate_ragged_graph_backend,
     get_k_stop_reason,
 )
@@ -163,8 +164,18 @@ class RefillSession:
         self._draft_stage_pending = None
         self._draft_stage_metadata_ms = 0.0
         self.graph_query_bound = get_ragged_graph_query_bound()
+        self.ragged_sequence_floor = get_ragged_sequence_floor(proposer.max_model_len)
         self.builder = proposer.attn_metadata_builder or proposer._get_attention_metadata_builder()
         validate_ragged_graph_backend(self.graph_query_bound, self.builder)
+        if self.ragged_sequence_floor:
+            if (os.getenv('CDB_AV_DRAFT_RAGGED_DYNAMIC', '0') != '1'
+                    or type(proposer.model).__name__ != 'LlamaForCausalLM'
+                    or proposer.vllm_config.model_config.quantization is not None):
+                raise ValueError('Ragged sequence floor requires dynamic Llama Draft Graph')
+            from vllm.v1.spec_decode.cdb_av_inputs import validate_staging_scope
+            validate_staging_scope(proposer.vllm_config)
+            # A larger bound is verified only for the existing FA2 builder.
+            validate_ragged_graph_backend(8, self.builder)
         self.block_size = self.builder.kv_cache_spec.block_size
         from vllm.v1.spec_decode.cdb_av_inputs import get_input_stager
         self._input_stager = get_input_stager(proposer)
@@ -257,7 +268,8 @@ class RefillSession:
             return None
         required = max(cad.max_seq_len,
                        cad.block_table_tensor.shape[1] * self.block_size)
-        bucket = max(self.block_size, 1 << (required - 1).bit_length())
+        bucket = max(self.block_size, 1 << (required - 1).bit_length(),
+                     getattr(self, 'ragged_sequence_floor', 0) if dynamic else 0)
         if bucket > self.p.max_model_len:
             return None
         if dynamic:
