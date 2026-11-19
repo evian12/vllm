@@ -101,6 +101,27 @@ def target_graph_timing_config(env=None):
     return True, max_samples
 
 
+def bound_reuse_opt_in(env=None):
+    env = os.environ if env is None else env
+    value = env.get('CDB_AV_TARGET_GRAPH_REUSE_BOUNDS', '0')
+    if value not in ('0', '1'):
+        raise ValueError('CDB_AV_TARGET_GRAPH_REUSE_BOUNDS must be 0 or 1')
+    return value == '1'
+
+
+def compatible_graph_key(key, cached_keys):
+    """Keep exact tensor/FA2 domains; only the sequence launch bound may grow.
+
+    This chooses existing storage, never rounds/pads live tensor rows or creates
+    a graph. Model/KV allocation identity is checked by _storage before lookup.
+    The smallest compatible bound limits unnecessary FA2 launch work.
+    """
+    candidates = (other for other in cached_keys
+                  if other[:3] == key[:3] and other[4:] == key[4:]
+                  and other[3] >= key[3])
+    return min(candidates, key=lambda other: other[3], default=None)
+
+
 def metadata_has_no_planner(meta):
     # FA2 builder uses scalar0 for the inactive DCP maximum, not None.
     return (not meta.use_cascade and not meta.common_prefix_len and meta.causal
@@ -184,6 +205,7 @@ class TargetFullGraph:
         if not 1 <= self.limit <= 32 or self.min_hits < 1:
             raise ValueError('Invalid Target Graph cache budget/frequency')
         self.cache, self.hits, self.counts = {}, Counter(), Counter()
+        self.reuse_bounds = bound_reuse_opt_in()
         self.storage = None
         self.timing_enabled, self.timing_max_samples = target_graph_timing_config()
         self.timing_samples = 0
@@ -264,6 +286,13 @@ class TargetFullGraph:
             self._record('fallback_layout')
             return None
         entry = self.cache.get(key)
+        requested_key = key
+        if entry is None and self.reuse_bounds:
+            compatible = compatible_graph_key(key, self.cache)
+            if compatible is not None:
+                key = compatible
+                entry = self.cache[key]
+                self.counts['bound_reuse'] += 1
         if entry is None:
             self.hits[key] += 1
             if len(self.cache) >= self.limit or self.hits[key] < self.min_hits:
@@ -305,7 +334,8 @@ class TargetFullGraph:
         entry['graph'].replay()
         req_ids = list(r.input_batch.req_ids[:nr])
         self._record(action, key, req_ids=req_ids, token_rows=n, request_rows=nr,
-                     query_lengths=[b-a for a,b in zip(starts, starts[1:])], padding=0)
+                     query_lengths=[b-a for a,b in zip(starts, starts[1:])], padding=0,
+                     requested_key=requested_key, bound_reuse=key != requested_key)
         result = entry['hidden']
         if os.getenv('CDB_AV_TARGET_GRAPH_VALIDATE', '0') == '1':
             if self.timing_enabled:
