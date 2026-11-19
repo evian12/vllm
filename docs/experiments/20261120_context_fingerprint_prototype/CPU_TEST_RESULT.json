@@ -1,0 +1,14 @@
+{
+  "status": "CPU prototype only; not wired or GPU accepted",
+  "passed": 19,
+  "elapsed_s": 0.004,
+  "python": "3.10.5 (v3.10.5:f377153967, Jun  6 2022, 12:36:10) [Clang 13.0.0 (clang-1300.0.29.30)]",
+  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "reference_source": "/home/yypan/CDB-AV/worktrees/cdb-target-seq-floor-20261120/vllm/v1/spec_decode/cdb_av_fingerprint.py",
+  "reference_commit": "23eaa57d50af9c740088d0f375acc59c3cf2474d",
+  "hashes": {
+    "cdb_av_context_cache.py": "34bd4f3a3d5fa3f783cf2b0079807831c35049424524b6e81b528901fa9ba28a",
+    "cdb_av_fingerprint_reference.py": "7545088e94f666de847411643ce921e2cb75e6e935a3d150db2ea2cfb425aaa7",
+    "test_standalone.py": "7f3be236743e33fb5baef86f2f53549a62a943f895ea3604b18b29b708710bae"
+  }
+}

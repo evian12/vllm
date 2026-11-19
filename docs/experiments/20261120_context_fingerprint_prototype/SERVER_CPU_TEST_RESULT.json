@@ -1,0 +1,6 @@
+{
+  "passed": 19,
+  "elapsed_s": 0.011,
+  "python": "3.10.12 (main, Aug 31 2026, 10:18:17) [GCC 11.4.0]",
+  "status": "Not wired into inference; no GPU claim"
+}
