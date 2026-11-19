@@ -1,0 +1,1249 @@
+{
+  "runs": [
+    {
+      "directory": "/disk14T/yypan/CDB-AV-runtime/results/sharegpt_h_sweep_gpu3_20261119_1016/pair0_h4_seed42",
+      "H": 4,
+      "seed": 42,
+      "summary": {
+        "requests": 512,
+        "completed": 512,
+        "failed": 0,
+        "elapsed_s": 448.98528859205544,
+        "measurement_start_wall": 1795055129.2735178,
+        "first_dispatch_wall": 1795055129.273737,
+        "last_completion_wall": 1795055578.2590256,
+        "first_dispatch_s": 0.00021922029554843903,
+        "last_completion_s": 448.985507812351,
+        "drain_s": null,
+        "output_tokens": 101003,
+        "throughput_tok_s": 224.9583729496548,
+        "open_requests": null,
+        "arrival_window_s": null,
+        "open_workload": null,
+        "latency_s": {
+          "ttft": {
+            "p50": 1.9287793934345245,
+            "p95": 4.393329366948454
+          },
+          "e2e": {
+            "p50": 13.077425918076187,
+            "p95": 25.49391568293795
+          },
+          "tpot": {
+            "p50": 0.058700334686672406,
+            "p95": 0.07657365043265493
+          },
+          "scheduled_ttft": {
+            "p50": null,
+            "p95": null
+          },
+          "scheduled_e2e": {
+            "p50": null,
+            "p95": null
+          }
+        },
+        "itl_s": {
+          "p50": 0.027064413763582706,
+          "p95": 0.04012049795128405
+        },
+        "dispatch_lag_s": {
+          "p50": null,
+          "p95": null
+        },
+        "arrival_timing_qualified": true,
+        "delivery_itl_s": {
+          "p50": 0.02589032705873251,
+          "p95": 0.3214942174963653
+        },
+        "itl_definition": "Client delivery: all token IDs in one SSE chunk share its receive timestamp; zero intervals within a burst are retained. GPU-internal generation time is not inferred.",
+        "itl_coverage_requests": 14,
+        "slo_compliance": null,
+        "slo_note": "No predefined thresholds; multi-token stream chunks do not expose exact token ITL.",
+        "plan_sha256": "526f1227efb2385aa23f8e276cb373d30b2a72d45ba34620d6cfc4ca058c5a3b",
+        "smoke": false
+      },
+      "verify_events": 17341.0,
+      "candidates": 59098.0,
+      "accepted": 40262.0,
+      "target_iterations": 15423.0,
+      "preemptions": 0.0,
+      "acceptance_rate": 0.6812751700565163,
+      "mean_verified_K": 3.4079926186494434,
+      "verify_events_per_target_iteration": 1.1243597224923816,
+      "observed_target_forward_delta": 15423,
+      "interior": {
+        "target_graph": {
+          "fallback_layout": 366,
+          "calls": 15232,
+          "fallback_warmup": 0,
+          "capture": 0,
+          "replay": 11619,
+          "fallback_budget": 3247
+        },
+        "events": {
+          "p2_runtime_config": 0,
+          "__total__": 145408,
+          "target_ready_select": 15287,
+          "p2_target_begin": 15285,
+          "p2_target_commit": 3863,
+          "p2_reuse_plan": 17175,
+          "k_policy_config": 0,
+          "p2_window_begin": 3865,
+          "reuse_pending_prefill": 17175,
+          "p2_ar_target_bypass": 172,
+          "p2_boundary": 3865,
+          "ready": 17176,
+          "p2_handoff": 17178,
+          "p2_verified": 17182,
+          "reuse_cache_consumed": 16683,
+          "reuse_lease_release": 502
+        },
+        "token_counts": {
+          "reused_tokens": 3905862,
+          "prefill_tokens": 108073,
+          "accepted_tokens": 39929,
+          "drafted_tokens": 58574
+        },
+        "k_actual": {
+          "8": 2575,
+          "1": 5292,
+          "5": 1031,
+          "6": 710,
+          "4": 1568,
+          "3": 2155,
+          "2": 3282,
+          "7": 563
+        },
+        "stop_reasons": {
+          "max_k": 2575,
+          "low_confidence": 14601
+        }
+      },
+      "gpu_mean": {
+        "utilization_pct": 80.62138084632517,
+        "memory_mib": 22739.681514476615,
+        "power_w": 249.2957461024499,
+        "temperature_c": 58.43875278396437,
+        "sm_clock_mhz": 2669.064587973274
+      }
+    },
+    {
+      "directory": "/disk14T/yypan/CDB-AV-runtime/results/sharegpt_h_sweep_gpu3_20261119_1016/pair0_h6_seed42",
+      "H": 6,
+      "seed": 42,
+      "summary": {
+        "requests": 512,
+        "completed": 512,
+        "failed": 0,
+        "elapsed_s": 445.0425245752558,
+        "measurement_start_wall": 1795055700.648051,
+        "first_dispatch_wall": 1795055700.6482837,
+        "last_completion_wall": 1795056145.6908083,
+        "first_dispatch_s": 0.00023261364549398422,
+        "last_completion_s": 445.0427571889013,
+        "drain_s": null,
+        "output_tokens": 101003,
+        "throughput_tok_s": 226.95134604585542,
+        "open_requests": null,
+        "arrival_window_s": null,
+        "open_workload": null,
+        "latency_s": {
+          "ttft": {
+            "p50": 0.44526929780840874,
+            "p95": 1.796948084142059
+          },
+          "e2e": {
+            "p50": 13.140864635817707,
+            "p95": 27.65699576614424
+          },
+          "tpot": {
+            "p50": 0.06417891299809424,
+            "p95": 0.08486403845044714
+          },
+          "scheduled_ttft": {
+            "p50": null,
+            "p95": null
+          },
+          "scheduled_e2e": {
+            "p50": null,
+            "p95": null
+          }
+        },
+        "itl_s": {
+          "p50": 0.026932576671242714,
+          "p95": 0.036900955718010664
+        },
+        "dispatch_lag_s": {
+          "p50": null,
+          "p95": null
+        },
+        "arrival_timing_qualified": true,
+        "delivery_itl_s": {
+          "p50": 0.02591204084455967,
+          "p95": 0.35703615099191666
+        },
+        "itl_definition": "Client delivery: all token IDs in one SSE chunk share its receive timestamp; zero intervals within a burst are retained. GPU-internal generation time is not inferred.",
+        "itl_coverage_requests": 15,
+        "slo_compliance": null,
+        "slo_note": "No predefined thresholds; multi-token stream chunks do not expose exact token ITL.",
+        "plan_sha256": "526f1227efb2385aa23f8e276cb373d30b2a72d45ba34620d6cfc4ca058c5a3b",
+        "smoke": false
+      },
+      "verify_events": 17849.0,
+      "candidates": 60268.0,
+      "accepted": 40936.0,
+      "target_iterations": 15288.0,
+      "preemptions": 0.0,
+      "acceptance_rate": 0.6792327603371607,
+      "mean_verified_K": 3.376547705753824,
+      "verify_events_per_target_iteration": 1.1675170068027212,
+      "observed_target_forward_delta": 15288,
+      "interior": {
+        "events": {
+          "p2_runtime_config": 0,
+          "__total__": 145408,
+          "target_ready_select": 15221,
+          "p2_target_begin": 15222,
+          "p2_target_commit": 2622,
+          "p2_reuse_plan": 17761,
+          "k_policy_config": 0,
+          "p2_window_begin": 2621,
+          "reuse_pending_prefill": 17761,
+          "p2_ar_target_bypass": 505,
+          "p2_boundary": 2621,
+          "ready": 17765,
+          "p2_handoff": 17765,
+          "p2_verified": 17772,
+          "reuse_cache_consumed": 17272,
+          "reuse_lease_release": 500
+        },
+        "token_counts": {
+          "reused_tokens": 4077358,
+          "prefill_tokens": 107861,
+          "accepted_tokens": 40780,
+          "drafted_tokens": 60033
+        },
+        "k_actual": {
+          "8": 2521,
+          "1": 5423,
+          "6": 745,
+          "4": 1576,
+          "5": 1153,
+          "3": 2294,
+          "2": 3475,
+          "7": 578
+        },
+        "stop_reasons": {
+          "max_k": 2521,
+          "low_confidence": 15244
+        },
+        "target_graph": {
+          "fallback_layout": 406,
+          "calls": 15104,
+          "fallback_warmup": 0,
+          "capture": 0,
+          "replay": 10890,
+          "fallback_budget": 3808
+        }
+      },
+      "gpu_mean": {
+        "utilization_pct": 81.0608108108108,
+        "memory_mib": 22711.216216216217,
+        "power_w": 249.9527027027027,
+        "temperature_c": 57.81981981981982,
+        "sm_clock_mhz": 2669.324324324324
+      }
+    },
+    {
+      "directory": "/disk14T/yypan/CDB-AV-runtime/results/sharegpt_h_sweep_gpu3_20261119_1016/pair0_h8_seed42",
+      "H": 8,
+      "seed": 42,
+      "summary": {
+        "requests": 512,
+        "completed": 512,
+        "failed": 0,
+        "elapsed_s": 444.48187234066427,
+        "measurement_start_wall": 1795056268.1193805,
+        "first_dispatch_wall": 1795056268.11963,
+        "last_completion_wall": 1795056712.6015024,
+        "first_dispatch_s": 0.0002496344968676567,
+        "last_completion_s": 444.48212197516114,
+        "drain_s": null,
+        "output_tokens": 101003,
+        "throughput_tok_s": 227.23761369189938,
+        "open_requests": null,
+        "arrival_window_s": null,
+        "open_workload": null,
+        "latency_s": {
+          "ttft": {
+            "p50": 0.1849014381878078,
+            "p95": 0.6955014192499217
+          },
+          "e2e": {
+            "p50": 12.833393265958875,
+            "p95": 27.92976821339689
+          },
+          "tpot": {
+            "p50": 0.06581147454954335,
+            "p95": 0.08824398689849428
+          },
+          "scheduled_ttft": {
+            "p50": null,
+            "p95": null
+          },
+          "scheduled_e2e": {
+            "p50": null,
+            "p95": null
+          }
+        },
+        "itl_s": {
+          "p50": 0.0271863448433578,
+          "p95": 0.03947789468802512
+        },
+        "dispatch_lag_s": {
+          "p50": null,
+          "p95": null
+        },
+        "arrival_timing_qualified": true,
+        "delivery_itl_s": {
+          "p50": 0.02586529217660427,
+          "p95": 0.36390298418700695
+        },
+        "itl_definition": "Client delivery: all token IDs in one SSE chunk share its receive timestamp; zero intervals within a burst are retained. GPU-internal generation time is not inferred.",
+        "itl_coverage_requests": 10,
+        "slo_compliance": null,
+        "slo_note": "No predefined thresholds; multi-token stream chunks do not expose exact token ITL.",
+        "plan_sha256": "526f1227efb2385aa23f8e276cb373d30b2a72d45ba34620d6cfc4ca058c5a3b",
+        "smoke": false
+      },
+      "verify_events": 18456.0,
+      "candidates": 63154.0,
+      "accepted": 42809.0,
+      "target_iterations": 14930.0,
+      "preemptions": 0.0,
+      "acceptance_rate": 0.6778509674763277,
+      "mean_verified_K": 3.4218682271348073,
+      "verify_events_per_target_iteration": 1.2361687876758205,
+      "observed_target_forward_delta": 14930,
+      "interior": {
+        "target_graph": {
+          "fallback_layout": 466,
+          "calls": 14848,
+          "fallback_warmup": 0,
+          "capture": 0,
+          "replay": 10441,
+          "fallback_budget": 3941
+        },
+        "events": {
+          "p2_runtime_config": 0,
+          "__total__": 147456,
+          "target_ready_select": 14840,
+          "p2_target_begin": 14840,
+          "p2_target_commit": 2044,
+          "p2_reuse_plan": 18350,
+          "k_policy_config": 0,
+          "p2_window_begin": 2043,
+          "reuse_pending_prefill": 18350,
+          "p2_ar_target_bypass": 1508,
+          "ready": 18352,
+          "p2_handoff": 18361,
+          "p2_boundary": 2044,
+          "p2_verified": 18361,
+          "reuse_cache_consumed": 17861,
+          "reuse_lease_release": 502
+        },
+        "token_counts": {
+          "reused_tokens": 4169066,
+          "prefill_tokens": 106356,
+          "accepted_tokens": 42597,
+          "drafted_tokens": 62814
+        },
+        "k_actual": {
+          "8": 2767,
+          "1": 5562,
+          "5": 1158,
+          "6": 780,
+          "3": 2367,
+          "4": 1580,
+          "7": 585,
+          "2": 3553
+        },
+        "stop_reasons": {
+          "max_k": 2767,
+          "low_confidence": 15585
+        }
+      },
+      "gpu_mean": {
+        "utilization_pct": 79.57207207207207,
+        "memory_mib": 22696.337837837837,
+        "power_w": 247.95265765765765,
+        "temperature_c": 57.2027027027027,
+        "sm_clock_mhz": 2669.2905405405404
+      }
+    },
+    {
+      "directory": "/disk14T/yypan/CDB-AV-runtime/results/sharegpt_h_sweep_gpu3_20261119_1016/pair1_h4_seed43",
+      "H": 4,
+      "seed": 43,
+      "summary": {
+        "requests": 512,
+        "completed": 512,
+        "failed": 0,
+        "elapsed_s": 444.30308163445443,
+        "measurement_start_wall": 1795057955.34614,
+        "first_dispatch_wall": 1795057955.346399,
+        "last_completion_wall": 1795058399.6494806,
+        "first_dispatch_s": 0.0002591349184513092,
+        "last_completion_s": 444.3033407693729,
+        "drain_s": null,
+        "output_tokens": 101003,
+        "throughput_tok_s": 227.3290557167441,
+        "open_requests": null,
+        "arrival_window_s": null,
+        "open_workload": null,
+        "latency_s": {
+          "ttft": {
+            "p50": 1.9106337637640536,
+            "p95": 4.24597562844865
+          },
+          "e2e": {
+            "p50": 13.002532119862735,
+            "p95": 25.95484702568501
+          },
+          "tpot": {
+            "p50": 0.057560235657392655,
+            "p95": 0.0751056271077469
+          },
+          "scheduled_ttft": {
+            "p50": null,
+            "p95": null
+          },
+          "scheduled_e2e": {
+            "p50": null,
+            "p95": null
+          }
+        },
+        "itl_s": {
+          "p50": 0.026511975564062595,
+          "p95": 0.035700345970690245
+        },
+        "dispatch_lag_s": {
+          "p50": null,
+          "p95": null
+        },
+        "arrival_timing_qualified": true,
+        "delivery_itl_s": {
+          "p50": 0.025713495910167694,
+          "p95": 0.3186612231656909
+        },
+        "itl_definition": "Client delivery: all token IDs in one SSE chunk share its receive timestamp; zero intervals within a burst are retained. GPU-internal generation time is not inferred.",
+        "itl_coverage_requests": 17,
+        "slo_compliance": null,
+        "slo_note": "No predefined thresholds; multi-token stream chunks do not expose exact token ITL.",
+        "plan_sha256": "fe51cb83d405cfe920747b61321812e205de66cc804b4886777c3a7577aefad3",
+        "smoke": false
+      },
+      "verify_events": 17234.0,
+      "candidates": 59306.0,
+      "accepted": 40272.0,
+      "target_iterations": 15407.0,
+      "preemptions": 0.0,
+      "acceptance_rate": 0.679054395845277,
+      "mean_verified_K": 3.441220842520599,
+      "verify_events_per_target_iteration": 1.1185824625170377,
+      "observed_target_forward_delta": 15407,
+      "interior": {
+        "events": {
+          "p2_runtime_config": 0,
+          "__total__": 144384,
+          "target_ready_select": 15247,
+          "p2_target_begin": 15247,
+          "p2_target_commit": 3839,
+          "p2_reuse_plan": 17041,
+          "k_policy_config": 0,
+          "p2_window_begin": 3839,
+          "reuse_pending_prefill": 17042,
+          "p2_boundary": 3839,
+          "ready": 17041,
+          "p2_handoff": 17040,
+          "p2_verified": 17049,
+          "reuse_cache_consumed": 16559,
+          "reuse_lease_release": 491,
+          "p2_ar_target_bypass": 110
+        },
+        "token_counts": {
+          "reused_tokens": 3846595,
+          "prefill_tokens": 106882,
+          "accepted_tokens": 39736,
+          "drafted_tokens": 58536
+        },
+        "k_actual": {
+          "5": 1073,
+          "6": 745,
+          "8": 2566,
+          "2": 3239,
+          "4": 1450,
+          "3": 2270,
+          "1": 5141,
+          "7": 557
+        },
+        "stop_reasons": {
+          "low_confidence": 14475,
+          "max_k": 2566
+        },
+        "target_graph": {
+          "fallback_layout": 369,
+          "calls": 15232,
+          "fallback_warmup": 0,
+          "capture": 0,
+          "replay": 11505,
+          "fallback_budget": 3358
+        }
+      },
+      "gpu_mean": {
+        "utilization_pct": 81.40090090090091,
+        "memory_mib": 22659.536036036036,
+        "power_w": 250.4073873873874,
+        "temperature_c": 57.270270270270274,
+        "sm_clock_mhz": 2669.087837837838
+      }
+    },
+    {
+      "directory": "/disk14T/yypan/CDB-AV-runtime/results/sharegpt_h_sweep_gpu3_20261119_1016/pair1_h6_seed43",
+      "H": 6,
+      "seed": 43,
+      "summary": {
+        "requests": 512,
+        "completed": 512,
+        "failed": 0,
+        "elapsed_s": 444.32406527735293,
+        "measurement_start_wall": 1795056831.3812335,
+        "first_dispatch_wall": 1795056831.3815289,
+        "last_completion_wall": 1795057275.705594,
+        "first_dispatch_s": 0.00029528792947530746,
+        "last_completion_s": 444.3243605652824,
+        "drain_s": null,
+        "output_tokens": 101003,
+        "throughput_tok_s": 227.31831987752588,
+        "open_requests": null,
+        "arrival_window_s": null,
+        "open_workload": null,
+        "latency_s": {
+          "ttft": {
+            "p50": 0.5618630908429623,
+            "p95": 1.7778224856592715
+          },
+          "e2e": {
+            "p50": 13.267236013896763,
+            "p95": 27.819609348475932
+          },
+          "tpot": {
+            "p50": 0.06408231331760908,
+            "p95": 0.08384052758819244
+          },
+          "scheduled_ttft": {
+            "p50": null,
+            "p95": null
+          },
+          "scheduled_e2e": {
+            "p50": null,
+            "p95": null
+          }
+        },
+        "itl_s": {
+          "p50": 0.027030992321670055,
+          "p95": 0.03814628999680281
+        },
+        "dispatch_lag_s": {
+          "p50": null,
+          "p95": null
+        },
+        "arrival_timing_qualified": true,
+        "delivery_itl_s": {
+          "p50": 0.025830752216279507,
+          "p95": 0.3602100005373359
+        },
+        "itl_definition": "Client delivery: all token IDs in one SSE chunk share its receive timestamp; zero intervals within a burst are retained. GPU-internal generation time is not inferred.",
+        "itl_coverage_requests": 12,
+        "slo_compliance": null,
+        "slo_note": "No predefined thresholds; multi-token stream chunks do not expose exact token ITL.",
+        "plan_sha256": "fe51cb83d405cfe920747b61321812e205de66cc804b4886777c3a7577aefad3",
+        "smoke": false
+      },
+      "verify_events": 17427.0,
+      "candidates": 60214.0,
+      "accepted": 41013.0,
+      "target_iterations": 15249.0,
+      "preemptions": 0.0,
+      "acceptance_rate": 0.6811206696117182,
+      "mean_verified_K": 3.455213174958398,
+      "verify_events_per_target_iteration": 1.142829037969703,
+      "observed_target_forward_delta": 15249,
+      "interior": {
+        "events": {
+          "p2_runtime_config": 0,
+          "__total__": 142336,
+          "target_ready_select": 15183,
+          "p2_target_begin": 15184,
+          "p2_target_commit": 2577,
+          "p2_reuse_plan": 17325,
+          "k_policy_config": 0,
+          "p2_window_begin": 2577,
+          "reuse_pending_prefill": 17325,
+          "ready": 17325,
+          "p2_handoff": 17325,
+          "p2_boundary": 2577,
+          "p2_verified": 17329,
+          "reuse_cache_consumed": 16833,
+          "p2_ar_target_bypass": 277,
+          "reuse_lease_release": 499
+        },
+        "token_counts": {
+          "reused_tokens": 3954525,
+          "prefill_tokens": 107690,
+          "accepted_tokens": 40613,
+          "drafted_tokens": 59725
+        },
+        "k_actual": {
+          "5": 1090,
+          "6": 754,
+          "8": 2645,
+          "1": 5258,
+          "2": 3272,
+          "7": 588,
+          "4": 1503,
+          "3": 2215
+        },
+        "stop_reasons": {
+          "low_confidence": 14680,
+          "max_k": 2645
+        },
+        "target_graph": {
+          "fallback_layout": 415,
+          "calls": 15104,
+          "fallback_warmup": 0,
+          "capture": 0,
+          "replay": 11482,
+          "fallback_budget": 3207
+        }
+      },
+      "gpu_mean": {
+        "utilization_pct": 80.83783783783784,
+        "memory_mib": 22669.558558558558,
+        "power_w": 248.96734234234233,
+        "temperature_c": 57.391891891891895,
+        "sm_clock_mhz": 2668.9527027027025
+      }
+    },
+    {
+      "directory": "/disk14T/yypan/CDB-AV-runtime/results/sharegpt_h_sweep_gpu3_20261119_1016/pair1_h8_seed43",
+      "H": 8,
+      "seed": 43,
+      "summary": {
+        "requests": 512,
+        "completed": 512,
+        "failed": 0,
+        "elapsed_s": 440.29992667399347,
+        "measurement_start_wall": 1795057394.7510455,
+        "first_dispatch_wall": 1795057394.7512622,
+        "last_completion_wall": 1795057835.051189,
+        "first_dispatch_s": 0.00021669920533895493,
+        "last_completion_s": 440.3001433731988,
+        "drain_s": null,
+        "output_tokens": 101003,
+        "throughput_tok_s": 229.39590465747355,
+        "open_requests": null,
+        "arrival_window_s": null,
+        "open_workload": null,
+        "latency_s": {
+          "ttft": {
+            "p50": 0.19185003777965903,
+            "p95": 0.6615161929279565
+          },
+          "e2e": {
+            "p50": 12.97196255158633,
+            "p95": 27.16943520824425
+          },
+          "tpot": {
+            "p50": 0.06531871515382208,
+            "p95": 0.08568287139982227
+          },
+          "scheduled_ttft": {
+            "p50": null,
+            "p95": null
+          },
+          "scheduled_e2e": {
+            "p50": null,
+            "p95": null
+          }
+        },
+        "itl_s": {
+          "p50": 0.026900915428996086,
+          "p95": 0.04328165790066122
+        },
+        "dispatch_lag_s": {
+          "p50": null,
+          "p95": null
+        },
+        "arrival_timing_qualified": true,
+        "delivery_itl_s": {
+          "p50": 0.025813858956098557,
+          "p95": 0.35746929747983813
+        },
+        "itl_definition": "Client delivery: all token IDs in one SSE chunk share its receive timestamp; zero intervals within a burst are retained. GPU-internal generation time is not inferred.",
+        "itl_coverage_requests": 16,
+        "slo_compliance": null,
+        "slo_note": "No predefined thresholds; multi-token stream chunks do not expose exact token ITL.",
+        "plan_sha256": "fe51cb83d405cfe920747b61321812e205de66cc804b4886777c3a7577aefad3",
+        "smoke": false
+      },
+      "verify_events": 18552.0,
+      "candidates": 63293.0,
+      "accepted": 43132.0,
+      "target_iterations": 14830.0,
+      "preemptions": 0.0,
+      "acceptance_rate": 0.6814655649123916,
+      "mean_verified_K": 3.4116537300560585,
+      "verify_events_per_target_iteration": 1.2509777478084962,
+      "observed_target_forward_delta": 14830,
+      "interior": {
+        "events": {
+          "p2_runtime_config": 0,
+          "__total__": 148480,
+          "target_ready_select": 14799,
+          "p2_target_begin": 14798,
+          "p2_target_commit": 2043,
+          "p2_reuse_plan": 18562,
+          "k_policy_config": 0,
+          "p2_window_begin": 2043,
+          "reuse_pending_prefill": 18521,
+          "ready": 18525,
+          "p2_handoff": 18527,
+          "p2_boundary": 2044,
+          "p2_verified": 18532,
+          "reuse_cache_consumed": 18028,
+          "p2_ar_target_bypass": 1552,
+          "reuse_lease_release": 506
+        },
+        "token_counts": {
+          "reused_tokens": 4251972,
+          "prefill_tokens": 115767,
+          "accepted_tokens": 43057,
+          "drafted_tokens": 63200
+        },
+        "k_actual": {
+          "5": 1195,
+          "6": 814,
+          "8": 2737,
+          "2": 3641,
+          "3": 2340,
+          "1": 5617,
+          "4": 1585,
+          "7": 596
+        },
+        "stop_reasons": {
+          "low_confidence": 15788,
+          "max_k": 2737
+        },
+        "target_graph": {
+          "fallback_layout": 452,
+          "calls": 14592,
+          "fallback_warmup": 0,
+          "capture": 0,
+          "replay": 10724,
+          "fallback_budget": 3416
+        }
+      },
+      "gpu_mean": {
+        "utilization_pct": 81.06818181818181,
+        "memory_mib": 22684.954545454544,
+        "power_w": 248.15354545454545,
+        "temperature_c": 57.070454545454545,
+        "sm_clock_mhz": 2669.693181818182
+      }
+    },
+    {
+      "directory": "/disk14T/yypan/CDB-AV-runtime/results/sharegpt_h_sweep_gpu3_20261119_1016/pair2_h4_seed44",
+      "H": 4,
+      "seed": 44,
+      "summary": {
+        "requests": 512,
+        "completed": 512,
+        "failed": 0,
+        "elapsed_s": 445.56531593203545,
+        "measurement_start_wall": 1795059081.5486367,
+        "first_dispatch_wall": 1795059081.5488765,
+        "last_completion_wall": 1795059527.1141925,
+        "first_dispatch_s": 0.00023976340889930725,
+        "last_completion_s": 445.56555569544435,
+        "drain_s": null,
+        "output_tokens": 101003,
+        "throughput_tok_s": 226.68505915619014,
+        "open_requests": null,
+        "arrival_window_s": null,
+        "open_workload": null,
+        "latency_s": {
+          "ttft": {
+            "p50": 2.060603461228311,
+            "p95": 4.239303922280668
+          },
+          "e2e": {
+            "p50": 13.349653277080506,
+            "p95": 26.222499551856888
+          },
+          "tpot": {
+            "p50": 0.05695650410520031,
+            "p95": 0.07449540113811573
+          },
+          "scheduled_ttft": {
+            "p50": null,
+            "p95": null
+          },
+          "scheduled_e2e": {
+            "p50": null,
+            "p95": null
+          }
+        },
+        "itl_s": {
+          "p50": 0.026667148806154728,
+          "p95": 0.03830178915522993
+        },
+        "dispatch_lag_s": {
+          "p50": null,
+          "p95": null
+        },
+        "arrival_timing_qualified": true,
+        "delivery_itl_s": {
+          "p50": 0.025700492784380913,
+          "p95": 0.3170542875304818
+        },
+        "itl_definition": "Client delivery: all token IDs in one SSE chunk share its receive timestamp; zero intervals within a burst are retained. GPU-internal generation time is not inferred.",
+        "itl_coverage_requests": 13,
+        "slo_compliance": null,
+        "slo_note": "No predefined thresholds; multi-token stream chunks do not expose exact token ITL.",
+        "plan_sha256": "0f161c82e588d92fed873cfca8c19eebcb4ebb29ac7b79ea7b7f10ff0b156b44",
+        "smoke": false
+      },
+      "verify_events": 17235.0,
+      "candidates": 59380.0,
+      "accepted": 40311.0,
+      "target_iterations": 15412.0,
+      "preemptions": 0.0,
+      "acceptance_rate": 0.6788649376894578,
+      "mean_verified_K": 3.4453147664635915,
+      "verify_events_per_target_iteration": 1.118284453672463,
+      "observed_target_forward_delta": 15412,
+      "interior": {
+        "events": {
+          "p2_runtime_config": 0,
+          "__total__": 145408,
+          "target_ready_select": 15314,
+          "p2_target_begin": 15309,
+          "p2_target_commit": 3893,
+          "p2_reuse_plan": 17132,
+          "k_policy_config": 0,
+          "p2_window_begin": 3898,
+          "reuse_pending_prefill": 17131,
+          "ready": 17135,
+          "p2_handoff": 17135,
+          "p2_boundary": 3898,
+          "p2_verified": 17141,
+          "reuse_cache_consumed": 16643,
+          "reuse_lease_release": 501,
+          "p2_ar_target_bypass": 278
+        },
+        "token_counts": {
+          "reused_tokens": 3919636,
+          "prefill_tokens": 108288,
+          "accepted_tokens": 40078,
+          "drafted_tokens": 59015
+        },
+        "k_actual": {
+          "2": 3281,
+          "4": 1459,
+          "5": 1110,
+          "1": 5207,
+          "7": 563,
+          "8": 2613,
+          "3": 2136,
+          "6": 766
+        },
+        "stop_reasons": {
+          "low_confidence": 14522,
+          "max_k": 2613
+        },
+        "target_graph": {
+          "fallback_layout": 370,
+          "calls": 15232,
+          "fallback_warmup": 0,
+          "capture": 0,
+          "replay": 11635,
+          "fallback_budget": 3227
+        }
+      },
+      "gpu_mean": {
+        "utilization_pct": 81.71300448430493,
+        "memory_mib": 22713.86547085202,
+        "power_w": 250.95069506726458,
+        "temperature_c": 58.05829596412556,
+        "sm_clock_mhz": 2668.654708520179
+      }
+    },
+    {
+      "directory": "/disk14T/yypan/CDB-AV-runtime/results/sharegpt_h_sweep_gpu3_20261119_1016/pair2_h6_seed44",
+      "H": 6,
+      "seed": 44,
+      "summary": {
+        "requests": 512,
+        "completed": 512,
+        "failed": 0,
+        "elapsed_s": 446.1218920974061,
+        "measurement_start_wall": 1795059646.3861787,
+        "first_dispatch_wall": 1795059646.3864748,
+        "last_completion_wall": 1795060092.5083668,
+        "first_dispatch_s": 0.00029608700424432755,
+        "last_completion_s": 446.12218818441033,
+        "drain_s": null,
+        "output_tokens": 101003,
+        "throughput_tok_s": 226.40224967473026,
+        "open_requests": null,
+        "arrival_window_s": null,
+        "open_workload": null,
+        "latency_s": {
+          "ttft": {
+            "p50": 0.48066656570881605,
+            "p95": 1.722530364338308
+          },
+          "e2e": {
+            "p50": 12.717028074432164,
+            "p95": 28.465955888759343
+          },
+          "tpot": {
+            "p50": 0.06410500869861235,
+            "p95": 0.0873845469949113
+          },
+          "scheduled_ttft": {
+            "p50": null,
+            "p95": null
+          },
+          "scheduled_e2e": {
+            "p50": null,
+            "p95": null
+          }
+        },
+        "itl_s": {
+          "p50": 0.02698556613177061,
+          "p95": 0.036765633337199684
+        },
+        "dispatch_lag_s": {
+          "p50": null,
+          "p95": null
+        },
+        "arrival_timing_qualified": true,
+        "delivery_itl_s": {
+          "p50": 0.025902409106492996,
+          "p95": 0.3616615482605994
+        },
+        "itl_definition": "Client delivery: all token IDs in one SSE chunk share its receive timestamp; zero intervals within a burst are retained. GPU-internal generation time is not inferred.",
+        "itl_coverage_requests": 12,
+        "slo_compliance": null,
+        "slo_note": "No predefined thresholds; multi-token stream chunks do not expose exact token ITL.",
+        "plan_sha256": "0f161c82e588d92fed873cfca8c19eebcb4ebb29ac7b79ea7b7f10ff0b156b44",
+        "smoke": false
+      },
+      "verify_events": 17602.0,
+      "candidates": 60206.0,
+      "accepted": 41028.0,
+      "target_iterations": 15262.0,
+      "preemptions": 0.0,
+      "acceptance_rate": 0.6814603195694782,
+      "mean_verified_K": 3.4204067719577322,
+      "verify_events_per_target_iteration": 1.1533219761499147,
+      "observed_target_forward_delta": 15262,
+      "interior": {
+        "target_graph": {
+          "fallback_layout": 404,
+          "calls": 15104,
+          "fallback_warmup": 0,
+          "capture": 0,
+          "replay": 10509,
+          "fallback_budget": 4191
+        },
+        "events": {
+          "p2_runtime_config": 0,
+          "__total__": 143360,
+          "target_ready_select": 15174,
+          "p2_target_begin": 15175,
+          "p2_target_commit": 2586,
+          "p2_reuse_plan": 17487,
+          "k_policy_config": 0,
+          "p2_window_begin": 2586,
+          "reuse_pending_prefill": 17484,
+          "ready": 17482,
+          "p2_handoff": 17482,
+          "p2_boundary": 2585,
+          "p2_verified": 17491,
+          "reuse_cache_consumed": 16990,
+          "p2_ar_target_bypass": 336,
+          "reuse_lease_release": 502
+        },
+        "token_counts": {
+          "reused_tokens": 4002815,
+          "prefill_tokens": 108661,
+          "accepted_tokens": 40765,
+          "drafted_tokens": 59789
+        },
+        "k_actual": {
+          "2": 3378,
+          "5": 1056,
+          "4": 1511,
+          "7": 571,
+          "1": 5362,
+          "8": 2641,
+          "6": 766,
+          "3": 2197
+        },
+        "stop_reasons": {
+          "low_confidence": 14841,
+          "max_k": 2641
+        }
+      },
+      "gpu_mean": {
+        "utilization_pct": 80.7914798206278,
+        "memory_mib": 22752.582959641255,
+        "power_w": 248.2739461883408,
+        "temperature_c": 57.55605381165919,
+        "sm_clock_mhz": 2668.957399103139
+      }
+    },
+    {
+      "directory": "/disk14T/yypan/CDB-AV-runtime/results/sharegpt_h_sweep_gpu3_20261119_1016/pair2_h8_seed44",
+      "H": 8,
+      "seed": 44,
+      "summary": {
+        "requests": 512,
+        "completed": 512,
+        "failed": 0,
+        "elapsed_s": 442.51573452167213,
+        "measurement_start_wall": 1795058518.6796353,
+        "first_dispatch_wall": 1795058518.679879,
+        "last_completion_wall": 1795058961.1956136,
+        "first_dispatch_s": 0.0002437252551317215,
+        "last_completion_s": 442.51597824692726,
+        "drain_s": null,
+        "output_tokens": 101003,
+        "throughput_tok_s": 228.24725116085878,
+        "open_requests": null,
+        "arrival_window_s": null,
+        "open_workload": null,
+        "latency_s": {
+          "ttft": {
+            "p50": 0.18565844930708408,
+            "p95": 0.6569834215566516
+          },
+          "e2e": {
+            "p50": 13.100022006314248,
+            "p95": 27.876619484974068
+          },
+          "tpot": {
+            "p50": 0.06513504500072699,
+            "p95": 0.08973139367080855
+          },
+          "scheduled_ttft": {
+            "p50": null,
+            "p95": null
+          },
+          "scheduled_e2e": {
+            "p50": null,
+            "p95": null
+          }
+        },
+        "itl_s": {
+          "p50": 0.02690408332273364,
+          "p95": 0.0397465772461146
+        },
+        "dispatch_lag_s": {
+          "p50": null,
+          "p95": null
+        },
+        "arrival_timing_qualified": true,
+        "delivery_itl_s": {
+          "p50": 0.025840838439762592,
+          "p95": 0.3632996245287359
+        },
+        "itl_definition": "Client delivery: all token IDs in one SSE chunk share its receive timestamp; zero intervals within a burst are retained. GPU-internal generation time is not inferred.",
+        "itl_coverage_requests": 19,
+        "slo_compliance": null,
+        "slo_note": "No predefined thresholds; multi-token stream chunks do not expose exact token ITL.",
+        "plan_sha256": "0f161c82e588d92fed873cfca8c19eebcb4ebb29ac7b79ea7b7f10ff0b156b44",
+        "smoke": false
+      },
+      "verify_events": 18353.0,
+      "candidates": 63227.0,
+      "accepted": 43234.0,
+      "target_iterations": 14802.0,
+      "preemptions": 0.0,
+      "acceptance_rate": 0.6837901529409904,
+      "mean_verified_K": 3.445049855609437,
+      "verify_events_per_target_iteration": 1.2399000135116875,
+      "observed_target_forward_delta": 14802,
+      "interior": {
+        "events": {
+          "p2_runtime_config": 0,
+          "__total__": 146432,
+          "target_ready_select": 14721,
+          "p2_target_begin": 14720,
+          "p2_target_commit": 2020,
+          "p2_reuse_plan": 18316,
+          "k_policy_config": 0,
+          "p2_window_begin": 2020,
+          "reuse_pending_prefill": 18233,
+          "ready": 18231,
+          "p2_handoff": 18237,
+          "p2_boundary": 2020,
+          "p2_verified": 18239,
+          "reuse_cache_consumed": 17736,
+          "p2_ar_target_bypass": 1434,
+          "reuse_lease_release": 504,
+          "p2_defer_prefill_budget": 1
+        },
+        "token_counts": {
+          "reused_tokens": 4136811,
+          "prefill_tokens": 141879,
+          "accepted_tokens": 42927,
+          "drafted_tokens": 62791
+        },
+        "k_actual": {
+          "2": 3539,
+          "4": 1595,
+          "5": 1112,
+          "1": 5538,
+          "3": 2235,
+          "8": 2814,
+          "7": 605,
+          "6": 793
+        },
+        "stop_reasons": {
+          "low_confidence": 15417,
+          "max_k": 2814
+        },
+        "target_graph": {
+          "fallback_layout": 463,
+          "calls": 14592,
+          "fallback_warmup": 0,
+          "capture": 0,
+          "replay": 9689,
+          "fallback_budget": 4440
+        }
+      },
+      "gpu_mean": {
+        "utilization_pct": 80.43891402714932,
+        "memory_mib": 22710.12669683258,
+        "power_w": 249.64246606334842,
+        "temperature_c": 58.703619909502265,
+        "sm_clock_mhz": 2669.151583710407
+      }
+    }
+  ],
+  "groups": {
+    "4": {
+      "n": 3,
+      "tps": [
+        224.9583729496548,
+        227.3290557167441,
+        226.68505915619014
+      ],
+      "mean_tps": 226.32416260752967,
+      "sd_tps": 1.2258543692746797,
+      "mean_run_e2e_p95": 25.89042075349328,
+      "mean_run_ttft_p95": 4.292869639225924,
+      "verify_events": 51810.0,
+      "candidates": 177784.0,
+      "accepted": 120845.0,
+      "target_iterations": 46242.0,
+      "acceptance_rate": 0.6797293344732934,
+      "mean_verified_K": 3.4314611078942288,
+      "verify_events_per_target_iteration": 1.1204100168677826
+    },
+    "6": {
+      "n": 3,
+      "tps": [
+        226.95134604585542,
+        227.31831987752588,
+        226.40224967473026
+      ],
+      "mean_tps": 226.89063853270386,
+      "sd_tps": 0.4610425205198423,
+      "mean_run_e2e_p95": 27.980853667793173,
+      "mean_run_ttft_p95": 1.7657669780465461,
+      "verify_events": 52878.0,
+      "candidates": 180688.0,
+      "accepted": 122977.0,
+      "target_iterations": 45799.0,
+      "acceptance_rate": 0.6806041353050563,
+      "mean_verified_K": 3.417073262982715,
+      "verify_events_per_target_iteration": 1.15456669359593
+    },
+    "8": {
+      "n": 3,
+      "tps": [
+        227.23761369189938,
+        229.39590465747355,
+        228.24725116085878
+      ],
+      "mean_tps": 228.2935898367439,
+      "sd_tps": 1.0798913962440195,
+      "mean_run_e2e_p95": 27.658607635538402,
+      "mean_run_ttft_p95": 0.6713336779115099,
+      "verify_events": 55361.0,
+      "candidates": 189674.0,
+      "accepted": 129175.0,
+      "target_iterations": 44562.0,
+      "acceptance_rate": 0.68103693706043,
+      "mean_verified_K": 3.426130308339806,
+      "verify_events_per_target_iteration": 1.2423365199048517
+    }
+  },
+  "paired_vs_H8": {
+    "4": [
+      {
+        "seed": 42,
+        "tps_pct": -1.0030208930705053,
+        "e2e_p95_pct": -8.721348891433166
+      },
+      {
+        "seed": 43,
+        "tps_pct": -0.9009964427288297,
+        "e2e_p95_pct": -4.470421167204419
+      },
+      {
+        "seed": 44,
+        "tps_pct": -0.6844297123945076,
+        "e2e_p95_pct": -5.933717802507498
+      }
+    ],
+    "6": [
+      {
+        "seed": 42,
+        "tps_pct": -0.1259772277102389,
+        "e2e_p95_pct": -0.9766369887803439
+      },
+      {
+        "seed": 43,
+        "tps_pct": -0.9056764910645887,
+        "e2e_p95_pct": 2.3930351707657005
+      },
+      {
+        "seed": 44,
+        "tps_pct": -0.8083345918712737,
+        "e2e_p95_pct": 2.1140884894703227
+      }
+    ]
+  },
+  "notes": [
+    "Only completed/released runs are analyzed.",
+    "Interior aggregates exclude snapshot boundary tails.",
+    "Draft native model-call hooks miss Graph replays and are not interpreted as actual Draft Forward counts.",
+    "Latency summary is the mean of per-run percentiles, not a pooled percentile."
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "runtime_commit": "673c0c422e743aa39689ce6c65ec391047e28292",
+  "source": "/home/yypan/CDB-AV/worktrees/cdb-cpu-hotpath-20261113",
+  "gpu": 3,
+  "port": 18084,
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "requests": 512,
+  "concurrency": 16,
+  "warmup": [
+    128,
+    16,
+    128
+  ],
+  "H": [
+    4,
+    6,
+    8
+  ],
+  "HF_threshold": 0.8,
+  "k_cap": 8,
+  "FP_batch": 1,
+  "ownership_parent_check": 1,
+  "max_num_batched_tokens": 1024,
+  "async_scheduling": false,
+  "data_sha256": "59e2e785a02b33966d3a5a794896a38be1226420fa75e6280bf576ed96ce6e4d",
+  "client_sha256": "448e19849779bb67418e28d5d25dade194e6bbbd1fb6135bbd6b8d34c0b43f4a",
+  "comparison_caveat": "Native Qwen reference GPU1; CDB GPU3, not same physical GPU pairing. Same public load/model parameters; implementation-specific Graph/compile differs. Native observer is reused but its call hooks do not count CDB manual graph replays completely.",
+  "repetitions": 3,
+  "pairing": "Latin order by seed: 42:[4,6,8],43:[6,8,4],44:[8,4,6]",
+  "functional": "8 short requests per H, max32, C4; Carry byte + Metadata validation ON; separate service",
+  "production_code_modified": false
+}

@@ -1,0 +1,62 @@
+[
+  {
+    "H": 4,
+    "windows": 35,
+    "carry_resumes": 40,
+    "carry_byte_checks": 40,
+    "checks_crossing_target": 35,
+    "checked_bytes": 440401920,
+    "handoffs": 79,
+    "verified": 79,
+    "K_values": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "H": 6,
+    "windows": 31,
+    "carry_resumes": 19,
+    "carry_byte_checks": 19,
+    "checks_crossing_target": 19,
+    "checked_bytes": 209190912,
+    "handoffs": 80,
+    "verified": 80,
+    "K_values": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  },
+  {
+    "H": 8,
+    "windows": 26,
+    "carry_resumes": 6,
+    "carry_byte_checks": 6,
+    "checks_crossing_target": 6,
+    "checked_bytes": 80740352,
+    "handoffs": 79,
+    "verified": 79,
+    "K_values": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ]
+  }
+]

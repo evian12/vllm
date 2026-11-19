@@ -1,0 +1,102 @@
+{
+  "4": [
+    {
+      "index": 2,
+      "exact": true,
+      "common_prefix": 32,
+      "length": 32
+    },
+    {
+      "index": 0,
+      "exact": false,
+      "common_prefix": 16,
+      "length": 32
+    },
+    {
+      "index": 1,
+      "exact": true,
+      "common_prefix": 32,
+      "length": 32
+    },
+    {
+      "index": 3,
+      "exact": true,
+      "common_prefix": 32,
+      "length": 32
+    },
+    {
+      "index": 4,
+      "exact": true,
+      "common_prefix": 32,
+      "length": 32
+    },
+    {
+      "index": 6,
+      "exact": true,
+      "common_prefix": 23,
+      "length": 23
+    },
+    {
+      "index": 7,
+      "exact": true,
+      "common_prefix": 32,
+      "length": 32
+    },
+    {
+      "index": 5,
+      "exact": true,
+      "common_prefix": 32,
+      "length": 32
+    }
+  ],
+  "6": [
+    {
+      "index": 2,
+      "exact": true,
+      "common_prefix": 32,
+      "length": 32
+    },
+    {
+      "index": 0,
+      "exact": true,
+      "common_prefix": 32,
+      "length": 32
+    },
+    {
+      "index": 3,
+      "exact": true,
+      "common_prefix": 32,
+      "length": 32
+    },
+    {
+      "index": 1,
+      "exact": true,
+      "common_prefix": 32,
+      "length": 32
+    },
+    {
+      "index": 4,
+      "exact": true,
+      "common_prefix": 32,
+      "length": 32
+    },
+    {
+      "index": 6,
+      "exact": true,
+      "common_prefix": 23,
+      "length": 23
+    },
+    {
+      "index": 7,
+      "exact": true,
+      "common_prefix": 32,
+      "length": 32
+    },
+    {
+      "index": 5,
+      "exact": true,
+      "common_prefix": 32,
+      "length": 32
+    }
+  ]
+}
