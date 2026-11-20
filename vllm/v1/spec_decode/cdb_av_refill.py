@@ -8,6 +8,7 @@ import json
 import os
 import time
 from collections import Counter
+from types import SimpleNamespace
 import torch
 from vllm.config import CUDAGraphMode
 from vllm.forward_context import set_forward_context
@@ -184,7 +185,16 @@ class RefillSession:
         if flag not in ('0', '1'):
             raise ValueError('CDB_AV_GRAPH_INPUT_STAGE must be 0 or 1')
         self.graph_input_stage = flag == '1'
-        if self.graph_input_stage:
+        flag = os.getenv('CDB_AV_RAGGED_INPUT_STAGE', '0')
+        if flag not in ('0', '1'):
+            raise ValueError('CDB_AV_RAGGED_INPUT_STAGE must be 0 or 1')
+        self.ragged_input_stage = flag == '1'
+        if self.graph_input_stage and self.ragged_input_stage:
+            raise ValueError('Exact and ragged staging experiments must remain independent')
+        if self.ragged_input_stage and any(os.getenv(k, '0') != '1' for k in (
+                'CDB_AV_DRAFT_RAGGED_GRAPH', 'CDB_AV_DRAFT_RAGGED_DYNAMIC')):
+            raise ValueError('Ragged input staging requires dynamic ragged Graphs')
+        if self.graph_input_stage or self.ragged_input_stage:
             from vllm.v1.spec_decode.cdb_av_inputs import validate_staging_scope
             validate_staging_scope(proposer.vllm_config)
             validate_ragged_graph_backend(8, self.builder)
@@ -322,14 +332,31 @@ class RefillSession:
 
     def _cached_graph_inputs(self, ids, positions, blocks, seqs, qlens,
                              slots, last_indices):
-        # Only existing exact one-token Graph entries may own this fast path.
-        # Capture, ragged layouts and eager fallback retain independent staging.
-        if (not getattr(self, 'graph_input_stage', False)
-                or not qlens or any(q != 1 for q in qlens)):
+        if not qlens:
             return None
-        required = max(max(seqs), max(map(len, blocks)) * self.block_size)
-        bucket = max(self.block_size, 1 << (required - 1).bit_length())
-        key = (len(qlens), bucket)
+        if max(qlens) == 1:
+            if not getattr(self, 'graph_input_stage', False):
+                return None
+            required = max(max(seqs), max(map(len, blocks)) * self.block_size)
+            bucket = max(self.block_size, 1 << (required - 1).bit_length())
+            key = (len(qlens), bucket)
+        else:
+            if not getattr(self, 'ragged_input_stage', False):
+                return None
+            # Reuse the established key predicate before allocating any GPU
+            # input. Only Python shape/query metadata is needed by that predicate.
+            starts = [0]
+            for q in qlens:
+                starts.append(starts[-1] + q)
+            cad = SimpleNamespace(num_reqs=len(qlens),
+                num_actual_tokens=len(ids), max_query_len=max(qlens),
+                max_seq_len=max(seqs),
+                block_table_tensor=SimpleNamespace(shape=(len(blocks),max(map(len,blocks)))),
+                query_start_loc_cpu=SimpleNamespace(tolist=lambda: starts))
+            key = self._mixed_graph_key(cad, len(ids), dynamic=True,
+                                        max_query=self.graph_query_bound)
+            if key is None:
+                return None
         p = self.p
         if getattr(p, '_cdb_decode_graph_storage', None) != self._decode_graph_storage():
             return None
@@ -397,7 +424,8 @@ class RefillSession:
                 [end - 1 for end in query_cpu[1:].tolist()],
                 dtype=torch.long, device=p.device)
             input_stage = None
-            if getattr(self, 'graph_input_stage', False) and len(key) == 2:
+            if ((getattr(self, 'graph_input_stage', False) and len(key) == 2)
+                    or (getattr(self, 'ragged_input_stage', False) and len(key) == 4)):
                 from vllm.v1.spec_decode.cdb_av_graph_inputs import GraphInputStage
                 input_stage = GraphInputStage(p.device, requests=num_reqs,
                     tokens=n, width=width, max_context=p.max_model_len)
@@ -435,15 +463,15 @@ class RefillSession:
         if profile is not None:
             profile.start('metadata')
         dynamic_layout = len(key) == 4
-        if dynamic_layout:
-            # FlashAttention reads GPU query offsets at replay time. The key
-            # fixes request/token counts and the query upper bound; layouts move.
+        direct = ('input_stage' in entry
+                  and cad.slot_mapping is entry['input_stage'].fields['slot_mapping'])
+        if dynamic_layout and not direct:
+            # Direct staging has already updated both owned query-offset
+            # tensors. Generic inputs still need the original independent copy.
             static_cad.query_start_loc.copy_(cad.query_start_loc)
             static_cad.query_start_loc_cpu.copy_(cad.query_start_loc_cpu)
 
         width = cad.block_table_tensor.shape[1]
-        direct = ('input_stage' in entry
-                  and cad.slot_mapping is entry['input_stage'].fields['slot_mapping'])
         if not direct:
             static_cad.block_table_tensor.zero_()
             static_cad.block_table_tensor[:, :width].copy_(cad.block_table_tensor)

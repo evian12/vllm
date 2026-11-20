@@ -96,3 +96,66 @@ def test_cached_input_stage_uses_only_live_exact_graph_entry():
     s.graph_input_stage=False
     assert s._cached_graph_inputs(*args) is None
     assert len(calls)==1
+
+
+def test_ragged_only_stage_reuses_key_across_query_layouts():
+    from types import SimpleNamespace as NS
+    from vllm.v1.spec_decode.cdb_av_refill import RefillSession
+    s=RefillSession.__new__(RefillSession)
+    s.graph_input_stage=False;s.ragged_input_stage=True;s.block_size=16
+    s.capacity=4;s.graph_query_bound=8;s.ragged_sequence_floor=1024
+    storage=(111,222);s._decode_graph_storage=lambda:storage
+    calls=[];persistent={'ids':object()}
+    stage=NS(stage=lambda *a:(calls.append(a) or persistent),calls=2)
+    s.p=NS(max_model_len=1024,_cdb_decode_graph_storage=storage,
+        _cdb_decode_graphs={(4,1024,2,'dynamic8'):{'input_stage':stage}})
+    for q in [[1,3],[2,2],[3,1]]:
+        result=s._cached_graph_inputs([1,2,3,4],[0,1,2,3],[[1],[2]],
+            [3,3],q,[16,32,33,34],[q[0]-1,3])
+        assert result==persistent and result is not persistent
+    assert len(calls)==3
+    # The rejected exact one-query path stays disabled.
+    assert s._cached_graph_inputs([1,2],[0,1],[[1],[2]],[1,2],
+        [1,1],[16,33],[0,1]) is None
+    s.p._cdb_decode_graph_storage=(999,)
+    assert s._cached_graph_inputs([1,2,3,4],[0,1,2,3],[[1],[2]],
+        [3,3],[1,3],[16,32,33,34],[0,3]) is None
+    assert len(calls)==3
+    s.p._cdb_decode_graph_storage=storage
+    # Unsupported long queries and changed token-row counts must not alias.
+    assert s._cached_graph_inputs(list(range(10)),list(range(10)),[[1],[2]],
+        [1,9],[1,9],list(range(10)),[0,9]) is None
+    assert s._cached_graph_inputs(list(range(5)),list(range(5)),[[1],[2]],
+        [2,3],[2,3],list(range(5)),[1,4]) is None
+    assert len(calls)==3
+
+
+@GPU
+@pytest.mark.parametrize('layouts',[
+    [[1,3],[2,2],[3,1]],
+    [[1,2,1,3],[2,1,3,1],[1,1,1,4]],
+    [[8,8,7,8],[7,8,8,8],[8,7,8,8]],
+])
+def test_graph_reads_dynamic_offsets_and_last_indices(layouts):
+    nr=len(layouts[0]);n=sum(layouts[0])
+    stage=GraphInputStage('cuda:0',requests=nr,tokens=n,width=64)
+    def inputs(q,i):
+        starts=[0]
+        for x in q:starts.append(starts[-1]+x)
+        return dict(ids=list(range(i,i+n)),positions=list(range(n)),
+            blocks=[[r+1] for r in range(nr)],seqs=q,qlens=q,
+            slots=list(range(n)),last_indices=[v-1 for v in starts[1:]])
+    f=stage.stage(**inputs(layouts[0],0))
+    selected=torch.empty(nr,dtype=torch.int32,device='cuda')
+    offsets=torch.empty(nr+1,dtype=torch.int32,device='cuda')
+    torch.cuda.synchronize();graph=torch.cuda.CUDAGraph()
+    with torch.cuda.graph(graph):
+        selected.copy_(f['ids'][f['last_indices']])
+        offsets.copy_(f['query_start_loc'])
+    pointers={k:v.data_ptr() for k,v in f.items()}
+    for i in range(60):
+        q=layouts[i%len(layouts)];args=inputs(q,i)
+        f=stage.stage(**args);graph.replay()
+        assert selected.cpu().tolist()==[args['ids'][j] for j in args['last_indices']]
+        assert offsets.cpu().tolist()==f['query_start_loc_cpu'].tolist()
+        assert {k:v.data_ptr() for k,v in f.items()}==pointers
