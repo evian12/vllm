@@ -371,6 +371,7 @@ class PersistentDraftQueue:
         self.ready, self.inflight = {}, {}
         from vllm.v1.spec_decode.cdb_av_config import is_enabled
         self.draft_wait_enabled = is_enabled("CDB_AV_DRAFT_WAIT")
+        self.wait_prefix_enabled = is_enabled("CDB_AV_WAIT_PREFIX")
         self.draft_wait = {}  # FIFO; formal context only, no Draft KV allocation.
         self._draft_wait_fallbacks = {}
         self.window = self.target_epoch = 0
@@ -438,7 +439,13 @@ class PersistentDraftQueue:
                 del self.draft_wait[rid]
                 emit('draft_wait_removed', req_id=rid, reason='invalidated')
                 continue
-            if (RefillQueue.context(req) != entry["context"]
+            saved = entry.get("typed_prefix")
+            if saved is not None:
+                from vllm.v1.spec_decode.cdb_av_wait_prefix import matches
+                context_exact = matches(req, saved)
+            else:
+                context_exact = RefillQueue.context(req) == entry["context"]
+            if (not context_exact
                     or req.num_computed_tokens != entry["computed"]):
                 raise RuntimeError("Target advanced a Draft-wait context")
         if not enroll:
@@ -464,6 +471,9 @@ class PersistentDraftQueue:
             if rid not in self.draft_wait:
                 self.draft_wait[rid] = dict(request=req,
                     context=RefillQueue.context(req), computed=req.num_computed_tokens)
+                if getattr(self, "wait_prefix_enabled", False):
+                    from vllm.v1.spec_decode.cdb_av_wait_prefix import snapshot
+                    self.draft_wait[rid]["typed_prefix"] = snapshot(req)
                 emit('draft_wait_enqueued', req_id=rid, queued=len(self.draft_wait),
                      official_output_tokens=req.num_output_tokens)
         for rid in set(self._draft_wait_fallbacks) - live:

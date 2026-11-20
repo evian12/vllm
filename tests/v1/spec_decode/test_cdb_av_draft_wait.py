@@ -53,6 +53,7 @@ def queue(monkeypatch):
     monkeypatch.setenv('CDB_AV_OUTPUT_BUDGET_CAP', '0')
     q = PersistentDraftQueue.__new__(PersistentDraftQueue)
     q.draft_wait_enabled = True
+    q.wait_prefix_enabled = True
     q.draft_wait = {}
     q._draft_wait_fallbacks = {}
     q.leases, q.contexts, q.carry, q.ready, q.inflight = {}, {}, {}, {}, {}
@@ -247,3 +248,49 @@ def test_cached_pages_reduce_required_new_kv_resource(queue):
     queue.s.kv_cache_manager.block_pool.free = 8
     queue.refresh_draft_wait()
     assert 'a' in queue.draft_wait
+
+
+@pytest.mark.parametrize('kind', ['bool', 'float', 'subclass', 'prompt', 'append', 'truncate'])
+def test_typed_prefix_rejects_same_value_types_and_all_mutation_kinds(queue, kind):
+    add(queue, 'a')
+    req = queue.s.requests['a']
+    req.output_token_ids[0] = 1
+    queue.refresh_draft_wait()
+    class Int(int): pass
+    if kind == 'bool': req.output_token_ids[0] = True
+    elif kind == 'float': req.output_token_ids[0] = 1.0
+    elif kind == 'subclass': req.output_token_ids[0] = Int(1)
+    elif kind == 'prompt': req.prompt_token_ids[0] = 9
+    elif kind == 'append': req.output_token_ids.append(2)
+    else: req.output_token_ids.clear()
+    with pytest.raises(RuntimeError, match='advanced a Draft-wait context'):
+        queue.refresh_draft_wait(enroll=False)
+
+
+def test_typed_wait_validation_does_not_repeat_digest_lookup(queue, monkeypatch):
+    from vllm.v1.spec_decode.cdb_av_refill_queue import RefillQueue
+    add(queue, 'a')
+    queue.refresh_draft_wait()
+    assert queue.draft_wait['a']['typed_prefix'] == ((1, 2), (3,))
+    def unexpected(req): raise AssertionError('repeated context hash lookup')
+    monkeypatch.setattr(RefillQueue, 'context', unexpected)
+    queue.refresh_draft_wait(enroll=False)
+
+
+def test_prefix_snapshot_bound_and_special_type_fallback():
+    from vllm.v1.spec_decode.cdb_av_wait_prefix import snapshot
+    r = Request('a')
+    r.prompt_token_ids = [1]*1024
+    assert snapshot(r) is None
+    r.prompt_token_ids = [True]
+    assert snapshot(r) is None
+
+
+def test_old_wait_flag_still_uses_digest_guard(queue):
+    queue.wait_prefix_enabled = False
+    add(queue, 'a')
+    queue.refresh_draft_wait()
+    assert 'typed_prefix' not in queue.draft_wait['a']
+    queue.s.requests['a'].output_token_ids[0] = 99
+    with pytest.raises(RuntimeError, match='advanced a Draft-wait context'):
+        queue.refresh_draft_wait(enroll=False)
