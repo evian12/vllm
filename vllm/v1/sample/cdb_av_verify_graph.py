@@ -44,7 +44,7 @@ def _inactive_processors(processors):
 
 def verify_graph_key(metadata, draft_probs, logits, sampling):
     """Only shape/CPU flags: never inspect GPU values or synchronize."""
-    if (draft_probs is not None or not sampling.all_greedy
+    if (logits is None or draft_probs is not None or not sampling.all_greedy
             or sampling.all_random or sampling.max_num_logprobs is not None
             or not sampling.no_penalties or sampling.bad_words_token_ids
             or sampling.allowed_token_ids_mask is not None
@@ -57,7 +57,7 @@ def verify_graph_key(metadata, draft_probs, logits, sampling):
     nr, nt, mk = len(counts), sum(counts), max(counts)
     if not 1 <= mk <= 8 or metadata.max_spec_len != mk:
         return None
-    if (logits.device.type != 'cuda' or logits.dtype != torch.float32
+    if (logits.device.type != 'cuda' or logits.dtype not in (torch.float32, torch.bfloat16)
             or not logits.is_contiguous() or logits.ndim != 2
             or logits.shape[0] != nt + nr
             or not 1 <= logits.shape[1] <= 128256):
@@ -86,6 +86,8 @@ class GreedyVerifyGraph:
         if min_hits < 1 or not 1 <= max_keys <= 16 or max_bytes < 1:
             raise ValueError('Invalid Verify Graph cache bounds')
         self.sampler = sampler
+        self._captured_sampler = sampler
+        self._captured_inner_sampler = sampler.sampler
         self.min_hits, self.max_keys, self.max_bytes = min_hits,max_keys,max_bytes
         self.owner = threading.get_ident()
         self.cache = {}
@@ -117,7 +119,7 @@ class GreedyVerifyGraph:
         self.sampler(static, None, entry['logits'], scoped)
         torch.cuda.synchronize(logits.device)
         graph = torch.cuda.CUDAGraph()
-        with torch.cuda.graph(graph):
+        with torch.cuda.device(logits.device), torch.cuda.graph(graph):
             output = self.sampler(static, None, entry['logits'], scoped)
         if output.logprobs_tensors is not None:
             raise RuntimeError('Unexpected logprobs in greedy Verify capture')
@@ -130,23 +132,26 @@ class GreedyVerifyGraph:
         mode = (self.sampler.sampler.logprobs_mode,
                 self.sampler.is_processed_logprobs_mode,
                 self.sampler.is_logits_logprobs_mode)
-        if key is None or mode != self.mode:
+        if (key is None or mode != self.mode
+                or self.sampler is not self._captured_sampler
+                or self.sampler.sampler is not self._captured_inner_sampler
+                or threading.get_ident() != self.owner):
             return self.sampler(metadata,draft_probs,logits,sampling)
-        if threading.get_ident() != self.owner:
-            raise RuntimeError('Verify Graph used by another thread')
         if torch.cuda.is_current_stream_capturing():
-            raise RuntimeError('Nested Verify Graph capture is unsupported')
+            return self.sampler(metadata,draft_probs,logits,sampling)
         stream = torch.cuda.current_stream(logits.device)
         if self.stream is None:
             self.stream = stream
         elif self.stream != stream:
-            raise RuntimeError('Verify Graph requires its owning stream')
+            return self.sampler(metadata,draft_probs,logits,sampling)
         entry = self.cache.get(key)
         if entry is None:
             if key not in self.hits and len(self.hits) >= 256:
                 self.hits.pop(next(iter(self.hits)))
             self.hits[key] = self.hits.get(key,0) + 1
-            estimate = logits.numel()*logits.element_size()*8 + 4096
+            # The sampler promotes BF16 logits internally. Budget against FP32
+            # intermediates rather than the smaller raw input element size.
+            estimate = logits.numel()*4*8 + 4096
             if (self.hits[key] < self.min_hits or len(self.cache) >= self.max_keys
                     or self.estimated_bytes + estimate > self.max_bytes):
                 return self.sampler(metadata,draft_probs,logits,sampling)
