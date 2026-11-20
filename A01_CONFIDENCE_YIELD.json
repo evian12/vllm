@@ -1,0 +1,42 @@
+{
+  "scope": "saved accepted Ready coalescing functional gate, measured16 short requests only; not formal512 or a throughput trial",
+  "source_sha": "ccf96aac0064aebebc2077fb47e36929d65aa06a",
+  "input": "/home/yypan/CDB-AV/results/ready_coalesce_20261120/gate_coalesce/server.log",
+  "input_sha256": "c5ae9222d7e4954321bfeded73bec71cf7aaeb3394c8e6e1a6dfa3778fb02733",
+  "matched_all_events": 1599,
+  "measured_traces": 16,
+  "measured_verification_rows": 311,
+  "k1_low_confidence_by_exclusive_upper_bound": {
+    "0.4": {
+      "rows": 25,
+      "accepted": 8,
+      "generated": 33
+    },
+    "0.6": {
+      "rows": 50,
+      "accepted": 28,
+      "generated": 78
+    },
+    "0.8": {
+      "rows": 18,
+      "accepted": 14,
+      "generated": 32
+    },
+    "0.7": {
+      "rows": 15,
+      "accepted": 10,
+      "generated": 25
+    },
+    "0.2": {
+      "rows": 6,
+      "accepted": 1,
+      "generated": 7
+    },
+    "0.75": {
+      "rows": 12,
+      "accepted": 9,
+      "generated": 21
+    }
+  },
+  "counterfactual_limit": "The stopped token exists and is verified; tokens after stopping were not generated. No prediction of longer-K acceptance, GPU work or TPS is justified. Threshold must remain0.8 until independently registered algorithm trial."
+}
