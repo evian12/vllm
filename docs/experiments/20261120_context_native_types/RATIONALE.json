@@ -1,0 +1,6 @@
+{
+  "previous": "/home/yypan/CDB-AV/results/context_fp_cache_20261120/FINAL_DECISION.json",
+  "fixed_context_cache": 1,
+  "fixed_target_floor": 1024,
+  "candidate": "Only exact builtin-int type loop moves to CPython C API; no token range/hash/equality/KV/scheduler changes"
+}

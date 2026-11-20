@@ -1,0 +1,6 @@
+{
+  "time": 1795136151.2897666,
+  "config_and_headers_unchanged": true,
+  "scope": "Actual configs and safetensor headers/shapes/dtypes; not full weights data SHA",
+  "current": "/home/yypan/CDB-AV/results/context_native_types_20261120/model_header_recheck/ACTUAL_MODEL_HEADERS.json"
+}

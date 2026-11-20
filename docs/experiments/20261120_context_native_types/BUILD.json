@@ -1,0 +1,28 @@
+{
+  "command": [
+    "gcc",
+    "-pthread",
+    "-B",
+    "/opt/anaconda3/compiler_compat",
+    "-shared",
+    "-fPIC",
+    "-O3",
+    "-std=c11",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "-I/opt/anaconda3/include/python3.11",
+    "/home/yypan/CDB-AV/worktrees/cdb-context-native-types-20261120/csrc/cdb_av_prefix_types.c",
+    "-o",
+    "/home/yypan/CDB-AV/results/context_native_types_20261120/build/_cdb_av_prefix_types.cpython-311-x86_64-linux-gnu.so"
+  ],
+  "python": "3.11.7 (main, Dec 15 2023, 18:12:31) [GCC 11.2.0]",
+  "implementation": "CPython",
+  "soabi": "cpython-311-x86_64-linux-gnu",
+  "source": "/home/yypan/CDB-AV/worktrees/cdb-context-native-types-20261120/csrc/cdb_av_prefix_types.c",
+  "source_sha256": "b2a6ae3680f6dff8050e412371631fbac05523b2fe681d539fa0d7703612f526",
+  "python_h_sha256": "0b4a45e50087a78e9a88a70e1b247a05dccc0e089164c7c8ece4331b80355fa6",
+  "output": "/disk14T/yypan/CDB-AV-runtime/results/context_native_types_20261120/build/_cdb_av_prefix_types.cpython-311-x86_64-linux-gnu.so",
+  "output_sha256": "226e8552e720b147c3fe3bfb4d19687109dcac48c1d59fcd47f8311e657cd2d0",
+  "scope": "CPU-only CPython exact type predicate; no CUDA/Torch/model dependencies changed"
+}

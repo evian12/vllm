@@ -1,0 +1,40 @@
+{
+  "time": 1795136151.247916,
+  "source_commit": "fdad8bc258064c6c308554a43e57e26c5746955d",
+  "independent": "CDB_AV_CONTEXT_NATIVE_TYPES=0/1",
+  "fixed_context_fingerprint_cache": 1,
+  "prescribed_runs": 3,
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "order": [
+    [
+      0,
+      1
+    ],
+    [
+      1,
+      0
+    ],
+    [
+      0,
+      1
+    ]
+  ],
+  "retain_if": [
+    "all3 paired TPS changes >0",
+    "ratio of means TPS improvement >=0.5%",
+    "mean run E2E P95 increase <=1%"
+  ],
+  "always_report": [
+    "TTFT P95",
+    "all per-seed E2E P95",
+    "whole token ID differences",
+    "variance",
+    "all failures"
+  ],
+  "no_extra_runs_to_pick_success": true,
+  "global_optimality_claim": false
+}
