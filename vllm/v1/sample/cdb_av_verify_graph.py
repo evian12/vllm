@@ -8,6 +8,7 @@ from dataclasses import dataclass, replace
 import threading
 
 import torch
+from torch.nn.modules import module as _module_hooks
 
 from vllm.v1.outputs import SamplerOutput
 from vllm.v1.sample.logits_processor.builtin import (
@@ -98,6 +99,15 @@ class GreedyVerifyGraph:
                      sampler.is_processed_logprobs_mode,
                      sampler.is_logits_logprobs_mode)
 
+    def _has_forward_hooks(self):
+        # CUDA replay cannot reproduce arbitrary Python hook side effects.
+        if (_module_hooks._global_forward_hooks
+                or _module_hooks._global_forward_pre_hooks):
+            return True
+        return any(getattr(m, '_forward_hooks', {})
+                   or getattr(m, '_forward_pre_hooks', {})
+                   for m in (self.sampler, self.sampler.sampler))
+
     @staticmethod
     def _copy(entry, metadata, logits):
         entry['logits'].copy_(logits)
@@ -135,7 +145,8 @@ class GreedyVerifyGraph:
         if (key is None or mode != self.mode
                 or self.sampler is not self._captured_sampler
                 or self.sampler.sampler is not self._captured_inner_sampler
-                or threading.get_ident() != self.owner):
+                or threading.get_ident() != self.owner
+                or self._has_forward_hooks()):
             return self.sampler(metadata,draft_probs,logits,sampling)
         if torch.cuda.is_current_stream_capturing():
             return self.sampler(metadata,draft_probs,logits,sampling)

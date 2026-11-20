@@ -152,6 +152,25 @@ def test_sampler_replacement_preserves_eager_semantics(monkeypatch):
     assert wrapper(m,None,l,s) is first
 
 
+def test_python_forward_hooks_are_preserved_by_eager_fallback(monkeypatch):
+    m,l,s=fake_scope();marker=object();seen=[]
+    class Sampler(torch.nn.Module):
+        is_processed_logprobs_mode=False;is_logits_logprobs_mode=False
+        def __init__(self):
+            super().__init__();self.sampler=NS(logprobs_mode='raw_logprobs')
+        def forward(self,*a):return marker
+    sampler=Sampler();wrapper=GreedyVerifyGraph(sampler)
+    monkeypatch.setattr(torch.cuda,'is_current_stream_capturing',
+                        lambda:pytest.fail('hook reached Graph path'))
+    hook=sampler.register_forward_hook(lambda *a:seen.append('local'))
+    assert wrapper(m,None,l,s) is marker
+    hook.remove()
+    hook=torch.nn.modules.module.register_module_forward_hook(lambda *a:seen.append('global'))
+    try:assert wrapper(m,None,l,s) is marker
+    finally:hook.remove()
+    assert seen==['local','global']
+
+
 def test_real_inactive_builtins_and_custom_subclasses():
     from vllm.v1.sample.logits_processor.builtin import (
         MinTokensLogitsProcessor,LogitBiasLogitsProcessor)
