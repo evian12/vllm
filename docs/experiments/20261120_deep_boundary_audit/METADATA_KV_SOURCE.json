@@ -1,0 +1,118 @@
+{
+  "token_counts_interior": {
+    "reused_tokens": 22067005,
+    "prefill_tokens": 311674,
+    "accepted_tokens": 203813,
+    "drafted_tokens": 256663
+  },
+  "reuse_fraction": 0.9860727257404246,
+  "target_graph_interior": {
+    "fallback_layout": 1440,
+    "calls": 28544,
+    "fallback_warmup": 0,
+    "capture": 0,
+    "replay": 23600,
+    "fallback_budget": 3504
+  },
+  "memory_events": {
+    "Memcpy HtoD (Pinned -> Device)": {
+      "count": 721,
+      "gpu_us": 249.80799999999954,
+      "bytes": 168192
+    },
+    "Memcpy HtoD (Pageable -> Device)": {
+      "count": 395,
+      "gpu_us": 135.54199999999977,
+      "bytes": 11608
+    },
+    "Memcpy DtoD (Device -> Device)": {
+      "count": 1077,
+      "gpu_us": 1239.8140000000121,
+      "bytes": 294566448
+    },
+    "Memset (Unknown)": {
+      "count": 320,
+      "gpu_us": 321.5079999999994,
+      "bytes": 573440
+    },
+    "Memcpy DtoH (Device -> Pageable)": {
+      "count": 212,
+      "gpu_us": 234.11499999999967,
+      "bytes": 14364
+    },
+    "Memcpy DtoH (Device -> Pinned)": {
+      "count": 3,
+      "gpu_us": 3.552,
+      "bytes": 32
+    },
+    "Memset (Device)": {
+      "count": 256,
+      "gpu_us": 201.47299999999996,
+      "bytes": 487424
+    }
+  },
+  "memory_arg_examples": [
+    {
+      "External id": 22,
+      "device": 0,
+      "context": 1,
+      "stream": 7,
+      "correlation": 16,
+      "bytes": 1024,
+      "memory bandwidth (GB/s)": 1.6869851729818781
+    },
+    {
+      "External id": 33,
+      "device": 0,
+      "context": 1,
+      "stream": 7,
+      "correlation": 27,
+      "bytes": 184,
+      "memory bandwidth (GB/s)": 0.5227272727272727
+    }
+  ],
+  "source_excerpts": {
+    "vllm/v1/spec_decode/cdb_av_inputs.py:135": {
+      "sha256": "ae52269a85ae059cc731744a14f3dbc6e8bea62adb55b24e1c89d73666d9384c",
+      "text": "135:     def pack(self, ids, positions, blocks, seqs, qlens, slots, last_indices):\n136:         if self.failed:\n137:             raise RuntimeError(\"Pinned input stager poisoned by failed CUDA copy\")\n138:         if threading.get_ident() != self.owner:\n139:             raise RuntimeError(\"Pinned input stager used by another thread\")\n140:         if torch.cuda.is_current_stream_capturing():\n141:             raise RuntimeError(\"Host input staging cannot run inside CUDA capture\")\n142:         plan = make_input_plan(ids,positions,blocks,seqs,qlens,slots,last_indices,\n143:             max_requests=self.max_requests,max_tokens=self.max_tokens,\n144:             max_context=self.max_context)\n145:         if plan.nbytes > self.max_bytes:\n146:             raise ValueError(\"Pinned input payload exceeds bounded allocation\")\n147:         if self.pending and not self.event.query():\n148:             self.source_waits += 1\n149:             self.event.synchronize()\n150:         if self.host is None or self.host.numel() < plan.nbytes:\n151:             capacity = max(1024,1 << (plan.nbytes-1).bit_length())\n152:             capacity = min(capacity,self.max_bytes)\n153:             # Normal CPUstorage remains reusable across inference-mode scopes.\n154:             with torch.inference_mode(False):\n155:                 self.host = torch.empty(capacity,dtype=torch.uint8,\n156:                                         device=\"cpu\",pin_memory=True)\n157:             self.host_view = memoryview(self.host.numpy()).cast(\"B\")\n158:             self.zero_view = memoryview(bytes(capacity))\n159:             self.growths += 1\n160:         self.host_view[:plan.nbytes] = self.zero_view[:plan.nbytes]\n161:         encode_input_plan(plan,self.host_view,clear=False)\n162:         payload = torch.empty(plan.nbytes,dtype=torch.uint8,device=self.device)\n163:         try:\n164:             payload.copy_(self.host[:plan.nbytes],non_blocking=True)\n165:             self.event.record(torch.cuda.current_stream(self.device))\n166:         except BaseException:\n167:             # No recovery can reuse an unacknowledged DMA source.\n168:             self.failed = True\n169:             raise\n170:         self.pending = True\n171:         fields = {f.name:payload[f.offset:f.offset+f.nbytes].view(f.dtype).view(f.shape)\n172:                   for f in plan.fields}\n173:         fields[\"query_start_loc_cpu\"] = torch.tensor(\n174:             plan.starts,dtype=torch.int32,device=\"cpu\")\n175:         self.calls += 1\n176:         self.bytes_copied += plan.nbytes\n177:         if self.calls == 1 or self.calls % 1024 == 0:"
+    },
+    "vllm/v1/spec_decode/cdb_av_refill.py:361": {
+      "sha256": "34b53fc4735d59f26495d917c249fc987c74b64ebdc9d369bb11cbe8c080676c",
+      "text": "361:                                        else static_last_indices))\n362:         else:\n363:             static_cad = entry['cad']\n364: \n365:         if profile is not None:\n366:             profile.start('metadata')\n367:         dynamic_layout = len(key) == 4\n368:         if dynamic_layout:\n369:             # FlashAttention reads GPU query offsets at replay time. The key\n370:             # fixes request/token counts and the query upper bound; layouts move.\n371:             static_cad.query_start_loc.copy_(cad.query_start_loc)\n372:             static_cad.query_start_loc_cpu.copy_(cad.query_start_loc_cpu)\n373: \n374:         width = cad.block_table_tensor.shape[1]\n375:         static_cad.block_table_tensor.zero_()\n376:         static_cad.block_table_tensor[:, :width].copy_(cad.block_table_tensor)\n377:         static_cad.seq_lens.copy_(cad.seq_lens)\n378:         static_cad.slot_mapping.copy_(cad.slot_mapping)\n379:         if profile is not None:\n380:             profile.end('metadata')\n381: \n382:         if key not in cache:\n383:             # Capture only after all live metadata and input buffers are valid.\n384:             # The next replay performs the current forward with those values.\n385:             torch.cuda.synchronize(p.device)\n386:             graph = torch.cuda.CUDAGraph()\n387:             with torch.cuda.graph(graph):\n388:                 with set_forward_context(\n389:                     entry['per_layer'], p.vllm_config, num_tokens=n,\n390:                     cudagraph_runtime_mode=CUDAGraphMode.NONE,\n391:                     slot_mapping=p._get_slot_mapping(\n392:                         n, static_cad.slot_mapping),\n393:                 ):\n394:                     ret = p.model(input_ids=p.input_ids[:n],"
+    },
+    "vllm/v1/spec_decode/cdb_av_refill.py:420": {
+      "sha256": "34b53fc4735d59f26495d917c249fc987c74b64ebdc9d369bb11cbe8c080676c",
+      "text": "420:                 static_max_query_len=static_cad.max_query_len,\n421:                 dynamic_layout=dynamic_layout)))\n422:         hidden = entry['hidden']\n423:         if profile is not None:\n424:             profile.start('logits')\n425:         if len(key) >= 3:\n426:             hidden = hidden[last_indices if dynamic_layout\n427:                             else entry['last_indices']]\n428:         logits = p.model.compute_logits(hidden)\n429:         if profile is not None:\n430:             profile.end('logits')\n431:         if os.getenv('CDB_AV_DRAFT_GRAPH_VALIDATE', '0') == '1':\n432:             # Diagnostic only. The eager replay writes the same owned slots;"
+    },
+    "vllm/v1/spec_decode/cdb_av_refill.py:510": {
+      "sha256": "34b53fc4735d59f26495d917c249fc987c74b64ebdc9d369bb11cbe8c080676c",
+      "text": "510:     def _forward(self, ids, positions, cad, last_indices, req_ids, phase):\n511:         p = self.p\n512:         n = ids.numel()\n513:         if n <= 0 or len(req_ids) > self.capacity:\n514:             raise RuntimeError('Invalid refill forward dimensions')\n515:         input_capacity = p.input_ids.shape[0]\n516:         if n > input_capacity:\n517:             raise RuntimeError(\n518:                 f'Refill packed input has {n} tokens, exceeding Draft '\n519:                 f'input buffer capacity {input_capacity}'\n520:             )\n521:         mode, desc = p.cudagraph_dispatcher.dispatch(n)\n522:         if mode != CUDAGraphMode.NONE or desc.num_tokens != n:\n523:             raise RuntimeError('Refill requires eager, no graph padding')\n524:         p.input_ids[:n] = ids\n525:         p._set_positions(n, positions)\n526:         # Decode and single-query mixed Prefill share the exact-row graph.\n527:         # Small ragged Prefill uses gated static buffers; unsupported rows stay eager.\n528:         graph_key = None\n529:         graph_candidate_key = None\n530:         graph_reason = None"
+    },
+    "vllm/v1/spec_decode/cdb_av_refill.py:848": {
+      "sha256": "34b53fc4735d59f26495d917c249fc987c74b64ebdc9d369bb11cbe8c080676c",
+      "text": "848:             confidence_values = None\n849:             need_confidence = (\n850:                 self.policy == 'hf_confidence'\n851:                 or (self.policy in ('replay_acceptance',\n852:                                     'request_avg_acceptance') and any(\n853:                     self.members[rid].get('k_source') not in\n854:                     ('replay', 'request_average')\n855:                     for rid in worked\n856:                 ))\n857:             )\n858:             if need_confidence:\n859:                 if sample is not None:\n860:                     sample.start('confidence_gpu')\n861:                 # The confidence of the greedy token is exp(max(logits) -\n862:                 # logsumexp(logits)). Avoid materializing a full log_softmax\n863:                 # tensor for every vocabulary row.\n864:                 logits_fp32 = logits.float()\n865:                 max_logits, tokens = logits_fp32.max(dim=-1)\n866:                 log_normalizer = torch.logsumexp(logits_fp32, dim=-1)\n867:                 confidence = (max_logits - log_normalizer).exp()\n868:                 # Pack the small per-request result before D2H. A single\n869:                 # synchronization is cheaper than separately materializing\n870:                 # confidence.cpu().tolist() and tokens.tolist().\n871:                 packed_gpu = torch.stack(\n872:                     (tokens.to(torch.float64), confidence.to(torch.float64)),\n873:                     dim=1,\n874:                 )\n875:                 if sample is not None:\n876:                     sample.end('confidence_gpu')\n877:                     d2h_total_start = time.perf_counter()\n878:                     # Split the blocking host wait from the tiny device-to-host\n879:                     # materialization. packed_gpu was produced on this stream.\n880:                     gpu_wait_start = time.perf_counter()\n881:                     torch.cuda.current_stream(\n882:                         device=packed_gpu.device).synchronize()\n883:                     sample.cpu_span(\n884:                         'pre_d2h_gpu_wait_cpu_ms', gpu_wait_start)\n885:                     d2h_copy_start = time.perf_counter()\n886:                 packed = packed_gpu.cpu().tolist()\n887:                 if sample is not None:\n888:                     sample.cpu_span('d2h_materialize_cpu_ms', d2h_copy_start)\n889:                     sample.cpu_span('d2h_wait_cpu_ms', d2h_total_start)\n890:                 token_values = [int(row[0]) for row in packed]\n891:                 confidence_values = [float(row[1]) for row in packed]\n892:                 stops = confidence_stop_flags(confidence_values, self.threshold)\n893:             else:\n894:                 if sample is not None:"
+    },
+    "vllm/v1/worker/gpu_model_runner.py:3564": {
+      "sha256": "72f22dc2fe56341a88414c095e1bdb2f791cfee0a94ed31682a94849bd96aa08",
+      "text": "3564:                     return hidden_states\n3565: \n3566:                 if self.is_pooling_model:\n3567:                     # Return the pooling output.\n3568:                     return self._pool(\n3569:                         hidden_states,\n3570:                         num_scheduled_tokens,\n3571:                         num_scheduled_tokens_np,\n3572:                         kv_connector_output,\n3573:                     )\n3574: \n3575:                 sample_hidden_states = hidden_states[logits_indices]\n3576:                 logits = self.model.compute_logits(sample_hidden_states)\n3577:             else:\n3578:                 # Rare case.\n3579:                 assert not self.is_pooling_model\n3580: \n3581:                 sample_hidden_states = hidden_states[logits_indices]\n3582:                 if not get_pp_group().is_last_rank:\n3583:                     all_gather_tensors = {\n3584:                         \"residual\": not is_residual_scattered_for_sp(\n3585:                             self.vllm_config, num_tokens_padded\n3586:                         )\n3587:                     }\n3588:                     get_pp_group().send_tensor_dict(\n3589:                         hidden_states.tensors,\n3590:                         all_gather_group=get_tp_group(),\n3591:                         all_gather_tensors=all_gather_tensors,\n3592:                     )\n3593:                     logits = None\n3594:                 else:\n3595:                     logits = self.model.compute_logits(sample_hidden_states)\n3596: \n3597:                 model_output_broadcast_data: dict[str, Any] = {}"
+    },
+    "vllm/v1/spec_decode/cdb_av_persistent.py:1190": {
+      "sha256": "3d4606b4187e507cc33525def8a70df744338d8215ea42d2489992c1de545084",
+      "text": "1190:                  official_output_tokens=req.num_output_tokens)\n1191:         return plans\n1192: \n1193:     def begin_window(self, model_executed):\n1194:         \"\"\"Open a fixed-H Draft window after a Target scheduling opportunity.\"\"\"\n1195:         if getattr(self, \"_p3_window_open\", False):\n1196:             raise RuntimeError(\"P3 window already open\")\n1197:         self.reconcile()\n1198:         if self.inflight:\n1199:             raise RuntimeError(\"P2 Target did not return every Ready result\")\n1200:         if (not model_executed and not self.leases\n1201:                 and not getattr(self, \"draft_wait\", None)):\n1202:             return False\n1203: \n1204:         if model_executed:\n1205:             emit(\n1206:                 \"p2_target_commit\",\n1207:                 target_epoch=self.target_epoch,\n1208:                 frozen=sorted(self.frozen),\n1209:             )\n1210: \n1211:         self.window += 1\n1212:         from vllm.v1.spec_decode.cdb_av_config import (\n1213:             get_initial_admit_limit,"
+    },
+    "vllm/v1/spec_decode/cdb_av_persistent.py:1315": {
+      "sha256": "3d4606b4187e507cc33525def8a70df744338d8215ea42d2489992c1de545084",
+      "text": "1315:             return False\n1316: \n1317:         # Reconcile external aborts/preemptions before checking the Worker\n1318:         # membership partition and advancing the next global Draft step.\n1319:         self.reconcile()\n1320: \n1321:         # The Worker returns an idle barrier tick when every current member is\n1322:         # Ready. This keeps Ready queued until H without issuing an empty GPU\n1323:         # forward, and gives Target a chance to prefill new requests meanwhile.\n1324:         status = self.rpc(\"step\")\n1325:         self._p3_steps += 1\n1326:         from vllm.v1.spec_decode.cdb_av_config import (\n1327:             validate_draft_step_status,\n1328:             validate_draft_worker_status,\n1329:         )\n1330:         try:\n1331:             validate_draft_step_status(\n1332:                 status, self.window, self._p3_steps, self.horizon\n1333:             )\n1334:         except ValueError as exc:\n1335:             raise RuntimeError(\n1336:                 \"P2 Worker/Scheduler Draft-step status mismatch\"\n1337:             ) from exc\n1338:         validate_draft_worker_status(\n1339:             self.leases,\n1340:             status[\"active_req_ids\"],\n1341:             status[\"ready_req_ids\"],\n1342:             status[\"progress\"].keys(),\n1343:             self.s.max_num_running_reqs,\n1344:             status[\"slots\"],\n1345:         )\n1346:         self._p3_ready_seen = bool(status.get(\"ready_req_ids\"))\n1347: \n1348:         for rid, progress in status[\"progress\"].items():\n1349:             previous = self.carry.get(rid, {}).get(\"progress\", 0)\n1350:             if progress < previous:\n1351:                 raise RuntimeError(\"P2 progress regressed\")\n1352: "
+    },
+    "vllm/v1/engine/core.py:429": {
+      "sha256": "4765adae4fabdc027c9a40bee9fd2bf32209604320ca8ba0da440903593d7bd7",
+      "text": "429:         if (os.getenv('CDB_AV_AR_TARGET_BYPASS', '0') == '1'\n430:                 and os.getenv('CDB_AV_PERSISTENT', '0') == '1'\n431:                 and self._cdb_persistent.can_bypass_ar_target()):\n432:             # No Scheduler output has been built/mutated. The usual post_step\n433:             # still advances Draft and releases Ready only at the fixed H.\n434:             self._process_aborts_queue()\n435:             from vllm.v1.spec_decode.cdb_av_refill import emit\n436:             emit('p2_ar_target_bypass', window=self._cdb_persistent.window,\n437:                  step=self._cdb_persistent._p3_steps)\n438:             return {}, False\n439: \n440:         scheduler_output = self.scheduler.schedule()\n441:         if os.getenv(\"CDB_AV_PERSISTENT\", \"0\") == \"1\":\n442:             self._cdb_persistent.before_target(scheduler_output)\n443: \n444:         # CDB-AV: observe actual vLLM Scheduler admission.\n445:         # This is NOT an independent Draft KV allocation.\n446:         import os\n447:         if os.environ.get(\"CDB_AV_SCHED_TRACE\") == \"1\":\n448:             import logging"
+    }
+  },
+  "source_commit": "73d37c98fb3ad44709a5a4d343c78d6944aa8490",
+  "limits": [
+    "Formal log interior counters omit tails; not whole-run token conservation",
+    "Memory event time GPU-side, API wait must be counted separately",
+    "Source excerpts prove paths and guards, not standalone speedup"
+  ]
+}

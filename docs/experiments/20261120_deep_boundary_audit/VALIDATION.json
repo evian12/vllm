@@ -1,0 +1,7 @@
+{
+  "nonnegative_exclusive_scopes": true,
+  "overlap_bounded_by_host_span": true,
+  "target_d2h_count": 64,
+  "draft_d2h_count": 151,
+  "no_new_gpu_run": true
+}

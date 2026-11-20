@@ -1,0 +1,321 @@
+{
+  "source": "/home/yypan/CDB-AV/results/draft_wait_profile_20261120/full512_wait/trace/1795156926685890853-rank-0.1795157132447202842.pt.trace.json.gz",
+  "sha256": "9bacfabb799f2baab4e10366aebbcabf35c6f2a68a607da6dbb78fcc0de62575",
+  "cpu_scopes": {
+    "engine_reconcile": {
+      "calls": 405,
+      "inclusive_us": 60710.001999999986,
+      "exclusive_of_nested_cdb_us": 35753.03080859376
+    },
+    "draft_wait_refresh": {
+      "calls": 602,
+      "inclusive_us": 87389.26399999997,
+      "exclusive_of_nested_cdb_us": 57260.8782578125
+    },
+    "target_schedule": {
+      "calls": 65,
+      "inclusive_us": 29147.242000000013,
+      "exclusive_of_nested_cdb_us": 15174.529597656248
+    },
+    "kv_ownership_before_target": {
+      "calls": 65,
+      "inclusive_us": 25785.48099999999,
+      "exclusive_of_nested_cdb_us": 17694.26762109375
+    },
+    "worker_rpc": {
+      "calls": 439,
+      "inclusive_us": 2281499.2090000007,
+      "exclusive_of_nested_cdb_us": 115805.64552343744
+    },
+    "target_input_update_states": {
+      "calls": 64,
+      "inclusive_us": 25266.705,
+      "exclusive_of_nested_cdb_us": 25266.705
+    },
+    "target_input_prepare_inputs": {
+      "calls": 64,
+      "inclusive_us": 62940.173999999985,
+      "exclusive_of_nested_cdb_us": 32872.74577734376
+    },
+    "target_input_prepare_input_ids": {
+      "calls": 64,
+      "inclusive_us": 4344.258,
+      "exclusive_of_nested_cdb_us": 4344.258
+    },
+    "target_input_calc_spec_decode_metadata": {
+      "calls": 61,
+      "inclusive_us": 25723.172000000006,
+      "exclusive_of_nested_cdb_us": 25723.172000000006
+    },
+    "target_input_build_attention_metadata": {
+      "calls": 64,
+      "inclusive_us": 13042.488999999998,
+      "exclusive_of_nested_cdb_us": 13042.488999999998
+    },
+    "target_input_preprocess": {
+      "calls": 64,
+      "inclusive_us": 3999.654,
+      "exclusive_of_nested_cdb_us": 3999.654
+    },
+    "target_forward": {
+      "calls": 64,
+      "inclusive_us": 300517.996,
+      "exclusive_of_nested_cdb_us": 287542.00723046873
+    },
+    "target_storage_audit": {
+      "calls": 64,
+      "inclusive_us": 10818.434000000001,
+      "exclusive_of_nested_cdb_us": 10818.434000000001
+    },
+    "target_dispatch": {
+      "calls": 64,
+      "inclusive_us": 2157.5550000000007,
+      "exclusive_of_nested_cdb_us": 2157.5550000000007
+    },
+    "target_logits": {
+      "calls": 64,
+      "inclusive_us": 8256.729,
+      "exclusive_of_nested_cdb_us": 8256.729
+    },
+    "target_sampling": {
+      "calls": 64,
+      "inclusive_us": 958912.8940000002,
+      "exclusive_of_nested_cdb_us": 958912.8940000002
+    },
+    "engine_draft_advance": {
+      "calls": 151,
+      "inclusive_us": 945411.0679999995,
+      "exclusive_of_nested_cdb_us": 21071.18469921875
+    },
+    "draft_step_with_sampling": {
+      "calls": 151,
+      "inclusive_us": 763751.0400000003,
+      "exclusive_of_nested_cdb_us": 511276.2065039062
+    },
+    "draft_metadata_pack": {
+      "calls": 151,
+      "inclusive_us": 48057.28399999998,
+      "exclusive_of_nested_cdb_us": 48057.28399999998
+    },
+    "draft_forward": {
+      "calls": 151,
+      "inclusive_us": 198609.59600000005,
+      "exclusive_of_nested_cdb_us": 82206.40459375
+    },
+    "draft_graph_forward": {
+      "calls": 147,
+      "inclusive_us": 115903.27500000004,
+      "exclusive_of_nested_cdb_us": 95349.59580078127
+    },
+    "draft_logits": {
+      "calls": 151,
+      "inclusive_us": 21053.594,
+      "exclusive_of_nested_cdb_us": 21053.594
+    },
+    "draft_plans": {
+      "calls": 132,
+      "inclusive_us": 82436.04800000001,
+      "exclusive_of_nested_cdb_us": 25982.728175781253
+    },
+    "draft_wait_candidates": {
+      "calls": 132,
+      "inclusive_us": 52150.35400000001,
+      "exclusive_of_nested_cdb_us": 3077.3759726562494
+    },
+    "draft_wait_reason": {
+      "calls": 1073,
+      "inclusive_us": 30128.385000000017,
+      "exclusive_of_nested_cdb_us": 30128.385000000017
+    },
+    "draft_wait_admit": {
+      "calls": 213,
+      "inclusive_us": 4302.962,
+      "exclusive_of_nested_cdb_us": 4302.962
+    },
+    "draft_prepare": {
+      "calls": 119,
+      "inclusive_us": 29005.88599999999,
+      "exclusive_of_nested_cdb_us": 29005.88599999999
+    },
+    "clear_slots": {
+      "calls": 5,
+      "inclusive_us": 5807.9529999999995,
+      "exclusive_of_nested_cdb_us": 5807.9529999999995
+    }
+  },
+  "memory_by_scope": [
+    {
+      "scope": "target_input_prepare_inputs",
+      "kind": "Memcpy HtoD (Pinned -> Device)",
+      "count": 445,
+      "gpu_us": 153.0109999999998,
+      "bytes": 76092
+    },
+    {
+      "scope": "target_input_prepare_input_ids",
+      "kind": "Memcpy HtoD (Pinned -> Device)",
+      "count": 64,
+      "gpu_us": 21.598000000000013,
+      "bytes": 4068
+    },
+    {
+      "scope": "target_input_calc_spec_decode_metadata",
+      "kind": "Memcpy HtoD (Pageable -> Device)",
+      "count": 305,
+      "gpu_us": 104.73199999999987,
+      "bytes": 11208
+    },
+    {
+      "scope": "target_input_build_attention_metadata",
+      "kind": "Memcpy HtoD (Pinned -> Device)",
+      "count": 61,
+      "gpu_us": 20.161000000000016,
+      "bytes": 1952
+    },
+    {
+      "scope": "target_forward",
+      "kind": "Memcpy DtoD (Device -> Device)",
+      "count": 330,
+      "gpu_us": 333.9219999999999,
+      "bytes": 67984
+    },
+    {
+      "scope": "target_forward",
+      "kind": "Memset (Unknown)",
+      "count": 320,
+      "gpu_us": 321.5079999999994,
+      "bytes": 573440
+    },
+    {
+      "scope": "target_sampling",
+      "kind": "Memcpy DtoD (Device -> Device)",
+      "count": 61,
+      "gpu_us": 262.49800000000005,
+      "bytes": 294475776
+    },
+    {
+      "scope": "target_sampling",
+      "kind": "Memcpy DtoH (Device -> Pageable)",
+      "count": 61,
+      "gpu_us": 65.66600000000001,
+      "bytes": 5084
+    },
+    {
+      "scope": "draft_metadata_pack",
+      "kind": "Memcpy HtoD (Pinned -> Device)",
+      "count": 151,
+      "gpu_us": 55.03799999999994,
+      "bytes": 86080
+    },
+    {
+      "scope": "draft_forward",
+      "kind": "Memcpy DtoD (Device -> Device)",
+      "count": 306,
+      "gpu_us": 288.1009999999995,
+      "bytes": 13056
+    },
+    {
+      "scope": "draft_graph_forward",
+      "kind": "Memcpy DtoD (Device -> Device)",
+      "count": 380,
+      "gpu_us": 355.292999999999,
+      "bytes": 9632
+    },
+    {
+      "scope": "draft_step_with_sampling",
+      "kind": "Memcpy DtoH (Device -> Pageable)",
+      "count": 151,
+      "gpu_us": 168.4489999999998,
+      "bytes": 9280
+    },
+    {
+      "scope": "clear_slots",
+      "kind": "Memcpy HtoD (Pageable -> Device)",
+      "count": 90,
+      "gpu_us": 30.810000000000013,
+      "bytes": 400
+    },
+    {
+      "scope": "target_sampling",
+      "kind": "Memcpy DtoH (Device -> Pinned)",
+      "count": 3,
+      "gpu_us": 3.552,
+      "bytes": 32
+    },
+    {
+      "scope": "target_forward",
+      "kind": "Memset (Device)",
+      "count": 256,
+      "gpu_us": 201.47299999999996,
+      "bytes": 487424
+    }
+  ],
+  "d2h": [
+    {
+      "scope": "target_sampling",
+      "copy": "Memcpy DtoH (Device -> Pageable)",
+      "count": 61,
+      "api_cpu_us": 905761.181,
+      "gpu_copy_us": 65.66600000000001,
+      "gpu_activity_overlap_with_api_us": 902489.501953125
+    },
+    {
+      "scope": "draft_step_with_sampling",
+      "copy": "Memcpy DtoH (Device -> Pageable)",
+      "count": 151,
+      "api_cpu_us": 413831.3889999998,
+      "gpu_copy_us": 168.4489999999998,
+      "gpu_activity_overlap_with_api_us": 408068.68212890625
+    },
+    {
+      "scope": "target_sampling",
+      "copy": "Memcpy DtoH (Device -> Pinned)",
+      "count": 3,
+      "api_cpu_us": 40.349999999999994,
+      "gpu_copy_us": 3.552,
+      "gpu_activity_overlap_with_api_us": 40.35009765625
+    }
+  ],
+  "synchronizations": [
+    {
+      "scope": "target_sampling",
+      "api": "cudaStreamSynchronize",
+      "count": 61,
+      "cpu_us": 196.62700000000007,
+      "gpu_activity_overlap_us": 0.0
+    },
+    {
+      "scope": "draft_step_with_sampling",
+      "api": "cudaStreamSynchronize",
+      "count": 151,
+      "cpu_us": 435.3739999999999,
+      "gpu_activity_overlap_us": 0.0
+    },
+    {
+      "scope": "worker_rpc",
+      "api": "cudaDeviceSynchronize",
+      "count": 23,
+      "cpu_us": 679.751,
+      "gpu_activity_overlap_us": 0.0
+    },
+    {
+      "scope": "clear_slots",
+      "api": "cudaStreamSynchronize",
+      "count": 90,
+      "cpu_us": 256.3759999999999,
+      "gpu_activity_overlap_us": 30.1494140625
+    },
+    {
+      "scope": "target_sampling",
+      "api": "cudaEventSynchronize",
+      "count": 3,
+      "cpu_us": 2210.7200000000003,
+      "gpu_activity_overlap_us": 2180.0703125
+    }
+  ],
+  "limits": [
+    "Exclusive excludes nested CDB labels only, still includes Torch/framework/profiler and unlabeled waits",
+    "GPU overlap reports recorded activities; does not prove physical idle or exact avoidable CPU costs",
+    "Do not add API wall time to kernel time or to parent inclusive time"
+  ]
+}
