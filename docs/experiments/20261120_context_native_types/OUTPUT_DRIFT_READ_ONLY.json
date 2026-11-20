@@ -1,0 +1,87 @@
+{
+  "source": "Saved 512 streaming completions only",
+  "rows": [
+    {
+      "seed": 42,
+      "old_cache_on_vs_new_native_off": {
+        "exact": 180,
+        "first_token_diff": 1,
+        "median_first_diff_index": 69.0
+      },
+      "new_native_off_vs_on": {
+        "exact": 195,
+        "first_token_diff": 1,
+        "median_first_diff_index": 67
+      },
+      "old_vs_new_native_off_environment_delta": {
+        "CDB_AV_CONTEXT_NATIVE_TYPES": [
+          null,
+          "0"
+        ],
+        "BASELINE_OBSERVE_DIRECTORY": [
+          "/disk14T/yypan/CDB-AV-runtime/results/context_fp_cache_20261120/pair_seed42_cache1/observer",
+          "/disk14T/yypan/CDB-AV-runtime/results/context_native_types_20261120/pair_seed42_native0/observer"
+        ],
+        "PYTHONPATH": [
+          "/disk14T/yypan/CDB-AV-runtime/results/context_fp_cache_20261120:/home/yypan/CDB-AV/worktrees/cdb-context-fp-cache-20261120",
+          "/disk14T/yypan/CDB-AV-runtime/results/context_native_types_20261120:/home/yypan/CDB-AV/worktrees/cdb-context-native-types-20261120"
+        ]
+      }
+    },
+    {
+      "seed": 43,
+      "old_cache_on_vs_new_native_off": {
+        "exact": 218,
+        "first_token_diff": 3,
+        "median_first_diff_index": 65.5
+      },
+      "new_native_off_vs_on": {
+        "exact": 203,
+        "first_token_diff": 3,
+        "median_first_diff_index": 73
+      },
+      "old_vs_new_native_off_environment_delta": {
+        "CDB_AV_CONTEXT_NATIVE_TYPES": [
+          null,
+          "0"
+        ],
+        "BASELINE_OBSERVE_DIRECTORY": [
+          "/disk14T/yypan/CDB-AV-runtime/results/context_fp_cache_20261120/pair_seed43_cache1/observer",
+          "/disk14T/yypan/CDB-AV-runtime/results/context_native_types_20261120/pair_seed43_native0/observer"
+        ],
+        "PYTHONPATH": [
+          "/disk14T/yypan/CDB-AV-runtime/results/context_fp_cache_20261120:/home/yypan/CDB-AV/worktrees/cdb-context-fp-cache-20261120",
+          "/disk14T/yypan/CDB-AV-runtime/results/context_native_types_20261120:/home/yypan/CDB-AV/worktrees/cdb-context-native-types-20261120"
+        ]
+      }
+    },
+    {
+      "seed": 44,
+      "old_cache_on_vs_new_native_off": {
+        "exact": 191,
+        "first_token_diff": 0,
+        "median_first_diff_index": 67
+      },
+      "new_native_off_vs_on": {
+        "exact": 244,
+        "first_token_diff": 1,
+        "median_first_diff_index": 72.5
+      },
+      "old_vs_new_native_off_environment_delta": {
+        "CDB_AV_CONTEXT_NATIVE_TYPES": [
+          null,
+          "0"
+        ],
+        "BASELINE_OBSERVE_DIRECTORY": [
+          "/disk14T/yypan/CDB-AV-runtime/results/context_fp_cache_20261120/pair_seed44_cache1/observer",
+          "/disk14T/yypan/CDB-AV-runtime/results/context_native_types_20261120/pair_seed44_native0/observer"
+        ],
+        "PYTHONPATH": [
+          "/disk14T/yypan/CDB-AV-runtime/results/context_fp_cache_20261120:/home/yypan/CDB-AV/worktrees/cdb-context-fp-cache-20261120",
+          "/disk14T/yypan/CDB-AV-runtime/results/context_native_types_20261120:/home/yypan/CDB-AV/worktrees/cdb-context-native-types-20261120"
+        ]
+      }
+    }
+  ],
+  "interpretation": "Earlier cache ON and later native OFF have equivalent type predicates but distinct commits/processes. The mismatch establishes observed inter-run drift for matched request plans in this path. It does not prove any particular differing token is correct or explain why it differs."
+}
