@@ -1,0 +1,29 @@
+{
+  "candidate": "S02",
+  "source_sha": "b3ac1ff2953700b537f0d7df4d7535434da1757b",
+  "flag": "CDB_AV_GRAPH_INPUT_STAGE",
+  "value": 1,
+  "reference_sha": "ccf96aac0064aebebc2077fb47e36929d65aa06a",
+  "comparison": "historical same-load reference, not simultaneous paired causal evidence",
+  "reference_tps": 322.7994798208757,
+  "reference_sd": 2.1173144384031555,
+  "tps": 323.9300288402719,
+  "change_pct": 0.350232602612488,
+  "e2e_p95": 16.83258895361796,
+  "reference_e2e_p95": 17.155133,
+  "p95_change_pct": -1.880160569912448,
+  "completed": 512,
+  "failed": 0,
+  "output_tokens": 101003,
+  "same_full_output_ids_vs_saved_seed42": 222,
+  "output_comparison_scope": "batch trajectories may vary; exact saved-output equality count does not attribute cause; actual same-state numerical/KV gate recorded separately",
+  "progress": false,
+  "next": "keep disabled; no OFF or further confirmation; audit next distinct mechanism",
+  "release": {
+    "port_closed": true,
+    "memory_mib": 15,
+    "our_gpu_pids": [],
+    "time": 1795171325.4858747
+  },
+  "functional_evidence": "FUNCTIONAL_ACCEPTED.json"
+}
