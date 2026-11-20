@@ -1,0 +1,7 @@
+{
+  "state": "failed",
+  "time": 1795153805.5939927,
+  "pid": 3676748,
+  "error": "Traceback (most recent call last):\n  File \"/disk14T/yypan/CDB-AV-runtime/results/draft_wait_20261120/controller.py\", line 123, in <module>\n    gate=execute('gate_wait',8,diagnostic=True)\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/disk14T/yypan/CDB-AV-runtime/results/draft_wait_20261120/controller.py\", line 48, in execute\n    subprocess.run(cmd + (['--dry-run'] if dry else []), cwd=R, stdout=output, stderr=subprocess.STDOUT, check=True, timeout=2700)\n  File \"/opt/anaconda3/lib/python3.11/subprocess.py\", line 571, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['/home/yypan/CDB-AV/.venv/bin/python', '/disk14T/yypan/CDB-AV-runtime/results/draft_wait_20261120/driver.py', '--tag', 'gate_wait', '--mode', 'hf', '--k-cap', '8', '--seed', '42', '--draft-wait', '1', '--diagnostic', '--requests', '16', '--max-tokens', '64', '--gate-warmup', '64']' returned non-zero exit status 1.\n",
+  "completed": []
+}

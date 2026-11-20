@@ -1,0 +1,8 @@
+{
+  "user_authorized": true,
+  "expected_behavior": "Target first token then Draft FIFO; no AR while waiting",
+  "baseline": "ec0becf70c1fb9060ead21579e786f29a0ba8234 with replay_host0 and compile0",
+  "default_flag": 0,
+  "safety": "All original assertions retained; wait context snapshots, disjoint partitions, explicit fallback reasons",
+  "risk": "State scheduling changes can affect latency, generation trajectories and throughput; no speed claim before paired runs"
+}

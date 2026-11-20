@@ -1,0 +1,7 @@
+{
+  "all_three_pairs_positive": true,
+  "minimum_mean_tps_gain_pct": 0.5,
+  "maximum_mean_e2e_p95_increase_pct": 1,
+  "time": 1795154157.8984332,
+  "semantics": "Waiting confirmed requests do not advance via AR; native fallback reasons must be classified"
+}

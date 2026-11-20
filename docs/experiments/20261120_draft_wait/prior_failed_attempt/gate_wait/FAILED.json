@@ -1,0 +1,4 @@
+{
+  "error": "Traceback (most recent call last):\n  File \"/disk14T/yypan/CDB-AV-runtime/results/draft_wait_20261120/driver.py\", line 247, in <module>\n    result = asyncio.run(execute())\n             ^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/anaconda3/lib/python3.11/asyncio/runners.py\", line 190, in run\n    return runner.run(main)\n           ^^^^^^^^^^^^^^^^\n  File \"/opt/anaconda3/lib/python3.11/asyncio/runners.py\", line 118, in run\n    return self._loop.run_until_complete(task)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/anaconda3/lib/python3.11/asyncio/base_events.py\", line 653, in run_until_complete\n    return future.result()\n           ^^^^^^^^^^^^^^^\n  File \"/disk14T/yypan/CDB-AV-runtime/results/draft_wait_20261120/driver.py\", line 222, in execute\n    assert result['failed'] == 0\n           ^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n",
+  "time": 1795153801.2126796
+}

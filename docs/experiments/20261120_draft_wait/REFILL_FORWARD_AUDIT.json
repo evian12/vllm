@@ -1,0 +1,64 @@
+{
+  "log": "/disk14T/yypan/CDB-AV-runtime/results/draft_wait_20261120_v2/gate_wait/server.log",
+  "positive_step_admissions": 1424,
+  "next_forward_same_window": 1424,
+  "with_ready_and_surviving_active_rows": 1313,
+  "distinct_windows": 142,
+  "examples": [
+    {
+      "window": 1,
+      "admitted_after": 3,
+      "req_id": "cmpl-baseline-530908e378fd-4-0-9de16744",
+      "preexisting_ready": 1,
+      "survivor_rows": 3,
+      "forward_phase": "mixed_prefill_decode",
+      "actual_token_rows": 452
+    },
+    {
+      "window": 1,
+      "admitted_after": 4,
+      "req_id": "cmpl-baseline-530908e378fd-5-0-b61d60c0",
+      "preexisting_ready": 2,
+      "survivor_rows": 3,
+      "forward_phase": "mixed_prefill_decode",
+      "actual_token_rows": 48
+    },
+    {
+      "window": 1,
+      "admitted_after": 5,
+      "req_id": "cmpl-baseline-530908e378fd-6-0-b4900fc2",
+      "preexisting_ready": 3,
+      "survivor_rows": 3,
+      "forward_phase": "mixed_prefill_decode",
+      "actual_token_rows": 45
+    },
+    {
+      "window": 1,
+      "admitted_after": 6,
+      "req_id": "cmpl-baseline-530908e378fd-7-0-a9d6902c",
+      "preexisting_ready": 5,
+      "survivor_rows": 2,
+      "forward_phase": "mixed_prefill_decode",
+      "actual_token_rows": 102
+    },
+    {
+      "window": 1,
+      "admitted_after": 6,
+      "req_id": "cmpl-baseline-530908e378fd-8-0-abf99e5e",
+      "preexisting_ready": 5,
+      "survivor_rows": 2,
+      "forward_phase": "mixed_prefill_decode",
+      "actual_token_rows": 102
+    },
+    {
+      "window": 1,
+      "admitted_after": 7,
+      "req_id": "cmpl-baseline-530908e378fd-9-0-8c240e0a",
+      "preexisting_ready": 7,
+      "survivor_rows": 2,
+      "forward_phase": "mixed_prefill_decode",
+      "actual_token_rows": 92
+    }
+  ],
+  "scope": "Request IDs were linked across scheduler and actual Draft forward events. Counts measure admission events, not unique client requests."
+}
