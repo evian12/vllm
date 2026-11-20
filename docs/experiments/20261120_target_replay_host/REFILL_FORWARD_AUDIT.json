@@ -1,5 +1,5 @@
 {
-  "log": "/home/yypan/CDB-AV/results/target_replay_host_20261120/gate_replay_host/server.log",
+  "log": "/disk14T/yypan/CDB-AV-runtime/results/target_replay_host_20261120/gate_replay_host/server.log",
   "positive_step_admissions": 1075,
   "next_forward_same_window": 1075,
   "with_ready_and_surviving_active_rows": 973,

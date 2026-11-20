@@ -1,0 +1,8 @@
+{
+  "parent": "fdad8bc258064c6c308554a43e57e26c5746955d",
+  "candidate": "Check current per-layer slot tensor aliases within each call and avoid capture-only host allocations during replay",
+  "fixed_context_cache": 1,
+  "fixed_native_types": 1,
+  "fixed_target_floor": 1024,
+  "scope": "Preserve pointer and shape predicates, inputs, graph keys, storage and KV ownership checks"
+}

@@ -1,0 +1,20 @@
+{
+  "minimum_mean_tps_gain_pct": 0.5,
+  "all_three_pairs_positive": true,
+  "maximum_mean_e2e_p95_increase_pct": 1,
+  "seed_order": [
+    [
+      0,
+      1
+    ],
+    [
+      1,
+      0
+    ],
+    [
+      0,
+      1
+    ]
+  ],
+  "time": 1795142620.5772161
+}

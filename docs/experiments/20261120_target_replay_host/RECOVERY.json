@@ -1,0 +1,9 @@
+{
+  "previous_failure": "Pre-service import probe exceeded unchanged 30-second timeout. No server was started and no measured requests were processed.",
+  "retry": "Only the missing seed-44 ON arm is repeated with a new tag, identical driver/source and environment. Original failure and all prior runs remain.",
+  "warning": "The completed seed-44 OFF arm showed lower measured GPU SM-utilization and power than the four earlier arms and precedes an overnight interval. Its comparison is retained with context; there is already a negative pair under the preregistered adoption rule.",
+  "retry1_outcome": "Import probe emitted the expected source paths but timed out before process exit. The model service was never started.",
+  "retry2": "Only pre-service import-probe timeout changed from 30 to 120 seconds. Model command, environment, warmup, client, data, observer and source stay identical for the retry.",
+  "original_driver_sha256": "7f7c68ca42c4f550cacf69de39c0b98706558f3811127d9c2ddfc8ae6ee64732",
+  "startup_timeout_driver_sha256": "9fd874b459e537c038ca0a60ea8296f9840f6a7b3c4266417f7f64035dc7979f"
+}
