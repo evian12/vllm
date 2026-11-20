@@ -215,3 +215,35 @@ def test_waiting_and_owned_partitions_cannot_overlap(queue):
     queue.leases['a'] = []
     with pytest.raises(RuntimeError, match='overlaps an owned candidate'):
         queue.refresh_draft_wait()
+
+
+@pytest.mark.parametrize('cached', [False, True])
+def test_kv_reuse_planner_performs_the_same_fifo_wait_to_lease_transfer(queue, cached):
+    from vllm.v1.spec_decode.cdb_av_kv_reuse import ReuseDraftQueue
+    reuse = ReuseDraftQueue.__new__(ReuseDraftQueue)
+    reuse.__dict__.update(queue.__dict__)
+    reuse.cached_leases, reuse.audit_leases, reuse.commits = {}, {}, {}
+    reuse.history_pages = set()
+    reuse.pending_allocations = []
+    reuse._uses_mixed_prefill = True
+    add(reuse, 'a', 'b')
+    if cached:
+        reuse.cached_leases['a'] = reuse.s.kv_cache_manager.block_pool.get_new_blocks(1)
+    reuse.refresh_draft_wait()
+    reuse.s.running.reverse()
+    reuse._cdb_admit_limit = 1
+    plans = reuse.plans()
+    assert [p['req_id'] for p in plans] == ['a']
+    assert plans[0]['reuse'] == cached
+    assert list(reuse.draft_wait) == ['b']
+    assert set(reuse.leases) == {'a'}
+    reuse.refresh_draft_wait(enroll=False)
+    assert reuse.frozen == {'a', 'b'}
+
+
+def test_cached_pages_reduce_required_new_kv_resource(queue):
+    add(queue, 'a')
+    queue.cached_leases = {'a': [object()]}
+    queue.s.kv_cache_manager.block_pool.free = 8
+    queue.refresh_draft_wait()
+    assert 'a' in queue.draft_wait

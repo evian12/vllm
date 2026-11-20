@@ -819,7 +819,7 @@ class ReuseDraftQueue(PersistentDraftQueue):
 
     def plans(self):
         plans=[];planned_prefill_tokens=0;pool=self.s.kv_cache_manager.block_pool
-        for req in self.s.running:
+        for req in self.draft_plan_requests():
             if (self._cdb_admit_limit is not None
                     and len(plans) >= self._cdb_admit_limit):
                 break
@@ -965,6 +965,7 @@ class ReuseDraftQueue(PersistentDraftQueue):
                     raise RuntimeError('P2 cached lease changed during plan staging')
                 self.cached_leases.pop(rid)
             self.leases[rid]=blocks
+            self.admit_draft_wait(rid)
             self.history_pages.update(b.block_id for b in blocks)
             self.contexts[rid]={'context':ctx,'computed':req.num_computed_tokens}
             if audit_blocks:

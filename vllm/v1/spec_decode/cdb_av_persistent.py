@@ -491,9 +491,26 @@ class PersistentDraftQueue:
             return 'model_length'
         nblocks = (req.num_tokens + cap + self.block_size - 1) // self.block_size
         pool = self.s.kv_cache_manager.block_pool
-        if pool.get_num_free_blocks() < nblocks + self.s.max_num_running_reqs * 2:
+        cached = getattr(self, "cached_leases", {}).get(req.request_id, ())
+        extra = max(0, nblocks - len(cached))
+        audit = (hasattr(self, "cached_leases")
+                 and os.getenv("CDB_AV_REUSE_VALIDATE", "0") == "1")
+        required = extra + (nblocks if audit else 0)
+        if pool.get_num_free_blocks() < required + self.s.max_num_running_reqs * 2:
             return 'kv_resource'
         return None
+
+    def draft_plan_requests(self):
+        """Shared FIFO admission source for ordinary and KV-reuse planners."""
+        self.refresh_draft_wait()
+        if getattr(self, "draft_wait_enabled", False):
+            return [entry["request"] for entry in self.draft_wait.values()]
+        return self.s.running
+
+    def admit_draft_wait(self, rid):
+        if getattr(self, "draft_wait_enabled", False):
+            self.draft_wait.pop(rid)
+            emit("draft_wait_admitted", req_id=rid, queued=len(self.draft_wait))
 
     @property
     def frozen(self):
@@ -1068,12 +1085,7 @@ class PersistentDraftQueue:
         plans = []
         planned_prefill_tokens = 0
         pool = self.s.kv_cache_manager.block_pool
-        self.refresh_draft_wait()
-        candidates = (
-            [entry["request"] for entry in self.draft_wait.values()]
-            if getattr(self, "draft_wait_enabled", False) else self.s.running
-        )
-        for req in candidates:
+        for req in self.draft_plan_requests():
             if self._cdb_admit_limit is not None and len(plans) >= self._cdb_admit_limit:
                 break
             rid = req.request_id
@@ -1157,9 +1169,7 @@ class PersistentDraftQueue:
                 raise RuntimeError("P2 new lease not exclusive")
 
             self.leases[rid] = blocks
-            if getattr(self, "draft_wait_enabled", False):
-                self.draft_wait.pop(rid)
-                emit("draft_wait_admitted", req_id=rid, queued=len(self.draft_wait))
+            self.admit_draft_wait(rid)
             self.contexts[rid] = {
                 "context": ctx,
                 "computed": req.num_computed_tokens,
