@@ -12,7 +12,6 @@ import time
 def install(observer, limit=4096):
     tls=threading.local()
     counts={}
-    shapes={}
 
     def append(row):
         observer.start()
@@ -80,7 +79,7 @@ def install(observer, limit=4096):
         module.emit=emitted
 
     def persistent(module):
-        for name in ['plans','reconcile','refresh_draft_wait','_draft_wait_reason']:
+        for name in ['plans','reconcile','refresh_draft_wait','draft_wait_reason']:
             wrap(module.PersistentDraftQueue,name,'queue_'+name)
 
     def runner(module):

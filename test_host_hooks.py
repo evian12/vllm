@@ -27,3 +27,12 @@ def test_hooks_preserve_values_aliases_exception_and_bound():
     except ValueError as e:assert str(e)=='kept'
     else:assert False
     assert any(x.get('stage')=='cpu_encode' for x in observer.ROWS)
+
+
+def test_real_repository_hook_targets_exist():
+    from vllm.v1.spec_decode import cdb_av_persistent as p,cdb_av_refill as r,cdb_av_inputs as i
+    from vllm.v1.worker import gpu_model_runner as g
+    observer=NS(LOCK=threading.Lock(),ROWS=[],EPOCH='measurement',PATCHES={},start=lambda:None)
+    install(observer)
+    # Match the real import order; installing must not touch CUDA or run models.
+    for module in [i,r,p,g]:observer.PATCHES[module.__name__](module)
