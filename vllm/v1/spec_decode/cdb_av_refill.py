@@ -180,6 +180,19 @@ class RefillSession:
         self.block_size = self.builder.kv_cache_spec.block_size
         from vllm.v1.spec_decode.cdb_av_inputs import get_input_stager
         self._input_stager = get_input_stager(proposer)
+        flag = os.getenv('CDB_AV_GRAPH_INPUT_STAGE', '0')
+        if flag not in ('0', '1'):
+            raise ValueError('CDB_AV_GRAPH_INPUT_STAGE must be 0 or 1')
+        self.graph_input_stage = flag == '1'
+        if self.graph_input_stage:
+            from vllm.v1.spec_decode.cdb_av_inputs import validate_staging_scope
+            validate_staging_scope(proposer.vllm_config)
+            validate_ragged_graph_backend(8, self.builder)
+            if (self._input_stager is None or self.block_size != 16
+                    or type(proposer.model).__name__ != 'LlamaForCausalLM'
+                    or proposer.vllm_config.model_config.quantization is not None
+                    or os.getenv('CDB_AV_DRAFT_DECODE_GRAPH', '0') != '1'):
+                raise ValueError('Graph input staging requires pinned Llama FA2 Graphs')
         self.policy = os.getenv('CDB_AV_K_POLICY', 'manual').strip().lower()
         self.threshold = float(os.getenv('CDB_AV_HF_THRESHOLD', '0.4'))
         if self.policy not in ('manual', 'hf_confidence', 'replay_acceptance',
@@ -307,6 +320,49 @@ class RefillSession:
         return (last_indices is not None and phase in
                 ('decode', 'mixed_prefill_decode', 'mixed_prefill'))
 
+    def _cached_graph_inputs(self, ids, positions, blocks, seqs, qlens,
+                             slots, last_indices):
+        # Only existing exact one-token Graph entries may own this fast path.
+        # Capture, ragged layouts and eager fallback retain independent staging.
+        if (not getattr(self, 'graph_input_stage', False)
+                or not qlens or any(q != 1 for q in qlens)):
+            return None
+        required = max(max(seqs), max(map(len, blocks)) * self.block_size)
+        bucket = max(self.block_size, 1 << (required - 1).bit_length())
+        key = (len(qlens), bucket)
+        p = self.p
+        if getattr(p, '_cdb_decode_graph_storage', None) != self._decode_graph_storage():
+            return None
+        entry = getattr(p, '_cdb_decode_graphs', {}).get(key)
+        if entry is None or 'input_stage' not in entry:
+            return None
+        stage = entry['input_stage']
+        # Copy the dictionary: step() removes input fields, but this instance
+        # keeps all persistent views alive for the full Graph-entry lifetime.
+        fields = dict(stage.stage(ids, positions, blocks, seqs, qlens,
+                                  slots, last_indices))
+        if (os.getenv('CDB_AV_VALIDATE_METADATA', '0') == '1'
+                and stage.calls <= 32):
+            from vllm.v1.spec_decode.cdb_av_inputs import make_input_plan
+            padded = [list(row) + [0]*(stage.width-len(row)) for row in blocks]
+            plan = make_input_plan(ids, positions, padded, seqs, qlens,
+                slots, last_indices, max_context=self.p.max_model_len)
+            checks = {}
+            for f in plan.fields:
+                ref = torch.tensor(f.values, dtype=f.dtype, device='cpu').view(f.shape)
+                actual = fields[f.name].cpu()
+                checks[f.name] = torch.equal(actual.view(torch.uint8), ref.view(torch.uint8))
+            checks['cpu_query'] = fields['query_start_loc_cpu'].tolist() == list(plan.starts)
+            logger.info('[CDB_GRAPH_INPUT_VALIDATE] %s', json.dumps(dict(
+                key=key, call=stage.calls, checks=checks)))
+            if not all(checks.values()):
+                raise RuntimeError('Graph-owned staged inputs differ from native integers')
+        if stage.calls == 1 or stage.calls % 1024 == 0:
+            logger.info('[CDB_GRAPH_INPUT_STAGE] %s', json.dumps(dict(
+                source=__file__, calls=stage.calls, key=key,
+                source_waits=stage.source_waits, persistent_views=True)))
+        return fields
+
     def _decode_graph_forward(self, cad, n, key, phase='decode',
                               last_indices=None, profile=None):
         """Replay a Draft-only graph with persistent, request-independent buffers.
@@ -340,6 +396,12 @@ class RefillSession:
             static_last_indices = torch.tensor(
                 [end - 1 for end in query_cpu[1:].tolist()],
                 dtype=torch.long, device=p.device)
+            input_stage = None
+            if getattr(self, 'graph_input_stage', False) and len(key) == 2:
+                from vllm.v1.spec_decode.cdb_av_graph_inputs import GraphInputStage
+                input_stage = GraphInputStage(p.device, requests=num_reqs,
+                    tokens=n, width=width, max_context=p.max_model_len)
+                input_stage.query_cpu.copy_(query_cpu)
             static_cad = CommonAttentionMetadata(
                 query_start_loc=query_cpu.to(p.device),
                 query_start_loc_cpu=query_cpu,
@@ -353,6 +415,11 @@ class RefillSession:
                 causal=True, _seq_lens_cpu=None,
                 _num_computed_tokens_cpu=None,
             )
+            if input_stage is not None:
+                for name in ('query_start_loc', 'query_start_loc_cpu', 'seq_lens',
+                             'block_table_tensor', 'slot_mapping'):
+                    setattr(static_cad, name, input_stage.fields[name])
+                static_cad.query_start_loc.copy_(cad.query_start_loc)
             metadata = self.builder.build_for_drafting(
                 static_cad, draft_index=0)
             per_layer = {name: metadata for name in p.attn_layer_names}
@@ -360,6 +427,8 @@ class RefillSession:
                          capture_qlens=qlens,
                          last_indices=(None if dynamic_layout
                                        else static_last_indices))
+            if input_stage is not None:
+                entry['input_stage'] = input_stage
         else:
             static_cad = entry['cad']
 
@@ -373,10 +442,13 @@ class RefillSession:
             static_cad.query_start_loc_cpu.copy_(cad.query_start_loc_cpu)
 
         width = cad.block_table_tensor.shape[1]
-        static_cad.block_table_tensor.zero_()
-        static_cad.block_table_tensor[:, :width].copy_(cad.block_table_tensor)
-        static_cad.seq_lens.copy_(cad.seq_lens)
-        static_cad.slot_mapping.copy_(cad.slot_mapping)
+        direct = ('input_stage' in entry
+                  and cad.slot_mapping is entry['input_stage'].fields['slot_mapping'])
+        if not direct:
+            static_cad.block_table_tensor.zero_()
+            static_cad.block_table_tensor[:, :width].copy_(cad.block_table_tensor)
+            static_cad.seq_lens.copy_(cad.seq_lens)
+            static_cad.slot_mapping.copy_(cad.slot_mapping)
         if profile is not None:
             profile.end('metadata')
 
@@ -810,8 +882,11 @@ class RefillSession:
                 profiler = getattr(self, '_draft_stage_profiler', None)
                 tick = (time.perf_counter() if profiler is not None
                         and profiler.has_capacity else None)
-                fields = stager.pack(ids_cpu,positions_cpu,block_rows,seqs,
-                                     qlens,slots,last_indices)
+                fields = self._cached_graph_inputs(ids_cpu,positions_cpu,
+                    block_rows,seqs,qlens,slots,last_indices)
+                if fields is None:
+                    fields = stager.pack(ids_cpu,positions_cpu,block_rows,seqs,
+                                         qlens,slots,last_indices)
                 ids = fields.pop('ids')
                 positions = fields.pop('positions')
                 indices = fields.pop('last_indices')

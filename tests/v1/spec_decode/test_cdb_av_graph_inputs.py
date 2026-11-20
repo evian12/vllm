@@ -66,3 +66,33 @@ def test_same_stream_reuse_preserves_earlier_consumers_without_host_wait():
         fields=stage.stage([i],[0],[[1]],[1],[1],[16],[0])
         output.append(fields['ids'].clone())
     assert [t.item() for t in output]==list(range(50))
+
+
+def test_cached_input_stage_uses_only_live_exact_graph_entry():
+    from types import SimpleNamespace as NS
+    from vllm.v1.spec_decode.cdb_av_refill import RefillSession
+    s=RefillSession.__new__(RefillSession)
+    s.graph_input_stage=True;s.block_size=16
+    storage=(123,456);s._decode_graph_storage=lambda:storage
+    calls=[]
+    def stage(*args):
+        calls.append(args)
+        return persistent
+    persistent={'ids':object(),'positions':object(),'last_indices':object()}
+    stager=NS(stage=stage,calls=2)
+    s.p=NS(_cdb_decode_graph_storage=storage,
+           _cdb_decode_graphs={(2,32):{'input_stage':stager}})
+    args=([9,10],[1,17],[[1],[2,3]],[2,18],[1,1],[17,49],[0,1])
+    fields=s._cached_graph_inputs(*args)
+    assert calls==[args] and fields==persistent and fields is not persistent
+    fields.pop('ids');assert 'ids' in persistent
+    s.p._cdb_decode_graph_storage=(999,)
+    assert s._cached_graph_inputs(*args) is None
+    s.p._cdb_decode_graph_storage=storage
+    changed=list(args);changed[4]=[1,2]
+    assert s._cached_graph_inputs(*changed) is None
+    changed=list(args);changed[3]=[2,35]
+    assert s._cached_graph_inputs(*changed) is None
+    s.graph_input_stage=False
+    assert s._cached_graph_inputs(*args) is None
+    assert len(calls)==1
