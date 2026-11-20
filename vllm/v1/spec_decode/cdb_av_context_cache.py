@@ -47,7 +47,9 @@ class ContextFingerprintCache:
         self.calls+=1
         if (len(tokens)>self.max_tokens or type(request).__hash__ is not object.__hash__
                 or type(request).__eq__ is not object.__eq__
-                or not all(type(token) is int for token in tokens)):
+                or not (_NATIVE_TYPES.all_builtin_ints(tokens)
+                        if NATIVE_TYPES and type(tokens) in (list, tuple)
+                        else all(type(token) is int for token in tokens))):
             self.fallbacks+=1
             return self.native(tokens,hasher)
         try:
@@ -82,12 +84,19 @@ class ContextFingerprintCache:
                 source=__file__,calls=self.calls,hits=self.hits,misses=self.misses,
                 fallbacks=self.fallbacks,entries=len(self.entries),max_entries=self.max_entries,
                 full_typed_prefix_equality=True,request_weak_references=True,
-                owner_thread_only=True)))
+                owner_thread_only=True,native_exact_type_check=NATIVE_TYPES,
+                native_type_calls=_NATIVE_TYPES.calls() if NATIVE_TYPES else 0,
+                native_module=_NATIVE_TYPES.__file__ if NATIVE_TYPES else None)))
         # Do not share a mutable dict with a caller or stored Carry snapshot.
         return dict(context_tokens=len(tokens),fingerprint=digest)
 
 
 ENABLED=flag('CDB_AV_CONTEXT_FINGERPRINT_CACHE')
+NATIVE_TYPES=flag('CDB_AV_CONTEXT_NATIVE_TYPES')
+_NATIVE_TYPES=None
+if NATIVE_TYPES:
+    if not ENABLED:raise ValueError('Native type predicate requires context fingerprint cache')
+    from vllm.v1.spec_decode import _cdb_av_prefix_types as _NATIVE_TYPES
 VALIDATE=flag('CDB_AV_CONTEXT_FINGERPRINT_VALIDATE')
 _cache=None
 
