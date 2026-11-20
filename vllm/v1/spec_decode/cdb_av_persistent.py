@@ -369,6 +369,10 @@ class PersistentDraftQueue:
         self.block_size = checked.block_size
         self.leases, self.contexts, self.carry = {}, {}, {}
         self.ready, self.inflight = {}, {}
+        from vllm.v1.spec_decode.cdb_av_config import is_enabled
+        self.draft_wait_enabled = is_enabled("CDB_AV_DRAFT_WAIT")
+        self.draft_wait = {}  # FIFO; formal context only, no Draft KV allocation.
+        self._draft_wait_fallbacks = {}
         self.window = self.target_epoch = 0
         from vllm.v1.spec_decode.cdb_av_config import get_window_h
         self.horizon = get_window_h()
@@ -416,6 +420,81 @@ class PersistentDraftQueue:
         self._p3_ready_seen = False
         self.s._cdb_p2 = self
 
+    def refresh_draft_wait(self, *, enroll=True):
+        """Enroll confirmed contexts before Target selection, without leasing KV.
+
+        Waiting requests cannot advance via AR. They may be cancelled/preempted;
+        only allocated leases/Ready/inflight retain preemption protection.
+        """
+        if not getattr(self, "draft_wait_enabled", False):
+            return
+        owned = set(self.leases) | set(self.ready) | set(self.inflight)
+        if owned.intersection(self.draft_wait):
+            raise RuntimeError("Draft-wait overlaps an owned candidate")
+        for rid, entry in list(self.draft_wait.items()):
+            req = self.s.requests.get(rid)
+            if (req is not entry["request"] or req.is_finished()
+                    or req.status != RequestStatus.RUNNING):
+                del self.draft_wait[rid]
+                emit('draft_wait_removed', req_id=rid, reason='invalidated')
+                continue
+            if (RefillQueue.context(req) != entry["context"]
+                    or req.num_computed_tokens != entry["computed"]):
+                raise RuntimeError("Target advanced a Draft-wait context")
+        if not enroll:
+            return
+        live = set()
+        for req in self.s.running:
+            rid = req.request_id
+            live.add(rid)
+            if rid in owned:
+                continue
+            reason = self.draft_wait_reason(req)
+            if reason is not None:
+                if rid in self.draft_wait:
+                    del self.draft_wait[rid]
+                    emit('draft_wait_removed', req_id=rid, reason=reason)
+                if req.num_output_tokens:
+                    signature = (reason, req.num_tokens, req.num_computed_tokens)
+                    if self._draft_wait_fallbacks.get(rid) != signature:
+                        emit('draft_wait_fallback', req_id=rid, reason=reason)
+                    self._draft_wait_fallbacks[rid] = signature
+                continue
+            self._draft_wait_fallbacks.pop(rid, None)
+            if rid not in self.draft_wait:
+                self.draft_wait[rid] = dict(request=req,
+                    context=RefillQueue.context(req), computed=req.num_computed_tokens)
+                emit('draft_wait_enqueued', req_id=rid, queued=len(self.draft_wait),
+                     official_output_tokens=req.num_output_tokens)
+        for rid in set(self._draft_wait_fallbacks) - live:
+            del self._draft_wait_fallbacks[rid]
+
+    def draft_wait_reason(self, req):
+        """Explicit native-only reasons; lack of a Draft slot is not a fallback."""
+        if req.status != RequestStatus.RUNNING or req.is_finished():
+            return 'not_running'
+        if not req.num_output_tokens:
+            return 'target_prefill'
+        if req.spec_token_ids or req.num_computed_tokens != req.num_tokens - 1:
+            return 'context_not_confirmed'
+        reason = self.unsupported_reason(req)
+        if reason is not None:
+            return reason
+        context = RefillQueue.context(req) if self.acceptance_replay else None
+        cap, _ = self.resolve_k_cap(req, context)
+        if cap == 0:
+            return 'output_budget_tail'
+        from vllm.v1.spec_decode.cdb_av_config import can_verify_ready_tokens
+        if not can_verify_ready_tokens(cap, self.s.max_num_scheduled_tokens):
+            return 'target_verify_budget'
+        if req.num_tokens + cap >= self.s.max_model_len:
+            return 'model_length'
+        nblocks = (req.num_tokens + cap + self.block_size - 1) // self.block_size
+        pool = self.s.kv_cache_manager.block_pool
+        if pool.get_num_free_blocks() < nblocks + self.s.max_num_running_reqs * 2:
+            return 'kv_resource'
+        return None
+
     @property
     def frozen(self):
         """Current-window Draft members and unselected published Ready work.
@@ -427,7 +506,7 @@ class PersistentDraftQueue:
         """
         from vllm.v1.spec_decode.cdb_av_config import get_frozen_request_ids
 
-        return get_frozen_request_ids(
+        return set(getattr(self, "draft_wait", ())) | get_frozen_request_ids(
             self.leases,
             self.ready,
             getattr(self, "_target_selected_ready", set()),
@@ -462,6 +541,7 @@ class PersistentDraftQueue:
         """
         if self.inflight:
             raise RuntimeError("P2 Target scheduling began with in-flight verification")
+        self.refresh_draft_wait()
 
         from vllm.v1.spec_decode.cdb_av_config import (
             select_ready_request_ids,
@@ -469,7 +549,8 @@ class PersistentDraftQueue:
 
         running_ids = [req.request_id for req in self.s.running]
         ready_ids = list(self.ready)
-        occupied = set(self.leases) | set(self.inflight)
+        occupied = (set(self.leases) | set(self.inflight)
+                    | set(getattr(self, "draft_wait", ())))
         non_ready_running = set(running_ids) - set(ready_ids) - occupied
         selected = select_ready_request_ids(
             running_ids,
@@ -724,6 +805,9 @@ class PersistentDraftQueue:
         self.carry.clear()
         self.ready.clear()
         self.inflight.clear()
+        if hasattr(self, "draft_wait"):
+            self.draft_wait.clear()
+            self._draft_wait_fallbacks.clear()
 
         if hasattr(self, "replay_blocks"):
             self.replay_blocks.clear()
@@ -757,6 +841,7 @@ class PersistentDraftQueue:
             live_leases=len(self.leases),
             ready=len(self.ready),
             inflight=len(self.inflight),
+            draft_wait=len(getattr(self, "draft_wait", ())),
         )
 
         return {
@@ -768,6 +853,7 @@ class PersistentDraftQueue:
         """Release persistent Worker state and CPU-owned leases at shutdown."""
         if (
             self.leases
+            or getattr(self, "draft_wait", None)
             or self.contexts
             or self.carry
             or self.ready
@@ -778,6 +864,8 @@ class PersistentDraftQueue:
             self.reset()
 
     def reconcile(self):
+        if getattr(self, "draft_wait_enabled", False):
+            self.refresh_draft_wait(enroll=False)
         invalid = []
         for rid, ctx in self.contexts.items():
             req = self.s.requests.get(rid)
@@ -905,6 +993,7 @@ class PersistentDraftQueue:
             scheduled=dict(output.num_scheduled_tokens),
             frozen=sorted(self.frozen),
             verify=list(output.scheduled_spec_decode_tokens),
+            draft_wait=len(getattr(self, "draft_wait", ())),
         )
 
     def committed(self, req, drafts, generated):
@@ -979,7 +1068,12 @@ class PersistentDraftQueue:
         plans = []
         planned_prefill_tokens = 0
         pool = self.s.kv_cache_manager.block_pool
-        for req in self.s.running:
+        self.refresh_draft_wait()
+        candidates = (
+            [entry["request"] for entry in self.draft_wait.values()]
+            if getattr(self, "draft_wait_enabled", False) else self.s.running
+        )
+        for req in candidates:
             if self._cdb_admit_limit is not None and len(plans) >= self._cdb_admit_limit:
                 break
             rid = req.request_id
@@ -1063,6 +1157,9 @@ class PersistentDraftQueue:
                 raise RuntimeError("P2 new lease not exclusive")
 
             self.leases[rid] = blocks
+            if getattr(self, "draft_wait_enabled", False):
+                self.draft_wait.pop(rid)
+                emit("draft_wait_admitted", req_id=rid, queued=len(self.draft_wait))
             self.contexts[rid] = {
                 "context": ctx,
                 "computed": req.num_computed_tokens,
@@ -1090,7 +1187,8 @@ class PersistentDraftQueue:
         self.reconcile()
         if self.inflight:
             raise RuntimeError("P2 Target did not return every Ready result")
-        if not model_executed and not self.leases:
+        if (not model_executed and not self.leases
+                and not getattr(self, "draft_wait", None)):
             return False
 
         if model_executed:
