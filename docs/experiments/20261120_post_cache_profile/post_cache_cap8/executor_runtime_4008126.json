@@ -1,0 +1,7 @@
+{
+  "pid": 4008126,
+  "executor": "vllm.v1.executor.uniproc_executor.UniProcExecutor",
+  "backend": "uni",
+  "engine_source": "/home/yypan/CDB-AV/worktrees/cdb-context-fp-cache-20261120/vllm/v1/engine/core.py",
+  "note": "Actual instance, not inferred from CLI or logical RPC labels."
+}

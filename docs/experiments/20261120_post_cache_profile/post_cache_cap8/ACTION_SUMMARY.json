@@ -1,0 +1,998 @@
+{
+  "groups": {
+    "target_replay": {
+      "calls": 61,
+      "cpu_inclusive_us": 74555.992,
+      "kernel_count": 20311,
+      "kernel_sum_us": 979779.0649999788,
+      "memory_count": 430,
+      "memory_sum_us": 430.2379999999988,
+      "tokens": {
+        "6": 9,
+        "8": 3,
+        "13": 3,
+        "4": 6,
+        "5": 12,
+        "16": 6,
+        "7": 3,
+        "9": 4,
+        "12": 4,
+        "11": 3,
+        "17": 1,
+        "10": 5,
+        "3": 1,
+        "20": 1
+      }
+    },
+    "target_fallback_budget": {
+      "calls": 3,
+      "cpu_inclusive_us": 70441.216,
+      "kernel_count": 969,
+      "kernel_sum_us": 47583.696000000105,
+      "memory_count": 0,
+      "memory_sum_us": 0.0,
+      "tokens": {
+        "5": 2,
+        "9": 1
+      }
+    },
+    "draft_graph": {
+      "calls": 74,
+      "cpu_inclusive_us": 76456.03299999998,
+      "kernel_count": 13652,
+      "kernel_sum_us": 251431.48199999682,
+      "memory_count": 346,
+      "memory_sum_us": 326.3689999999993,
+      "tokens": {
+        "4": 18,
+        "5": 14,
+        "6": 11,
+        "7": 5,
+        "9": 2,
+        "3": 7,
+        "8": 7,
+        "2": 3,
+        "10": 4,
+        "11": 3
+      }
+    },
+    "draft_eager": {
+      "calls": 5,
+      "cpu_inclusive_us": 59231.70700000001,
+      "kernel_count": 921,
+      "kernel_sum_us": 17312.011999999995,
+      "memory_count": 15,
+      "memory_sum_us": 14.209000000000003,
+      "tokens": {
+        "30": 1,
+        "14": 1,
+        "27": 1,
+        "10": 1,
+        "16": 1
+      }
+    }
+  },
+  "cpu_scopes": {
+    "CDB::worker_rpc::execute_model": {
+      "calls": 65,
+      "inclusive_sum_us": 321717.14300000004,
+      "median_inclusive_us": 2908.727,
+      "outside_nested_cdb_ranges_us": 84618.48674999998
+    },
+    "CDB::worker_rpc::sample_tokens": {
+      "calls": 64,
+      "inclusive_sum_us": 1044574.1089999998,
+      "median_inclusive_us": 17032.884,
+      "outside_nested_cdb_ranges_us": 2827.625601562513
+    },
+    "CDB::worker_rpc::cdb_refill_rpc::p2_step": {
+      "calls": 79,
+      "inclusive_sum_us": 432553.9150000001,
+      "median_inclusive_us": 4914.653,
+      "outside_nested_cdb_ranges_us": 6775.187460937499
+    },
+    "CDB::worker_rpc::cdb_refill_rpc::p2_prepare": {
+      "calls": 63,
+      "inclusive_sum_us": 17155.688,
+      "median_inclusive_us": 191.818,
+      "outside_nested_cdb_ranges_us": 3095.8813593750006
+    },
+    "CDB::worker_rpc::cdb_refill_rpc::p2_boundary": {
+      "calls": 10,
+      "inclusive_sum_us": 1516.8939999999998,
+      "median_inclusive_us": 147.7445,
+      "outside_nested_cdb_ranges_us": 1516.8939999999998
+    },
+    "CDB::worker_rpc::cdb_refill_rpc::p2_open": {
+      "calls": 9,
+      "inclusive_sum_us": 1734.554,
+      "median_inclusive_us": 203.273,
+      "outside_nested_cdb_ranges_us": 1734.554
+    },
+    "CDB::worker_rpc::cdb_refill_rpc::p2_drop": {
+      "calls": 2,
+      "inclusive_sum_us": 436.405,
+      "median_inclusive_us": 218.2025,
+      "outside_nested_cdb_ranges_us": 436.405
+    },
+    "CDB::engine_draft_advance": {
+      "calls": 79,
+      "inclusive_sum_us": 494325.4049999999,
+      "median_inclusive_us": 5665.548,
+      "outside_nested_cdb_ranges_us": 12186.098359375002
+    },
+    "CDB::engine_reconcile": {
+      "calls": 243,
+      "inclusive_sum_us": 32454.796999999984,
+      "median_inclusive_us": 123.084,
+      "outside_nested_cdb_ranges_us": 32018.391726562484
+    },
+    "CDB::draft_step_with_sampling": {
+      "calls": 79,
+      "inclusive_sum_us": 425778.72799999994,
+      "median_inclusive_us": 4833.067,
+      "outside_nested_cdb_ranges_us": 256994.66110546872
+    },
+    "CDB::target_storage_audit": {
+      "calls": 64,
+      "inclusive_sum_us": 9343.296,
+      "median_inclusive_us": 137.941,
+      "outside_nested_cdb_ranges_us": 9343.296
+    },
+    "CDB::draft_metadata_pack": {
+      "calls": 79,
+      "inclusive_sum_us": 28690.155000000013,
+      "median_inclusive_us": 347.388,
+      "outside_nested_cdb_ranges_us": 28690.155000000013
+    }
+  },
+  "dispatches": [
+    {
+      "action": "replay",
+      "key": [
+        6,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 6
+    },
+    {
+      "action": "replay",
+      "key": [
+        8,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 8
+    },
+    {
+      "action": "replay",
+      "key": [
+        13,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 13
+    },
+    {
+      "action": "replay",
+      "key": [
+        4,
+        4,
+        1,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 4
+    },
+    {
+      "action": "replay",
+      "key": [
+        5,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 5
+    },
+    {
+      "action": "replay",
+      "key": [
+        5,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 5
+    },
+    {
+      "action": "fallback_budget",
+      "key": [
+        5,
+        2,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 5
+    },
+    {
+      "action": "replay",
+      "key": [
+        16,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 16
+    },
+    {
+      "action": "replay",
+      "key": [
+        5,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 5
+    },
+    {
+      "action": "replay",
+      "key": [
+        7,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 7
+    },
+    {
+      "action": "replay",
+      "key": [
+        9,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 9
+    },
+    {
+      "action": "replay",
+      "key": [
+        12,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 12
+    },
+    {
+      "action": "replay",
+      "key": [
+        4,
+        4,
+        1,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 4
+    },
+    {
+      "action": "replay",
+      "key": [
+        6,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 6
+    },
+    {
+      "action": "replay",
+      "key": [
+        4,
+        3,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 4
+    },
+    {
+      "action": "replay",
+      "key": [
+        6,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 6
+    },
+    {
+      "action": "replay",
+      "key": [
+        16,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 16
+    },
+    {
+      "action": "replay",
+      "key": [
+        5,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 5
+    },
+    {
+      "action": "replay",
+      "key": [
+        16,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 16
+    },
+    {
+      "action": "replay",
+      "key": [
+        4,
+        4,
+        1,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 4
+    },
+    {
+      "action": "replay",
+      "key": [
+        11,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 11
+    },
+    {
+      "action": "replay",
+      "key": [
+        17,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 17
+    },
+    {
+      "action": "replay",
+      "key": [
+        10,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 10
+    },
+    {
+      "action": "replay",
+      "key": [
+        6,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 6
+    },
+    {
+      "action": "replay",
+      "key": [
+        8,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 8
+    },
+    {
+      "action": "replay",
+      "key": [
+        8,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 8
+    },
+    {
+      "action": "replay",
+      "key": [
+        6,
+        3,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 6
+    },
+    {
+      "action": "replay",
+      "key": [
+        13,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 13
+    },
+    {
+      "action": "replay",
+      "key": [
+        16,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 16
+    },
+    {
+      "action": "replay",
+      "key": [
+        6,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 6
+    },
+    {
+      "action": "replay",
+      "key": [
+        5,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 5
+    },
+    {
+      "action": "replay",
+      "key": [
+        4,
+        4,
+        1,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 4
+    },
+    {
+      "action": "replay",
+      "key": [
+        9,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 9
+    },
+    {
+      "action": "replay",
+      "key": [
+        3,
+        2,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 3
+    },
+    {
+      "action": "replay",
+      "key": [
+        11,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 11
+    },
+    {
+      "action": "replay",
+      "key": [
+        10,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 10
+    },
+    {
+      "action": "replay",
+      "key": [
+        12,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 12
+    },
+    {
+      "action": "replay",
+      "key": [
+        5,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 5
+    },
+    {
+      "action": "replay",
+      "key": [
+        5,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 5
+    },
+    {
+      "action": "replay",
+      "key": [
+        5,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 5
+    },
+    {
+      "action": "replay",
+      "key": [
+        5,
+        3,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 5
+    },
+    {
+      "action": "replay",
+      "key": [
+        16,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 16
+    },
+    {
+      "action": "replay",
+      "key": [
+        10,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 10
+    },
+    {
+      "action": "replay",
+      "key": [
+        5,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 5
+    },
+    {
+      "action": "replay",
+      "key": [
+        12,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 12
+    },
+    {
+      "action": "replay",
+      "key": [
+        10,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 10
+    },
+    {
+      "action": "replay",
+      "key": [
+        7,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 7
+    },
+    {
+      "action": "replay",
+      "key": [
+        6,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 6
+    },
+    {
+      "action": "replay",
+      "key": [
+        10,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 10
+    },
+    {
+      "action": "replay",
+      "key": [
+        11,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 11
+    },
+    {
+      "action": "replay",
+      "key": [
+        12,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 12
+    },
+    {
+      "action": "replay",
+      "key": [
+        4,
+        4,
+        1,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 4
+    },
+    {
+      "action": "replay",
+      "key": [
+        6,
+        3,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 6
+    },
+    {
+      "action": "replay",
+      "key": [
+        16,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 16
+    },
+    {
+      "action": "replay",
+      "key": [
+        5,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 5
+    },
+    {
+      "action": "replay",
+      "key": [
+        9,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 9
+    },
+    {
+      "action": "replay",
+      "key": [
+        6,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 6
+    },
+    {
+      "action": "replay",
+      "key": [
+        9,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 9
+    },
+    {
+      "action": "fallback_budget",
+      "key": [
+        5,
+        2,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 5
+    },
+    {
+      "action": "replay",
+      "key": [
+        20,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 20
+    },
+    {
+      "action": "replay",
+      "key": [
+        13,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 13
+    },
+    {
+      "action": "replay",
+      "key": [
+        7,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 7
+    },
+    {
+      "action": "replay",
+      "key": [
+        5,
+        4,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 5
+    },
+    {
+      "action": "fallback_budget",
+      "key": [
+        9,
+        2,
+        9,
+        1024,
+        64,
+        0,
+        "bounded"
+      ],
+      "tokens": 9
+    }
+  ],
+  "cache": {
+    "captured": 24,
+    "unique_domains_without_sequence_bound": 24,
+    "key_budget": 24,
+    "actual_sequence_floor": 1024,
+    "budget_fallbacks": 3,
+    "budget_fallbacks_with_bound_only_match": 0
+  },
+  "ambiguous_gpu_api_correlations": 0,
+  "notes": [
+    "Diagnostic profiled slice only; no throughput claim.",
+    "Kernel ownership uses unique correlated CPU API inside parent, not GPU start time.",
+    "Outside nested ranges includes framework/profiler/Python work, not proven IPC cost.",
+    "Bound-only match is counterfactual key compatibility, not proof of replay validity or speedup."
+  ]
+}
