@@ -1,0 +1,4 @@
+{
+  "memory_mib": 15,
+  "gpu3_compute_processes": false
+}

@@ -1,0 +1,6 @@
+{
+  "stage_call_counts_match": true,
+  "kernel_sum_matches_original_trace": true,
+  "ambiguous_correlations": 0,
+  "real_weight_banks_at_least_256MiB": true
+}

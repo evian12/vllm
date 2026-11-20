@@ -1,0 +1,12 @@
+{
+  "torch": "2.9.1+cu129",
+  "torch_cuda": "12.9",
+  "shared_library_sha256": "7d1e666949661b21fbf9ee5a0d2ab0fca33db593a3a921964f9dfc27e5ec8553",
+  "library_dependencies": "\tlinux-vdso.so.1 (0x00007ffdb3793000)\n\tlibcublasLt.so.12 => /usr/local/cuda/lib64/libcublasLt.so.12 (0x00007ef047c00000)\n\tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007ef047800000)\n\tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007ef047400000)\n\tlibrt.so.1 => /lib/x86_64-linux-gnu/librt.so.1 (0x00007ef065b72000)\n\tlibpthread.so.0 => /lib/x86_64-linux-gnu/libpthread.so.0 (0x00007ef065b6d000)\n\tlibdl.so.2 => /lib/x86_64-linux-gnu/libdl.so.2 (0x00007ef065b66000)\n\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007ef047b19000)\n\tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007ef047af9000)\n\t/lib64/ld-linux-x86-64.so.2 (0x00007ef065b99000)\n",
+  "probe_source_sha256": "59f730ce76a6f49f2660a054248af8ef8c932b95dfc156fe1fab67f17037783b",
+  "wrapper_source_sha256": "34f71acdfc958fb29392f9fb7d109ef5292ff0c3195ba4294504320b43473e07",
+  "build": "g++ -shared -fPIC -O3 -Wall -Wextra -I/usr/local/cuda/include lt_probe.cpp -L/usr/local/cuda/lib64 -Wl,-rpath,/usr/local/cuda/lib64 -lcublasLt -lcudart -o lt_probe.so",
+  "invalid_stream_timing_preserved": true,
+  "invalid_stream_timing_used": false,
+  "system_runtime_modified": false
+}

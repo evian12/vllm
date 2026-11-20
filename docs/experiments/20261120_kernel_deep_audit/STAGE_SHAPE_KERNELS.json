@@ -1,0 +1,580 @@
+{
+  "source": "/home/yypan/CDB-AV/results/draft_wait_profile_20261120/full512_wait/trace/1795156926685890853-rank-0.1795157132447202842.pt.trace.json.gz",
+  "source_sha256": "9bacfabb799f2baab4e10366aebbcabf35c6f2a68a607da6dbb78fcc0de62575",
+  "ambiguous_correlations": 0,
+  "shape_groups": {
+    "CDB::target_forward::t23": {
+      "calls": 1,
+      "kernel_mean_us": 17152.992,
+      "kernel_sum_us": 17152.992,
+      "gemm_sum_us": 16219.520000000008,
+      "kernel_count": 387
+    },
+    "CDB::target_logits": {
+      "calls": 64,
+      "kernel_mean_us": 1131.014578125,
+      "kernel_sum_us": 72384.933,
+      "gemm_sum_us": 70188.09700000001,
+      "kernel_count": 64
+    },
+    "CDB::draft_forward::mixed_prefill::r4::t6": {
+      "calls": 2,
+      "kernel_mean_us": 2855.1829999999995,
+      "kernel_sum_us": 5710.365999999999,
+      "gemm_sum_us": 5020.616,
+      "kernel_count": 334
+    },
+    "CDB::draft_logits": {
+      "calls": 151,
+      "kernel_mean_us": 557.8646754966887,
+      "kernel_sum_us": 84237.56600000002,
+      "gemm_sum_us": 83729.117,
+      "kernel_count": 151
+    },
+    "CDB::target_forward::t11": {
+      "calls": 4,
+      "kernel_mean_us": 16222.933499999996,
+      "kernel_sum_us": 64891.73399999998,
+      "gemm_sum_us": 61052.17600000001,
+      "kernel_count": 1292
+    },
+    "CDB::draft_forward::mixed_prefill_decode::r4::t6": {
+      "calls": 22,
+      "kernel_mean_us": 2923.182136363637,
+      "kernel_sum_us": 64310.00700000001,
+      "gemm_sum_us": 55210.982,
+      "kernel_count": 3674
+    },
+    "CDB::target_forward::t2": {
+      "calls": 3,
+      "kernel_mean_us": 15722.503999999995,
+      "kernel_sum_us": 47167.51199999999,
+      "gemm_sum_us": 45218.18700000001,
+      "kernel_count": 969
+    },
+    "CDB::draft_forward::decode::r4::t4": {
+      "calls": 20,
+      "kernel_mean_us": 2800.2946500000003,
+      "kernel_sum_us": 56005.893000000004,
+      "gemm_sum_us": 48650.869000000006,
+      "kernel_count": 4280
+    },
+    "CDB::draft_forward::mixed_prefill_decode::r4::t5": {
+      "calls": 49,
+      "kernel_mean_us": 2890.2245102040824,
+      "kernel_sum_us": 141621.00100000008,
+      "gemm_sum_us": 122503.25599999998,
+      "kernel_count": 8183
+    },
+    "CDB::draft_forward::mixed_prefill_decode::r4::t4": {
+      "calls": 29,
+      "kernel_mean_us": 2808.2060000000006,
+      "kernel_sum_us": 81437.97400000002,
+      "gemm_sum_us": 70538.43900000001,
+      "kernel_count": 6206
+    },
+    "CDB::draft_forward::decode::r3::t3": {
+      "calls": 10,
+      "kernel_mean_us": 2806.7675999999997,
+      "kernel_sum_us": 28067.676,
+      "gemm_sum_us": 24427.156999999992,
+      "kernel_count": 2140
+    },
+    "CDB::target_forward::t14": {
+      "calls": 5,
+      "kernel_mean_us": 16313.045799999998,
+      "kernel_sum_us": 81565.22899999999,
+      "gemm_sum_us": 76575.28500000002,
+      "kernel_count": 1615
+    },
+    "CDB::target_forward::t12": {
+      "calls": 6,
+      "kernel_mean_us": 16187.00566666666,
+      "kernel_sum_us": 97122.03399999996,
+      "gemm_sum_us": 91679.755,
+      "kernel_count": 1938
+    },
+    "CDB::target_forward::t20": {
+      "calls": 3,
+      "kernel_mean_us": 17168.655999999995,
+      "kernel_sum_us": 51505.96799999998,
+      "gemm_sum_us": 48468.232999999986,
+      "kernel_count": 1161
+    },
+    "CDB::target_forward::t13": {
+      "calls": 3,
+      "kernel_mean_us": 16262.71266666666,
+      "kernel_sum_us": 48788.137999999984,
+      "gemm_sum_us": 45906.08299999999,
+      "kernel_count": 969
+    },
+    "CDB::target_forward::t15": {
+      "calls": 5,
+      "kernel_mean_us": 16263.134399999997,
+      "kernel_sum_us": 81315.67199999999,
+      "gemm_sum_us": 76625.803,
+      "kernel_count": 1615
+    },
+    "CDB::draft_forward::mixed_prefill_decode::r3::t3": {
+      "calls": 3,
+      "kernel_mean_us": 2811.9306666666666,
+      "kernel_sum_us": 8435.792,
+      "gemm_sum_us": 7350.704,
+      "kernel_count": 641
+    },
+    "CDB::target_forward::t9": {
+      "calls": 6,
+      "kernel_mean_us": 16117.43149999999,
+      "kernel_sum_us": 96704.58899999993,
+      "gemm_sum_us": 91382.424,
+      "kernel_count": 1938
+    },
+    "CDB::draft_forward::mixed_prefill_decode::r3::t5": {
+      "calls": 2,
+      "kernel_mean_us": 2881.751500000002,
+      "kernel_sum_us": 5763.503000000004,
+      "gemm_sum_us": 4996.427000000001,
+      "kernel_count": 334
+    },
+    "CDB::draft_forward::decode::r1::t1": {
+      "calls": 1,
+      "kernel_mean_us": 2443.0489999999995,
+      "kernel_sum_us": 2443.0489999999995,
+      "gemm_sum_us": 0,
+      "kernel_count": 181
+    },
+    "CDB::target_forward::t10": {
+      "calls": 2,
+      "kernel_mean_us": 16364.404999999988,
+      "kernel_sum_us": 32728.809999999976,
+      "gemm_sum_us": 30499.713,
+      "kernel_count": 646
+    },
+    "CDB::draft_forward::mixed_prefill_decode::r3::t4": {
+      "calls": 5,
+      "kernel_mean_us": 2906.8085999999994,
+      "kernel_sum_us": 14534.042999999996,
+      "gemm_sum_us": 12535.066,
+      "kernel_count": 835
+    },
+    "CDB::target_forward::t6": {
+      "calls": 2,
+      "kernel_mean_us": 16161.631500000003,
+      "kernel_sum_us": 32323.263000000006,
+      "gemm_sum_us": 30427.447999999997,
+      "kernel_count": 646
+    },
+    "CDB::target_forward::t8": {
+      "calls": 2,
+      "kernel_mean_us": 16068.097999999994,
+      "kernel_sum_us": 32136.19599999999,
+      "gemm_sum_us": 30490.745999999985,
+      "kernel_count": 646
+    },
+    "CDB::draft_forward::mixed_prefill_decode::r4::t7": {
+      "calls": 4,
+      "kernel_mean_us": 2954.5005000000006,
+      "kernel_sum_us": 11818.002,
+      "gemm_sum_us": 10045.936000000002,
+      "kernel_count": 668
+    },
+    "CDB::target_forward::t18": {
+      "calls": 4,
+      "kernel_mean_us": 17044.017499999994,
+      "kernel_sum_us": 68176.06999999998,
+      "gemm_sum_us": 64456.151,
+      "kernel_count": 1548
+    },
+    "CDB::target_forward::t16": {
+      "calls": 6,
+      "kernel_mean_us": 16313.387999999997,
+      "kernel_sum_us": 97880.32799999998,
+      "gemm_sum_us": 92050.246,
+      "kernel_count": 1938
+    },
+    "CDB::target_forward::t21": {
+      "calls": 2,
+      "kernel_mean_us": 17186.988500000003,
+      "kernel_sum_us": 34373.977000000006,
+      "gemm_sum_us": 32358.108,
+      "kernel_count": 774
+    },
+    "CDB::target_forward::t19": {
+      "calls": 3,
+      "kernel_mean_us": 17128.15833333333,
+      "kernel_sum_us": 51384.47499999998,
+      "gemm_sum_us": 48436.566,
+      "kernel_count": 1161
+    },
+    "CDB::target_forward::t52": {
+      "calls": 1,
+      "kernel_mean_us": 17511.392000000007,
+      "kernel_sum_us": 17511.392000000007,
+      "gemm_sum_us": 16694.881,
+      "kernel_count": 387
+    },
+    "CDB::target_forward::t3": {
+      "calls": 2,
+      "kernel_mean_us": 15960.880499999988,
+      "kernel_sum_us": 31921.760999999977,
+      "gemm_sum_us": 30200.638000000006,
+      "kernel_count": 646
+    },
+    "CDB::draft_forward::mixed_prefill_decode::r4::t56": {
+      "calls": 1,
+      "kernel_mean_us": 2991.074000000003,
+      "kernel_sum_us": 2991.074000000003,
+      "gemm_sum_us": 2514.979,
+      "kernel_count": 212
+    },
+    "CDB::target_forward::t4": {
+      "calls": 1,
+      "kernel_mean_us": 16434.262999999984,
+      "kernel_sum_us": 16434.262999999984,
+      "gemm_sum_us": 15349.20899999999,
+      "kernel_count": 323
+    },
+    "CDB::target_forward::t133": {
+      "calls": 1,
+      "kernel_mean_us": 20046.434999999983,
+      "kernel_sum_us": 20046.434999999983,
+      "gemm_sum_us": 19121.466999999993,
+      "kernel_count": 323
+    },
+    "CDB::draft_forward::mixed_prefill_decode::r3::t82": {
+      "calls": 1,
+      "kernel_mean_us": 3119.6130000000007,
+      "kernel_sum_us": 3119.6130000000007,
+      "gemm_sum_us": 2751.4550000000004,
+      "kernel_count": 196
+    },
+    "CDB::draft_forward::mixed_prefill_decode::r4::t58": {
+      "calls": 1,
+      "kernel_mean_us": 3020.037,
+      "kernel_sum_us": 3020.037,
+      "gemm_sum_us": 2545.7620000000006,
+      "kernel_count": 212
+    },
+    "CDB::target_forward::t42": {
+      "calls": 1,
+      "kernel_mean_us": 17412.15500000001,
+      "kernel_sum_us": 17412.15500000001,
+      "gemm_sum_us": 16622.30100000001,
+      "kernel_count": 387
+    },
+    "CDB::target_forward::t22": {
+      "calls": 1,
+      "kernel_mean_us": 16999.847,
+      "kernel_sum_us": 16999.847,
+      "gemm_sum_us": 16188.099,
+      "kernel_count": 387
+    },
+    "CDB::draft_forward::mixed_prefill_decode::r4::t47": {
+      "calls": 1,
+      "kernel_mean_us": 2983.4310000000005,
+      "kernel_sum_us": 2983.4310000000005,
+      "gemm_sum_us": 2509.857,
+      "kernel_count": 212
+    }
+  },
+  "stage_kernel_totals": {
+    "target_forward": {
+      "total_us": 1055542.8400000012,
+      "gemm_us": 996023.0390000014,
+      "families": [
+        {
+          "name": "void cutlass::Kernel2<cutlass_80_wmma_tensorop_bf16_s161616gemm_bf16_16x16_128x2_tn_align8>(cutlass_80_wmma_tensorop_bf16_s161616gemm_bf16_16x16_128x2_tn_align8::Params)",
+          "us": 717457.713000001
+        },
+        {
+          "name": "void cutlass::Kernel2<cutlass_80_tensorop_bf16_s16816gemm_relu_bf16_64x64_32x6_tn_align8>(cutlass_80_tensorop_bf16_s16816gemm_relu_bf16_64x64_32x6_tn_align8::Params)",
+          "us": 166600.24600000016
+        },
+        {
+          "name": "ampere_bf16_s16816gemm_bf16_128x64_ldg8_f2f_stages_64x3_tn",
+          "us": 61599.612000000016
+        },
+        {
+          "name": "void flash::flash_fwd_splitkv_kernel<Flash_fwd_kernel_traits<128, 64, 128, 4, false, false, cutlass::bfloat16_t, Flash_kernel_traits<128, 64, 128, 4, cutlass::bfloat16_t> >, true, false, false, false, true, false, false, false>(flash::Flash_fwd_params)",
+          "us": 33222.429000000055
+        },
+        {
+          "name": "ampere_bf16_s1688gemm_bf16_128x64_sliced1x2_ldg8_f2f_tn",
+          "us": 26670.196999999996
+        },
+        {
+          "name": "ampere_bf16_s16816gemm_bf16_64x64_ldg8_f2f_stages_64x5_tn",
+          "us": 18439.998000000007
+        },
+        {
+          "name": "std::enable_if<(((8)>(0)))&&vllm::_typeConvert<c10::BFloat16>::exists, void>::type vllm::fused_add_rms_norm_kernel<c10::BFloat16, 8>(c10::BFloat16*, long, c10::BFloat16*, c10::BFloat16 const*, float, int, int)",
+          "us": 8730.431999999853
+        },
+        {
+          "name": "void vllm::act_and_mul_kernel<c10::BFloat16, &(c10::BFloat16 vllm::silu_kernel<c10::BFloat16>(c10::BFloat16 const&)), true>(c10::BFloat16*, c10::BFloat16 const*, int)",
+          "us": 6786.030999999995
+        },
+        {
+          "name": "ampere_bf16_s16816gemm_bf16_64x64_sliced1x2_ldg8_f2f_stages_64x5_tn",
+          "us": 5255.273
+        },
+        {
+          "name": "void vllm::rotary_embedding_kernel<c10::BFloat16, true>(long const*, c10::BFloat16*, c10::BFloat16*, c10::BFloat16 const*, int, long, long, long, int, int, int)",
+          "us": 4938.839999999962
+        },
+        {
+          "name": "void vllm::reshape_and_cache_flash_kernel<__nv_bfloat16, __nv_bfloat16, (vllm::Fp8KVCacheDataType)0>(__nv_bfloat16 const*, __nv_bfloat16 const*, __nv_bfloat16*, __nv_bfloat16*, long const*, long, long, long, long, long, int, int, int, float const*, float const*, int)",
+          "us": 3654.808000000074
+        },
+        {
+          "name": "void cublasLt::splitKreduce_kernel<32, 16, int, __nv_bfloat16, __nv_bfloat16, float, __nv_bfloat16, false, __nv_bfloat16, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, __nv_bfloat16 const*, __nv_bfloat16 const*, __nv_bfloat16*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, __nv_bfloat16 const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+          "us": 1516.0579999999989
+        }
+      ]
+    },
+    "target_logits": {
+      "total_us": 72384.933,
+      "gemm_us": 70188.09700000001,
+      "families": [
+        {
+          "name": "void cutlass::Kernel2<cutlass_80_wmma_tensorop_bf16_s161616gemm_bf16_16x16_128x2_tn_align8>(cutlass_80_wmma_tensorop_bf16_s161616gemm_bf16_16x16_128x2_tn_align8::Params)",
+          "us": 53641.08900000001
+        },
+        {
+          "name": "void cutlass::Kernel2<cutlass_80_tensorop_bf16_s16816gemm_relu_bf16_64x64_32x6_tn_align8>(cutlass_80_tensorop_bf16_s16816gemm_relu_bf16_64x64_32x6_tn_align8::Params)",
+          "us": 16547.008
+        },
+        {
+          "name": "std::enable_if<!(false), void>::type internal::gemvx::kernel<int, int, __nv_bfloat16, __nv_bfloat16, __nv_bfloat16, float, false, true, true, false, 6, false, cublasGemvParamsEx<int, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16>, float> >(cublasGemvParamsEx<int, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16>, float>)",
+          "us": 2196.8360000000002
+        }
+      ]
+    },
+    "draft_forward": {
+      "total_us": 432261.4610000014,
+      "gemm_us": 371601.50500000134,
+      "families": [
+        {
+          "name": "void cutlass::Kernel2<cutlass_80_wmma_tensorop_bf16_s161616gemm_bf16_16x16_128x2_tn_align8>(cutlass_80_wmma_tensorop_bf16_s161616gemm_bf16_16x16_128x2_tn_align8::Params)",
+          "us": 361279.4520000014
+        },
+        {
+          "name": "void flash::flash_fwd_splitkv_kernel<Flash_fwd_kernel_traits<64, 64, 256, 4, false, false, cutlass::bfloat16_t, Flash_kernel_traits<64, 64, 256, 4, cutlass::bfloat16_t> >, true, false, false, false, true, false, false, false>(flash::Flash_fwd_params)",
+          "us": 20850.951999999994
+        },
+        {
+          "name": "std::enable_if<(((8)>(0)))&&vllm::_typeConvert<c10::BFloat16>::exists, void>::type vllm::fused_add_rms_norm_kernel<c10::BFloat16, 8>(c10::BFloat16*, long, c10::BFloat16*, c10::BFloat16 const*, float, int, int)",
+          "us": 8402.463000000123
+        },
+        {
+          "name": "void flash::flash_fwd_splitkv_kernel<Flash_fwd_kernel_traits<64, 64, 256, 4, false, false, cutlass::bfloat16_t, Flash_kernel_traits<64, 64, 256, 4, cutlass::bfloat16_t> >, false, false, false, false, true, false, true, false>(flash::Flash_fwd_params)",
+          "us": 5809.936999999993
+        },
+        {
+          "name": "void vllm::act_and_mul_kernel<c10::BFloat16, &(c10::BFloat16 vllm::silu_kernel<c10::BFloat16>(c10::BFloat16 const&)), true>(c10::BFloat16*, c10::BFloat16 const*, int)",
+          "us": 5044.010999999881
+        },
+        {
+          "name": "void vllm::rotary_embedding_kernel<c10::BFloat16, true>(long const*, c10::BFloat16*, c10::BFloat16*, c10::BFloat16 const*, int, long, long, long, int, int, int)",
+          "us": 4520.8450000000375
+        },
+        {
+          "name": "ampere_bf16_s16816gemm_bf16_128x64_ldg8_f2f_stages_64x3_tn",
+          "us": 4159.753999999998
+        },
+        {
+          "name": "void vllm::reshape_and_cache_flash_kernel<__nv_bfloat16, __nv_bfloat16, (vllm::Fp8KVCacheDataType)0>(__nv_bfloat16 const*, __nv_bfloat16 const*, __nv_bfloat16*, __nv_bfloat16*, long const*, long, long, long, long, long, int, int, int, float const*, float const*, int)",
+          "us": 4151.902000000028
+        },
+        {
+          "name": "void at::native::elementwise_kernel<128, 4, at::native::gpu_kernel_impl_nocast<at::native::direct_copy_kernel_cuda(at::TensorIteratorBase&)::{lambda()#3}::operator()() const::{lambda()#12}::operator()() const::{lambda(c10::BFloat16)#1}>(at::TensorIteratorBase&, at::native::direct_copy_kernel_cuda(at::TensorIteratorBase&)::{lambda()#3}::operator()() const::{lambda()#12}::operator()() const::{lambda(c10::BFloat16)#1} const&)::{lambda(int)#1}>(int, at::native::gpu_kernel_impl_nocast<at::native::direct_copy_kernel_cuda(at::TensorIteratorBase&)::{lambda()#3}::operator()() const::{lambda()#12}::operator()() const::{lambda(c10::BFloat16)#1}>(at::TensorIteratorBase&, at::native::direct_copy_kernel_cuda(at::TensorIteratorBase&)::{lambda()#3}::operator()() const::{lambda()#12}::operator()() const::{lambda(c10::BFloat16)#1} const&)::{lambda(int)#1})",
+          "us": 3185.3210000000377
+        },
+        {
+          "name": "ampere_bf16_s16816gemm_bf16_64x64_ldg8_f2f_stages_64x5_tn",
+          "us": 2808.2529999999997
+        },
+        {
+          "name": "void flash::flash_fwd_splitkv_kernel<Flash_fwd_kernel_traits<64, 64, 256, 4, false, false, cutlass::bfloat16_t, Flash_kernel_traits<64, 64, 256, 4, cutlass::bfloat16_t> >, false, false, false, false, true, false, false, false>(flash::Flash_fwd_params)",
+          "us": 1963.9319999999977
+        },
+        {
+          "name": "std::enable_if<!(false), void>::type internal::gemvx::kernel<int, int, __nv_bfloat16, __nv_bfloat16, __nv_bfloat16, float, false, true, true, false, 6, false, cublasGemvParamsEx<int, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16>, float> >(cublasGemvParamsEx<int, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16>, float>)",
+          "us": 1564.0310000000002
+        }
+      ]
+    },
+    "draft_logits": {
+      "total_us": 84237.56599999999,
+      "gemm_us": 83729.117,
+      "families": [
+        {
+          "name": "void cutlass::Kernel2<cutlass_80_wmma_tensorop_bf16_s161616gemm_bf16_16x16_128x2_tn_align8>(cutlass_80_wmma_tensorop_bf16_s161616gemm_bf16_16x16_128x2_tn_align8::Params)",
+          "us": 83729.117
+        },
+        {
+          "name": "std::enable_if<!(false), void>::type internal::gemvx::kernel<int, int, __nv_bfloat16, __nv_bfloat16, __nv_bfloat16, float, false, true, true, false, 6, false, cublasGemvParamsEx<int, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16>, float> >(cublasGemvParamsEx<int, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16 const>, cublasGemvTensorStridedBatched<__nv_bfloat16>, float>)",
+          "us": 508.449
+        }
+      ]
+    }
+  },
+  "api_groups": [
+    {
+      "stage": "target_forward",
+      "api": "cudaMemcpyAsync",
+      "count": 330,
+      "cpu_us": 3500.3180000000025
+    },
+    {
+      "stage": "target_forward",
+      "api": "cudaStreamIsCapturing",
+      "count": 55,
+      "cpu_us": 60.315999999999995
+    },
+    {
+      "stage": "target_forward",
+      "api": "cudaGraphLaunch",
+      "count": 55,
+      "cpu_us": 41479.393000000004
+    },
+    {
+      "stage": "target_forward",
+      "api": "cudaDriverGetVersion",
+      "count": 55,
+      "cpu_us": 7.090000000000002
+    },
+    {
+      "stage": "target_logits",
+      "api": "cudaDeviceGetAttribute",
+      "count": 62,
+      "cpu_us": 47.760999999999996
+    },
+    {
+      "stage": "target_logits",
+      "api": "cuLaunchKernel",
+      "count": 62,
+      "cpu_us": 658.6970000000001
+    },
+    {
+      "stage": "draft_forward",
+      "api": "cudaMemcpyAsync",
+      "count": 686,
+      "cpu_us": 8717.261999999992
+    },
+    {
+      "stage": "draft_forward",
+      "api": "cudaLaunchKernel",
+      "count": 1144,
+      "cpu_us": 11000.466000000004
+    },
+    {
+      "stage": "draft_forward",
+      "api": "cudaStreamIsCapturing",
+      "count": 147,
+      "cpu_us": 126.84699999999998
+    },
+    {
+      "stage": "draft_forward",
+      "api": "cudaGraphLaunch",
+      "count": 147,
+      "cpu_us": 57649.37799999998
+    },
+    {
+      "stage": "draft_forward",
+      "api": "cudaDriverGetVersion",
+      "count": 147,
+      "cpu_us": 22.215999999999998
+    },
+    {
+      "stage": "draft_logits",
+      "api": "cudaDeviceGetAttribute",
+      "count": 150,
+      "cpu_us": 116.39899999999994
+    },
+    {
+      "stage": "draft_logits",
+      "api": "cuLaunchKernel",
+      "count": 150,
+      "cpu_us": 1681.8999999999996
+    },
+    {
+      "stage": "draft_logits",
+      "api": "cudaLaunchKernel",
+      "count": 1,
+      "cpu_us": 13.426
+    },
+    {
+      "stage": "target_forward",
+      "api": "cudaLaunchKernel",
+      "count": 2107,
+      "cpu_us": 17462.862999999994
+    },
+    {
+      "stage": "target_forward",
+      "api": "cudaDeviceGetAttribute",
+      "count": 1504,
+      "cpu_us": 748.0809999999999
+    },
+    {
+      "stage": "target_forward",
+      "api": "cuLaunchKernel",
+      "count": 928,
+      "cpu_us": 7260.932999999998
+    },
+    {
+      "stage": "target_forward",
+      "api": "cudaFuncSetAttribute",
+      "count": 288,
+      "cpu_us": 561.0920000000003
+    },
+    {
+      "stage": "target_forward",
+      "api": "cudaOccupancyMaxActiveBlocksPerMultiprocessor",
+      "count": 64,
+      "cpu_us": 104.573
+    },
+    {
+      "stage": "target_logits",
+      "api": "cudaLaunchKernel",
+      "count": 2,
+      "cpu_us": 25.997
+    },
+    {
+      "stage": "draft_forward",
+      "api": "cudaDeviceGetAttribute",
+      "count": 192,
+      "cpu_us": 108.08800000000001
+    },
+    {
+      "stage": "draft_forward",
+      "api": "cuLaunchKernel",
+      "count": 64,
+      "cpu_us": 550.6340000000001
+    },
+    {
+      "stage": "draft_forward",
+      "api": "cudaFuncSetAttribute",
+      "count": 64,
+      "cpu_us": 133.49099999999996
+    },
+    {
+      "stage": "draft_forward",
+      "api": "cudaOccupancyMaxActiveBlocksPerMultiprocessor",
+      "count": 64,
+      "cpu_us": 119.11500000000004
+    },
+    {
+      "stage": "target_forward",
+      "api": "cudaMemsetAsync",
+      "count": 128,
+      "cpu_us": 1194.8739999999996
+    }
+  ],
+  "limits": [
+    "Existing profiled middle slice, not new performance measurement",
+    "Graph kernels linked by unique CPU API correlation; main model labels supply total packed token rows, not per-GEMM matrix M",
+    "CPU API times may include GPU waits and cannot be added to kernel times",
+    "Kernel sums not hardware DRAM traffic or end-to-end critical path"
+  ]
+}

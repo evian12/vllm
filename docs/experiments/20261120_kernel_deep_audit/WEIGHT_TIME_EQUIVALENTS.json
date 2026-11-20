@@ -1,0 +1,29 @@
+{
+  "target_forward": {
+    "calls": 64,
+    "projection_bytes": 13958643712,
+    "mean_backbone_ms": 16.49285687500002,
+    "mean_gemm_ms": 15.562859984375022,
+    "projection_byte_equivalent_GBs": 896.9202142803032,
+    "gemm_fraction": 0.9436121408393052
+  },
+  "draft_forward": {
+    "calls": 151,
+    "projection_bytes": 1946157056,
+    "mean_backbone_ms": 2.8626586821192146,
+    "mean_gemm_ms": 2.460937119205307,
+    "projection_byte_equivalent_GBs": 790.8194975044544,
+    "gemm_fraction": 0.8596683686311793
+  },
+  "target_logits": {
+    "head_bytes": 1050673152,
+    "mean_gemm_ms": 1.0966890156250002,
+    "weight_byte_equivalent_GBs": 958.0411010146064
+  },
+  "draft_logits": {
+    "head_bytes": 525336576,
+    "mean_gemm_ms": 0.5544974635761589,
+    "weight_byte_equivalent_GBs": 947.4102417203327
+  },
+  "limits": "Weight byte equivalents assume one logical weight pass per invocation; they are NOT measured DRAM traffic, bandwidth saturation proof, or standalone throughput. Shapes vary and profiler perturbs execution."
+}
