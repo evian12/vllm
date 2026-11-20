@@ -35,6 +35,7 @@ _REFILL_SUMMARY_EVENTS = {
     'p2_runtime_config',
     'p2_target_begin',
     'p2_ar_target_bypass',
+    'p2_target_coalesce',
     'target_ready_select',
     'p2_defer_prefill_budget',
     'p2_window_begin',

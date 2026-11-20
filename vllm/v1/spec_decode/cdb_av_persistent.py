@@ -371,6 +371,9 @@ class PersistentDraftQueue:
         self.ready, self.inflight = {}, {}
         from vllm.v1.spec_decode.cdb_av_config import is_enabled
         self.draft_wait_enabled = is_enabled("CDB_AV_DRAFT_WAIT")
+        self.ready_coalesce_enabled = is_enabled("CDB_AV_READY_COALESCE")
+        if self.ready_coalesce_enabled and not self.draft_wait_enabled:
+            raise ValueError("Ready coalescing requires explicit Draft wait")
         self.draft_wait = {}  # FIFO; formal context only, no Draft KV allocation.
         self._draft_wait_fallbacks = {}
         self.window = self.target_epoch = 0
@@ -418,6 +421,7 @@ class PersistentDraftQueue:
         self._p3_steps = 0
         self._p3_done = True
         self._p3_ready_seen = False
+        self._worker_step_ready_ids = frozenset()
         self.s._cdb_p2 = self
 
     def refresh_draft_wait(self, *, enroll=True):
@@ -533,6 +537,28 @@ class PersistentDraftQueue:
     def preempt_protected(self):
         """All P2-owned/in-flight requests whose state must survive preemption."""
         return set(self.leases) | set(self.ready) | set(self.inflight)
+
+    def can_defer_ready_target(self):
+        if not getattr(self, "ready_coalesce_enabled", False):
+            return False
+        from vllm.v1.spec_decode.cdb_av_coalesce import can_defer_ready
+        rows = []
+        for req in self.s.running:
+            record = self.ready.get(req.request_id)
+            expected = record["tokens"] if record is not None else []
+            healthy = (req.status == RequestStatus.RUNNING
+                       and not req.is_finished() and bool(req.num_output_tokens)
+                       and req.num_computed_tokens == req.num_tokens - 1
+                       and list(req.spec_token_ids) == list(expected))
+            rows.append((req.request_id, healthy))
+        return can_defer_ready(
+            window_open=getattr(self, '_p3_window_open', False),
+            steps=getattr(self, '_p3_steps', 0), horizon=self.horizon,
+            capacity=self.s.max_num_running_reqs, ready_ids=self.ready,
+            worker_ready_ids=getattr(self, '_worker_step_ready_ids', ()),
+            leased_ids=self.leases, draft_wait_ids=self.draft_wait,
+            inflight_ids=self.inflight, waiting_count=len(self.s.waiting),
+            running_rows=rows)
 
     def can_bypass_ar_target(self):
         from vllm.v1.spec_decode.cdb_av_config import can_bypass_ar_target
@@ -847,6 +873,7 @@ class PersistentDraftQueue:
         self._p3_steps = 0
         self._p3_done = True
         self._p3_ready_seen = False
+        self._worker_step_ready_ids = frozenset()
         self._target_selected_ready.clear()
         self._worker_boundary_ready_ids.clear()
 
@@ -1304,6 +1331,7 @@ class PersistentDraftQueue:
         self._p3_steps = 0
         self._p3_done = False
         self._p3_ready_seen = False
+        self._worker_step_ready_ids = frozenset()
         self._target_selected_ready = set()
         return True
 
@@ -1344,6 +1372,8 @@ class PersistentDraftQueue:
             status["slots"],
         )
         self._p3_ready_seen = bool(status.get("ready_req_ids"))
+        if getattr(self, "ready_coalesce_enabled", False):
+            self._worker_step_ready_ids = frozenset(status["ready_req_ids"])
 
         for rid, progress in status["progress"].items():
             previous = self.carry.get(rid, {}).get("progress", 0)
@@ -1517,6 +1547,7 @@ class PersistentDraftQueue:
         self._p3_window_open = False
         self._p3_done = True
         self._p3_ready_seen = False
+        self._worker_step_ready_ids = frozenset()
         self._target_selected_ready = set()
         self._worker_boundary_ready_ids.clear()
 
