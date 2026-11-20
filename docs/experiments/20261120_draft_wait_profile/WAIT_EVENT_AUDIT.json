@@ -1,0 +1,18 @@
+{
+  "source": "/home/yypan/CDB-AV/results/draft_wait_20261120_v2/gate_wait/server.log",
+  "sha256": "57afb73df468bbec4aef19c4bd7d44a35b9ff722968d2f259990576ef812084c",
+  "requests_seen": 80,
+  "first_enqueue_output_tokens": {
+    "1": 80
+  },
+  "enqueue_count": 1625,
+  "admission_count": 1625,
+  "max_waiting_requests": 12,
+  "target_calls": 498,
+  "verify_rows": 1625,
+  "duplicate_enqueue": 0,
+  "admission_without_wait": 0,
+  "waiting_request_scheduled_by_target": 0,
+  "final_waiting": 0,
+  "scope": "Diagnostic full trace including warmup; not formal TPS evidence"
+}

@@ -1,0 +1,13 @@
+{
+  "state": "completed",
+  "pid": 19238,
+  "time": 1795157417.8301036,
+  "release": {
+    "port_closed": true,
+    "memory_mib": 15,
+    "our_gpu_pids": [],
+    "time": 1795157376.5675766
+  },
+  "trace": "/disk14T/yypan/CDB-AV-runtime/results/draft_wait_profile_20261120/full512_wait/trace/1795156926685890853-rank-0.1795157132447202842.pt.trace.json.gz",
+  "note": "Profiler throughput is diagnostic; use unprofiled pairs for performance claims"
+}
