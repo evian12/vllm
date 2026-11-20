@@ -1,0 +1,335 @@
+{
+  "candidate": "S05",
+  "scope": "Saved same-load formal512 causal audit BEFORE Ready coalescing; conditional shape-only simulation, no new GPU run",
+  "source_sha": "73d37c98fb3ad44709a5a4d343c78d6944aa8490",
+  "sources": [
+    {
+      "path": "/home/yypan/CDB-AV/results/causal_audit_20261120/full512_causal/observer/2050974_requests.jsonl",
+      "sha256": "841a4c7aba8973b01df203ca58749fef50e54e9ebffee70a1bdb46115f99f551",
+      "target_batches": 11363
+    }
+  ],
+  "CPU_source_metadata_replay": {
+    "samples": 128,
+    "worker_sha256": "72f22dc2fe56341a88414c095e1bdb2f791cfee0a94ed31682a94849bd96aa08",
+    "metadata_dtype_vectors": {
+      "('torch.int32', 'torch.int32', 'torch.int32', 'torch.int32', 'torch.int32', 'torch.int64')": 128
+    },
+    "CPU_value_checks": true,
+    "BF16_descriptor_scope_checks": true,
+    "scope": "Unchanged source methods executed with CPU tensors; CUDA descriptors only for scope checks. No GPU pointer/capture/numerical test."
+  },
+  "prototype_git_sha": "56fed3d28f72c7fd524f2b5b7437fbf474359695",
+  "prototype_source_sha256": "8b4552c1bfde77214bba361177e9d0adfbf4f930b6ae5361842b8b1b54fd8268",
+  "measurement_target_calls": 9707,
+  "measurement_spec_calls": 9417,
+  "unique_structural_keys": 190,
+  "old_FP32_only_prototype": {
+    "source_expected_raw_dtype": "BF16",
+    "conditional_coverage_if_BF16": 0,
+    "defect": "Prototype would always fall back for raw BF16 Llama LM-head output"
+  },
+  "fixed_dtype_first8_warmed": {
+    "counts": {
+      "plain_sampler_calls": 290,
+      "spec_sampler_calls": 9417,
+      "graph_calls": 2519,
+      "captures": 0
+    },
+    "conditional_spec_coverage": 0.2674949559307635,
+    "cache_keys": [
+      [
+        4,
+        4,
+        1
+      ],
+      [
+        4,
+        5,
+        2
+      ],
+      [
+        4,
+        6,
+        2
+      ],
+      [
+        4,
+        7,
+        3
+      ],
+      [
+        4,
+        9,
+        4
+      ],
+      [
+        4,
+        13,
+        8
+      ],
+      [
+        4,
+        14,
+        8
+      ],
+      [
+        4,
+        16,
+        8
+      ]
+    ],
+    "estimated_cache_bytes": 435077120,
+    "added_copy_payload_bytes": 7778160304,
+    "added_read_plus_write_bytes": 15556320608,
+    "note": "Structural simulation assumes dtype/contiguity/processor/stream scope passes; not actual Graph hit rate or TPS"
+  },
+  "fixed_dtype_first8_cold": {
+    "counts": {
+      "plain_sampler_calls": 290,
+      "spec_sampler_calls": 9417,
+      "graph_calls": 2386,
+      "captures": 8
+    },
+    "conditional_spec_coverage": 0.25337156206859934,
+    "cache_keys": [
+      [
+        1,
+        1,
+        1
+      ],
+      [
+        2,
+        3,
+        2
+      ],
+      [
+        4,
+        5,
+        2
+      ],
+      [
+        4,
+        6,
+        3
+      ],
+      [
+        4,
+        7,
+        3
+      ],
+      [
+        4,
+        8,
+        3
+      ],
+      [
+        4,
+        8,
+        4
+      ],
+      [
+        4,
+        14,
+        8
+      ]
+    ],
+    "estimated_cache_bytes": 324263936,
+    "added_copy_payload_bytes": 5856192700,
+    "added_read_plus_write_bytes": 11712385400,
+    "note": "Structural simulation assumes dtype/contiguity/processor/stream scope passes; not actual Graph hit rate or TPS"
+  },
+  "bounded_output8_hypothesis": {
+    "mechanism": "Keep full probability math and actual per-row K; use fixed nine-column output workspace and crop independent returned clone to live maxK+1. Requires dedicated GPU equivalence gate.",
+    "warmed": {
+      "counts": {
+        "plain_sampler_calls": 290,
+        "spec_sampler_calls": 9417,
+        "graph_calls": 4090,
+        "captures": 0
+      },
+      "conditional_spec_coverage": 0.43432090899437187,
+      "cache_keys": [
+        [
+          4,
+          6,
+          8
+        ],
+        [
+          4,
+          7,
+          8
+        ],
+        [
+          4,
+          9,
+          8
+        ],
+        [
+          4,
+          10,
+          8
+        ],
+        [
+          4,
+          11,
+          8
+        ],
+        [
+          4,
+          13,
+          8
+        ],
+        [
+          4,
+          14,
+          8
+        ],
+        [
+          4,
+          16,
+          8
+        ]
+      ],
+      "estimated_cache_bytes": 484327424,
+      "added_copy_payload_bytes": 14616337200,
+      "added_read_plus_write_bytes": 29232674400,
+      "note": "Structural simulation assumes dtype/contiguity/processor/stream scope passes; not actual Graph hit rate or TPS"
+    },
+    "copy_cost_note": "Tiny output clone charged at full nine-column upper bound in this simulation; real crop would copy less."
+  },
+  "any8keys_shape_frequency_upper_bound_ignoring_memory": 0.29839651693745356,
+  "top8_structural_keys": [
+    {
+      "key": [
+        4,
+        5,
+        2
+      ],
+      "count": 551
+    },
+    {
+      "key": [
+        4,
+        7,
+        3
+      ],
+      "count": 397
+    },
+    {
+      "key": [
+        4,
+        6,
+        2
+      ],
+      "count": 375
+    },
+    {
+      "key": [
+        1,
+        1,
+        1
+      ],
+      "count": 360
+    },
+    {
+      "key": [
+        4,
+        4,
+        1
+      ],
+      "count": 306
+    },
+    {
+      "key": [
+        4,
+        8,
+        3
+      ],
+      "count": 284
+    },
+    {
+      "key": [
+        4,
+        6,
+        3
+      ],
+      "count": 275
+    },
+    {
+      "key": [
+        4,
+        9,
+        4
+      ],
+      "count": 262
+    }
+  ],
+  "accepted_current_three_run_copy_bounds": [
+    {
+      "seed": 42,
+      "spec_calls": 8727,
+      "total_raw_logits_rows_bounds": [
+        119462,
+        119766
+      ],
+      "raw_BF16_copy_payload_all_spec_upper_bytes": 30721416192,
+      "read_plus_write_raw_copy_upper_bytes": 61442832384,
+      "maximum_extra_live_copy_API_calls": 61089,
+      "maximum_extra_output_clone_calls": 8727,
+      "scope": "All spec calls covered is a traffic upper bound, not coverage forecast"
+    },
+    {
+      "seed": 43,
+      "spec_calls": 8653,
+      "total_raw_logits_rows_bounds": [
+        119261,
+        119566
+      ],
+      "raw_BF16_copy_payload_all_spec_upper_bytes": 30670113792,
+      "read_plus_write_raw_copy_upper_bytes": 61340227584,
+      "maximum_extra_live_copy_API_calls": 60571,
+      "maximum_extra_output_clone_calls": 8653,
+      "scope": "All spec calls covered is a traffic upper bound, not coverage forecast"
+    },
+    {
+      "seed": 44,
+      "spec_calls": 8723,
+      "total_raw_logits_rows_bounds": [
+        119497,
+        119808
+      ],
+      "raw_BF16_copy_payload_all_spec_upper_bytes": 30732189696,
+      "read_plus_write_raw_copy_upper_bytes": 61464379392,
+      "maximum_extra_live_copy_API_calls": 61061,
+      "maximum_extra_output_clone_calls": 8723,
+      "scope": "All spec calls covered is a traffic upper bound, not coverage forecast"
+    }
+  ],
+  "screening_requirement": {
+    "nominal_reference_completion_s": 312.8970345802523,
+    "nominal_seconds_to_save_for_0_5pct_TPS": 1.5567016645783278,
+    "required_net_us_per_cached_call_by_assumed_count": {
+      "1000": 1556.7016645783278,
+      "2500": 622.6806658313311,
+      "4000": 389.17541614458196,
+      "8727": 178.37764003418448
+    },
+    "scope": "Hypothetical net savings requirement only; current cached-call count unknown. No overlapping GPU/CPU time added or claimed saved."
+  },
+  "source_cost_review": {
+    "original_full_greedy_GPU_ops_BF16_approx": 12,
+    "original_full_greedy_GPU_ops_FP32_approx": 10,
+    "prototype_per_hit_added_live_copies": 7,
+    "prototype_per_hit_graph_launches": 1,
+    "prototype_per_hit_output_clones": 1,
+    "unchanged_GPU_math": "All original operations remain; extra copies add work. Source operation counts are not CUDA kernel/API timings."
+  },
+  "limits": [
+    "Current accepted coalescing formal512 logs provide marginals, not per-batch K partitions: its exact structural coverage cannot be recovered from those summaries.",
+    "Historical before-coalescing trace coverage cannot be reported as current322.799 coverage.",
+    "Estimated cache bytes are a policy estimate, not measured peak allocation or reserved-memory bound.",
+    "Copy byte/API counts do not bound latency without GPU measurements; no saved TPS or critical-path savings are inferred.",
+    "A favorable cache hit count alone is not a reason to run full performance; exact GPU gate and useful primitive wall timing remain required."
+  ]
+}

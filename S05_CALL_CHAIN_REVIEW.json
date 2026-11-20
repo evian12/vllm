@@ -1,0 +1,87 @@
+{
+  "candidate": "S05",
+  "status": "CPU_source_audit_complete_GPU_pending_not_integrated",
+  "checklist": [
+    {
+      "item": "Real caller and raw dtype",
+      "evidence": "GPUModelRunner.sample_tokens -> _sample -> RejectionSampler; Llama.compute_logits -> LogitsProcessor._get_logits -> UnquantizedLinearMethod -> default_unquantized_gemm -> F.linear; no cast between BF16 LM-head output and rejection sampler. Added BF16 input scope, with FP32 promotion left inside original sampler.",
+      "level": "source reviewed, CPU dtype-key tests passed; GPU runtime dtype still to observe"
+    },
+    {
+      "item": "Metadata shape and integer dtypes",
+      "evidence": "128 saved formal512 batch inputs replayed through AST-extracted unchanged _get_cumsum_and_arange and _calc_spec_decode_metadata on CPU; draft-ID positions/cumulative counts checked. Six field dtypes: int32/int32/int32/int32/int32/int64. BF16 CUDA descriptors accepted by scope.",
+      "level": "CPU replay passed; no GPU values or pointers tested"
+    },
+    {
+      "item": "Live partition values vs cached Python list",
+      "evidence": "All-greedy, penalty/mask/bad-word-free path uses CPU num_draft_tokens only for length and max_spec_len; actual per-request K enters greedy kernel through copied cu_num_draft_tokens. All six tensor metadata fields are copied before replay. Changing partitions including zero-K rows is included in pending GPU tests.",
+      "level": "source reviewed, CPU key tests passed; GPU replay pending"
+    },
+    {
+      "item": "Optional processing fallback",
+      "evidence": "Random/mixed sampling, logprobs, penalties, bad words, allowed mask, custom/subclass or active built-in processors fall back. Exact MinTokens/LogitBias built-ins are allowed only with empty CPU state, checked per call; their identity operation was exercised on CPU.",
+      "level": "CPU scope/fallback tests passed"
+    },
+    {
+      "item": "Shape/dtype scope",
+      "evidence": "Batch1..4, integer K0..8 with positive global max, matching max_spec_len, BF16/FP32 contiguous2D logits with rows=sumK+batch and vocab1..128256; integer metadata contiguous, same device and expected shapes. Other supported call cases use original sampler.",
+      "level": "source reviewed and representative CPU guard tests passed"
+    },
+    {
+      "item": "Sampler replacement and mode changes",
+      "evidence": "Retain strong identity references to original outer/inner samplers. Replacing either object or changing mode returns original current sampler rather than replaying stale capture.",
+      "level": "CPU replacement/mode tests passed"
+    },
+    {
+      "item": "Thread, stream and nested capture",
+      "evidence": "Non-owner thread, different stream and nested capture bypass private Graph and call original sampler. Capture is scoped to logits device. Model factory must still restrict TP1/synchronous/eager/no-sleep/LoRA and correct current device.",
+      "level": "CPU control-flow mocks passed; actual CUDA stream/capture tests pending; runner factory not implemented"
+    },
+    {
+      "item": "Output ownership",
+      "evidence": "Every returned sampled-ID tensor is a fresh clone of the private capture output. Existing synchronous bookkeeping parses IDs to CPU; downstream Draft work may also consume IDs, so aliasing private Graph output is deliberately avoided.",
+      "level": "source reviewed; retained-output GPU equality/storage tests pending"
+    },
+    {
+      "item": "Cache/capture budgets",
+      "evidence": "Default eight keys, minimum eight hits, FIFO-bounded256 miss counters; byte admission uses eight times full-FP32 input bytes plus4096 even for BF16. No eviction of active Graph entries. The512MiB number is an admission estimate, not measured peak or hard CUDA allocation bound. Pending GPU cases include the default eight historical warm-cache shapes at vocab128256, with recorded peak allocated/reserved memory and a512MiB primitive peak-allocation gate.",
+      "level": "CPU warmup/key-count/counter/estimate fallback tests passed; actual peak allocation pending"
+    },
+    {
+      "item": "Input and numerical preservation",
+      "evidence": "Original full sampler operations retained, including FP32 softmax and probability argmax; no S01 logits-argmax substitution. BF16/FP32 near ties, NaN/all-inf, live metadata, independent outputs and real vocab128256 are explicit pending GPU cases.",
+      "level": "not GPU verified"
+    },
+    {
+      "item": "Formal workload shape evidence",
+      "evidence": "Saved pre-coalescing512 trace has9707 Target calls,9417 spec calls,190 keys. Default warmed8-key simulation covers2519/9417=26.7495%; any8 frequency upper bound29.8397% ignoring budget. Current accepted coalescing three runs only retain marginals, so their exact per-key coverage is unavailable.",
+      "level": "offline conditional simulation, not current Graph hit rate or TPS"
+    },
+    {
+      "item": "Cost and screening decision",
+      "evidence": "Each cache hit adds7 live copies,1 Graph launch and1 independent output clone while retaining original GPU math. Nominal+0.5% TPS needs about1.557s net savings per312.9s reference round. GPU timing, scope frequency and allocation data are absent; do not advance to a full512 screen before exact GPU gate and useful representative primitive timing.",
+      "level": "cost requirements and traffic bounds derived; no performance claim"
+    },
+    {
+      "item": "Python forward hooks",
+      "evidence": "Local outer/inner module forward/pre hooks and global forward/pre hooks bypass capture/replay and call original sampler so Python hooks execute per call. Local/global forward-hook behavior checked on CPU.",
+      "level": "CPU test passed; no GPU hook/capture validation"
+    }
+  ],
+  "not_implemented": [
+    "GPUModelRunner integration and CDB/model/config factory guard",
+    "GPU numerical/pointer gate",
+    "GPU peak-memory measurement",
+    "representative primitive wall/GPU timings",
+    "formal ON throughput screen"
+  ],
+  "resource": "GPU3 occupied by foreign PID1663290; last query4491MiB;18084closed. No GPU test or A02 process launched.",
+  "algorithm_line": "A02 remains independently prepared at HF0.7 with S02/S04/S05 disabled; no algorithm trial in this audit.",
+  "decision": "Keep S05 as WIP. Historical coverage is limited and copies are material. Bounded nine-column integer output workspace is an offline hypothesis only (conditional historical coverage43.4321%), not implemented/adopted. It does not justify skipping GPU equivalence or making current-TPS claims.",
+  "CPU_tests": {
+    "scope_fallback": 25,
+    "offline_simulation": 2,
+    "source_metadata_replay_batches": 128,
+    "GPU_tests_not_run": 6
+  }
+}

@@ -1,7 +1,7 @@
 {
   "candidate": "S05",
   "line": "system",
-  "status": "WIP_CPU_prototype_GPU_pending_not_integrated",
+  "status": "WIP_CPU_call_chain_and_trace_audited_GPU_pending_not_integrated",
   "control_source": "ccf96aac0064aebebc2077fb47e36929d65aa06a",
   "mechanism": "Capture the existing full all-greedy RejectionSampler.forward GPU operation sequence, including FP32 softmax and probability argmax, in a bounded CUDA Graph cache. Copy live logits and index/draft-token metadata into fixed buffers; return a fresh clone of the tiny sampled-ID tensor to preserve output storage lifetime.",
   "difference_from_rejected_candidates": "S01 changed softmax/argmax math and failed exact near-tie compatibility; this candidate preserves those operations. Prior Draft post/chain Graph trials covered Draft confidence, not Target rejection sampling. Prior skip-unused-logprobs trial removed extra saved logits; this candidate preserves even those operations and reduces host submission instead.",
@@ -18,12 +18,22 @@
   ],
   "planned_scope": "CDB only, TP1/BF16 FA2/eager/synchronous/no sleep/LoRA; all_greedy, all_random false, no logprobs, no penalties, no bad words/allowed mask or active/custom non-argmax-invariant processors; draft_probsNone; batch<=4, maxK<=8. Other cases retain original eager behavior.",
   "cache_key": "device,dtype,vocab,stride,num_requests,sum_K,max_K plus immutable sampler mode; graph metadata values are copied for every replay, never frozen per request",
-  "memory_and_capture_limits": "Require bounded cache, min-hit warmup, measured allocation footprint before integration; do not change existing Target24/Draft Graph policies. Capture/allocator warmup costs excluded from micro steady-state claims but included in formal E2E. No memory-pressure retry or other-process termination.",
+  "memory_and_capture_limits": "Default8 keys/min8 hits, max256 miss counters;512MiB admission estimate based on full-FP32 intermediates even forBF16. Actual peak/reserved GPU memory not yet measured; no hard allocation-bound claim.",
   "functional_gate": "Exact eager/graph sampled IDs on changing K partitions, logits, draft IDs and bonus/target index maps, including S01 near-tie BF16/FP32 counterexamples and NaN/all-inf behavior. Test independent output storage across repeated calls. CPU scope/fallback tests first; then real-model KV/numerical/state gate. No assertion weakening.",
   "quality_and_risk": "Same arithmetic alone does not prove graph pointers, stream order or metadata lifetimes correct. Potential stale index or dynamic partition errors, memory overhead and capture fallback cost must be tested. The optional branch must remain off until E2E evidence supports it.",
   "performance_gate": "Only after exact functional evidence and a useful primitive timing signal, one ON ShareGPT512/C16 screen against accepted historical322.799480 reference; >=0.5% TPS gain and <=1% E2E P95 increase; no OFF/repeats on failure, ON confirmation only with progress.",
   "algorithm_line": "A02 HF0.7 is independently prepared on the accepted implementation; do not combine unaccepted S04/S05 changes with it.",
   "existing_experiment_search": "Current de-dup registry and git log --all regex sampler/graph reviewed; no prior Target full-rejection-sampler Graph candidate found in reviewed evidence. This is a bounded history search, not an exhaustive proof.",
   "builtin_processor_guard": "Exact built-in MinTokensLogitsProcessor with empty min_toks and LogitBiasLogitsProcessor with empty biases are identity operations in reviewed source; check CPU state every call. Custom classes/subclasses or active states fall back.",
-  "gpu_pending_reason": "Current GPU3 foreign computePID2065472 uses4136MiB,total4215MiB; no GPU tests or A02 launch attempted."
+  "gpu_pending_reason": "GPU3 foreignPID1663290,last query4491MiB,port18084closed; no GPU test/A02 launch",
+  "raw_dtype_audit": "LM head rawBF16 reaches rejection_sampler; retain rawBF16 input and original internalFP32 conversions, distinguish BF16/FP32 cache keys. Previous FP32-only scope would miss actual BF16 pipeline.",
+  "source_review_evidence": "S05_CALL_CHAIN_REVIEW.json",
+  "trace_evidence": "S05_TRACE_COVERAGE.json",
+  "tests": {
+    "cpu_scope_fallback": 25,
+    "offline_cache_sim": 2,
+    "CPU_source_metadata_replays": 128,
+    "GPU_pending": 6
+  },
+  "trace_scope_note": "Saved formal512 trace is pre-coalescing73d37, conditional first8 warmed coverage26.7495%; current accepted coalescing coverage not identifiable from available marginal summaries."
 }
