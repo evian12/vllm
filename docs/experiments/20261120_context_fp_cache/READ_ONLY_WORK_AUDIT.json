@@ -1,0 +1,145 @@
+{
+  "read_only": true,
+  "original_native_rerun": false,
+  "pairs": [
+    {
+      "seed": 42,
+      "identical_plan_sha256": "526f1227efb2385aa23f8e276cb373d30b2a72d45ba34620d6cfc4ca058c5a3b",
+      "native": {
+        "path": "/home/yypan/CDB-AV/baseline-comparison-20261113/baseline_experiments/results/closed_loop/llama_sharegpt_closed16_sd4_seed42",
+        "source_sha": "1892993bc18e243e2c05841314c5e9c06a80c70d",
+        "source_import": "/disk14T/yypan/CDB-AV-runtime/baseline-comparison-20261113/gpu3-worker-20261116/source/vllm",
+        "gpu_uuid": "GPU-b493bb52-b935-1cf4-47fe-7869125775b9",
+        "data_sha256": "59e2e785a02b33966d3a5a794896a38be1226420fa75e6280bf576ed96ce6e4d",
+        "tps": 335.9889505856851,
+        "target_calls": 7577,
+        "draft_calls": 30308,
+        "verified": 29613.0,
+        "draft_candidates": 118452.0,
+        "accepted": 71695.0,
+        "outer_compile": "VLLM_COMPILE/Inductor/FULL_AND_PIECEWISE from original server.log"
+      },
+      "cdb": {
+        "path": "/disk14T/yypan/CDB-AV-runtime/results/target_seq_floor_20261120/pair_seed42_floor1024",
+        "source_sha": "23eaa57d50af9c740088d0f375acc59c3cf2474d",
+        "tps": 279.5306569299366,
+        "target_calls": 13506.0,
+        "draft_calls": 16288,
+        "verified": 22897.0,
+        "draft_candidates": 61341.0,
+        "accepted": 49082.0,
+        "target_ar_rows": 29319,
+        "target_prefill_rows": 512,
+        "target_request_rows": 52728,
+        "draft_request_rows_mean": 3.7660240667976423,
+        "ready_schedule_mean_ms": 131.1085375412113,
+        "ready_schedule_p95_bucket_ms": 250.0,
+        "outer_compile": "enforce_eager with independent manual Draft/Target CUDA Graphs"
+      }
+    },
+    {
+      "seed": 43,
+      "identical_plan_sha256": "fe51cb83d405cfe920747b61321812e205de66cc804b4886777c3a7577aefad3",
+      "native": {
+        "path": "/home/yypan/CDB-AV/baseline-comparison-20261113/baseline_experiments/results/closed_loop/llama_sharegpt_closed16_sd4_seed43",
+        "source_sha": "1892993bc18e243e2c05841314c5e9c06a80c70d",
+        "source_import": "/disk14T/yypan/CDB-AV-runtime/baseline-comparison-20261113/gpu3-worker-20261116/source/vllm",
+        "gpu_uuid": "GPU-b493bb52-b935-1cf4-47fe-7869125775b9",
+        "data_sha256": "59e2e785a02b33966d3a5a794896a38be1226420fa75e6280bf576ed96ce6e4d",
+        "tps": 346.90560422790463,
+        "target_calls": 7551,
+        "draft_calls": 30204,
+        "verified": 29651.0,
+        "draft_candidates": 118604.0,
+        "accepted": 71634.0,
+        "outer_compile": "VLLM_COMPILE/Inductor/FULL_AND_PIECEWISE from original server.log"
+      },
+      "cdb": {
+        "path": "/disk14T/yypan/CDB-AV-runtime/results/target_seq_floor_20261120/pair_seed43_floor1024",
+        "source_sha": "23eaa57d50af9c740088d0f375acc59c3cf2474d",
+        "tps": 281.0347402445212,
+        "target_calls": 13411.0,
+        "draft_calls": 16219,
+        "verified": 22870.0,
+        "draft_candidates": 61378.0,
+        "accepted": 49351.0,
+        "target_ar_rows": 29109,
+        "target_prefill_rows": 512,
+        "target_request_rows": 52491,
+        "draft_request_rows_mean": 3.7843270238609037,
+        "ready_schedule_mean_ms": 130.9837453401634,
+        "ready_schedule_p95_bucket_ms": 250.0,
+        "outer_compile": "enforce_eager with independent manual Draft/Target CUDA Graphs"
+      }
+    },
+    {
+      "seed": 44,
+      "identical_plan_sha256": "0f161c82e588d92fed873cfca8c19eebcb4ebb29ac7b79ea7b7f10ff0b156b44",
+      "native": {
+        "path": "/home/yypan/CDB-AV/baseline-comparison-20261113/baseline_experiments/results/closed_loop/llama_sharegpt_closed16_sd4_seed44",
+        "source_sha": "1892993bc18e243e2c05841314c5e9c06a80c70d",
+        "source_import": "/disk14T/yypan/CDB-AV-runtime/baseline-comparison-20261113/gpu3-worker-20261116/source/vllm",
+        "gpu_uuid": "GPU-b493bb52-b935-1cf4-47fe-7869125775b9",
+        "data_sha256": "59e2e785a02b33966d3a5a794896a38be1226420fa75e6280bf576ed96ce6e4d",
+        "tps": 340.3252826822335,
+        "target_calls": 7550,
+        "draft_calls": 30200,
+        "verified": 29623.0,
+        "draft_candidates": 118492.0,
+        "accepted": 71638.0,
+        "outer_compile": "VLLM_COMPILE/Inductor/FULL_AND_PIECEWISE from original server.log"
+      },
+      "cdb": {
+        "path": "/disk14T/yypan/CDB-AV-runtime/results/target_seq_floor_20261120/pair_seed44_floor1024",
+        "source_sha": "23eaa57d50af9c740088d0f375acc59c3cf2474d",
+        "tps": 280.04751219845747,
+        "target_calls": 13452.0,
+        "draft_calls": 16148,
+        "verified": 22662.0,
+        "draft_candidates": 61119.0,
+        "accepted": 49083.0,
+        "target_ar_rows": 29504,
+        "target_prefill_rows": 512,
+        "target_request_rows": 52678,
+        "draft_request_rows_mean": 3.7849269259351,
+        "ready_schedule_mean_ms": 132.55720123264476,
+        "ready_schedule_p95_bucket_ms": 250.0,
+        "outer_compile": "enforce_eager with independent manual Draft/Target CUDA Graphs"
+      }
+    }
+  ],
+  "groups": {
+    "native": {
+      "target_calls": 22678,
+      "draft_calls": 90712,
+      "verified": 88887.0,
+      "draft_candidates": 355548.0,
+      "accepted": 214967.0,
+      "mean_tps": 341.0732791652744,
+      "sd_tps": 5.496631308358563,
+      "verify_rows_per_target": 3.919525531351971,
+      "accepted_per_candidate": 0.6046075354101275,
+      "mean_verified_k": 4.0
+    },
+    "cdb": {
+      "target_calls": 40369.0,
+      "draft_calls": 48655,
+      "verified": 68429.0,
+      "draft_candidates": 183838.0,
+      "accepted": 147516.0,
+      "mean_tps": 280.20430312430506,
+      "sd_tps": 0.7642016750335311,
+      "verify_rows_per_target": 1.6950878149074786,
+      "accepted_per_candidate": 0.8024238731927023,
+      "mean_verified_k": 2.686551023688787
+    }
+  },
+  "scopes": "Historical Native SD4 versus complete Target-floor arm before fingerprint candidate. Same frozen model/GPU/data/plan/limits/noasync/backend; different algorithms/K and outer compilation modes are explicit, not an isolated optimization comparison.",
+  "cpu_fingerprint_candidate_status": "Current three paired repeats remain separate; these historical totals are not its effect.",
+  "limitations": [
+    "Different dates/no hardware lock/clocks fixed; not a fresh simultaneous pair",
+    "Do not convert API/spec counters into exact Draft tensor row work for Native",
+    "Do not infer bandwidth saturation or idle from model bytes or trace gaps",
+    "Do not multiply short profiled per-forward means to predict whole-512 critical path"
+  ]
+}

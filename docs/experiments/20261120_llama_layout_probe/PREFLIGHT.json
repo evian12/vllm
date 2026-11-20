@@ -1,0 +1,66 @@
+{
+  "memory_mib": 15,
+  "apps": "3713190, GPU-98e44aa3-41b5-126c-79ca-97dfbe5948c0\n3119078, GPU-98e44aa3-41b5-126c-79ca-97dfbe5948c0\n3465318, GPU-b68ce562-1ffa-ce8d-4738-654da140a7e1\n3713196, GPU-a09ae3dd-7eec-5868-a3a8-df250b32eb82\n",
+  "previous_completed": {
+    "state": "completed",
+    "time": 1795134038.417126,
+    "pid": 3215046,
+    "results": [
+      {
+        "directory": "/disk14T/yypan/CDB-AV-runtime/results/context_fp_cache_20261120/pair_seed42_cache0",
+        "cap": 8,
+        "seed": 42,
+        "context_cache": 0,
+        "tps": 278.536615172788,
+        "e2e_p95": 21.328881803900003,
+        "ttft_p95": 0.3749440615531057
+      },
+      {
+        "directory": "/disk14T/yypan/CDB-AV-runtime/results/context_fp_cache_20261120/pair_seed42_cache1",
+        "cap": 8,
+        "seed": 42,
+        "context_cache": 1,
+        "tps": 286.01994119352827,
+        "e2e_p95": 20.991328240279106,
+        "ttft_p95": 0.3614160854835063
+      },
+      {
+        "directory": "/disk14T/yypan/CDB-AV-runtime/results/context_fp_cache_20261120/pair_seed43_cache1",
+        "cap": 8,
+        "seed": 43,
+        "context_cache": 1,
+        "tps": 288.1418363281151,
+        "e2e_p95": 21.030074589001014,
+        "ttft_p95": 0.33309231149032703
+      },
+      {
+        "directory": "/disk14T/yypan/CDB-AV-runtime/results/context_fp_cache_20261120/pair_seed43_cache0",
+        "cap": 8,
+        "seed": 43,
+        "context_cache": 0,
+        "tps": 281.696364051894,
+        "e2e_p95": 21.624500179477035,
+        "ttft_p95": 0.34802857101894913
+      },
+      {
+        "directory": "/disk14T/yypan/CDB-AV-runtime/results/context_fp_cache_20261120/pair_seed44_cache0",
+        "cap": 8,
+        "seed": 44,
+        "context_cache": 0,
+        "tps": 281.80359525579763,
+        "e2e_p95": 20.986112902034073,
+        "ttft_p95": 0.32746241046115754
+      },
+      {
+        "directory": "/disk14T/yypan/CDB-AV-runtime/results/context_fp_cache_20261120/pair_seed44_cache1",
+        "cap": 8,
+        "seed": 44,
+        "context_cache": 1,
+        "tps": 286.48790028852176,
+        "e2e_p95": 21.23455673204735,
+        "ttft_p95": 0.3423434097319841
+      }
+    ]
+  },
+  "port_closed": true
+}

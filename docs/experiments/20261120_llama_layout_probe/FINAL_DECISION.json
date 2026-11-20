@@ -1,0 +1,12 @@
+{
+  "decision": "reject_runtime_integration",
+  "comparisons": 20,
+  "faster": 1,
+  "slower": 19,
+  "exact_outputs": 10,
+  "all_logical_weight_bytes_exact": true,
+  "max_gain_pct": 0.4515964339719236,
+  "runtime_modified": false,
+  "own_gpu_process_exited": true,
+  "limitation": "Component only, random hidden states, actual BF16 Target weights; argmax is not final token correctness"
+}

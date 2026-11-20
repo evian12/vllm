@@ -1,0 +1,98 @@
+{
+  "decision": "retain_opt_in_for_tested_workload",
+  "source_commit": "f2ab684c06ba4f41fb9ac4f6afa2393695ed8444",
+  "recommended_flag": "CDB_AV_CONTEXT_FINGERPRINT_CACHE=1",
+  "default_changed": false,
+  "groups": {
+    "0": {
+      "n": 3,
+      "tps": [
+        278.536615172788,
+        281.696364051894,
+        281.80359525579763
+      ],
+      "mean_tps": 280.6788581601599,
+      "sd_tps": 1.8560114211611574,
+      "mean_run_e2e_p95": 21.313164961803704,
+      "mean_run_ttft_p95": 0.35014501434440415,
+      "verify_events": 67990.0,
+      "candidates": 183597.0,
+      "accepted": 147393.0,
+      "target_iterations": 40374.0,
+      "acceptance_rate": 0.8028072354123433,
+      "mean_verified_K": 2.7003529930872188,
+      "verify_events_per_target_iteration": 1.6840045573884184,
+      "draft_dispatches": 48579,
+      "mean_draft_request_rows": 3.7793491014635956
+    },
+    "1": {
+      "n": 3,
+      "tps": [
+        286.01994119352827,
+        288.1418363281151,
+        286.48790028852176
+      ],
+      "mean_tps": 286.8832259367217,
+      "sd_tps": 1.1148190510748255,
+      "mean_run_e2e_p95": 21.08531985377582,
+      "mean_run_ttft_p95": 0.34561726890193917,
+      "verify_events": 68268.0,
+      "candidates": 183816.0,
+      "accepted": 147378.0,
+      "target_iterations": 40393.0,
+      "acceptance_rate": 0.8017691604648126,
+      "mean_verified_K": 2.6925645983476887,
+      "verify_events_per_target_iteration": 1.6900948184091302,
+      "draft_dispatches": 48653,
+      "mean_draft_request_rows": 3.778102069759316
+    }
+  },
+  "ratio_of_means_change_pct": 2.210486324916383,
+  "paired_mean_change_pct": 2.2123362715842143,
+  "paired_sd_change_pct": 0.5163841617536834,
+  "exact_output_requests": [
+    231,
+    202,
+    192
+  ],
+  "strict_output_equivalence": false,
+  "completed_requests": 3072,
+  "failed": 0,
+  "output_tokens": 606018,
+  "own_services_released": true,
+  "cache_intervals": [
+    {
+      "run": "pair_seed42_cache1",
+      "interior": {
+        "calls": 455680,
+        "hits": 433057,
+        "misses": 22623,
+        "fallbacks": 0,
+        "hit_fraction": 0.9503533181179775
+      },
+      "scope": "Interior sampled cumulative deltas only; boundary tails excluded"
+    },
+    {
+      "run": "pair_seed43_cache1",
+      "interior": {
+        "calls": 457728,
+        "hits": 434831,
+        "misses": 22897,
+        "fallbacks": 0,
+        "hit_fraction": 0.9499768421420581
+      },
+      "scope": "Interior sampled cumulative deltas only; boundary tails excluded"
+    },
+    {
+      "run": "pair_seed44_cache1",
+      "interior": {
+        "calls": 456704,
+        "hits": 434072,
+        "misses": 22632,
+        "fallbacks": 0,
+        "hit_fraction": 0.9504449271300448
+      },
+      "scope": "Interior sampled cumulative deltas only; boundary tails excluded"
+    }
+  ]
+}

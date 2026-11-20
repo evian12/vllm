@@ -1,0 +1,5646 @@
+{
+  "runs": [
+    {
+      "directory": "/disk14T/yypan/CDB-AV-runtime/results/context_fp_cache_20261120/pair_seed42_cache0",
+      "context_cache": 0,
+      "mode": "hf",
+      "cap": 8,
+      "seed": 42,
+      "source_commit": "f2ab684c06ba4f41fb9ac4f6afa2393695ed8444",
+      "summary": {
+        "requests": 512,
+        "completed": 512,
+        "failed": 0,
+        "elapsed_s": 362.62018886581063,
+        "measurement_start_wall": 1795131373.1182723,
+        "first_dispatch_wall": 1795131373.118704,
+        "last_completion_wall": 1795131735.738893,
+        "first_dispatch_s": 0.0004318021237850189,
+        "last_completion_s": 362.6206206679344,
+        "drain_s": null,
+        "output_tokens": 101003,
+        "throughput_tok_s": 278.536615172788,
+        "open_requests": null,
+        "arrival_window_s": null,
+        "open_workload": null,
+        "latency_s": {
+          "ttft": {
+            "p50": 0.1120844311080873,
+            "p95": 0.3749440615531057
+          },
+          "e2e": {
+            "p50": 10.930371312890202,
+            "p95": 21.328881803900003
+          },
+          "tpot": {
+            "p50": 0.05564760679738711,
+            "p95": 0.06964119788149845
+          },
+          "scheduled_ttft": {
+            "p50": null,
+            "p95": null
+          },
+          "scheduled_e2e": {
+            "p50": null,
+            "p95": null
+          }
+        },
+        "itl_s": {
+          "p50": 0.02472113538533449,
+          "p95": 0.03313193153589959
+        },
+        "dispatch_lag_s": {
+          "p50": null,
+          "p95": null
+        },
+        "arrival_timing_qualified": true,
+        "delivery_itl_s": {
+          "p50": 0.0230600843206048,
+          "p95": 0.2628454598598182
+        },
+        "itl_definition": "Client delivery: all token IDs in one SSE chunk share its receive timestamp; zero intervals within a burst are retained. GPU-internal generation time is not inferred.",
+        "itl_coverage_requests": 4,
+        "slo_compliance": null,
+        "slo_note": "No predefined thresholds; multi-token stream chunks do not expose exact token ITL.",
+        "plan_sha256": "526f1227efb2385aa23f8e276cb373d30b2a72d45ba34620d6cfc4ca058c5a3b",
+        "smoke": false
+      },
+      "verify_events": 22647.0,
+      "candidates": 61197.0,
+      "accepted": 49103.0,
+      "target_iterations": 13467.0,
+      "preemptions": 0.0,
+      "mean_verified_K": 2.702212213538217,
+      "acceptance_rate": 0.8023759334607906,
+      "verify_events_per_target_iteration": 1.681666295388728,
+      "observed": {
+        "cdb_ready_wait_bucket_500_ms": 168,
+        "cdb_target_token_rows": 167548,
+        "cdb_phase_decode_request_rows": 11513,
+        "cdb_ready_wait_bucket_2_ms": 11,
+        "cdb_target_schedules": 13467,
+        "cdb_phase_mixed_prefill_decode_calls": 12347,
+        "target_forward_calls": 13467,
+        "cdb_phase_mixed_prefill_decode_token_rows": 130131,
+        "cdb_draft_dispatches": 16229,
+        "cdb_draft_request_rows": 61197,
+        "cdb_target_ar_rows": 29501,
+        "cdb_target_prefill_rows": 512,
+        "cdb_ready_wait_bucket_100_ms": 4641,
+        "cdb_target_verify_rows": 22647,
+        "cdb_ready_wait_bucket_5_ms": 13,
+        "cdb_ready_wait_bucket_10_ms": 46,
+        "cdb_target_pure_ar_with_waiting": 372,
+        "cdb_draft_token_rows": 156932,
+        "cdb_ready_wait_bucket_20_ms": 46,
+        "cdb_phase_mixed_prefill_decode_request_rows": 47939,
+        "cdb_target_other_rows": 0,
+        "cdb_target_request_rows": 52660,
+        "cdb_target_pure_ar_calls": 2007,
+        "cdb_phase_decode_token_rows": 11513,
+        "cdb_ready_wait_count": 22647,
+        "cdb_ready_wait_bucket_250_ms": 17562,
+        "cdb_phase_mixed_prefill_token_rows": 15288,
+        "cdb_ready_wait_bucket_50_ms": 160,
+        "cdb_phase_mixed_prefill_calls": 541,
+        "cdb_ready_wait_sum_ms": 3018226.428682916,
+        "cdb_phase_decode_calls": 3341,
+        "cdb_phase_mixed_prefill_request_rows": 1745
+      },
+      "mean_draft_request_rows": 3.770842319304948,
+      "mean_draft_token_rows": 9.669850268038696,
+      "ready_to_schedule_mean_ms": 133.27268197478324,
+      "ready_to_schedule_p95_upper_bound_ms": 250.0,
+      "interior": {
+        "events": {
+          "p2_runtime_config": 0,
+          "__total__": 171008,
+          "target_ready_select": 13397,
+          "p2_target_begin": 13397,
+          "p2_target_commit": 2035,
+          "p2_reuse_plan": 22533,
+          "k_policy_config": 0,
+          "p2_window_begin": 2035,
+          "reuse_pending_prefill": 22533,
+          "ready": 22534,
+          "p2_handoff": 22536,
+          "p2_boundary": 2035,
+          "p2_verified": 22543,
+          "reuse_cache_consumed": 22040,
+          "p2_ar_target_bypass": 2883,
+          "reuse_lease_release": 507
+        },
+        "k_actual": {
+          "2": 4645,
+          "1": 9450,
+          "5": 1039,
+          "4": 1706,
+          "3": 2700,
+          "8": 1761,
+          "7": 543,
+          "6": 690
+        },
+        "k_sources": {},
+        "stop_reasons": {
+          "low_confidence": 20773,
+          "max_k": 1761
+        },
+        "token_counts": {
+          "reused_tokens": 5442378,
+          "prefill_tokens": 116435,
+          "accepted_tokens": 48873,
+          "drafted_tokens": 60918
+        },
+        "replay": {},
+        "target_graph": {
+          "fallback_layout": 460,
+          "calls": 13312,
+          "fallback_warmup": 0,
+          "capture": 0,
+          "replay": 12506,
+          "fallback_budget": 346
+        }
+      },
+      "gpu_mean": {
+        "utilization_pct": 80.90082644628099,
+        "memory_mib": 22634.73553719008,
+        "power_w": 257.82842975206614,
+        "temperature_c": 58.51790633608815,
+        "sm_clock_mhz": 2668.305785123967
+      }
+    },
+    {
+      "directory": "/disk14T/yypan/CDB-AV-runtime/results/context_fp_cache_20261120/pair_seed42_cache1",
+      "context_cache": 1,
+      "mode": "hf",
+      "cap": 8,
+      "seed": 42,
+      "source_commit": "f2ab684c06ba4f41fb9ac4f6afa2393695ed8444",
+      "summary": {
+        "requests": 512,
+        "completed": 512,
+        "failed": 0,
+        "elapsed_s": 353.13272067159414,
+        "measurement_start_wall": 1795131840.5507886,
+        "first_dispatch_wall": 1795131840.5510266,
+        "last_completion_wall": 1795132193.6837473,
+        "first_dispatch_s": 0.00023803114891052246,
+        "last_completion_s": 353.13295870274305,
+        "drain_s": null,
+        "output_tokens": 101003,
+        "throughput_tok_s": 286.01994119352827,
+        "open_requests": null,
+        "arrival_window_s": null,
+        "open_workload": null,
+        "latency_s": {
+          "ttft": {
+            "p50": 0.10603652149438858,
+            "p95": 0.3614160854835063
+          },
+          "e2e": {
+            "p50": 10.913787038065493,
+            "p95": 20.991328240279106
+          },
+          "tpot": {
+            "p50": 0.05363065311121032,
+            "p95": 0.06781113140458146
+          },
+          "scheduled_ttft": {
+            "p50": null,
+            "p95": null
+          },
+          "scheduled_e2e": {
+            "p50": null,
+            "p95": null
+          }
+        },
+        "itl_s": {
+          "p50": 0.023880985099822283,
+          "p95": 0.0301450852304697
+        },
+        "dispatch_lag_s": {
+          "p50": null,
+          "p95": null
+        },
+        "arrival_timing_qualified": true,
+        "delivery_itl_s": {
+          "p50": 0.02272934839129448,
+          "p95": 0.2560251890681684
+        },
+        "itl_definition": "Client delivery: all token IDs in one SSE chunk share its receive timestamp; zero intervals within a burst are retained. GPU-internal generation time is not inferred.",
+        "itl_coverage_requests": 3,
+        "slo_compliance": null,
+        "slo_note": "No predefined thresholds; multi-token stream chunks do not expose exact token ITL.",
+        "plan_sha256": "526f1227efb2385aa23f8e276cb373d30b2a72d45ba34620d6cfc4ca058c5a3b",
+        "smoke": false
+      },
+      "verify_events": 22667.0,
+      "candidates": 61180.0,
+      "accepted": 48991.0,
+      "target_iterations": 13523.0,
+      "preemptions": 0.0,
+      "mean_verified_K": 2.6990779547359596,
+      "acceptance_rate": 0.8007682249101014,
+      "verify_events_per_target_iteration": 1.6761813207128595,
+      "observed": {
+        "cdb_ready_wait_bucket_500_ms": 130,
+        "cdb_target_token_rows": 167715,
+        "cdb_phase_decode_request_rows": 11597,
+        "cdb_ready_wait_bucket_2_ms": 10,
+        "cdb_target_schedules": 13523,
+        "cdb_phase_mixed_prefill_decode_calls": 12286,
+        "target_forward_calls": 13523,
+        "cdb_phase_mixed_prefill_decode_token_rows": 130962,
+        "cdb_draft_dispatches": 16231,
+        "cdb_draft_request_rows": 61180,
+        "cdb_target_ar_rows": 29665,
+        "cdb_target_prefill_rows": 512,
+        "cdb_ready_wait_bucket_100_ms": 5310,
+        "cdb_target_verify_rows": 22667,
+        "cdb_ready_wait_bucket_10_ms": 63,
+        "cdb_ready_wait_bucket_5_ms": 15,
+        "cdb_target_pure_ar_with_waiting": 358,
+        "cdb_draft_token_rows": 157105,
+        "cdb_ready_wait_bucket_20_ms": 69,
+        "cdb_phase_mixed_prefill_decode_request_rows": 47725,
+        "cdb_target_other_rows": 0,
+        "cdb_target_request_rows": 52844,
+        "cdb_target_pure_ar_calls": 2052,
+        "cdb_phase_decode_token_rows": 11597,
+        "cdb_ready_wait_count": 22667,
+        "cdb_ready_wait_bucket_250_ms": 16925,
+        "cdb_phase_mixed_prefill_token_rows": 14546,
+        "cdb_ready_wait_bucket_50_ms": 145,
+        "cdb_phase_mixed_prefill_calls": 573,
+        "cdb_ready_wait_sum_ms": 2928300.985801965,
+        "cdb_phase_decode_calls": 3372,
+        "cdb_phase_mixed_prefill_request_rows": 1858
+      },
+      "mean_draft_request_rows": 3.7693302938820774,
+      "mean_draft_token_rows": 9.679317355677407,
+      "ready_to_schedule_mean_ms": 129.18784955229916,
+      "ready_to_schedule_p95_upper_bound_ms": 250.0,
+      "interior": {
+        "events": {
+          "p2_runtime_config": 0,
+          "__total__": 171008,
+          "target_ready_select": 13426,
+          "p2_target_begin": 13426,
+          "p2_target_commit": 2039,
+          "p2_reuse_plan": 22520,
+          "k_policy_config": 0,
+          "p2_window_begin": 2039,
+          "reuse_pending_prefill": 22521,
+          "ready": 22521,
+          "p2_handoff": 22529,
+          "p2_boundary": 2039,
+          "p2_verified": 22531,
+          "reuse_cache_consumed": 22027,
+          "p2_ar_target_bypass": 2882,
+          "reuse_lease_release": 508
+        },
+        "k_actual": {
+          "1": 9462,
+          "2": 4685,
+          "5": 1015,
+          "4": 1682,
+          "3": 2655,
+          "8": 1772,
+          "6": 745,
+          "7": 505
+        },
+        "k_sources": {},
+        "stop_reasons": {
+          "low_confidence": 20749,
+          "max_k": 1772
+        },
+        "token_counts": {
+          "reused_tokens": 5480652,
+          "prefill_tokens": 116554,
+          "accepted_tokens": 48690,
+          "drafted_tokens": 60809
+        },
+        "replay": {},
+        "target_graph": {
+          "fallback_layout": 473,
+          "calls": 13312,
+          "fallback_warmup": 2,
+          "capture": 1,
+          "replay": 12485,
+          "fallback_budget": 351
+        }
+      },
+      "gpu_mean": {
+        "utilization_pct": 83.47875354107649,
+        "memory_mib": 22604.246458923513,
+        "power_w": 263.7084419263456,
+        "temperature_c": 59.07648725212464,
+        "sm_clock_mhz": 2662.8186968838527
+      }
+    },
+    {
+      "directory": "/disk14T/yypan/CDB-AV-runtime/results/context_fp_cache_20261120/pair_seed43_cache0",
+      "context_cache": 0,
+      "mode": "hf",
+      "cap": 8,
+      "seed": 43,
+      "source_commit": "f2ab684c06ba4f41fb9ac4f6afa2393695ed8444",
+      "summary": {
+        "requests": 512,
+        "completed": 512,
+        "failed": 0,
+        "elapsed_s": 358.5527287153527,
+        "measurement_start_wall": 1795132752.491153,
+        "first_dispatch_wall": 1795132752.4914088,
+        "last_completion_wall": 1795133111.0441375,
+        "first_dispatch_s": 0.00025582313537597656,
+        "last_completion_s": 358.5529845384881,
+        "drain_s": null,
+        "output_tokens": 101003,
+        "throughput_tok_s": 281.696364051894,
+        "open_requests": null,
+        "arrival_window_s": null,
+        "open_workload": null,
+        "latency_s": {
+          "ttft": {
+            "p50": 0.12253038724884391,
+            "p95": 0.34802857101894913
+          },
+          "e2e": {
+            "p50": 10.980363676324487,
+            "p95": 21.624500179477035
+          },
+          "tpot": {
+            "p50": 0.05411418725160944,
+            "p95": 0.0676513735317181
+          },
+          "scheduled_ttft": {
+            "p50": null,
+            "p95": null
+          },
+          "scheduled_e2e": {
+            "p50": null,
+            "p95": null
+          }
+        },
+        "itl_s": {
+          "p50": 0.024521276354789734,
+          "p95": 0.1392384391278027
+        },
+        "dispatch_lag_s": {
+          "p50": null,
+          "p95": null
+        },
+        "arrival_timing_qualified": true,
+        "delivery_itl_s": {
+          "p50": 0.023009383119642735,
+          "p95": 0.25957354716956615
+        },
+        "itl_definition": "Client delivery: all token IDs in one SSE chunk share its receive timestamp; zero intervals within a burst are retained. GPU-internal generation time is not inferred.",
+        "itl_coverage_requests": 3,
+        "slo_compliance": null,
+        "slo_note": "No predefined thresholds; multi-token stream chunks do not expose exact token ITL.",
+        "plan_sha256": "fe51cb83d405cfe920747b61321812e205de66cc804b4886777c3a7577aefad3",
+        "smoke": false
+      },
+      "verify_events": 22588.0,
+      "candidates": 61155.0,
+      "accepted": 49086.0,
+      "target_iterations": 13457.0,
+      "preemptions": 0.0,
+      "mean_verified_K": 2.70741101469807,
+      "acceptance_rate": 0.8026490066225166,
+      "verify_events_per_target_iteration": 1.6785316192316266,
+      "observed": {
+        "cdb_ready_wait_bucket_500_ms": 143,
+        "cdb_target_token_rows": 167561,
+        "cdb_phase_decode_request_rows": 11292,
+        "cdb_ready_wait_bucket_2_ms": 5,
+        "cdb_target_schedules": 13457,
+        "cdb_phase_mixed_prefill_decode_calls": 12452,
+        "target_forward_calls": 13457,
+        "cdb_phase_mixed_prefill_decode_token_rows": 132731,
+        "cdb_draft_dispatches": 16163,
+        "cdb_draft_request_rows": 61155,
+        "cdb_target_ar_rows": 29615,
+        "cdb_target_prefill_rows": 512,
+        "cdb_ready_wait_bucket_100_ms": 4704,
+        "cdb_target_verify_rows": 22588,
+        "cdb_ready_wait_bucket_10_ms": 15,
+        "cdb_ready_wait_bucket_5_ms": 3,
+        "cdb_target_pure_ar_with_waiting": 341,
+        "cdb_draft_token_rows": 156630,
+        "cdb_ready_wait_bucket_20_ms": 24,
+        "cdb_phase_mixed_prefill_decode_request_rows": 48313,
+        "cdb_target_other_rows": 0,
+        "cdb_target_request_rows": 52715,
+        "cdb_target_pure_ar_calls": 2004,
+        "cdb_phase_decode_token_rows": 11292,
+        "cdb_ready_wait_count": 22588,
+        "cdb_ready_wait_bucket_250_ms": 17538,
+        "cdb_phase_mixed_prefill_token_rows": 12607,
+        "cdb_ready_wait_bucket_50_ms": 156,
+        "cdb_phase_mixed_prefill_calls": 474,
+        "cdb_ready_wait_sum_ms": 2982128.310268745,
+        "cdb_phase_decode_calls": 3237,
+        "cdb_phase_mixed_prefill_request_rows": 1550
+      },
+      "mean_draft_request_rows": 3.78364165068366,
+      "mean_draft_token_rows": 9.690651487966344,
+      "ready_to_schedule_mean_ms": 132.0226806387792,
+      "ready_to_schedule_p95_upper_bound_ms": 250.0,
+      "interior": {
+        "events": {
+          "p2_runtime_config": 0,
+          "__total__": 171008,
+          "target_ready_select": 13423,
+          "p2_target_begin": 13423,
+          "p2_target_commit": 2023,
+          "p2_reuse_plan": 22549,
+          "k_policy_config": 0,
+          "p2_window_begin": 2023,
+          "reuse_pending_prefill": 22549,
+          "ready": 22549,
+          "p2_handoff": 22558,
+          "p2_boundary": 2024,
+          "p2_verified": 22559,
+          "reuse_cache_consumed": 22055,
+          "p2_ar_target_bypass": 2765,
+          "reuse_lease_release": 508
+        },
+        "k_actual": {
+          "1": 9389,
+          "3": 2672,
+          "2": 4744,
+          "8": 1777,
+          "4": 1665,
+          "6": 749,
+          "5": 1047,
+          "7": 506
+        },
+        "k_sources": {},
+        "stop_reasons": {
+          "low_confidence": 20772,
+          "max_k": 1777
+        },
+        "token_counts": {
+          "reused_tokens": 5478031,
+          "prefill_tokens": 116376,
+          "accepted_tokens": 49010,
+          "drafted_tokens": 61070
+        },
+        "replay": {},
+        "target_graph": {
+          "fallback_layout": 463,
+          "calls": 13312,
+          "fallback_warmup": 0,
+          "capture": 0,
+          "replay": 12547,
+          "fallback_budget": 302
+        }
+      },
+      "gpu_mean": {
+        "utilization_pct": 81.44692737430168,
+        "memory_mib": 22616.173184357544,
+        "power_w": 260.93326815642456,
+        "temperature_c": 59.675977653631286,
+        "sm_clock_mhz": 2663.1284916201116
+      }
+    },
+    {
+      "directory": "/disk14T/yypan/CDB-AV-runtime/results/context_fp_cache_20261120/pair_seed43_cache1",
+      "context_cache": 1,
+      "mode": "hf",
+      "cap": 8,
+      "seed": 43,
+      "source_commit": "f2ab684c06ba4f41fb9ac4f6afa2393695ed8444",
+      "summary": {
+        "requests": 512,
+        "completed": 512,
+        "failed": 0,
+        "elapsed_s": 350.53222845774144,
+        "measurement_start_wall": 1795132297.3589334,
+        "first_dispatch_wall": 1795132297.3591576,
+        "last_completion_wall": 1795132647.891386,
+        "first_dispatch_s": 0.0002240445464849472,
+        "last_completion_s": 350.5324525022879,
+        "drain_s": null,
+        "output_tokens": 101003,
+        "throughput_tok_s": 288.1418363281151,
+        "open_requests": null,
+        "arrival_window_s": null,
+        "open_workload": null,
+        "latency_s": {
+          "ttft": {
+            "p50": 0.10215004533529282,
+            "p95": 0.33309231149032703
+          },
+          "e2e": {
+            "p50": 10.517920308280736,
+            "p95": 21.030074589001014
+          },
+          "tpot": {
+            "p50": 0.053484855930317876,
+            "p95": 0.06629194571172037
+          },
+          "scheduled_ttft": {
+            "p50": null,
+            "p95": null
+          },
+          "scheduled_e2e": {
+            "p50": null,
+            "p95": null
+          }
+        },
+        "itl_s": {
+          "p50": null,
+          "p95": null
+        },
+        "dispatch_lag_s": {
+          "p50": null,
+          "p95": null
+        },
+        "arrival_timing_qualified": true,
+        "delivery_itl_s": {
+          "p50": 0.022667055018246174,
+          "p95": 0.25108591467142105
+        },
+        "itl_definition": "Client delivery: all token IDs in one SSE chunk share its receive timestamp; zero intervals within a burst are retained. GPU-internal generation time is not inferred.",
+        "itl_coverage_requests": 0,
+        "slo_compliance": null,
+        "slo_note": "No predefined thresholds; multi-token stream chunks do not expose exact token ITL.",
+        "plan_sha256": "fe51cb83d405cfe920747b61321812e205de66cc804b4886777c3a7577aefad3",
+        "smoke": false
+      },
+      "verify_events": 22932.0,
+      "candidates": 61303.0,
+      "accepted": 49208.0,
+      "target_iterations": 13425.0,
+      "preemptions": 0.0,
+      "mean_verified_K": 2.6732513518227803,
+      "acceptance_rate": 0.8027013359868196,
+      "verify_events_per_target_iteration": 1.7081564245810057,
+      "observed": {
+        "cdb_ready_wait_bucket_500_ms": 86,
+        "cdb_target_token_rows": 167565,
+        "cdb_phase_decode_request_rows": 10956,
+        "cdb_ready_wait_bucket_2_ms": 8,
+        "cdb_target_schedules": 13425,
+        "cdb_phase_mixed_prefill_decode_calls": 12563,
+        "target_forward_calls": 13425,
+        "cdb_phase_mixed_prefill_decode_token_rows": 130456,
+        "cdb_draft_dispatches": 16207,
+        "cdb_draft_request_rows": 61303,
+        "cdb_target_ar_rows": 29127,
+        "cdb_target_prefill_rows": 512,
+        "cdb_ready_wait_bucket_100_ms": 5676,
+        "cdb_target_verify_rows": 22932,
+        "cdb_ready_wait_bucket_10_ms": 10,
+        "cdb_ready_wait_bucket_5_ms": 2,
+        "cdb_target_pure_ar_with_waiting": 330,
+        "cdb_draft_token_rows": 156867,
+        "cdb_ready_wait_bucket_20_ms": 26,
+        "cdb_phase_mixed_prefill_decode_request_rows": 48731,
+        "cdb_target_other_rows": 0,
+        "cdb_target_request_rows": 52571,
+        "cdb_target_pure_ar_calls": 1874,
+        "cdb_phase_decode_token_rows": 10956,
+        "cdb_ready_wait_count": 22932,
+        "cdb_ready_wait_bucket_250_ms": 16967,
+        "cdb_phase_mixed_prefill_token_rows": 15455,
+        "cdb_ready_wait_bucket_50_ms": 157,
+        "cdb_phase_mixed_prefill_calls": 495,
+        "cdb_ready_wait_sum_ms": 2922211.352479644,
+        "cdb_phase_decode_calls": 3149,
+        "cdb_phase_mixed_prefill_request_rows": 1616
+      },
+      "mean_draft_request_rows": 3.782501388289011,
+      "mean_draft_token_rows": 9.678965878941199,
+      "ready_to_schedule_mean_ms": 127.42941533575981,
+      "ready_to_schedule_p95_upper_bound_ms": 250.0,
+      "interior": {
+        "events": {
+          "p2_runtime_config": 0,
+          "__total__": 172032,
+          "target_ready_select": 13355,
+          "p2_target_begin": 13355,
+          "p2_target_commit": 2003,
+          "p2_reuse_plan": 22770,
+          "k_policy_config": 0,
+          "p2_window_begin": 2003,
+          "reuse_pending_prefill": 22771,
+          "ready": 22773,
+          "p2_handoff": 22770,
+          "p2_boundary": 2003,
+          "p2_verified": 22777,
+          "reuse_cache_consumed": 22276,
+          "p2_ar_target_bypass": 2671,
+          "reuse_lease_release": 505
+        },
+        "k_actual": {
+          "3": 2716,
+          "1": 9629,
+          "2": 4779,
+          "8": 1742,
+          "4": 1696,
+          "6": 753,
+          "7": 487,
+          "5": 971
+        },
+        "k_sources": {},
+        "stop_reasons": {
+          "low_confidence": 21031,
+          "max_k": 1742
+        },
+        "token_counts": {
+          "reused_tokens": 5498218,
+          "prefill_tokens": 116508,
+          "accepted_tokens": 48836,
+          "drafted_tokens": 60848
+        },
+        "replay": {},
+        "target_graph": {
+          "fallback_layout": 468,
+          "calls": 13312,
+          "fallback_warmup": 0,
+          "capture": 0,
+          "replay": 12480,
+          "fallback_budget": 364
+        }
+      },
+      "gpu_mean": {
+        "utilization_pct": 83.75714285714285,
+        "memory_mib": 22602.782857142858,
+        "power_w": 263.9558285714286,
+        "temperature_c": 58.994285714285716,
+        "sm_clock_mhz": 2663.4
+      }
+    },
+    {
+      "directory": "/disk14T/yypan/CDB-AV-runtime/results/context_fp_cache_20261120/pair_seed44_cache0",
+      "context_cache": 0,
+      "mode": "hf",
+      "cap": 8,
+      "seed": 44,
+      "source_commit": "f2ab684c06ba4f41fb9ac4f6afa2393695ed8444",
+      "summary": {
+        "requests": 512,
+        "completed": 512,
+        "failed": 0,
+        "elapsed_s": 358.41629312187433,
+        "measurement_start_wall": 1795133216.3438115,
+        "first_dispatch_wall": 1795133216.3440156,
+        "last_completion_wall": 1795133574.7603087,
+        "first_dispatch_s": 0.0002041831612586975,
+        "last_completion_s": 358.4164973050356,
+        "drain_s": null,
+        "output_tokens": 101003,
+        "throughput_tok_s": 281.80359525579763,
+        "open_requests": null,
+        "arrival_window_s": null,
+        "open_workload": null,
+        "latency_s": {
+          "ttft": {
+            "p50": 0.10518539883196354,
+            "p95": 0.32746241046115754
+          },
+          "e2e": {
+            "p50": 10.822691914625466,
+            "p95": 20.986112902034073
+          },
+          "tpot": {
+            "p50": 0.05453636684036013,
+            "p95": 0.06898110753269943
+          },
+          "scheduled_ttft": {
+            "p50": null,
+            "p95": null
+          },
+          "scheduled_e2e": {
+            "p50": null,
+            "p95": null
+          }
+        },
+        "itl_s": {
+          "p50": 0.024405619595199823,
+          "p95": 0.031186101771891118
+        },
+        "dispatch_lag_s": {
+          "p50": null,
+          "p95": null
+        },
+        "arrival_timing_qualified": true,
+        "delivery_itl_s": {
+          "p50": 0.023016855120658875,
+          "p95": 0.2595129515975714
+        },
+        "itl_definition": "Client delivery: all token IDs in one SSE chunk share its receive timestamp; zero intervals within a burst are retained. GPU-internal generation time is not inferred.",
+        "itl_coverage_requests": 3,
+        "slo_compliance": null,
+        "slo_note": "No predefined thresholds; multi-token stream chunks do not expose exact token ITL.",
+        "plan_sha256": "0f161c82e588d92fed873cfca8c19eebcb4ebb29ac7b79ea7b7f10ff0b156b44",
+        "smoke": false
+      },
+      "verify_events": 22755.0,
+      "candidates": 61245.0,
+      "accepted": 49204.0,
+      "target_iterations": 13450.0,
+      "preemptions": 0.0,
+      "mean_verified_K": 2.691496374423204,
+      "acceptance_rate": 0.8033961956078047,
+      "verify_events_per_target_iteration": 1.6918215613382899,
+      "observed": {
+        "cdb_ready_wait_bucket_500_ms": 110,
+        "cdb_target_token_rows": 167543,
+        "cdb_phase_decode_request_rows": 11408,
+        "cdb_ready_wait_bucket_2_ms": 2,
+        "cdb_target_schedules": 13450,
+        "cdb_phase_mixed_prefill_decode_calls": 12448,
+        "target_forward_calls": 13450,
+        "cdb_phase_mixed_prefill_decode_token_rows": 131070,
+        "cdb_draft_dispatches": 16187,
+        "cdb_draft_request_rows": 61245,
+        "cdb_target_ar_rows": 29340,
+        "cdb_target_prefill_rows": 512,
+        "cdb_ready_wait_bucket_100_ms": 5030,
+        "cdb_target_verify_rows": 22755,
+        "cdb_ready_wait_bucket_10_ms": 8,
+        "cdb_ready_wait_bucket_5_ms": 2,
+        "cdb_target_pure_ar_with_waiting": 344,
+        "cdb_draft_token_rows": 156815,
+        "cdb_ready_wait_bucket_20_ms": 20,
+        "cdb_phase_mixed_prefill_decode_request_rows": 48283,
+        "cdb_target_other_rows": 0,
+        "cdb_target_request_rows": 52607,
+        "cdb_target_pure_ar_calls": 2005,
+        "cdb_phase_decode_token_rows": 11408,
+        "cdb_ready_wait_count": 22755,
+        "cdb_ready_wait_bucket_250_ms": 17341,
+        "cdb_phase_mixed_prefill_token_rows": 14337,
+        "cdb_ready_wait_bucket_50_ms": 242,
+        "cdb_phase_mixed_prefill_calls": 478,
+        "cdb_ready_wait_sum_ms": 2990020.9772540256,
+        "cdb_phase_decode_calls": 3261,
+        "cdb_phase_mixed_prefill_request_rows": 1554
+      },
+      "mean_draft_request_rows": 3.7835917711743994,
+      "mean_draft_token_rows": 9.687712361771792,
+      "ready_to_schedule_mean_ms": 131.40061424979237,
+      "ready_to_schedule_p95_upper_bound_ms": 250.0,
+      "interior": {
+        "events": {
+          "p2_runtime_config": 0,
+          "__total__": 171008,
+          "target_ready_select": 13365,
+          "p2_target_begin": 13365,
+          "p2_target_commit": 2007,
+          "p2_reuse_plan": 22592,
+          "k_policy_config": 0,
+          "p2_window_begin": 2007,
+          "reuse_pending_prefill": 22591,
+          "ready": 22591,
+          "p2_handoff": 22594,
+          "p2_boundary": 2007,
+          "p2_verified": 22599,
+          "reuse_cache_consumed": 22098,
+          "p2_ar_target_bypass": 2690,
+          "reuse_lease_release": 502
+        },
+        "k_actual": {
+          "2": 4707,
+          "4": 1634,
+          "3": 2707,
+          "8": 1772,
+          "1": 9512,
+          "5": 1042,
+          "6": 719,
+          "7": 498
+        },
+        "k_sources": {},
+        "stop_reasons": {
+          "low_confidence": 20819,
+          "max_k": 1772
+        },
+        "token_counts": {
+          "reused_tokens": 5471222,
+          "prefill_tokens": 116728,
+          "accepted_tokens": 48829,
+          "drafted_tokens": 60796
+        },
+        "replay": {},
+        "target_graph": {
+          "fallback_layout": 466,
+          "calls": 13312,
+          "fallback_warmup": 0,
+          "capture": 0,
+          "replay": 12504,
+          "fallback_budget": 342
+        }
+      },
+      "gpu_mean": {
+        "utilization_pct": 82.00557103064067,
+        "memory_mib": 22639.874651810584,
+        "power_w": 262.16883008356547,
+        "temperature_c": 60.08635097493036,
+        "sm_clock_mhz": 2657.924791086351
+      }
+    },
+    {
+      "directory": "/disk14T/yypan/CDB-AV-runtime/results/context_fp_cache_20261120/pair_seed44_cache1",
+      "context_cache": 1,
+      "mode": "hf",
+      "cap": 8,
+      "seed": 44,
+      "source_commit": "f2ab684c06ba4f41fb9ac4f6afa2393695ed8444",
+      "summary": {
+        "requests": 512,
+        "completed": 512,
+        "failed": 0,
+        "elapsed_s": 352.5559016568586,
+        "measurement_start_wall": 1795133679.329725,
+        "first_dispatch_wall": 1795133679.329942,
+        "last_completion_wall": 1795134031.8858438,
+        "first_dispatch_s": 0.00021705962717533112,
+        "last_completion_s": 352.5561187164858,
+        "drain_s": null,
+        "output_tokens": 101003,
+        "throughput_tok_s": 286.48790028852176,
+        "open_requests": null,
+        "arrival_window_s": null,
+        "open_workload": null,
+        "latency_s": {
+          "ttft": {
+            "p50": 0.11975322058424354,
+            "p95": 0.3423434097319841
+          },
+          "e2e": {
+            "p50": 10.77699973527342,
+            "p95": 21.23455673204735
+          },
+          "tpot": {
+            "p50": 0.05379417848279304,
+            "p95": 0.0668981688572271
+          },
+          "scheduled_ttft": {
+            "p50": null,
+            "p95": null
+          },
+          "scheduled_e2e": {
+            "p50": null,
+            "p95": null
+          }
+        },
+        "itl_s": {
+          "p50": 0.02379986923187971,
+          "p95": 0.038612306863069504
+        },
+        "dispatch_lag_s": {
+          "p50": null,
+          "p95": null
+        },
+        "arrival_timing_qualified": true,
+        "delivery_itl_s": {
+          "p50": 0.022667743265628815,
+          "p95": 0.25688086403533816
+        },
+        "itl_definition": "Client delivery: all token IDs in one SSE chunk share its receive timestamp; zero intervals within a burst are retained. GPU-internal generation time is not inferred.",
+        "itl_coverage_requests": 3,
+        "slo_compliance": null,
+        "slo_note": "No predefined thresholds; multi-token stream chunks do not expose exact token ITL.",
+        "plan_sha256": "0f161c82e588d92fed873cfca8c19eebcb4ebb29ac7b79ea7b7f10ff0b156b44",
+        "smoke": false
+      },
+      "verify_events": 22669.0,
+      "candidates": 61333.0,
+      "accepted": 49179.0,
+      "target_iterations": 13445.0,
+      "preemptions": 0.0,
+      "mean_verified_K": 2.7055891305306807,
+      "acceptance_rate": 0.8018358795428236,
+      "verify_events_per_target_iteration": 1.6860542952770547,
+      "observed": {
+        "cdb_ready_wait_bucket_500_ms": 105,
+        "cdb_target_token_rows": 167651,
+        "cdb_phase_decode_request_rows": 11345,
+        "cdb_ready_wait_bucket_2_ms": 2,
+        "cdb_target_schedules": 13445,
+        "cdb_phase_mixed_prefill_decode_calls": 12486,
+        "target_forward_calls": 13445,
+        "cdb_phase_mixed_prefill_decode_token_rows": 131809,
+        "cdb_draft_dispatches": 16215,
+        "cdb_draft_request_rows": 61333,
+        "cdb_target_ar_rows": 29446,
+        "cdb_target_prefill_rows": 512,
+        "cdb_ready_wait_bucket_100_ms": 5307,
+        "cdb_target_verify_rows": 22669,
+        "cdb_ready_wait_bucket_10_ms": 19,
+        "cdb_ready_wait_bucket_5_ms": 3,
+        "cdb_target_pure_ar_with_waiting": 356,
+        "cdb_draft_token_rows": 156808,
+        "cdb_ready_wait_bucket_20_ms": 36,
+        "cdb_phase_mixed_prefill_decode_request_rows": 48407,
+        "cdb_target_other_rows": 0,
+        "cdb_target_request_rows": 52627,
+        "cdb_target_pure_ar_calls": 2000,
+        "cdb_phase_decode_token_rows": 11345,
+        "cdb_ready_wait_count": 22669,
+        "cdb_ready_wait_bucket_250_ms": 16919,
+        "cdb_phase_mixed_prefill_token_rows": 13654,
+        "cdb_ready_wait_bucket_50_ms": 278,
+        "cdb_phase_mixed_prefill_calls": 469,
+        "cdb_ready_wait_sum_ms": 2926216.9480687007,
+        "cdb_phase_decode_calls": 3260,
+        "cdb_phase_mixed_prefill_request_rows": 1581
+      },
+      "mean_draft_request_rows": 3.7824853530681466,
+      "mean_draft_token_rows": 9.670551958063522,
+      "ready_to_schedule_mean_ms": 129.08451842025235,
+      "ready_to_schedule_p95_upper_bound_ms": 250.0,
+      "interior": {
+        "events": {
+          "p2_runtime_config": 0,
+          "__total__": 171008,
+          "target_ready_select": 13383,
+          "p2_target_begin": 13383,
+          "p2_target_commit": 2019,
+          "p2_reuse_plan": 22565,
+          "k_policy_config": 0,
+          "p2_window_begin": 2019,
+          "reuse_pending_prefill": 22565,
+          "ready": 22566,
+          "p2_handoff": 22570,
+          "p2_boundary": 2020,
+          "p2_verified": 22574,
+          "reuse_cache_consumed": 22070,
+          "p2_ar_target_bypass": 2770,
+          "reuse_lease_release": 504
+        },
+        "k_actual": {
+          "2": 4702,
+          "4": 1649,
+          "3": 2682,
+          "8": 1782,
+          "1": 9448,
+          "5": 1052,
+          "6": 722,
+          "7": 529
+        },
+        "k_sources": {},
+        "stop_reasons": {
+          "low_confidence": 20784,
+          "max_k": 1782
+        },
+        "token_counts": {
+          "reused_tokens": 5454497,
+          "prefill_tokens": 116641,
+          "accepted_tokens": 48942,
+          "drafted_tokens": 61064
+        },
+        "replay": {},
+        "target_graph": {
+          "fallback_layout": 473,
+          "calls": 13312,
+          "fallback_warmup": 12,
+          "capture": 1,
+          "replay": 12481,
+          "fallback_budget": 345
+        }
+      },
+      "gpu_mean": {
+        "utilization_pct": 83.21529745042493,
+        "memory_mib": 22633.929178470255,
+        "power_w": 264.5114447592068,
+        "temperature_c": 59.994334277620396,
+        "sm_clock_mhz": 2658.1444759206797
+      }
+    }
+  ],
+  "groups": {
+    "0": {
+      "n": 3,
+      "tps": [
+        278.536615172788,
+        281.696364051894,
+        281.80359525579763
+      ],
+      "mean_tps": 280.6788581601599,
+      "sd_tps": 1.8560114211611574,
+      "mean_run_e2e_p95": 21.313164961803704,
+      "mean_run_ttft_p95": 0.35014501434440415,
+      "verify_events": 67990.0,
+      "candidates": 183597.0,
+      "accepted": 147393.0,
+      "target_iterations": 40374.0,
+      "acceptance_rate": 0.8028072354123433,
+      "mean_verified_K": 2.7003529930872188,
+      "verify_events_per_target_iteration": 1.6840045573884184,
+      "draft_dispatches": 48579,
+      "mean_draft_request_rows": 3.7793491014635956
+    },
+    "1": {
+      "n": 3,
+      "tps": [
+        286.01994119352827,
+        288.1418363281151,
+        286.48790028852176
+      ],
+      "mean_tps": 286.8832259367217,
+      "sd_tps": 1.1148190510748255,
+      "mean_run_e2e_p95": 21.08531985377582,
+      "mean_run_ttft_p95": 0.34561726890193917,
+      "verify_events": 68268.0,
+      "candidates": 183816.0,
+      "accepted": 147378.0,
+      "target_iterations": 40393.0,
+      "acceptance_rate": 0.8017691604648126,
+      "mean_verified_K": 2.6925645983476887,
+      "verify_events_per_target_iteration": 1.6900948184091302,
+      "draft_dispatches": 48653,
+      "mean_draft_request_rows": 3.778102069759316
+    }
+  },
+  "paired": [
+    {
+      "seed": 42,
+      "tps_change_pct": 2.6866579160869097,
+      "e2e_p95_change_pct": -1.5826125660238555,
+      "exact_output_requests": 231,
+      "output_differences": [
+        {
+          "source_id": "YPUMMjP_0",
+          "common_prefix": 106,
+          "total_tokens": 137
+        },
+        {
+          "source_id": "Mqbbt2f_10",
+          "common_prefix": 242,
+          "total_tokens": 280
+        },
+        {
+          "source_id": "gHmoARv_0",
+          "common_prefix": 69,
+          "total_tokens": 77
+        },
+        {
+          "source_id": "wWaizhq_0",
+          "common_prefix": 248,
+          "total_tokens": 286
+        },
+        {
+          "source_id": "1U3vUP5_0",
+          "common_prefix": 52,
+          "total_tokens": 125
+        },
+        {
+          "source_id": "Tx8fnS0_0",
+          "common_prefix": 27,
+          "total_tokens": 81
+        },
+        {
+          "source_id": "ZCQLnrL_0",
+          "common_prefix": 124,
+          "total_tokens": 253
+        },
+        {
+          "source_id": "B8WmTHT_0",
+          "common_prefix": 96,
+          "total_tokens": 235
+        },
+        {
+          "source_id": "Hr9EwI2_0",
+          "common_prefix": 95,
+          "total_tokens": 253
+        },
+        {
+          "source_id": "zaqqxSN_0",
+          "common_prefix": 70,
+          "total_tokens": 376
+        },
+        {
+          "source_id": "h7s4HyU_0",
+          "common_prefix": 159,
+          "total_tokens": 223
+        },
+        {
+          "source_id": "PgLzlNy_0",
+          "common_prefix": 93,
+          "total_tokens": 374
+        },
+        {
+          "source_id": "9mYsr51_0",
+          "common_prefix": 59,
+          "total_tokens": 164
+        },
+        {
+          "source_id": "yZMn38g_0",
+          "common_prefix": 31,
+          "total_tokens": 149
+        },
+        {
+          "source_id": "xNKnVtI_0",
+          "common_prefix": 1,
+          "total_tokens": 153
+        },
+        {
+          "source_id": "P160q4S_0",
+          "common_prefix": 82,
+          "total_tokens": 350
+        },
+        {
+          "source_id": "kUt94aH_0",
+          "common_prefix": 68,
+          "total_tokens": 368
+        },
+        {
+          "source_id": "iKA58u5_0",
+          "common_prefix": 57,
+          "total_tokens": 103
+        },
+        {
+          "source_id": "nt5NmTg_0",
+          "common_prefix": 11,
+          "total_tokens": 336
+        },
+        {
+          "source_id": "pwYMlaD_0",
+          "common_prefix": 24,
+          "total_tokens": 66
+        },
+        {
+          "source_id": "cle4mg4_0",
+          "common_prefix": 136,
+          "total_tokens": 197
+        },
+        {
+          "source_id": "fvu3zZW_0",
+          "common_prefix": 19,
+          "total_tokens": 25
+        },
+        {
+          "source_id": "TY90cdP_0",
+          "common_prefix": 135,
+          "total_tokens": 159
+        },
+        {
+          "source_id": "52kshyP_26",
+          "common_prefix": 133,
+          "total_tokens": 215
+        },
+        {
+          "source_id": "zIqltTq_0",
+          "common_prefix": 33,
+          "total_tokens": 222
+        },
+        {
+          "source_id": "Scs17S0_0",
+          "common_prefix": 1,
+          "total_tokens": 92
+        },
+        {
+          "source_id": "sc64Thw_0",
+          "common_prefix": 85,
+          "total_tokens": 160
+        },
+        {
+          "source_id": "AVnVlaF_0",
+          "common_prefix": 32,
+          "total_tokens": 208
+        },
+        {
+          "source_id": "YNMGglI_0",
+          "common_prefix": 56,
+          "total_tokens": 131
+        },
+        {
+          "source_id": "KgpLrkM_0",
+          "common_prefix": 70,
+          "total_tokens": 263
+        },
+        {
+          "source_id": "bE80UBJ_0",
+          "common_prefix": 22,
+          "total_tokens": 26
+        },
+        {
+          "source_id": "BQKDXEH_0",
+          "common_prefix": 77,
+          "total_tokens": 98
+        },
+        {
+          "source_id": "iNGLu8O_0",
+          "common_prefix": 50,
+          "total_tokens": 259
+        },
+        {
+          "source_id": "Ky62Ki0_0",
+          "common_prefix": 88,
+          "total_tokens": 236
+        },
+        {
+          "source_id": "ZOuatZs_0",
+          "common_prefix": 36,
+          "total_tokens": 252
+        },
+        {
+          "source_id": "N9F2dEk_26",
+          "common_prefix": 73,
+          "total_tokens": 221
+        },
+        {
+          "source_id": "HRGOLg0_0",
+          "common_prefix": 47,
+          "total_tokens": 225
+        },
+        {
+          "source_id": "G8F6zy9_0",
+          "common_prefix": 48,
+          "total_tokens": 297
+        },
+        {
+          "source_id": "Fda25Cx_0",
+          "common_prefix": 55,
+          "total_tokens": 65
+        },
+        {
+          "source_id": "GJF91Ko_0",
+          "common_prefix": 53,
+          "total_tokens": 172
+        },
+        {
+          "source_id": "0pgLyw6_0",
+          "common_prefix": 168,
+          "total_tokens": 266
+        },
+        {
+          "source_id": "Sl92fMV_0",
+          "common_prefix": 114,
+          "total_tokens": 270
+        },
+        {
+          "source_id": "UW5DdRS_0",
+          "common_prefix": 63,
+          "total_tokens": 122
+        },
+        {
+          "source_id": "Dr9feg4_0",
+          "common_prefix": 130,
+          "total_tokens": 211
+        },
+        {
+          "source_id": "1sxNkyQ_4",
+          "common_prefix": 17,
+          "total_tokens": 325
+        },
+        {
+          "source_id": "dflEgvC_8",
+          "common_prefix": 73,
+          "total_tokens": 384
+        },
+        {
+          "source_id": "9PcN7l5_0",
+          "common_prefix": 155,
+          "total_tokens": 307
+        },
+        {
+          "source_id": "oLYW1Jf_0",
+          "common_prefix": 21,
+          "total_tokens": 242
+        },
+        {
+          "source_id": "XdKf2QR_0",
+          "common_prefix": 36,
+          "total_tokens": 338
+        },
+        {
+          "source_id": "gAeSntY_0",
+          "common_prefix": 81,
+          "total_tokens": 106
+        },
+        {
+          "source_id": "MhLZsuL_0",
+          "common_prefix": 38,
+          "total_tokens": 210
+        },
+        {
+          "source_id": "0xGE1Cy_0",
+          "common_prefix": 97,
+          "total_tokens": 211
+        },
+        {
+          "source_id": "7DnbE8T_0",
+          "common_prefix": 331,
+          "total_tokens": 361
+        },
+        {
+          "source_id": "bJARguN_0",
+          "common_prefix": 73,
+          "total_tokens": 201
+        },
+        {
+          "source_id": "kmPqco9_0",
+          "common_prefix": 105,
+          "total_tokens": 255
+        },
+        {
+          "source_id": "XM3olKa_42",
+          "common_prefix": 36,
+          "total_tokens": 144
+        },
+        {
+          "source_id": "F5b2PcW_0",
+          "common_prefix": 188,
+          "total_tokens": 383
+        },
+        {
+          "source_id": "cswyIgq_0",
+          "common_prefix": 16,
+          "total_tokens": 181
+        },
+        {
+          "source_id": "JkDCMbS_0",
+          "common_prefix": 249,
+          "total_tokens": 289
+        },
+        {
+          "source_id": "5Ez7LbD_0",
+          "common_prefix": 12,
+          "total_tokens": 87
+        },
+        {
+          "source_id": "GagX3dq_0",
+          "common_prefix": 0,
+          "total_tokens": 289
+        },
+        {
+          "source_id": "O7saT14_0",
+          "common_prefix": 109,
+          "total_tokens": 199
+        },
+        {
+          "source_id": "pUK2Of7_6",
+          "common_prefix": 37,
+          "total_tokens": 48
+        },
+        {
+          "source_id": "o4OS4nZ_0",
+          "common_prefix": 45,
+          "total_tokens": 201
+        },
+        {
+          "source_id": "Cf47Vg3_0",
+          "common_prefix": 2,
+          "total_tokens": 307
+        },
+        {
+          "source_id": "Q61g45b_0",
+          "common_prefix": 172,
+          "total_tokens": 226
+        },
+        {
+          "source_id": "v8aOrrv_0",
+          "common_prefix": 2,
+          "total_tokens": 70
+        },
+        {
+          "source_id": "1JqLCmz_0",
+          "common_prefix": 28,
+          "total_tokens": 247
+        },
+        {
+          "source_id": "Nky1jVu_0",
+          "common_prefix": 3,
+          "total_tokens": 275
+        },
+        {
+          "source_id": "Y6MteNX_0",
+          "common_prefix": 57,
+          "total_tokens": 214
+        },
+        {
+          "source_id": "TDomHAO_0",
+          "common_prefix": 22,
+          "total_tokens": 178
+        },
+        {
+          "source_id": "CRuD4Ft_0",
+          "common_prefix": 99,
+          "total_tokens": 117
+        },
+        {
+          "source_id": "Q4cQSpj_0",
+          "common_prefix": 199,
+          "total_tokens": 288
+        },
+        {
+          "source_id": "E3xymyG_0",
+          "common_prefix": 10,
+          "total_tokens": 360
+        },
+        {
+          "source_id": "7XB1Kny_24",
+          "common_prefix": 51,
+          "total_tokens": 286
+        },
+        {
+          "source_id": "7BKpOmp_0",
+          "common_prefix": 67,
+          "total_tokens": 359
+        },
+        {
+          "source_id": "L9l8Ic3_0",
+          "common_prefix": 4,
+          "total_tokens": 170
+        },
+        {
+          "source_id": "8f5mFGy_0",
+          "common_prefix": 155,
+          "total_tokens": 362
+        },
+        {
+          "source_id": "wB4ccAW_0",
+          "common_prefix": 236,
+          "total_tokens": 319
+        },
+        {
+          "source_id": "fdRUvxU_0",
+          "common_prefix": 60,
+          "total_tokens": 211
+        },
+        {
+          "source_id": "67e5S2E_0",
+          "common_prefix": 60,
+          "total_tokens": 173
+        },
+        {
+          "source_id": "CjZzXz3_0",
+          "common_prefix": 1,
+          "total_tokens": 175
+        },
+        {
+          "source_id": "E2TiO1M_0",
+          "common_prefix": 77,
+          "total_tokens": 124
+        },
+        {
+          "source_id": "XMlRI9K_0",
+          "common_prefix": 138,
+          "total_tokens": 342
+        },
+        {
+          "source_id": "OoLGs7t_0",
+          "common_prefix": 41,
+          "total_tokens": 275
+        },
+        {
+          "source_id": "dC42bHf_0",
+          "common_prefix": 12,
+          "total_tokens": 68
+        },
+        {
+          "source_id": "COvQjxx_0",
+          "common_prefix": 340,
+          "total_tokens": 360
+        },
+        {
+          "source_id": "txtbFgw_0",
+          "common_prefix": 88,
+          "total_tokens": 130
+        },
+        {
+          "source_id": "qQq2J4G_62",
+          "common_prefix": 23,
+          "total_tokens": 93
+        },
+        {
+          "source_id": "N8Ba7Rx_0",
+          "common_prefix": 193,
+          "total_tokens": 207
+        },
+        {
+          "source_id": "tMF6Iuc_0",
+          "common_prefix": 10,
+          "total_tokens": 264
+        },
+        {
+          "source_id": "7QD86cC_52",
+          "common_prefix": 177,
+          "total_tokens": 259
+        },
+        {
+          "source_id": "H3zu99k_0",
+          "common_prefix": 70,
+          "total_tokens": 214
+        },
+        {
+          "source_id": "mnLn1AT_0",
+          "common_prefix": 76,
+          "total_tokens": 257
+        },
+        {
+          "source_id": "8IAGaKF_0",
+          "common_prefix": 83,
+          "total_tokens": 260
+        },
+        {
+          "source_id": "BrpePoN_0",
+          "common_prefix": 178,
+          "total_tokens": 365
+        },
+        {
+          "source_id": "Cd9pXfq_0",
+          "common_prefix": 71,
+          "total_tokens": 354
+        },
+        {
+          "source_id": "upRPClC_0",
+          "common_prefix": 4,
+          "total_tokens": 115
+        },
+        {
+          "source_id": "LpD6zLx_0",
+          "common_prefix": 35,
+          "total_tokens": 294
+        },
+        {
+          "source_id": "z77O9aD_0",
+          "common_prefix": 173,
+          "total_tokens": 358
+        },
+        {
+          "source_id": "Ef0U6xT_0",
+          "common_prefix": 25,
+          "total_tokens": 316
+        },
+        {
+          "source_id": "3DMq2W8_0",
+          "common_prefix": 34,
+          "total_tokens": 152
+        },
+        {
+          "source_id": "IM2PXRb_0",
+          "common_prefix": 92,
+          "total_tokens": 239
+        },
+        {
+          "source_id": "eZHbH6P_0",
+          "common_prefix": 43,
+          "total_tokens": 96
+        },
+        {
+          "source_id": "OiRDIoJ_0",
+          "common_prefix": 58,
+          "total_tokens": 270
+        },
+        {
+          "source_id": "SuWluSo_0",
+          "common_prefix": 112,
+          "total_tokens": 367
+        },
+        {
+          "source_id": "UpYQ1kh_0",
+          "common_prefix": 31,
+          "total_tokens": 366
+        },
+        {
+          "source_id": "VRm3YaZ_0",
+          "common_prefix": 61,
+          "total_tokens": 92
+        },
+        {
+          "source_id": "l18n85B_0",
+          "common_prefix": 77,
+          "total_tokens": 105
+        },
+        {
+          "source_id": "V67xPAu_16",
+          "common_prefix": 69,
+          "total_tokens": 144
+        },
+        {
+          "source_id": "0kiWnb1_0",
+          "common_prefix": 11,
+          "total_tokens": 31
+        },
+        {
+          "source_id": "7J0sclr_0",
+          "common_prefix": 21,
+          "total_tokens": 49
+        },
+        {
+          "source_id": "qdI6jvT_0",
+          "common_prefix": 27,
+          "total_tokens": 162
+        },
+        {
+          "source_id": "PRIFVny_0",
+          "common_prefix": 34,
+          "total_tokens": 121
+        },
+        {
+          "source_id": "3fjWnZq_0",
+          "common_prefix": 24,
+          "total_tokens": 197
+        },
+        {
+          "source_id": "IkYYvSd_0",
+          "common_prefix": 19,
+          "total_tokens": 377
+        },
+        {
+          "source_id": "CPXKDQ5_0",
+          "common_prefix": 58,
+          "total_tokens": 207
+        },
+        {
+          "source_id": "1TqGpL5_0",
+          "common_prefix": 262,
+          "total_tokens": 303
+        },
+        {
+          "source_id": "k9w73p7_0",
+          "common_prefix": 58,
+          "total_tokens": 260
+        },
+        {
+          "source_id": "W5rKbnZ_0",
+          "common_prefix": 91,
+          "total_tokens": 345
+        },
+        {
+          "source_id": "Zjrk5Cp_0",
+          "common_prefix": 1,
+          "total_tokens": 273
+        },
+        {
+          "source_id": "EAmIORB_6",
+          "common_prefix": 14,
+          "total_tokens": 210
+        },
+        {
+          "source_id": "VUB8UU7_0",
+          "common_prefix": 10,
+          "total_tokens": 280
+        },
+        {
+          "source_id": "dugDZvz_0",
+          "common_prefix": 39,
+          "total_tokens": 271
+        },
+        {
+          "source_id": "ws31yJX_68",
+          "common_prefix": 51,
+          "total_tokens": 84
+        },
+        {
+          "source_id": "iElyy4R_0",
+          "common_prefix": 218,
+          "total_tokens": 291
+        },
+        {
+          "source_id": "zl5u0Aa_0",
+          "common_prefix": 99,
+          "total_tokens": 241
+        },
+        {
+          "source_id": "KUu2Sz3_0",
+          "common_prefix": 7,
+          "total_tokens": 173
+        },
+        {
+          "source_id": "iPG1LFG_0",
+          "common_prefix": 25,
+          "total_tokens": 313
+        },
+        {
+          "source_id": "eiF87Qa_0",
+          "common_prefix": 4,
+          "total_tokens": 204
+        },
+        {
+          "source_id": "36HUam1_0",
+          "common_prefix": 0,
+          "total_tokens": 152
+        },
+        {
+          "source_id": "jssDSZv_0",
+          "common_prefix": 116,
+          "total_tokens": 307
+        },
+        {
+          "source_id": "C3yUrx9_0",
+          "common_prefix": 6,
+          "total_tokens": 307
+        },
+        {
+          "source_id": "ildiuSM_0",
+          "common_prefix": 206,
+          "total_tokens": 258
+        },
+        {
+          "source_id": "99PgYyD_0",
+          "common_prefix": 14,
+          "total_tokens": 355
+        },
+        {
+          "source_id": "70CwDcf_0",
+          "common_prefix": 30,
+          "total_tokens": 112
+        },
+        {
+          "source_id": "yI4yoBO_0",
+          "common_prefix": 11,
+          "total_tokens": 92
+        },
+        {
+          "source_id": "B681T1q_0",
+          "common_prefix": 154,
+          "total_tokens": 300
+        },
+        {
+          "source_id": "E6tm2wM_0",
+          "common_prefix": 198,
+          "total_tokens": 327
+        },
+        {
+          "source_id": "Yvg7mkV_0",
+          "common_prefix": 87,
+          "total_tokens": 309
+        },
+        {
+          "source_id": "BnyZY8r_0",
+          "common_prefix": 4,
+          "total_tokens": 84
+        },
+        {
+          "source_id": "jhnxxu3_0",
+          "common_prefix": 341,
+          "total_tokens": 365
+        },
+        {
+          "source_id": "Rb55Fx6_0",
+          "common_prefix": 245,
+          "total_tokens": 293
+        },
+        {
+          "source_id": "HlF8VAI_0",
+          "common_prefix": 27,
+          "total_tokens": 181
+        },
+        {
+          "source_id": "HXnJiUT_0",
+          "common_prefix": 154,
+          "total_tokens": 158
+        },
+        {
+          "source_id": "RDM7gwa_0",
+          "common_prefix": 75,
+          "total_tokens": 220
+        },
+        {
+          "source_id": "DkvZ99h_0",
+          "common_prefix": 24,
+          "total_tokens": 317
+        },
+        {
+          "source_id": "B16RWYL_0",
+          "common_prefix": 23,
+          "total_tokens": 369
+        },
+        {
+          "source_id": "4cATQgo_0",
+          "common_prefix": 4,
+          "total_tokens": 162
+        },
+        {
+          "source_id": "Skn2d2f_0",
+          "common_prefix": 21,
+          "total_tokens": 153
+        },
+        {
+          "source_id": "hZ2lDji_0",
+          "common_prefix": 49,
+          "total_tokens": 311
+        },
+        {
+          "source_id": "dNpjTQ2_0",
+          "common_prefix": 116,
+          "total_tokens": 290
+        },
+        {
+          "source_id": "HhEEM96_0",
+          "common_prefix": 83,
+          "total_tokens": 248
+        },
+        {
+          "source_id": "mAXiwi2_0",
+          "common_prefix": 253,
+          "total_tokens": 272
+        },
+        {
+          "source_id": "XBJxVa5_0",
+          "common_prefix": 153,
+          "total_tokens": 241
+        },
+        {
+          "source_id": "ebB4GJH_0",
+          "common_prefix": 13,
+          "total_tokens": 345
+        },
+        {
+          "source_id": "pXP0l8j_0",
+          "common_prefix": 196,
+          "total_tokens": 333
+        },
+        {
+          "source_id": "93XcJ67_100",
+          "common_prefix": 90,
+          "total_tokens": 315
+        },
+        {
+          "source_id": "0xAPE5k_0",
+          "common_prefix": 46,
+          "total_tokens": 137
+        },
+        {
+          "source_id": "ygpp3Hs_24",
+          "common_prefix": 140,
+          "total_tokens": 208
+        },
+        {
+          "source_id": "DAZ6lNX_140",
+          "common_prefix": 347,
+          "total_tokens": 367
+        },
+        {
+          "source_id": "RJfyCz0_8",
+          "common_prefix": 38,
+          "total_tokens": 175
+        },
+        {
+          "source_id": "MLx0vwF_0",
+          "common_prefix": 55,
+          "total_tokens": 351
+        },
+        {
+          "source_id": "TcS0ezW_0",
+          "common_prefix": 104,
+          "total_tokens": 203
+        },
+        {
+          "source_id": "cLkQRLI_0",
+          "common_prefix": 54,
+          "total_tokens": 212
+        },
+        {
+          "source_id": "F5Dw48G_0",
+          "common_prefix": 83,
+          "total_tokens": 238
+        },
+        {
+          "source_id": "R62w0hP_0",
+          "common_prefix": 23,
+          "total_tokens": 25
+        },
+        {
+          "source_id": "SMGdhHo_0",
+          "common_prefix": 14,
+          "total_tokens": 44
+        },
+        {
+          "source_id": "gQaSoiF_0",
+          "common_prefix": 187,
+          "total_tokens": 238
+        },
+        {
+          "source_id": "uvBKv6T_0",
+          "common_prefix": 161,
+          "total_tokens": 374
+        },
+        {
+          "source_id": "a4d0K7O_0",
+          "common_prefix": 76,
+          "total_tokens": 87
+        },
+        {
+          "source_id": "p7chh5t_0",
+          "common_prefix": 196,
+          "total_tokens": 241
+        },
+        {
+          "source_id": "TT0Krbd_0",
+          "common_prefix": 6,
+          "total_tokens": 104
+        },
+        {
+          "source_id": "EkfJYLr_0",
+          "common_prefix": 338,
+          "total_tokens": 375
+        },
+        {
+          "source_id": "tjdcCcf_0",
+          "common_prefix": 8,
+          "total_tokens": 164
+        },
+        {
+          "source_id": "obtzszQ_0",
+          "common_prefix": 74,
+          "total_tokens": 196
+        },
+        {
+          "source_id": "UPZACij_0",
+          "common_prefix": 4,
+          "total_tokens": 86
+        },
+        {
+          "source_id": "M6JACA3_0",
+          "common_prefix": 36,
+          "total_tokens": 277
+        },
+        {
+          "source_id": "R0eSKj7_0",
+          "common_prefix": 38,
+          "total_tokens": 90
+        },
+        {
+          "source_id": "ihCW9DB_0",
+          "common_prefix": 136,
+          "total_tokens": 255
+        },
+        {
+          "source_id": "LZvgiqW_0",
+          "common_prefix": 2,
+          "total_tokens": 219
+        },
+        {
+          "source_id": "wLub4pN_0",
+          "common_prefix": 32,
+          "total_tokens": 293
+        },
+        {
+          "source_id": "CJezdJk_0",
+          "common_prefix": 149,
+          "total_tokens": 224
+        },
+        {
+          "source_id": "0xloLWQ_0",
+          "common_prefix": 41,
+          "total_tokens": 259
+        },
+        {
+          "source_id": "J1Y9Ayg_0",
+          "common_prefix": 119,
+          "total_tokens": 139
+        },
+        {
+          "source_id": "P1scng9_0",
+          "common_prefix": 83,
+          "total_tokens": 316
+        },
+        {
+          "source_id": "OeavL1q_0",
+          "common_prefix": 13,
+          "total_tokens": 128
+        },
+        {
+          "source_id": "l8MPPUC_0",
+          "common_prefix": 51,
+          "total_tokens": 277
+        },
+        {
+          "source_id": "zSUqogX_0",
+          "common_prefix": 45,
+          "total_tokens": 191
+        },
+        {
+          "source_id": "ql0LZJz_0",
+          "common_prefix": 61,
+          "total_tokens": 290
+        },
+        {
+          "source_id": "ySTnqvo_0",
+          "common_prefix": 153,
+          "total_tokens": 172
+        },
+        {
+          "source_id": "ptSNyYB_0",
+          "common_prefix": 36,
+          "total_tokens": 172
+        },
+        {
+          "source_id": "9NGexxg_0",
+          "common_prefix": 41,
+          "total_tokens": 235
+        },
+        {
+          "source_id": "E8kAL03_0",
+          "common_prefix": 105,
+          "total_tokens": 268
+        },
+        {
+          "source_id": "WVEQzmQ_0",
+          "common_prefix": 54,
+          "total_tokens": 246
+        },
+        {
+          "source_id": "E1egnXf_0",
+          "common_prefix": 69,
+          "total_tokens": 185
+        },
+        {
+          "source_id": "31N9Jd9_0",
+          "common_prefix": 128,
+          "total_tokens": 304
+        },
+        {
+          "source_id": "ZCeAv9l_0",
+          "common_prefix": 54,
+          "total_tokens": 302
+        },
+        {
+          "source_id": "r0sWsS3_0",
+          "common_prefix": 223,
+          "total_tokens": 261
+        },
+        {
+          "source_id": "Xdswv5p_0",
+          "common_prefix": 189,
+          "total_tokens": 361
+        },
+        {
+          "source_id": "krdKmNs_0",
+          "common_prefix": 135,
+          "total_tokens": 344
+        },
+        {
+          "source_id": "BUS76ZS_0",
+          "common_prefix": 33,
+          "total_tokens": 64
+        },
+        {
+          "source_id": "G5NLtqQ_10",
+          "common_prefix": 31,
+          "total_tokens": 314
+        },
+        {
+          "source_id": "2PSSE5M_0",
+          "common_prefix": 52,
+          "total_tokens": 337
+        },
+        {
+          "source_id": "boKkcGk_0",
+          "common_prefix": 23,
+          "total_tokens": 177
+        },
+        {
+          "source_id": "2VJcAkA_0",
+          "common_prefix": 24,
+          "total_tokens": 352
+        },
+        {
+          "source_id": "scYJCro_0",
+          "common_prefix": 63,
+          "total_tokens": 140
+        },
+        {
+          "source_id": "KfgME1b_0",
+          "common_prefix": 43,
+          "total_tokens": 232
+        },
+        {
+          "source_id": "sIyt65A_0",
+          "common_prefix": 25,
+          "total_tokens": 301
+        },
+        {
+          "source_id": "cpIoL0w_0",
+          "common_prefix": 68,
+          "total_tokens": 330
+        },
+        {
+          "source_id": "BknNLgi_0",
+          "common_prefix": 57,
+          "total_tokens": 145
+        },
+        {
+          "source_id": "LlYtKTW_0",
+          "common_prefix": 28,
+          "total_tokens": 223
+        },
+        {
+          "source_id": "NcbFswQ_0",
+          "common_prefix": 10,
+          "total_tokens": 88
+        },
+        {
+          "source_id": "dAndDYk_0",
+          "common_prefix": 23,
+          "total_tokens": 280
+        },
+        {
+          "source_id": "QkYIG8E_0",
+          "common_prefix": 23,
+          "total_tokens": 29
+        },
+        {
+          "source_id": "qktLFWS_12",
+          "common_prefix": 21,
+          "total_tokens": 274
+        },
+        {
+          "source_id": "Dcmfe9Z_0",
+          "common_prefix": 32,
+          "total_tokens": 41
+        },
+        {
+          "source_id": "ubPV3tu_64",
+          "common_prefix": 33,
+          "total_tokens": 336
+        },
+        {
+          "source_id": "mX6BiTN_332",
+          "common_prefix": 25,
+          "total_tokens": 86
+        },
+        {
+          "source_id": "AQwQtFA_0",
+          "common_prefix": 64,
+          "total_tokens": 115
+        },
+        {
+          "source_id": "4FgSiOk_0",
+          "common_prefix": 166,
+          "total_tokens": 183
+        },
+        {
+          "source_id": "dAh77Ju_0",
+          "common_prefix": 136,
+          "total_tokens": 212
+        },
+        {
+          "source_id": "Blo3Oeq_0",
+          "common_prefix": 67,
+          "total_tokens": 137
+        },
+        {
+          "source_id": "Td2OYRd_0",
+          "common_prefix": 27,
+          "total_tokens": 338
+        },
+        {
+          "source_id": "IM9eyv7_0",
+          "common_prefix": 99,
+          "total_tokens": 292
+        },
+        {
+          "source_id": "OKJaPKh_0",
+          "common_prefix": 91,
+          "total_tokens": 289
+        },
+        {
+          "source_id": "RFyI78n_0",
+          "common_prefix": 120,
+          "total_tokens": 174
+        },
+        {
+          "source_id": "dSlRSZe_0",
+          "common_prefix": 200,
+          "total_tokens": 202
+        },
+        {
+          "source_id": "xcdzDmL_0",
+          "common_prefix": 17,
+          "total_tokens": 225
+        },
+        {
+          "source_id": "ZVeiZXt_0",
+          "common_prefix": 187,
+          "total_tokens": 325
+        },
+        {
+          "source_id": "ceIN3eQ_0",
+          "common_prefix": 267,
+          "total_tokens": 298
+        },
+        {
+          "source_id": "c8MBmsy_0",
+          "common_prefix": 85,
+          "total_tokens": 285
+        },
+        {
+          "source_id": "0KyRa6n_0",
+          "common_prefix": 49,
+          "total_tokens": 74
+        },
+        {
+          "source_id": "Dcshjlv_0",
+          "common_prefix": 25,
+          "total_tokens": 111
+        },
+        {
+          "source_id": "thSJ8Ra_0",
+          "common_prefix": 92,
+          "total_tokens": 96
+        },
+        {
+          "source_id": "jljEnXI_0",
+          "common_prefix": 91,
+          "total_tokens": 220
+        },
+        {
+          "source_id": "AkUGTt5_0",
+          "common_prefix": 90,
+          "total_tokens": 165
+        },
+        {
+          "source_id": "8RQ6XGw_0",
+          "common_prefix": 42,
+          "total_tokens": 243
+        },
+        {
+          "source_id": "X3u1EBj_0",
+          "common_prefix": 126,
+          "total_tokens": 365
+        },
+        {
+          "source_id": "Z32G1Ew_0",
+          "common_prefix": 14,
+          "total_tokens": 268
+        },
+        {
+          "source_id": "TPwqFEW_0",
+          "common_prefix": 85,
+          "total_tokens": 364
+        },
+        {
+          "source_id": "riMKdU7_0",
+          "common_prefix": 134,
+          "total_tokens": 161
+        },
+        {
+          "source_id": "ONUfcdm_0",
+          "common_prefix": 48,
+          "total_tokens": 112
+        },
+        {
+          "source_id": "PMQmeWK_0",
+          "common_prefix": 37,
+          "total_tokens": 326
+        },
+        {
+          "source_id": "tO3w2Lk_0",
+          "common_prefix": 95,
+          "total_tokens": 242
+        },
+        {
+          "source_id": "hfMRdKA_0",
+          "common_prefix": 201,
+          "total_tokens": 325
+        },
+        {
+          "source_id": "9HyXF1W_0",
+          "common_prefix": 97,
+          "total_tokens": 158
+        },
+        {
+          "source_id": "LfzNLNz_0",
+          "common_prefix": 92,
+          "total_tokens": 161
+        },
+        {
+          "source_id": "pKsBWQ8_0",
+          "common_prefix": 167,
+          "total_tokens": 360
+        },
+        {
+          "source_id": "apUL3i0_0",
+          "common_prefix": 100,
+          "total_tokens": 191
+        },
+        {
+          "source_id": "fseO3HJ_0",
+          "common_prefix": 56,
+          "total_tokens": 282
+        },
+        {
+          "source_id": "aGtJLzL_0",
+          "common_prefix": 137,
+          "total_tokens": 239
+        },
+        {
+          "source_id": "W4FoFbo_0",
+          "common_prefix": 36,
+          "total_tokens": 167
+        },
+        {
+          "source_id": "g8pzow1_0",
+          "common_prefix": 159,
+          "total_tokens": 179
+        },
+        {
+          "source_id": "oO7lVo9_0",
+          "common_prefix": 25,
+          "total_tokens": 361
+        },
+        {
+          "source_id": "fnNu7aM_0",
+          "common_prefix": 9,
+          "total_tokens": 81
+        },
+        {
+          "source_id": "bu91n0I_24",
+          "common_prefix": 61,
+          "total_tokens": 313
+        },
+        {
+          "source_id": "XlRygs0_0",
+          "common_prefix": 32,
+          "total_tokens": 366
+        },
+        {
+          "source_id": "DwrQp0O_0",
+          "common_prefix": 181,
+          "total_tokens": 292
+        },
+        {
+          "source_id": "fpN01gG_0",
+          "common_prefix": 30,
+          "total_tokens": 213
+        },
+        {
+          "source_id": "KAeejYc_0",
+          "common_prefix": 83,
+          "total_tokens": 233
+        },
+        {
+          "source_id": "Dvjs4NK_0",
+          "common_prefix": 56,
+          "total_tokens": 153
+        },
+        {
+          "source_id": "Ygo2Lz7_0",
+          "common_prefix": 8,
+          "total_tokens": 102
+        },
+        {
+          "source_id": "jh3EBZd_0",
+          "common_prefix": 222,
+          "total_tokens": 340
+        },
+        {
+          "source_id": "T25cUGi_0",
+          "common_prefix": 58,
+          "total_tokens": 200
+        },
+        {
+          "source_id": "IeMdt2E_0",
+          "common_prefix": 73,
+          "total_tokens": 122
+        },
+        {
+          "source_id": "4ELMlqz_0",
+          "common_prefix": 277,
+          "total_tokens": 289
+        },
+        {
+          "source_id": "0DxH2PP_0",
+          "common_prefix": 96,
+          "total_tokens": 196
+        },
+        {
+          "source_id": "wLr1Bzx_0",
+          "common_prefix": 169,
+          "total_tokens": 181
+        },
+        {
+          "source_id": "ADKC5ef_0",
+          "common_prefix": 4,
+          "total_tokens": 73
+        },
+        {
+          "source_id": "59rhJAQ_0",
+          "common_prefix": 202,
+          "total_tokens": 290
+        },
+        {
+          "source_id": "bTA6rHi_0",
+          "common_prefix": 50,
+          "total_tokens": 250
+        },
+        {
+          "source_id": "DVofCDy_0",
+          "common_prefix": 42,
+          "total_tokens": 264
+        },
+        {
+          "source_id": "kNpqLr5_0",
+          "common_prefix": 81,
+          "total_tokens": 246
+        },
+        {
+          "source_id": "79vV0aT_480",
+          "common_prefix": 73,
+          "total_tokens": 263
+        },
+        {
+          "source_id": "HecpbgK_0",
+          "common_prefix": 191,
+          "total_tokens": 259
+        },
+        {
+          "source_id": "K4T9MJT_0",
+          "common_prefix": 8,
+          "total_tokens": 201
+        },
+        {
+          "source_id": "Mrbc0pF_0",
+          "common_prefix": 34,
+          "total_tokens": 200
+        },
+        {
+          "source_id": "sEjY27O_0",
+          "common_prefix": 319,
+          "total_tokens": 362
+        },
+        {
+          "source_id": "kUWEY5E_0",
+          "common_prefix": 216,
+          "total_tokens": 356
+        },
+        {
+          "source_id": "OUHbAyJ_0",
+          "common_prefix": 228,
+          "total_tokens": 320
+        }
+      ]
+    },
+    {
+      "seed": 43,
+      "tps_change_pct": 2.2880921086484873,
+      "e2e_p95_change_pct": -2.7488523921591845,
+      "exact_output_requests": 202,
+      "output_differences": [
+        {
+          "source_id": "18WRCN3_0",
+          "common_prefix": 106,
+          "total_tokens": 118
+        },
+        {
+          "source_id": "pivQ22Y_0",
+          "common_prefix": 144,
+          "total_tokens": 292
+        },
+        {
+          "source_id": "nt5NmTg_0",
+          "common_prefix": 175,
+          "total_tokens": 336
+        },
+        {
+          "source_id": "UpYQ1kh_0",
+          "common_prefix": 351,
+          "total_tokens": 366
+        },
+        {
+          "source_id": "qFjNljc_18",
+          "common_prefix": 280,
+          "total_tokens": 284
+        },
+        {
+          "source_id": "E6tm2wM_0",
+          "common_prefix": 181,
+          "total_tokens": 327
+        },
+        {
+          "source_id": "ODBvYDd_0",
+          "common_prefix": 47,
+          "total_tokens": 136
+        },
+        {
+          "source_id": "SuWluSo_0",
+          "common_prefix": 236,
+          "total_tokens": 367
+        },
+        {
+          "source_id": "jhnxxu3_0",
+          "common_prefix": 358,
+          "total_tokens": 365
+        },
+        {
+          "source_id": "P1scng9_0",
+          "common_prefix": 17,
+          "total_tokens": 316
+        },
+        {
+          "source_id": "Dh3s033_0",
+          "common_prefix": 32,
+          "total_tokens": 117
+        },
+        {
+          "source_id": "XM3olKa_42",
+          "common_prefix": 36,
+          "total_tokens": 144
+        },
+        {
+          "source_id": "ONUfcdm_0",
+          "common_prefix": 48,
+          "total_tokens": 112
+        },
+        {
+          "source_id": "7DnbE8T_0",
+          "common_prefix": 151,
+          "total_tokens": 361
+        },
+        {
+          "source_id": "ZVeiZXt_0",
+          "common_prefix": 117,
+          "total_tokens": 325
+        },
+        {
+          "source_id": "xho3JTF_0",
+          "common_prefix": 46,
+          "total_tokens": 83
+        },
+        {
+          "source_id": "fFL5SBl_0",
+          "common_prefix": 213,
+          "total_tokens": 228
+        },
+        {
+          "source_id": "X3u1EBj_0",
+          "common_prefix": 43,
+          "total_tokens": 365
+        },
+        {
+          "source_id": "hfMRdKA_0",
+          "common_prefix": 201,
+          "total_tokens": 325
+        },
+        {
+          "source_id": "zSUqogX_0",
+          "common_prefix": 45,
+          "total_tokens": 191
+        },
+        {
+          "source_id": "YNMGglI_0",
+          "common_prefix": 56,
+          "total_tokens": 131
+        },
+        {
+          "source_id": "i0yZENa_32",
+          "common_prefix": 238,
+          "total_tokens": 345
+        },
+        {
+          "source_id": "jljEnXI_0",
+          "common_prefix": 91,
+          "total_tokens": 220
+        },
+        {
+          "source_id": "9mYsr51_0",
+          "common_prefix": 59,
+          "total_tokens": 164
+        },
+        {
+          "source_id": "3BZGlq3_0",
+          "common_prefix": 23,
+          "total_tokens": 287
+        },
+        {
+          "source_id": "QkYIG8E_0",
+          "common_prefix": 23,
+          "total_tokens": 29
+        },
+        {
+          "source_id": "nTCmHDn_0",
+          "common_prefix": 141,
+          "total_tokens": 148
+        },
+        {
+          "source_id": "l8MPPUC_0",
+          "common_prefix": 189,
+          "total_tokens": 277
+        },
+        {
+          "source_id": "AzCJFXG_0",
+          "common_prefix": 23,
+          "total_tokens": 147
+        },
+        {
+          "source_id": "qijn1FM_0",
+          "common_prefix": 10,
+          "total_tokens": 284
+        },
+        {
+          "source_id": "IOe9On9_20",
+          "common_prefix": 86,
+          "total_tokens": 326
+        },
+        {
+          "source_id": "ZOuatZs_0",
+          "common_prefix": 36,
+          "total_tokens": 252
+        },
+        {
+          "source_id": "5BDQI41_0",
+          "common_prefix": 52,
+          "total_tokens": 72
+        },
+        {
+          "source_id": "xcdzDmL_0",
+          "common_prefix": 17,
+          "total_tokens": 225
+        },
+        {
+          "source_id": "cLkQRLI_0",
+          "common_prefix": 83,
+          "total_tokens": 212
+        },
+        {
+          "source_id": "COvQjxx_0",
+          "common_prefix": 41,
+          "total_tokens": 360
+        },
+        {
+          "source_id": "fnNu7aM_0",
+          "common_prefix": 9,
+          "total_tokens": 81
+        },
+        {
+          "source_id": "tn3p2vA_0",
+          "common_prefix": 171,
+          "total_tokens": 183
+        },
+        {
+          "source_id": "Qn7CZQR_0",
+          "common_prefix": 63,
+          "total_tokens": 255
+        },
+        {
+          "source_id": "Ss5BxUB_0",
+          "common_prefix": 129,
+          "total_tokens": 192
+        },
+        {
+          "source_id": "OiRDIoJ_0",
+          "common_prefix": 116,
+          "total_tokens": 270
+        },
+        {
+          "source_id": "bDP3tzX_0",
+          "common_prefix": 72,
+          "total_tokens": 379
+        },
+        {
+          "source_id": "weBvFCK_0",
+          "common_prefix": 38,
+          "total_tokens": 114
+        },
+        {
+          "source_id": "E1egnXf_0",
+          "common_prefix": 95,
+          "total_tokens": 185
+        },
+        {
+          "source_id": "o4OS4nZ_0",
+          "common_prefix": 66,
+          "total_tokens": 201
+        },
+        {
+          "source_id": "ql0LZJz_0",
+          "common_prefix": 61,
+          "total_tokens": 290
+        },
+        {
+          "source_id": "56SG6XJ_0",
+          "common_prefix": 130,
+          "total_tokens": 246
+        },
+        {
+          "source_id": "JlMunfi_0",
+          "common_prefix": 2,
+          "total_tokens": 48
+        },
+        {
+          "source_id": "EAmIORB_6",
+          "common_prefix": 14,
+          "total_tokens": 210
+        },
+        {
+          "source_id": "Cd9pXfq_0",
+          "common_prefix": 266,
+          "total_tokens": 354
+        },
+        {
+          "source_id": "x8MqfJd_0",
+          "common_prefix": 68,
+          "total_tokens": 224
+        },
+        {
+          "source_id": "TY90cdP_0",
+          "common_prefix": 13,
+          "total_tokens": 159
+        },
+        {
+          "source_id": "M5oHP82_0",
+          "common_prefix": 44,
+          "total_tokens": 153
+        },
+        {
+          "source_id": "Ej1dSES_0",
+          "common_prefix": 34,
+          "total_tokens": 147
+        },
+        {
+          "source_id": "hpbZ7uQ_0",
+          "common_prefix": 0,
+          "total_tokens": 161
+        },
+        {
+          "source_id": "yZMn38g_0",
+          "common_prefix": 31,
+          "total_tokens": 149
+        },
+        {
+          "source_id": "zIqltTq_0",
+          "common_prefix": 32,
+          "total_tokens": 222
+        },
+        {
+          "source_id": "Td2OYRd_0",
+          "common_prefix": 27,
+          "total_tokens": 338
+        },
+        {
+          "source_id": "Q4cQSpj_0",
+          "common_prefix": 166,
+          "total_tokens": 288
+        },
+        {
+          "source_id": "Sl92fMV_0",
+          "common_prefix": 114,
+          "total_tokens": 270
+        },
+        {
+          "source_id": "ft3Wxe5_0",
+          "common_prefix": 11,
+          "total_tokens": 156
+        },
+        {
+          "source_id": "5Ez7LbD_0",
+          "common_prefix": 77,
+          "total_tokens": 87
+        },
+        {
+          "source_id": "nfBvNCH_0",
+          "common_prefix": 183,
+          "total_tokens": 324
+        },
+        {
+          "source_id": "WVEQzmQ_0",
+          "common_prefix": 161,
+          "total_tokens": 246
+        },
+        {
+          "source_id": "4cATQgo_0",
+          "common_prefix": 4,
+          "total_tokens": 162
+        },
+        {
+          "source_id": "fEkVs2N_0",
+          "common_prefix": 122,
+          "total_tokens": 186
+        },
+        {
+          "source_id": "MLRgewB_0",
+          "common_prefix": 57,
+          "total_tokens": 124
+        },
+        {
+          "source_id": "HXnJiUT_0",
+          "common_prefix": 100,
+          "total_tokens": 158
+        },
+        {
+          "source_id": "CPXKDQ5_0",
+          "common_prefix": 33,
+          "total_tokens": 207
+        },
+        {
+          "source_id": "aXm3oMc_0",
+          "common_prefix": 152,
+          "total_tokens": 293
+        },
+        {
+          "source_id": "Mrbc0pF_0",
+          "common_prefix": 34,
+          "total_tokens": 200
+        },
+        {
+          "source_id": "eZHbH6P_0",
+          "common_prefix": 43,
+          "total_tokens": 96
+        },
+        {
+          "source_id": "E2TiO1M_0",
+          "common_prefix": 77,
+          "total_tokens": 124
+        },
+        {
+          "source_id": "cpIoL0w_0",
+          "common_prefix": 68,
+          "total_tokens": 330
+        },
+        {
+          "source_id": "hiksgn3_12",
+          "common_prefix": 301,
+          "total_tokens": 310
+        },
+        {
+          "source_id": "hFxZLSf_0",
+          "common_prefix": 73,
+          "total_tokens": 247
+        },
+        {
+          "source_id": "r0sWsS3_0",
+          "common_prefix": 223,
+          "total_tokens": 261
+        },
+        {
+          "source_id": "ZLdHAiL_0",
+          "common_prefix": 175,
+          "total_tokens": 277
+        },
+        {
+          "source_id": "dAndDYk_0",
+          "common_prefix": 23,
+          "total_tokens": 280
+        },
+        {
+          "source_id": "G8F6zy9_0",
+          "common_prefix": 48,
+          "total_tokens": 297
+        },
+        {
+          "source_id": "zl5u0Aa_0",
+          "common_prefix": 99,
+          "total_tokens": 241
+        },
+        {
+          "source_id": "RDM7gwa_0",
+          "common_prefix": 75,
+          "total_tokens": 220
+        },
+        {
+          "source_id": "B8WmTHT_0",
+          "common_prefix": 59,
+          "total_tokens": 235
+        },
+        {
+          "source_id": "ubPV3tu_64",
+          "common_prefix": 16,
+          "total_tokens": 336
+        },
+        {
+          "source_id": "bzHptTh_0",
+          "common_prefix": 50,
+          "total_tokens": 253
+        },
+        {
+          "source_id": "iKA58u5_0",
+          "common_prefix": 57,
+          "total_tokens": 103
+        },
+        {
+          "source_id": "017jvPB_0",
+          "common_prefix": 9,
+          "total_tokens": 33
+        },
+        {
+          "source_id": "Cf47Vg3_0",
+          "common_prefix": 2,
+          "total_tokens": 307
+        },
+        {
+          "source_id": "kmPqco9_0",
+          "common_prefix": 91,
+          "total_tokens": 255
+        },
+        {
+          "source_id": "gTz1Qy5_0",
+          "common_prefix": 59,
+          "total_tokens": 117
+        },
+        {
+          "source_id": "uvBKv6T_0",
+          "common_prefix": 26,
+          "total_tokens": 374
+        },
+        {
+          "source_id": "3XDfY4z_0",
+          "common_prefix": 29,
+          "total_tokens": 284
+        },
+        {
+          "source_id": "sc64Thw_0",
+          "common_prefix": 85,
+          "total_tokens": 160
+        },
+        {
+          "source_id": "Y6MteNX_0",
+          "common_prefix": 64,
+          "total_tokens": 214
+        },
+        {
+          "source_id": "AVnVlaF_0",
+          "common_prefix": 72,
+          "total_tokens": 208
+        },
+        {
+          "source_id": "HRGOLg0_0",
+          "common_prefix": 47,
+          "total_tokens": 225
+        },
+        {
+          "source_id": "mnLn1AT_0",
+          "common_prefix": 48,
+          "total_tokens": 257
+        },
+        {
+          "source_id": "fpN01gG_0",
+          "common_prefix": 30,
+          "total_tokens": 213
+        },
+        {
+          "source_id": "2mWmf2Y_0",
+          "common_prefix": 170,
+          "total_tokens": 333
+        },
+        {
+          "source_id": "PMQmeWK_0",
+          "common_prefix": 100,
+          "total_tokens": 326
+        },
+        {
+          "source_id": "cswyIgq_0",
+          "common_prefix": 40,
+          "total_tokens": 181
+        },
+        {
+          "source_id": "RckLCVw_0",
+          "common_prefix": 12,
+          "total_tokens": 206
+        },
+        {
+          "source_id": "ptSNyYB_0",
+          "common_prefix": 59,
+          "total_tokens": 172
+        },
+        {
+          "source_id": "BknNLgi_0",
+          "common_prefix": 57,
+          "total_tokens": 145
+        },
+        {
+          "source_id": "sevrbIx_28",
+          "common_prefix": 29,
+          "total_tokens": 226
+        },
+        {
+          "source_id": "TcS0ezW_0",
+          "common_prefix": 183,
+          "total_tokens": 203
+        },
+        {
+          "source_id": "byQk0DN_0",
+          "common_prefix": 64,
+          "total_tokens": 227
+        },
+        {
+          "source_id": "59rhJAQ_0",
+          "common_prefix": 202,
+          "total_tokens": 290
+        },
+        {
+          "source_id": "LlYtKTW_0",
+          "common_prefix": 49,
+          "total_tokens": 223
+        },
+        {
+          "source_id": "41fLzaI_0",
+          "common_prefix": 119,
+          "total_tokens": 298
+        },
+        {
+          "source_id": "V3UhtWw_0",
+          "common_prefix": 171,
+          "total_tokens": 277
+        },
+        {
+          "source_id": "2PSSE5M_0",
+          "common_prefix": 208,
+          "total_tokens": 337
+        },
+        {
+          "source_id": "doEJybm_0",
+          "common_prefix": 78,
+          "total_tokens": 139
+        },
+        {
+          "source_id": "aKU5Rlc_0",
+          "common_prefix": 136,
+          "total_tokens": 144
+        },
+        {
+          "source_id": "KgpLrkM_0",
+          "common_prefix": 118,
+          "total_tokens": 263
+        },
+        {
+          "source_id": "0pgLyw6_0",
+          "common_prefix": 26,
+          "total_tokens": 266
+        },
+        {
+          "source_id": "krdKmNs_0",
+          "common_prefix": 291,
+          "total_tokens": 344
+        },
+        {
+          "source_id": "cBCVJOZ_8",
+          "common_prefix": 46,
+          "total_tokens": 254
+        },
+        {
+          "source_id": "CjZzXz3_0",
+          "common_prefix": 139,
+          "total_tokens": 175
+        },
+        {
+          "source_id": "E8kAL03_0",
+          "common_prefix": 105,
+          "total_tokens": 268
+        },
+        {
+          "source_id": "dSlRSZe_0",
+          "common_prefix": 16,
+          "total_tokens": 202
+        },
+        {
+          "source_id": "RFyI78n_0",
+          "common_prefix": 159,
+          "total_tokens": 174
+        },
+        {
+          "source_id": "jh3EBZd_0",
+          "common_prefix": 59,
+          "total_tokens": 340
+        },
+        {
+          "source_id": "ALKGMrl_0",
+          "common_prefix": 137,
+          "total_tokens": 310
+        },
+        {
+          "source_id": "E3xymyG_0",
+          "common_prefix": 255,
+          "total_tokens": 360
+        },
+        {
+          "source_id": "9PcN7l5_0",
+          "common_prefix": 95,
+          "total_tokens": 307
+        },
+        {
+          "source_id": "XMlRI9K_0",
+          "common_prefix": 138,
+          "total_tokens": 342
+        },
+        {
+          "source_id": "4FgSiOk_0",
+          "common_prefix": 120,
+          "total_tokens": 183
+        },
+        {
+          "source_id": "s26gW65_0",
+          "common_prefix": 286,
+          "total_tokens": 350
+        },
+        {
+          "source_id": "3sQfpua_0",
+          "common_prefix": 54,
+          "total_tokens": 205
+        },
+        {
+          "source_id": "dRVmxH7_0",
+          "common_prefix": 138,
+          "total_tokens": 284
+        },
+        {
+          "source_id": "KwLmcBJ_0",
+          "common_prefix": 70,
+          "total_tokens": 219
+        },
+        {
+          "source_id": "HecpbgK_0",
+          "common_prefix": 162,
+          "total_tokens": 259
+        },
+        {
+          "source_id": "KAeejYc_0",
+          "common_prefix": 182,
+          "total_tokens": 233
+        },
+        {
+          "source_id": "171GXh6_0",
+          "common_prefix": 41,
+          "total_tokens": 47
+        },
+        {
+          "source_id": "ildiuSM_0",
+          "common_prefix": 9,
+          "total_tokens": 258
+        },
+        {
+          "source_id": "gELbACq_0",
+          "common_prefix": 16,
+          "total_tokens": 84
+        },
+        {
+          "source_id": "R0eSKj7_0",
+          "common_prefix": 37,
+          "total_tokens": 90
+        },
+        {
+          "source_id": "1jqJLV3_0",
+          "common_prefix": 64,
+          "total_tokens": 337
+        },
+        {
+          "source_id": "9zcTaA1_0",
+          "common_prefix": 143,
+          "total_tokens": 346
+        },
+        {
+          "source_id": "BUS76ZS_0",
+          "common_prefix": 38,
+          "total_tokens": 64
+        },
+        {
+          "source_id": "IM2PXRb_0",
+          "common_prefix": 24,
+          "total_tokens": 239
+        },
+        {
+          "source_id": "HlF8VAI_0",
+          "common_prefix": 143,
+          "total_tokens": 181
+        },
+        {
+          "source_id": "WAejKzb_0",
+          "common_prefix": 153,
+          "total_tokens": 263
+        },
+        {
+          "source_id": "OoLGs7t_0",
+          "common_prefix": 41,
+          "total_tokens": 275
+        },
+        {
+          "source_id": "iElyy4R_0",
+          "common_prefix": 218,
+          "total_tokens": 291
+        },
+        {
+          "source_id": "67e5S2E_0",
+          "common_prefix": 60,
+          "total_tokens": 173
+        },
+        {
+          "source_id": "9NGexxg_0",
+          "common_prefix": 41,
+          "total_tokens": 235
+        },
+        {
+          "source_id": "0KyRa6n_0",
+          "common_prefix": 49,
+          "total_tokens": 74
+        },
+        {
+          "source_id": "uVtVAaA_78",
+          "common_prefix": 55,
+          "total_tokens": 245
+        },
+        {
+          "source_id": "2tO6E6R_0",
+          "common_prefix": 138,
+          "total_tokens": 260
+        },
+        {
+          "source_id": "R62w0hP_0",
+          "common_prefix": 23,
+          "total_tokens": 25
+        },
+        {
+          "source_id": "b6EWVz6_0",
+          "common_prefix": 38,
+          "total_tokens": 139
+        },
+        {
+          "source_id": "lru1MYZ_0",
+          "common_prefix": 77,
+          "total_tokens": 158
+        },
+        {
+          "source_id": "eiF87Qa_0",
+          "common_prefix": 4,
+          "total_tokens": 204
+        },
+        {
+          "source_id": "OUHbAyJ_0",
+          "common_prefix": 59,
+          "total_tokens": 320
+        },
+        {
+          "source_id": "Ky62Ki0_0",
+          "common_prefix": 102,
+          "total_tokens": 236
+        },
+        {
+          "source_id": "xNKnVtI_0",
+          "common_prefix": 1,
+          "total_tokens": 153
+        },
+        {
+          "source_id": "oLYW1Jf_0",
+          "common_prefix": 148,
+          "total_tokens": 242
+        },
+        {
+          "source_id": "CJezdJk_0",
+          "common_prefix": 202,
+          "total_tokens": 224
+        },
+        {
+          "source_id": "EJRCiSy_0",
+          "common_prefix": 29,
+          "total_tokens": 116
+        },
+        {
+          "source_id": "NqYJU6w_0",
+          "common_prefix": 109,
+          "total_tokens": 125
+        },
+        {
+          "source_id": "LpD6zLx_0",
+          "common_prefix": 107,
+          "total_tokens": 294
+        },
+        {
+          "source_id": "qQq2J4G_62",
+          "common_prefix": 53,
+          "total_tokens": 93
+        },
+        {
+          "source_id": "rNy45nh_0",
+          "common_prefix": 17,
+          "total_tokens": 348
+        },
+        {
+          "source_id": "wLr1Bzx_0",
+          "common_prefix": 106,
+          "total_tokens": 181
+        },
+        {
+          "source_id": "pXP0l8j_0",
+          "common_prefix": 51,
+          "total_tokens": 333
+        },
+        {
+          "source_id": "AUgvPni_0",
+          "common_prefix": 133,
+          "total_tokens": 170
+        },
+        {
+          "source_id": "jVFHJsP_0",
+          "common_prefix": 86,
+          "total_tokens": 200
+        },
+        {
+          "source_id": "UD3u2ed_0",
+          "common_prefix": 161,
+          "total_tokens": 226
+        },
+        {
+          "source_id": "Yvg7mkV_0",
+          "common_prefix": 87,
+          "total_tokens": 309
+        },
+        {
+          "source_id": "d7bP5fb_0",
+          "common_prefix": 4,
+          "total_tokens": 31
+        },
+        {
+          "source_id": "DwrQp0O_0",
+          "common_prefix": 154,
+          "total_tokens": 292
+        },
+        {
+          "source_id": "RJfyCz0_8",
+          "common_prefix": 38,
+          "total_tokens": 175
+        },
+        {
+          "source_id": "hZ2lDji_0",
+          "common_prefix": 5,
+          "total_tokens": 311
+        },
+        {
+          "source_id": "g8pzow1_0",
+          "common_prefix": 25,
+          "total_tokens": 179
+        },
+        {
+          "source_id": "PgLzlNy_0",
+          "common_prefix": 93,
+          "total_tokens": 374
+        },
+        {
+          "source_id": "oO7lVo9_0",
+          "common_prefix": 25,
+          "total_tokens": 361
+        },
+        {
+          "source_id": "tjdcCcf_0",
+          "common_prefix": 8,
+          "total_tokens": 164
+        },
+        {
+          "source_id": "c8MBmsy_0",
+          "common_prefix": 3,
+          "total_tokens": 285
+        },
+        {
+          "source_id": "kUt94aH_0",
+          "common_prefix": 68,
+          "total_tokens": 368
+        },
+        {
+          "source_id": "qRbHQU7_0",
+          "common_prefix": 242,
+          "total_tokens": 279
+        },
+        {
+          "source_id": "Ef0U6xT_0",
+          "common_prefix": 68,
+          "total_tokens": 316
+        },
+        {
+          "source_id": "8f5mFGy_0",
+          "common_prefix": 196,
+          "total_tokens": 362
+        },
+        {
+          "source_id": "vIgImYW_0",
+          "common_prefix": 58,
+          "total_tokens": 60
+        },
+        {
+          "source_id": "gQaSoiF_0",
+          "common_prefix": 132,
+          "total_tokens": 238
+        },
+        {
+          "source_id": "osTHjYi_0",
+          "common_prefix": 11,
+          "total_tokens": 99
+        },
+        {
+          "source_id": "wB4ccAW_0",
+          "common_prefix": 88,
+          "total_tokens": 319
+        },
+        {
+          "source_id": "Fda25Cx_0",
+          "common_prefix": 55,
+          "total_tokens": 65
+        },
+        {
+          "source_id": "riMKdU7_0",
+          "common_prefix": 134,
+          "total_tokens": 161
+        },
+        {
+          "source_id": "kUWEY5E_0",
+          "common_prefix": 21,
+          "total_tokens": 356
+        },
+        {
+          "source_id": "tDoq3oZ_0",
+          "common_prefix": 270,
+          "total_tokens": 315
+        },
+        {
+          "source_id": "FMskUaQ_0",
+          "common_prefix": 32,
+          "total_tokens": 315
+        },
+        {
+          "source_id": "99PgYyD_0",
+          "common_prefix": 14,
+          "total_tokens": 355
+        },
+        {
+          "source_id": "7J0sclr_0",
+          "common_prefix": 0,
+          "total_tokens": 49
+        },
+        {
+          "source_id": "8pG4AW2_0",
+          "common_prefix": 127,
+          "total_tokens": 128
+        },
+        {
+          "source_id": "4PwGTCZ_0",
+          "common_prefix": 29,
+          "total_tokens": 131
+        },
+        {
+          "source_id": "fseO3HJ_0",
+          "common_prefix": 56,
+          "total_tokens": 282
+        },
+        {
+          "source_id": "smnoGSh_12",
+          "common_prefix": 12,
+          "total_tokens": 370
+        },
+        {
+          "source_id": "GJF91Ko_0",
+          "common_prefix": 53,
+          "total_tokens": 172
+        },
+        {
+          "source_id": "3DMq2W8_0",
+          "common_prefix": 34,
+          "total_tokens": 152
+        },
+        {
+          "source_id": "IkYYvSd_0",
+          "common_prefix": 19,
+          "total_tokens": 377
+        },
+        {
+          "source_id": "H3zu99k_0",
+          "common_prefix": 70,
+          "total_tokens": 214
+        },
+        {
+          "source_id": "TT0Krbd_0",
+          "common_prefix": 6,
+          "total_tokens": 104
+        },
+        {
+          "source_id": "SrzhB7A_0",
+          "common_prefix": 9,
+          "total_tokens": 19
+        },
+        {
+          "source_id": "tMF6Iuc_0",
+          "common_prefix": 10,
+          "total_tokens": 264
+        },
+        {
+          "source_id": "EkfJYLr_0",
+          "common_prefix": 129,
+          "total_tokens": 375
+        },
+        {
+          "source_id": "1JqLCmz_0",
+          "common_prefix": 28,
+          "total_tokens": 247
+        },
+        {
+          "source_id": "jY5LqFJ_0",
+          "common_prefix": 117,
+          "total_tokens": 358
+        },
+        {
+          "source_id": "yI4yoBO_0",
+          "common_prefix": 11,
+          "total_tokens": 92
+        },
+        {
+          "source_id": "KfgME1b_0",
+          "common_prefix": 109,
+          "total_tokens": 232
+        },
+        {
+          "source_id": "0xGE1Cy_0",
+          "common_prefix": 97,
+          "total_tokens": 211
+        },
+        {
+          "source_id": "bTA6rHi_0",
+          "common_prefix": 55,
+          "total_tokens": 250
+        },
+        {
+          "source_id": "ktXG86o_0",
+          "common_prefix": 45,
+          "total_tokens": 116
+        },
+        {
+          "source_id": "apUL3i0_0",
+          "common_prefix": 154,
+          "total_tokens": 191
+        },
+        {
+          "source_id": "ecotV08_0",
+          "common_prefix": 93,
+          "total_tokens": 149
+        },
+        {
+          "source_id": "W5rKbnZ_0",
+          "common_prefix": 55,
+          "total_tokens": 345
+        },
+        {
+          "source_id": "WZeTqsx_0",
+          "common_prefix": 44,
+          "total_tokens": 97
+        },
+        {
+          "source_id": "2VJcAkA_0",
+          "common_prefix": 24,
+          "total_tokens": 352
+        },
+        {
+          "source_id": "Mqbbt2f_10",
+          "common_prefix": 34,
+          "total_tokens": 280
+        },
+        {
+          "source_id": "Zjrk5Cp_0",
+          "common_prefix": 1,
+          "total_tokens": 273
+        },
+        {
+          "source_id": "PnEGNKm_0",
+          "common_prefix": 72,
+          "total_tokens": 145
+        },
+        {
+          "source_id": "L9l8Ic3_0",
+          "common_prefix": 4,
+          "total_tokens": 170
+        },
+        {
+          "source_id": "9HyXF1W_0",
+          "common_prefix": 97,
+          "total_tokens": 158
+        },
+        {
+          "source_id": "bxaY4Lu_0",
+          "common_prefix": 25,
+          "total_tokens": 199
+        },
+        {
+          "source_id": "KUu2Sz3_0",
+          "common_prefix": 99,
+          "total_tokens": 173
+        },
+        {
+          "source_id": "cNjIqBV_0",
+          "common_prefix": 75,
+          "total_tokens": 144
+        },
+        {
+          "source_id": "52kshyP_26",
+          "common_prefix": 29,
+          "total_tokens": 215
+        },
+        {
+          "source_id": "gre6y4x_0",
+          "common_prefix": 79,
+          "total_tokens": 301
+        },
+        {
+          "source_id": "k7G4a7I_0",
+          "common_prefix": 48,
+          "total_tokens": 135
+        },
+        {
+          "source_id": "XlRygs0_0",
+          "common_prefix": 32,
+          "total_tokens": 366
+        },
+        {
+          "source_id": "DVofCDy_0",
+          "common_prefix": 42,
+          "total_tokens": 264
+        },
+        {
+          "source_id": "V67xPAu_16",
+          "common_prefix": 63,
+          "total_tokens": 144
+        },
+        {
+          "source_id": "0DxH2PP_0",
+          "common_prefix": 114,
+          "total_tokens": 196
+        },
+        {
+          "source_id": "M6JACA3_0",
+          "common_prefix": 198,
+          "total_tokens": 277
+        },
+        {
+          "source_id": "AQwQtFA_0",
+          "common_prefix": 113,
+          "total_tokens": 115
+        },
+        {
+          "source_id": "hi6mmmO_0",
+          "common_prefix": 146,
+          "total_tokens": 158
+        },
+        {
+          "source_id": "wg5jNYI_0",
+          "common_prefix": 43,
+          "total_tokens": 122
+        },
+        {
+          "source_id": "dugDZvz_0",
+          "common_prefix": 64,
+          "total_tokens": 271
+        },
+        {
+          "source_id": "T25cUGi_0",
+          "common_prefix": 50,
+          "total_tokens": 200
+        },
+        {
+          "source_id": "Xdswv5p_0",
+          "common_prefix": 189,
+          "total_tokens": 361
+        },
+        {
+          "source_id": "h7s4HyU_0",
+          "common_prefix": 159,
+          "total_tokens": 223
+        },
+        {
+          "source_id": "7tVyqOs_0",
+          "common_prefix": 71,
+          "total_tokens": 108
+        },
+        {
+          "source_id": "iPG1LFG_0",
+          "common_prefix": 25,
+          "total_tokens": 313
+        },
+        {
+          "source_id": "7BKpOmp_0",
+          "common_prefix": 14,
+          "total_tokens": 359
+        },
+        {
+          "source_id": "tO3w2Lk_0",
+          "common_prefix": 95,
+          "total_tokens": 242
+        },
+        {
+          "source_id": "aqyGfOo_0",
+          "common_prefix": 136,
+          "total_tokens": 198
+        },
+        {
+          "source_id": "WBahsz8_0",
+          "common_prefix": 53,
+          "total_tokens": 133
+        },
+        {
+          "source_id": "ihCW9DB_0",
+          "common_prefix": 7,
+          "total_tokens": 255
+        },
+        {
+          "source_id": "F5Dw48G_0",
+          "common_prefix": 232,
+          "total_tokens": 238
+        },
+        {
+          "source_id": "8RQ6XGw_0",
+          "common_prefix": 50,
+          "total_tokens": 243
+        },
+        {
+          "source_id": "dNpjTQ2_0",
+          "common_prefix": 41,
+          "total_tokens": 290
+        },
+        {
+          "source_id": "rYKCSPT_0",
+          "common_prefix": 16,
+          "total_tokens": 130
+        },
+        {
+          "source_id": "YPUMMjP_0",
+          "common_prefix": 106,
+          "total_tokens": 137
+        },
+        {
+          "source_id": "pKsBWQ8_0",
+          "common_prefix": 343,
+          "total_tokens": 360
+        },
+        {
+          "source_id": "H648KvC_0",
+          "common_prefix": 0,
+          "total_tokens": 19
+        },
+        {
+          "source_id": "Mc8x3Ck_0",
+          "common_prefix": 260,
+          "total_tokens": 286
+        },
+        {
+          "source_id": "32rOBvd_0",
+          "common_prefix": 48,
+          "total_tokens": 175
+        },
+        {
+          "source_id": "G5NLtqQ_10",
+          "common_prefix": 146,
+          "total_tokens": 314
+        },
+        {
+          "source_id": "Dvjs4NK_0",
+          "common_prefix": 56,
+          "total_tokens": 153
+        },
+        {
+          "source_id": "M9T66Xd_0",
+          "common_prefix": 195,
+          "total_tokens": 335
+        },
+        {
+          "source_id": "MhLZsuL_0",
+          "common_prefix": 18,
+          "total_tokens": 210
+        },
+        {
+          "source_id": "B681T1q_0",
+          "common_prefix": 50,
+          "total_tokens": 300
+        },
+        {
+          "source_id": "k9w73p7_0",
+          "common_prefix": 58,
+          "total_tokens": 260
+        },
+        {
+          "source_id": "cO6B8zP_0",
+          "common_prefix": 45,
+          "total_tokens": 56
+        },
+        {
+          "source_id": "OeavL1q_0",
+          "common_prefix": 45,
+          "total_tokens": 128
+        },
+        {
+          "source_id": "jssDSZv_0",
+          "common_prefix": 116,
+          "total_tokens": 307
+        },
+        {
+          "source_id": "IeMdt2E_0",
+          "common_prefix": 73,
+          "total_tokens": 122
+        },
+        {
+          "source_id": "31N9Jd9_0",
+          "common_prefix": 17,
+          "total_tokens": 304
+        },
+        {
+          "source_id": "K4T9MJT_0",
+          "common_prefix": 11,
+          "total_tokens": 201
+        },
+        {
+          "source_id": "rJNJJMU_0",
+          "common_prefix": 49,
+          "total_tokens": 98
+        },
+        {
+          "source_id": "TDomHAO_0",
+          "common_prefix": 19,
+          "total_tokens": 178
+        },
+        {
+          "source_id": "9h7mgwL_0",
+          "common_prefix": 94,
+          "total_tokens": 134
+        },
+        {
+          "source_id": "NwZVPCQ_0",
+          "common_prefix": 58,
+          "total_tokens": 274
+        },
+        {
+          "source_id": "CRH2Z8U_0",
+          "common_prefix": 21,
+          "total_tokens": 43
+        },
+        {
+          "source_id": "ygpp3Hs_24",
+          "common_prefix": 89,
+          "total_tokens": 208
+        },
+        {
+          "source_id": "L2g55EN_0",
+          "common_prefix": 147,
+          "total_tokens": 223
+        },
+        {
+          "source_id": "iNGLu8O_0",
+          "common_prefix": 50,
+          "total_tokens": 259
+        },
+        {
+          "source_id": "cle4mg4_0",
+          "common_prefix": 148,
+          "total_tokens": 197
+        },
+        {
+          "source_id": "BnyZY8r_0",
+          "common_prefix": 4,
+          "total_tokens": 84
+        },
+        {
+          "source_id": "fdRUvxU_0",
+          "common_prefix": 60,
+          "total_tokens": 211
+        },
+        {
+          "source_id": "wWaizhq_0",
+          "common_prefix": 215,
+          "total_tokens": 286
+        },
+        {
+          "source_id": "G7GKoO0_0",
+          "common_prefix": 117,
+          "total_tokens": 235
+        },
+        {
+          "source_id": "XBJxVa5_0",
+          "common_prefix": 39,
+          "total_tokens": 241
+        },
+        {
+          "source_id": "QxkPcVe_0",
+          "common_prefix": 12,
+          "total_tokens": 152
+        },
+        {
+          "source_id": "VUB8UU7_0",
+          "common_prefix": 30,
+          "total_tokens": 280
+        },
+        {
+          "source_id": "mX6BiTN_332",
+          "common_prefix": 25,
+          "total_tokens": 86
+        },
+        {
+          "source_id": "wLub4pN_0",
+          "common_prefix": 104,
+          "total_tokens": 293
+        },
+        {
+          "source_id": "XdKf2QR_0",
+          "common_prefix": 36,
+          "total_tokens": 338
+        },
+        {
+          "source_id": "txtbFgw_0",
+          "common_prefix": 95,
+          "total_tokens": 130
+        },
+        {
+          "source_id": "UW5DdRS_0",
+          "common_prefix": 83,
+          "total_tokens": 122
+        },
+        {
+          "source_id": "XXzOnjy_0",
+          "common_prefix": 52,
+          "total_tokens": 123
+        },
+        {
+          "source_id": "MLx0vwF_0",
+          "common_prefix": 201,
+          "total_tokens": 351
+        },
+        {
+          "source_id": "B16RWYL_0",
+          "common_prefix": 18,
+          "total_tokens": 369
+        },
+        {
+          "source_id": "PRIFVny_0",
+          "common_prefix": 34,
+          "total_tokens": 121
+        },
+        {
+          "source_id": "NcbFswQ_0",
+          "common_prefix": 11,
+          "total_tokens": 88
+        },
+        {
+          "source_id": "rmOYBU3_0",
+          "common_prefix": 0,
+          "total_tokens": 377
+        },
+        {
+          "source_id": "ZCQLnrL_0",
+          "common_prefix": 70,
+          "total_tokens": 253
+        },
+        {
+          "source_id": "F5b2PcW_0",
+          "common_prefix": 174,
+          "total_tokens": 383
+        },
+        {
+          "source_id": "1TqGpL5_0",
+          "common_prefix": 262,
+          "total_tokens": 303
+        },
+        {
+          "source_id": "DkvZ99h_0",
+          "common_prefix": 180,
+          "total_tokens": 317
+        },
+        {
+          "source_id": "dAh77Ju_0",
+          "common_prefix": 136,
+          "total_tokens": 212
+        },
+        {
+          "source_id": "7QD86cC_52",
+          "common_prefix": 9,
+          "total_tokens": 259
+        },
+        {
+          "source_id": "IM9eyv7_0",
+          "common_prefix": 99,
+          "total_tokens": 292
+        },
+        {
+          "source_id": "qktLFWS_12",
+          "common_prefix": 195,
+          "total_tokens": 274
+        },
+        {
+          "source_id": "bu91n0I_24",
+          "common_prefix": 66,
+          "total_tokens": 313
+        },
+        {
+          "source_id": "OLc5cYf_186",
+          "common_prefix": 14,
+          "total_tokens": 150
+        },
+        {
+          "source_id": "DAZ6lNX_140",
+          "common_prefix": 19,
+          "total_tokens": 367
+        },
+        {
+          "source_id": "ceIN3eQ_0",
+          "common_prefix": 246,
+          "total_tokens": 298
+        },
+        {
+          "source_id": "Rb55Fx6_0",
+          "common_prefix": 47,
+          "total_tokens": 293
+        }
+      ]
+    },
+    {
+      "seed": 44,
+      "tps_change_pct": 1.6622587900172459,
+      "e2e_p95_change_pct": 1.1838487249784757,
+      "exact_output_requests": 192,
+      "output_differences": [
+        {
+          "source_id": "0MGNCGq_0",
+          "common_prefix": 106,
+          "total_tokens": 237
+        },
+        {
+          "source_id": "CJezdJk_0",
+          "common_prefix": 184,
+          "total_tokens": 224
+        },
+        {
+          "source_id": "bTA6rHi_0",
+          "common_prefix": 123,
+          "total_tokens": 250
+        },
+        {
+          "source_id": "CEvzY30_0",
+          "common_prefix": 95,
+          "total_tokens": 233
+        },
+        {
+          "source_id": "b6EWVz6_0",
+          "common_prefix": 38,
+          "total_tokens": 139
+        },
+        {
+          "source_id": "fdRUvxU_0",
+          "common_prefix": 88,
+          "total_tokens": 211
+        },
+        {
+          "source_id": "ZOuatZs_0",
+          "common_prefix": 111,
+          "total_tokens": 252
+        },
+        {
+          "source_id": "3BZGlq3_0",
+          "common_prefix": 197,
+          "total_tokens": 287
+        },
+        {
+          "source_id": "Sl92fMV_0",
+          "common_prefix": 114,
+          "total_tokens": 270
+        },
+        {
+          "source_id": "ildiuSM_0",
+          "common_prefix": 99,
+          "total_tokens": 258
+        },
+        {
+          "source_id": "P1scng9_0",
+          "common_prefix": 195,
+          "total_tokens": 316
+        },
+        {
+          "source_id": "ZVeiZXt_0",
+          "common_prefix": 117,
+          "total_tokens": 325
+        },
+        {
+          "source_id": "gELbACq_0",
+          "common_prefix": 16,
+          "total_tokens": 84
+        },
+        {
+          "source_id": "ft3Wxe5_0",
+          "common_prefix": 11,
+          "total_tokens": 156
+        },
+        {
+          "source_id": "F5b2PcW_0",
+          "common_prefix": 374,
+          "total_tokens": 383
+        },
+        {
+          "source_id": "3XDfY4z_0",
+          "common_prefix": 29,
+          "total_tokens": 284
+        },
+        {
+          "source_id": "B8WmTHT_0",
+          "common_prefix": 70,
+          "total_tokens": 235
+        },
+        {
+          "source_id": "L9l8Ic3_0",
+          "common_prefix": 4,
+          "total_tokens": 170
+        },
+        {
+          "source_id": "txtbFgw_0",
+          "common_prefix": 88,
+          "total_tokens": 130
+        },
+        {
+          "source_id": "LpD6zLx_0",
+          "common_prefix": 91,
+          "total_tokens": 294
+        },
+        {
+          "source_id": "obtzszQ_0",
+          "common_prefix": 11,
+          "total_tokens": 196
+        },
+        {
+          "source_id": "pivQ22Y_0",
+          "common_prefix": 70,
+          "total_tokens": 292
+        },
+        {
+          "source_id": "5BDQI41_0",
+          "common_prefix": 46,
+          "total_tokens": 72
+        },
+        {
+          "source_id": "FMskUaQ_0",
+          "common_prefix": 32,
+          "total_tokens": 315
+        },
+        {
+          "source_id": "zSUqogX_0",
+          "common_prefix": 45,
+          "total_tokens": 191
+        },
+        {
+          "source_id": "aqyGfOo_0",
+          "common_prefix": 136,
+          "total_tokens": 198
+        },
+        {
+          "source_id": "GJF91Ko_0",
+          "common_prefix": 53,
+          "total_tokens": 172
+        },
+        {
+          "source_id": "fnNu7aM_0",
+          "common_prefix": 58,
+          "total_tokens": 81
+        },
+        {
+          "source_id": "v8aOrrv_0",
+          "common_prefix": 2,
+          "total_tokens": 70
+        },
+        {
+          "source_id": "Xdswv5p_0",
+          "common_prefix": 282,
+          "total_tokens": 361
+        },
+        {
+          "source_id": "weBvFCK_0",
+          "common_prefix": 102,
+          "total_tokens": 114
+        },
+        {
+          "source_id": "67e5S2E_0",
+          "common_prefix": 60,
+          "total_tokens": 173
+        },
+        {
+          "source_id": "xcdzDmL_0",
+          "common_prefix": 17,
+          "total_tokens": 225
+        },
+        {
+          "source_id": "93XcJ67_100",
+          "common_prefix": 39,
+          "total_tokens": 315
+        },
+        {
+          "source_id": "UW5DdRS_0",
+          "common_prefix": 63,
+          "total_tokens": 122
+        },
+        {
+          "source_id": "31N9Jd9_0",
+          "common_prefix": 17,
+          "total_tokens": 304
+        },
+        {
+          "source_id": "zaqqxSN_0",
+          "common_prefix": 45,
+          "total_tokens": 376
+        },
+        {
+          "source_id": "HecpbgK_0",
+          "common_prefix": 88,
+          "total_tokens": 259
+        },
+        {
+          "source_id": "7XB1Kny_24",
+          "common_prefix": 275,
+          "total_tokens": 286
+        },
+        {
+          "source_id": "p7chh5t_0",
+          "common_prefix": 196,
+          "total_tokens": 241
+        },
+        {
+          "source_id": "TcS0ezW_0",
+          "common_prefix": 77,
+          "total_tokens": 203
+        },
+        {
+          "source_id": "V67xPAu_16",
+          "common_prefix": 106,
+          "total_tokens": 144
+        },
+        {
+          "source_id": "qijn1FM_0",
+          "common_prefix": 30,
+          "total_tokens": 284
+        },
+        {
+          "source_id": "jh3EBZd_0",
+          "common_prefix": 59,
+          "total_tokens": 340
+        },
+        {
+          "source_id": "MLx0vwF_0",
+          "common_prefix": 53,
+          "total_tokens": 351
+        },
+        {
+          "source_id": "yZMn38g_0",
+          "common_prefix": 31,
+          "total_tokens": 149
+        },
+        {
+          "source_id": "z77O9aD_0",
+          "common_prefix": 264,
+          "total_tokens": 358
+        },
+        {
+          "source_id": "kmPqco9_0",
+          "common_prefix": 86,
+          "total_tokens": 255
+        },
+        {
+          "source_id": "F5Dw48G_0",
+          "common_prefix": 97,
+          "total_tokens": 238
+        },
+        {
+          "source_id": "yI4yoBO_0",
+          "common_prefix": 14,
+          "total_tokens": 92
+        },
+        {
+          "source_id": "fFL5SBl_0",
+          "common_prefix": 213,
+          "total_tokens": 228
+        },
+        {
+          "source_id": "bu91n0I_24",
+          "common_prefix": 61,
+          "total_tokens": 313
+        },
+        {
+          "source_id": "W5rKbnZ_0",
+          "common_prefix": 91,
+          "total_tokens": 345
+        },
+        {
+          "source_id": "s26gW65_0",
+          "common_prefix": 198,
+          "total_tokens": 350
+        },
+        {
+          "source_id": "ebB4GJH_0",
+          "common_prefix": 13,
+          "total_tokens": 345
+        },
+        {
+          "source_id": "41fLzaI_0",
+          "common_prefix": 32,
+          "total_tokens": 298
+        },
+        {
+          "source_id": "G7GKoO0_0",
+          "common_prefix": 45,
+          "total_tokens": 235
+        },
+        {
+          "source_id": "4PwGTCZ_0",
+          "common_prefix": 7,
+          "total_tokens": 131
+        },
+        {
+          "source_id": "QkYIG8E_0",
+          "common_prefix": 23,
+          "total_tokens": 29
+        },
+        {
+          "source_id": "N8Ba7Rx_0",
+          "common_prefix": 127,
+          "total_tokens": 207
+        },
+        {
+          "source_id": "ptSNyYB_0",
+          "common_prefix": 29,
+          "total_tokens": 172
+        },
+        {
+          "source_id": "E6tm2wM_0",
+          "common_prefix": 196,
+          "total_tokens": 327
+        },
+        {
+          "source_id": "scYJCro_0",
+          "common_prefix": 63,
+          "total_tokens": 140
+        },
+        {
+          "source_id": "NwZVPCQ_0",
+          "common_prefix": 58,
+          "total_tokens": 274
+        },
+        {
+          "source_id": "Dcshjlv_0",
+          "common_prefix": 101,
+          "total_tokens": 111
+        },
+        {
+          "source_id": "Td2OYRd_0",
+          "common_prefix": 27,
+          "total_tokens": 338
+        },
+        {
+          "source_id": "5Ez7LbD_0",
+          "common_prefix": 77,
+          "total_tokens": 87
+        },
+        {
+          "source_id": "oLYW1Jf_0",
+          "common_prefix": 148,
+          "total_tokens": 242
+        },
+        {
+          "source_id": "83mYpfb_0",
+          "common_prefix": 8,
+          "total_tokens": 128
+        },
+        {
+          "source_id": "doEJybm_0",
+          "common_prefix": 110,
+          "total_tokens": 139
+        },
+        {
+          "source_id": "ubPV3tu_64",
+          "common_prefix": 16,
+          "total_tokens": 336
+        },
+        {
+          "source_id": "Mrbc0pF_0",
+          "common_prefix": 33,
+          "total_tokens": 200
+        },
+        {
+          "source_id": "sEjY27O_0",
+          "common_prefix": 280,
+          "total_tokens": 362
+        },
+        {
+          "source_id": "Dr9feg4_0",
+          "common_prefix": 130,
+          "total_tokens": 211
+        },
+        {
+          "source_id": "OeavL1q_0",
+          "common_prefix": 65,
+          "total_tokens": 128
+        },
+        {
+          "source_id": "dSlRSZe_0",
+          "common_prefix": 16,
+          "total_tokens": 202
+        },
+        {
+          "source_id": "VRm3YaZ_0",
+          "common_prefix": 66,
+          "total_tokens": 92
+        },
+        {
+          "source_id": "Yvg7mkV_0",
+          "common_prefix": 87,
+          "total_tokens": 309
+        },
+        {
+          "source_id": "sOkBgoZ_0",
+          "common_prefix": 65,
+          "total_tokens": 143
+        },
+        {
+          "source_id": "jssDSZv_0",
+          "common_prefix": 152,
+          "total_tokens": 307
+        },
+        {
+          "source_id": "KwLmcBJ_0",
+          "common_prefix": 70,
+          "total_tokens": 219
+        },
+        {
+          "source_id": "2tO6E6R_0",
+          "common_prefix": 138,
+          "total_tokens": 260
+        },
+        {
+          "source_id": "1jqJLV3_0",
+          "common_prefix": 255,
+          "total_tokens": 337
+        },
+        {
+          "source_id": "CPXKDQ5_0",
+          "common_prefix": 33,
+          "total_tokens": 207
+        },
+        {
+          "source_id": "LlYtKTW_0",
+          "common_prefix": 28,
+          "total_tokens": 223
+        },
+        {
+          "source_id": "mX6BiTN_332",
+          "common_prefix": 25,
+          "total_tokens": 86
+        },
+        {
+          "source_id": "4FgSiOk_0",
+          "common_prefix": 120,
+          "total_tokens": 183
+        },
+        {
+          "source_id": "cle4mg4_0",
+          "common_prefix": 140,
+          "total_tokens": 197
+        },
+        {
+          "source_id": "OoLGs7t_0",
+          "common_prefix": 41,
+          "total_tokens": 275
+        },
+        {
+          "source_id": "2VJcAkA_0",
+          "common_prefix": 1,
+          "total_tokens": 352
+        },
+        {
+          "source_id": "gHmoARv_0",
+          "common_prefix": 69,
+          "total_tokens": 77
+        },
+        {
+          "source_id": "qFjNljc_18",
+          "common_prefix": 44,
+          "total_tokens": 284
+        },
+        {
+          "source_id": "qQq2J4G_62",
+          "common_prefix": 23,
+          "total_tokens": 93
+        },
+        {
+          "source_id": "dAh77Ju_0",
+          "common_prefix": 134,
+          "total_tokens": 212
+        },
+        {
+          "source_id": "P160q4S_0",
+          "common_prefix": 67,
+          "total_tokens": 350
+        },
+        {
+          "source_id": "XlRygs0_0",
+          "common_prefix": 182,
+          "total_tokens": 366
+        },
+        {
+          "source_id": "YNMGglI_0",
+          "common_prefix": 56,
+          "total_tokens": 131
+        },
+        {
+          "source_id": "noM4zyc_0",
+          "common_prefix": 56,
+          "total_tokens": 175
+        },
+        {
+          "source_id": "nt5NmTg_0",
+          "common_prefix": 11,
+          "total_tokens": 336
+        },
+        {
+          "source_id": "k7G4a7I_0",
+          "common_prefix": 122,
+          "total_tokens": 135
+        },
+        {
+          "source_id": "RckLCVw_0",
+          "common_prefix": 73,
+          "total_tokens": 206
+        },
+        {
+          "source_id": "oO7lVo9_0",
+          "common_prefix": 263,
+          "total_tokens": 361
+        },
+        {
+          "source_id": "Hr9EwI2_0",
+          "common_prefix": 173,
+          "total_tokens": 253
+        },
+        {
+          "source_id": "8f5mFGy_0",
+          "common_prefix": 217,
+          "total_tokens": 362
+        },
+        {
+          "source_id": "l8MPPUC_0",
+          "common_prefix": 51,
+          "total_tokens": 277
+        },
+        {
+          "source_id": "dflEgvC_8",
+          "common_prefix": 53,
+          "total_tokens": 384
+        },
+        {
+          "source_id": "xho3JTF_0",
+          "common_prefix": 46,
+          "total_tokens": 83
+        },
+        {
+          "source_id": "thSJ8Ra_0",
+          "common_prefix": 18,
+          "total_tokens": 96
+        },
+        {
+          "source_id": "OiRDIoJ_0",
+          "common_prefix": 108,
+          "total_tokens": 270
+        },
+        {
+          "source_id": "VHHWXpB_0",
+          "common_prefix": 37,
+          "total_tokens": 146
+        },
+        {
+          "source_id": "MhLZsuL_0",
+          "common_prefix": 18,
+          "total_tokens": 210
+        },
+        {
+          "source_id": "kUWEY5E_0",
+          "common_prefix": 216,
+          "total_tokens": 356
+        },
+        {
+          "source_id": "BUS76ZS_0",
+          "common_prefix": 33,
+          "total_tokens": 64
+        },
+        {
+          "source_id": "Qn7CZQR_0",
+          "common_prefix": 63,
+          "total_tokens": 255
+        },
+        {
+          "source_id": "QBgrUtS_0",
+          "common_prefix": 110,
+          "total_tokens": 195
+        },
+        {
+          "source_id": "59rhJAQ_0",
+          "common_prefix": 203,
+          "total_tokens": 290
+        },
+        {
+          "source_id": "9h7mgwL_0",
+          "common_prefix": 79,
+          "total_tokens": 134
+        },
+        {
+          "source_id": "0DxH2PP_0",
+          "common_prefix": 140,
+          "total_tokens": 196
+        },
+        {
+          "source_id": "ihCW9DB_0",
+          "common_prefix": 153,
+          "total_tokens": 255
+        },
+        {
+          "source_id": "ALKGMrl_0",
+          "common_prefix": 171,
+          "total_tokens": 310
+        },
+        {
+          "source_id": "nfBvNCH_0",
+          "common_prefix": 15,
+          "total_tokens": 324
+        },
+        {
+          "source_id": "ners9go_0",
+          "common_prefix": 65,
+          "total_tokens": 371
+        },
+        {
+          "source_id": "nADfeEG_0",
+          "common_prefix": 93,
+          "total_tokens": 214
+        },
+        {
+          "source_id": "fEkVs2N_0",
+          "common_prefix": 122,
+          "total_tokens": 186
+        },
+        {
+          "source_id": "G5NLtqQ_10",
+          "common_prefix": 198,
+          "total_tokens": 314
+        },
+        {
+          "source_id": "OKJaPKh_0",
+          "common_prefix": 255,
+          "total_tokens": 289
+        },
+        {
+          "source_id": "rYKCSPT_0",
+          "common_prefix": 16,
+          "total_tokens": 130
+        },
+        {
+          "source_id": "QqK7LLL_16",
+          "common_prefix": 78,
+          "total_tokens": 193
+        },
+        {
+          "source_id": "eZHbH6P_0",
+          "common_prefix": 40,
+          "total_tokens": 96
+        },
+        {
+          "source_id": "hpbZ7uQ_0",
+          "common_prefix": 40,
+          "total_tokens": 161
+        },
+        {
+          "source_id": "pPZ6rQP_0",
+          "common_prefix": 79,
+          "total_tokens": 121
+        },
+        {
+          "source_id": "bzHptTh_0",
+          "common_prefix": 20,
+          "total_tokens": 253
+        },
+        {
+          "source_id": "Dcshjlv_68",
+          "common_prefix": 11,
+          "total_tokens": 70
+        },
+        {
+          "source_id": "AUgvPni_0",
+          "common_prefix": 84,
+          "total_tokens": 170
+        },
+        {
+          "source_id": "B681T1q_0",
+          "common_prefix": 50,
+          "total_tokens": 300
+        },
+        {
+          "source_id": "bDP3tzX_0",
+          "common_prefix": 15,
+          "total_tokens": 379
+        },
+        {
+          "source_id": "MLRgewB_0",
+          "common_prefix": 57,
+          "total_tokens": 124
+        },
+        {
+          "source_id": "hZ2lDji_0",
+          "common_prefix": 5,
+          "total_tokens": 311
+        },
+        {
+          "source_id": "RDM7gwa_0",
+          "common_prefix": 75,
+          "total_tokens": 220
+        },
+        {
+          "source_id": "HI36bnU_124",
+          "common_prefix": 14,
+          "total_tokens": 78
+        },
+        {
+          "source_id": "dRVmxH7_0",
+          "common_prefix": 41,
+          "total_tokens": 284
+        },
+        {
+          "source_id": "XdKf2QR_0",
+          "common_prefix": 249,
+          "total_tokens": 338
+        },
+        {
+          "source_id": "DAZ6lNX_140",
+          "common_prefix": 54,
+          "total_tokens": 367
+        },
+        {
+          "source_id": "XbjjEGC_0",
+          "common_prefix": 7,
+          "total_tokens": 37
+        },
+        {
+          "source_id": "CRH2Z8U_0",
+          "common_prefix": 28,
+          "total_tokens": 43
+        },
+        {
+          "source_id": "ZLdHAiL_0",
+          "common_prefix": 99,
+          "total_tokens": 277
+        },
+        {
+          "source_id": "9wXIjSN_0",
+          "common_prefix": 73,
+          "total_tokens": 131
+        },
+        {
+          "source_id": "H648KvC_0",
+          "common_prefix": 0,
+          "total_tokens": 19
+        },
+        {
+          "source_id": "XM3olKa_42",
+          "common_prefix": 101,
+          "total_tokens": 144
+        },
+        {
+          "source_id": "56SG6XJ_0",
+          "common_prefix": 130,
+          "total_tokens": 246
+        },
+        {
+          "source_id": "KPsUlmc_0",
+          "common_prefix": 72,
+          "total_tokens": 186
+        },
+        {
+          "source_id": "tjdcCcf_0",
+          "common_prefix": 139,
+          "total_tokens": 164
+        },
+        {
+          "source_id": "ySTnqvo_0",
+          "common_prefix": 4,
+          "total_tokens": 172
+        },
+        {
+          "source_id": "R0eSKj7_0",
+          "common_prefix": 37,
+          "total_tokens": 90
+        },
+        {
+          "source_id": "9zcTaA1_0",
+          "common_prefix": 138,
+          "total_tokens": 346
+        },
+        {
+          "source_id": "hFxZLSf_0",
+          "common_prefix": 61,
+          "total_tokens": 247
+        },
+        {
+          "source_id": "bxaY4Lu_0",
+          "common_prefix": 6,
+          "total_tokens": 199
+        },
+        {
+          "source_id": "UPZACij_0",
+          "common_prefix": 4,
+          "total_tokens": 86
+        },
+        {
+          "source_id": "3sQfpua_0",
+          "common_prefix": 54,
+          "total_tokens": 205
+        },
+        {
+          "source_id": "M5oHP82_0",
+          "common_prefix": 147,
+          "total_tokens": 153
+        },
+        {
+          "source_id": "qktLFWS_12",
+          "common_prefix": 21,
+          "total_tokens": 274
+        },
+        {
+          "source_id": "dNpjTQ2_0",
+          "common_prefix": 41,
+          "total_tokens": 290
+        },
+        {
+          "source_id": "ceIN3eQ_0",
+          "common_prefix": 246,
+          "total_tokens": 298
+        },
+        {
+          "source_id": "iElyy4R_0",
+          "common_prefix": 212,
+          "total_tokens": 291
+        },
+        {
+          "source_id": "DVofCDy_0",
+          "common_prefix": 75,
+          "total_tokens": 264
+        },
+        {
+          "source_id": "rmOYBU3_0",
+          "common_prefix": 0,
+          "total_tokens": 377
+        },
+        {
+          "source_id": "pwYMlaD_0",
+          "common_prefix": 24,
+          "total_tokens": 66
+        },
+        {
+          "source_id": "AVnVlaF_0",
+          "common_prefix": 32,
+          "total_tokens": 208
+        },
+        {
+          "source_id": "EAmIORB_6",
+          "common_prefix": 131,
+          "total_tokens": 210
+        },
+        {
+          "source_id": "cNjIqBV_0",
+          "common_prefix": 50,
+          "total_tokens": 144
+        },
+        {
+          "source_id": "4ELMlqz_0",
+          "common_prefix": 55,
+          "total_tokens": 289
+        },
+        {
+          "source_id": "E3xymyG_0",
+          "common_prefix": 61,
+          "total_tokens": 360
+        },
+        {
+          "source_id": "XBJxVa5_0",
+          "common_prefix": 39,
+          "total_tokens": 241
+        },
+        {
+          "source_id": "G8F6zy9_0",
+          "common_prefix": 111,
+          "total_tokens": 297
+        },
+        {
+          "source_id": "gQaSoiF_0",
+          "common_prefix": 38,
+          "total_tokens": 238
+        },
+        {
+          "source_id": "OLc5cYf_186",
+          "common_prefix": 37,
+          "total_tokens": 150
+        },
+        {
+          "source_id": "WBahsz8_0",
+          "common_prefix": 53,
+          "total_tokens": 133
+        },
+        {
+          "source_id": "mnLn1AT_0",
+          "common_prefix": 65,
+          "total_tokens": 257
+        },
+        {
+          "source_id": "AkUGTt5_0",
+          "common_prefix": 61,
+          "total_tokens": 165
+        },
+        {
+          "source_id": "jY5LqFJ_0",
+          "common_prefix": 308,
+          "total_tokens": 358
+        },
+        {
+          "source_id": "36HUam1_0",
+          "common_prefix": 45,
+          "total_tokens": 152
+        },
+        {
+          "source_id": "PnEGNKm_0",
+          "common_prefix": 72,
+          "total_tokens": 145
+        },
+        {
+          "source_id": "B16RWYL_0",
+          "common_prefix": 23,
+          "total_tokens": 369
+        },
+        {
+          "source_id": "7QD86cC_52",
+          "common_prefix": 19,
+          "total_tokens": 259
+        },
+        {
+          "source_id": "kUt94aH_0",
+          "common_prefix": 120,
+          "total_tokens": 368
+        },
+        {
+          "source_id": "gre6y4x_0",
+          "common_prefix": 69,
+          "total_tokens": 301
+        },
+        {
+          "source_id": "g8pzow1_0",
+          "common_prefix": 103,
+          "total_tokens": 179
+        },
+        {
+          "source_id": "KAeejYc_0",
+          "common_prefix": 83,
+          "total_tokens": 233
+        },
+        {
+          "source_id": "ygpp3Hs_24",
+          "common_prefix": 26,
+          "total_tokens": 208
+        },
+        {
+          "source_id": "DwrQp0O_0",
+          "common_prefix": 24,
+          "total_tokens": 292
+        },
+        {
+          "source_id": "WVEQzmQ_0",
+          "common_prefix": 192,
+          "total_tokens": 246
+        },
+        {
+          "source_id": "R62w0hP_0",
+          "common_prefix": 23,
+          "total_tokens": 25
+        },
+        {
+          "source_id": "Z32G1Ew_0",
+          "common_prefix": 27,
+          "total_tokens": 268
+        },
+        {
+          "source_id": "L2g55EN_0",
+          "common_prefix": 147,
+          "total_tokens": 223
+        },
+        {
+          "source_id": "Nky1jVu_0",
+          "common_prefix": 191,
+          "total_tokens": 275
+        },
+        {
+          "source_id": "iyE8oTg_0",
+          "common_prefix": 79,
+          "total_tokens": 115
+        },
+        {
+          "source_id": "PgLzlNy_0",
+          "common_prefix": 93,
+          "total_tokens": 374
+        },
+        {
+          "source_id": "GDmCvZr_0",
+          "common_prefix": 97,
+          "total_tokens": 140
+        },
+        {
+          "source_id": "AQwQtFA_0",
+          "common_prefix": 101,
+          "total_tokens": 115
+        },
+        {
+          "source_id": "sevrbIx_28",
+          "common_prefix": 8,
+          "total_tokens": 226
+        },
+        {
+          "source_id": "BrpePoN_0",
+          "common_prefix": 221,
+          "total_tokens": 365
+        },
+        {
+          "source_id": "3DMq2W8_0",
+          "common_prefix": 34,
+          "total_tokens": 152
+        },
+        {
+          "source_id": "79vV0aT_480",
+          "common_prefix": 73,
+          "total_tokens": 263
+        },
+        {
+          "source_id": "Tb2vcKS_0",
+          "common_prefix": 48,
+          "total_tokens": 94
+        },
+        {
+          "source_id": "8IAGaKF_0",
+          "common_prefix": 134,
+          "total_tokens": 260
+        },
+        {
+          "source_id": "s7g37tq_0",
+          "common_prefix": 102,
+          "total_tokens": 157
+        },
+        {
+          "source_id": "2BnCYCE_0",
+          "common_prefix": 0,
+          "total_tokens": 317
+        },
+        {
+          "source_id": "rNy45nh_0",
+          "common_prefix": 17,
+          "total_tokens": 348
+        },
+        {
+          "source_id": "O7saT14_0",
+          "common_prefix": 117,
+          "total_tokens": 199
+        },
+        {
+          "source_id": "Ef0U6xT_0",
+          "common_prefix": 262,
+          "total_tokens": 316
+        },
+        {
+          "source_id": "DkvZ99h_0",
+          "common_prefix": 180,
+          "total_tokens": 317
+        },
+        {
+          "source_id": "tO3w2Lk_0",
+          "common_prefix": 198,
+          "total_tokens": 242
+        },
+        {
+          "source_id": "C2HmLbG_0",
+          "common_prefix": 23,
+          "total_tokens": 74
+        },
+        {
+          "source_id": "aXm3oMc_0",
+          "common_prefix": 152,
+          "total_tokens": 293
+        },
+        {
+          "source_id": "9PcN7l5_0",
+          "common_prefix": 154,
+          "total_tokens": 307
+        },
+        {
+          "source_id": "x8MqfJd_0",
+          "common_prefix": 68,
+          "total_tokens": 224
+        },
+        {
+          "source_id": "HRGOLg0_0",
+          "common_prefix": 64,
+          "total_tokens": 225
+        },
+        {
+          "source_id": "Lwml2xJ_0",
+          "common_prefix": 2,
+          "total_tokens": 23
+        },
+        {
+          "source_id": "cpIoL0w_0",
+          "common_prefix": 24,
+          "total_tokens": 330
+        },
+        {
+          "source_id": "0fcUU6N_42",
+          "common_prefix": 217,
+          "total_tokens": 309
+        },
+        {
+          "source_id": "jhnxxu3_0",
+          "common_prefix": 358,
+          "total_tokens": 365
+        },
+        {
+          "source_id": "BQKDXEH_0",
+          "common_prefix": 28,
+          "total_tokens": 98
+        },
+        {
+          "source_id": "nTCmHDn_0",
+          "common_prefix": 141,
+          "total_tokens": 148
+        },
+        {
+          "source_id": "IM2PXRb_0",
+          "common_prefix": 24,
+          "total_tokens": 239
+        },
+        {
+          "source_id": "tMF6Iuc_0",
+          "common_prefix": 24,
+          "total_tokens": 264
+        },
+        {
+          "source_id": "gAeSntY_0",
+          "common_prefix": 81,
+          "total_tokens": 106
+        },
+        {
+          "source_id": "ADKC5ef_0",
+          "common_prefix": 72,
+          "total_tokens": 73
+        },
+        {
+          "source_id": "A7Imeo5_0",
+          "common_prefix": 52,
+          "total_tokens": 100
+        },
+        {
+          "source_id": "QxkPcVe_0",
+          "common_prefix": 12,
+          "total_tokens": 152
+        },
+        {
+          "source_id": "VUB8UU7_0",
+          "common_prefix": 30,
+          "total_tokens": 280
+        },
+        {
+          "source_id": "qRbHQU7_0",
+          "common_prefix": 242,
+          "total_tokens": 279
+        },
+        {
+          "source_id": "zIqltTq_0",
+          "common_prefix": 32,
+          "total_tokens": 222
+        },
+        {
+          "source_id": "cswyIgq_0",
+          "common_prefix": 16,
+          "total_tokens": 181
+        },
+        {
+          "source_id": "Dvjs4NK_0",
+          "common_prefix": 56,
+          "total_tokens": 153
+        },
+        {
+          "source_id": "Skn2d2f_0",
+          "common_prefix": 21,
+          "total_tokens": 153
+        },
+        {
+          "source_id": "Y6MteNX_0",
+          "common_prefix": 177,
+          "total_tokens": 214
+        },
+        {
+          "source_id": "2PSSE5M_0",
+          "common_prefix": 140,
+          "total_tokens": 337
+        },
+        {
+          "source_id": "wWaizhq_0",
+          "common_prefix": 245,
+          "total_tokens": 286
+        },
+        {
+          "source_id": "T25cUGi_0",
+          "common_prefix": 93,
+          "total_tokens": 200
+        },
+        {
+          "source_id": "PMQmeWK_0",
+          "common_prefix": 37,
+          "total_tokens": 326
+        },
+        {
+          "source_id": "apUL3i0_0",
+          "common_prefix": 100,
+          "total_tokens": 191
+        },
+        {
+          "source_id": "LZvgiqW_0",
+          "common_prefix": 11,
+          "total_tokens": 219
+        },
+        {
+          "source_id": "ZCQLnrL_0",
+          "common_prefix": 35,
+          "total_tokens": 253
+        },
+        {
+          "source_id": "3sbRtMX_0",
+          "common_prefix": 143,
+          "total_tokens": 232
+        },
+        {
+          "source_id": "h2oWY9d_0",
+          "common_prefix": 120,
+          "total_tokens": 218
+        },
+        {
+          "source_id": "aGtJLzL_0",
+          "common_prefix": 35,
+          "total_tokens": 239
+        },
+        {
+          "source_id": "dugDZvz_0",
+          "common_prefix": 39,
+          "total_tokens": 271
+        },
+        {
+          "source_id": "1TqGpL5_0",
+          "common_prefix": 262,
+          "total_tokens": 303
+        },
+        {
+          "source_id": "Cf47Vg3_0",
+          "common_prefix": 62,
+          "total_tokens": 307
+        },
+        {
+          "source_id": "SrzhB7A_0",
+          "common_prefix": 9,
+          "total_tokens": 19
+        },
+        {
+          "source_id": "29PpoKk_0",
+          "common_prefix": 47,
+          "total_tokens": 76
+        },
+        {
+          "source_id": "Ej1dSES_0",
+          "common_prefix": 58,
+          "total_tokens": 147
+        },
+        {
+          "source_id": "C3yUrx9_0",
+          "common_prefix": 101,
+          "total_tokens": 307
+        },
+        {
+          "source_id": "EkfJYLr_0",
+          "common_prefix": 37,
+          "total_tokens": 375
+        },
+        {
+          "source_id": "4cATQgo_0",
+          "common_prefix": 4,
+          "total_tokens": 162
+        },
+        {
+          "source_id": "99PgYyD_0",
+          "common_prefix": 17,
+          "total_tokens": 355
+        },
+        {
+          "source_id": "E1egnXf_0",
+          "common_prefix": 69,
+          "total_tokens": 185
+        },
+        {
+          "source_id": "aKU5Rlc_0",
+          "common_prefix": 136,
+          "total_tokens": 144
+        },
+        {
+          "source_id": "W4FoFbo_0",
+          "common_prefix": 36,
+          "total_tokens": 167
+        },
+        {
+          "source_id": "IOe9On9_20",
+          "common_prefix": 72,
+          "total_tokens": 326
+        },
+        {
+          "source_id": "TY90cdP_0",
+          "common_prefix": 135,
+          "total_tokens": 159
+        },
+        {
+          "source_id": "pKsBWQ8_0",
+          "common_prefix": 167,
+          "total_tokens": 360
+        },
+        {
+          "source_id": "xNKnVtI_0",
+          "common_prefix": 1,
+          "total_tokens": 153
+        },
+        {
+          "source_id": "OUHbAyJ_0",
+          "common_prefix": 22,
+          "total_tokens": 320
+        },
+        {
+          "source_id": "Eoshrn7_0",
+          "common_prefix": 141,
+          "total_tokens": 171
+        },
+        {
+          "source_id": "KgpLrkM_0",
+          "common_prefix": 70,
+          "total_tokens": 263
+        },
+        {
+          "source_id": "9mYsr51_0",
+          "common_prefix": 76,
+          "total_tokens": 164
+        },
+        {
+          "source_id": "KfgME1b_0",
+          "common_prefix": 43,
+          "total_tokens": 232
+        },
+        {
+          "source_id": "7FRyo7K_0",
+          "common_prefix": 61,
+          "total_tokens": 75
+        },
+        {
+          "source_id": "jY3mZSR_0",
+          "common_prefix": 53,
+          "total_tokens": 82
+        },
+        {
+          "source_id": "0KyRa6n_0",
+          "common_prefix": 70,
+          "total_tokens": 74
+        },
+        {
+          "source_id": "wLr1Bzx_0",
+          "common_prefix": 101,
+          "total_tokens": 181
+        },
+        {
+          "source_id": "pXP0l8j_0",
+          "common_prefix": 183,
+          "total_tokens": 333
+        },
+        {
+          "source_id": "TtyVt5Q_0",
+          "common_prefix": 29,
+          "total_tokens": 333
+        },
+        {
+          "source_id": "TDomHAO_0",
+          "common_prefix": 19,
+          "total_tokens": 178
+        },
+        {
+          "source_id": "Ul0tI4m_0",
+          "common_prefix": 70,
+          "total_tokens": 80
+        },
+        {
+          "source_id": "IM9eyv7_0",
+          "common_prefix": 93,
+          "total_tokens": 292
+        },
+        {
+          "source_id": "osTHjYi_0",
+          "common_prefix": 11,
+          "total_tokens": 99
+        },
+        {
+          "source_id": "K4T9MJT_0",
+          "common_prefix": 170,
+          "total_tokens": 201
+        },
+        {
+          "source_id": "qdI6jvT_0",
+          "common_prefix": 49,
+          "total_tokens": 162
+        },
+        {
+          "source_id": "TT0Krbd_0",
+          "common_prefix": 32,
+          "total_tokens": 104
+        },
+        {
+          "source_id": "E2TiO1M_0",
+          "common_prefix": 77,
+          "total_tokens": 124
+        },
+        {
+          "source_id": "137PQiq_0",
+          "common_prefix": 105,
+          "total_tokens": 277
+        },
+        {
+          "source_id": "qLEszEA_208",
+          "common_prefix": 134,
+          "total_tokens": 135
+        },
+        {
+          "source_id": "H3zu99k_0",
+          "common_prefix": 126,
+          "total_tokens": 214
+        },
+        {
+          "source_id": "qHVvSAi_0",
+          "common_prefix": 28,
+          "total_tokens": 171
+        },
+        {
+          "source_id": "COvQjxx_0",
+          "common_prefix": 246,
+          "total_tokens": 360
+        },
+        {
+          "source_id": "UpYQ1kh_0",
+          "common_prefix": 31,
+          "total_tokens": 366
+        },
+        {
+          "source_id": "LfzNLNz_0",
+          "common_prefix": 76,
+          "total_tokens": 161
+        },
+        {
+          "source_id": "Blo3Oeq_0",
+          "common_prefix": 113,
+          "total_tokens": 137
+        },
+        {
+          "source_id": "RFyI78n_0",
+          "common_prefix": 120,
+          "total_tokens": 174
+        },
+        {
+          "source_id": "RJfyCz0_8",
+          "common_prefix": 38,
+          "total_tokens": 175
+        },
+        {
+          "source_id": "k9w73p7_0",
+          "common_prefix": 58,
+          "total_tokens": 260
+        },
+        {
+          "source_id": "fpN01gG_0",
+          "common_prefix": 23,
+          "total_tokens": 213
+        },
+        {
+          "source_id": "NcbFswQ_0",
+          "common_prefix": 11,
+          "total_tokens": 88
+        },
+        {
+          "source_id": "lru1MYZ_0",
+          "common_prefix": 77,
+          "total_tokens": 158
+        },
+        {
+          "source_id": "HlF8VAI_0",
+          "common_prefix": 86,
+          "total_tokens": 181
+        },
+        {
+          "source_id": "wB4ccAW_0",
+          "common_prefix": 196,
+          "total_tokens": 319
+        },
+        {
+          "source_id": "TWJmWN7_0",
+          "common_prefix": 186,
+          "total_tokens": 326
+        },
+        {
+          "source_id": "9NGexxg_0",
+          "common_prefix": 41,
+          "total_tokens": 235
+        },
+        {
+          "source_id": "1JqLCmz_0",
+          "common_prefix": 28,
+          "total_tokens": 247
+        },
+        {
+          "source_id": "sIyt65A_0",
+          "common_prefix": 241,
+          "total_tokens": 301
+        },
+        {
+          "source_id": "boKkcGk_0",
+          "common_prefix": 72,
+          "total_tokens": 177
+        },
+        {
+          "source_id": "0pgLyw6_0",
+          "common_prefix": 168,
+          "total_tokens": 266
+        },
+        {
+          "source_id": "xkWMnwQ_0",
+          "common_prefix": 47,
+          "total_tokens": 48
+        },
+        {
+          "source_id": "Mc8x3Ck_0",
+          "common_prefix": 140,
+          "total_tokens": 286
+        },
+        {
+          "source_id": "l18n85B_0",
+          "common_prefix": 19,
+          "total_tokens": 105
+        },
+        {
+          "source_id": "o4OS4nZ_0",
+          "common_prefix": 75,
+          "total_tokens": 201
+        },
+        {
+          "source_id": "hfMRdKA_0",
+          "common_prefix": 293,
+          "total_tokens": 325
+        },
+        {
+          "source_id": "iPG1LFG_0",
+          "common_prefix": 142,
+          "total_tokens": 313
+        },
+        {
+          "source_id": "ecotV08_0",
+          "common_prefix": 49,
+          "total_tokens": 149
+        },
+        {
+          "source_id": "1sxNkyQ_4",
+          "common_prefix": 148,
+          "total_tokens": 325
+        },
+        {
+          "source_id": "AzCJFXG_0",
+          "common_prefix": 14,
+          "total_tokens": 147
+        },
+        {
+          "source_id": "XMlRI9K_0",
+          "common_prefix": 138,
+          "total_tokens": 342
+        },
+        {
+          "source_id": "SuWluSo_0",
+          "common_prefix": 152,
+          "total_tokens": 367
+        },
+        {
+          "source_id": "byQk0DN_0",
+          "common_prefix": 6,
+          "total_tokens": 227
+        },
+        {
+          "source_id": "smnoGSh_12",
+          "common_prefix": 163,
+          "total_tokens": 370
+        },
+        {
+          "source_id": "TPwqFEW_0",
+          "common_prefix": 85,
+          "total_tokens": 364
+        },
+        {
+          "source_id": "IkYYvSd_0",
+          "common_prefix": 32,
+          "total_tokens": 377
+        },
+        {
+          "source_id": "X3u1EBj_0",
+          "common_prefix": 185,
+          "total_tokens": 365
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "Groups 0/1 are exact-context fingerprint cache OFF/ON, not K caps. Both retain H8/HF0.8/cap8 and both validated Draft/Target sequence floors1024; Target compatible bounds, both metadata experiments and GEMM patch OFF. Same runtime commit, frozen workload and client; fresh services,128/C16/128 warmup. Interior Graph counters exclude boundary tails. CPU/GPU timing assertions and strict outputs remain separate."
+  ]
+}
