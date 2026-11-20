@@ -1,0 +1,8 @@
+{
+  "scope": "saved results/<experiment>/<run>/launch.sh only; no claim of exhaustive host history",
+  "scanned_launches": 145,
+  "counts": {
+    "0.8": 145
+  },
+  "non_default_paths": {}
+}
