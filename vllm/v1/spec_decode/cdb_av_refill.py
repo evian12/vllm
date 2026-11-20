@@ -181,6 +181,12 @@ class RefillSession:
         self._input_stager = get_input_stager(proposer)
         self.policy = os.getenv('CDB_AV_K_POLICY', 'manual').strip().lower()
         self.threshold = float(os.getenv('CDB_AV_HF_THRESHOLD', '0.4'))
+        from vllm.v1.spec_decode.cdb_av_config import is_enabled
+        self.chain_graph = is_enabled('CDB_AV_DRAFT_CHAIN_GRAPH')
+        self._chain_pending = None
+        if self.chain_graph:
+            from vllm.v1.spec_decode.cdb_av_chain_graph import validate_chain_scope
+            validate_chain_scope(proposer, self.policy)
         if self.policy not in ('manual', 'hf_confidence', 'replay_acceptance',
                                'request_avg_acceptance') or not 0 <= self.threshold <= 1:
             raise ValueError('Invalid refill stopping policy')
@@ -294,7 +300,14 @@ class RefillSession:
         """Identify every model/cache buffer whose address a capture retains."""
         p = self.p
         layers = p.vllm_config.compilation_config.static_forward_context
-        return (p.input_ids.data_ptr(), p._get_positions(1).data_ptr(),
+        chain = ()
+        if getattr(self, 'chain_graph', False):
+            import threading
+            from vllm.v1.spec_decode.cdb_av_chain_graph import chain_storage
+            chain = ('draft_chain', threading.get_ident(),
+                     torch.cuda.current_stream(p.device).cuda_stream,
+                     *chain_storage(p.model))
+        return (*chain, p.input_ids.data_ptr(), p._get_positions(1).data_ptr(),
                 p._slot_mapping_buffer.data_ptr(),
                 *(layers[name].kv_cache[0].data_ptr()
                   for name in p.attn_layer_names))
@@ -379,6 +392,12 @@ class RefillSession:
         if profile is not None:
             profile.end('metadata')
 
+        chain = getattr(self, 'chain_graph', False)
+        if chain and dynamic_layout:
+            if 'chain_last' not in entry:
+                entry['chain_last'] = torch.empty_like(last_indices)
+            entry['chain_last'].copy_(last_indices)
+
         if key not in cache:
             # Capture only after all live metadata and input buffers are valid.
             # The next replay performs the current forward with those values.
@@ -394,6 +413,17 @@ class RefillSession:
                     ret = p.model(input_ids=p.input_ids[:n],
                                   positions=p._get_positions(n),
                                   inputs_embeds=None)
+                if chain:
+                    from vllm.v1.spec_decode.cdb_av_chain_graph import native_hf_packet
+                    hidden = ret[0] if p.model_returns_tuple() else ret
+                    if len(key) >= 3:
+                        hidden = hidden[entry['chain_last'] if dynamic_layout
+                                        else entry['last_indices']]
+                    chain_logits = p.model.compute_logits(hidden)
+                    chain_packet = native_hf_packet(chain_logits)
+            if chain:
+                entry['chain_logits'] = chain_logits
+                entry['chain_packet'] = chain_packet
             entry['graph'] = graph
             entry['hidden'] = ret[0] if p.model_returns_tuple() else ret
             cache[key] = entry
@@ -419,15 +449,19 @@ class RefillSession:
                                        if dynamic_layout else None),
                 static_max_query_len=static_cad.max_query_len,
                 dynamic_layout=dynamic_layout)))
-        hidden = entry['hidden']
-        if profile is not None:
-            profile.start('logits')
-        if len(key) >= 3:
-            hidden = hidden[last_indices if dynamic_layout
-                            else entry['last_indices']]
-        logits = p.model.compute_logits(hidden)
-        if profile is not None:
-            profile.end('logits')
+        if chain:
+            logits = entry['chain_logits']
+            self._chain_pending = (logits, entry['chain_packet'])
+        else:
+            hidden = entry['hidden']
+            if profile is not None:
+                profile.start('logits')
+            if len(key) >= 3:
+                hidden = hidden[last_indices if dynamic_layout
+                                else entry['last_indices']]
+            logits = p.model.compute_logits(hidden)
+            if profile is not None:
+                profile.end('logits')
         if os.getenv('CDB_AV_DRAFT_GRAPH_VALIDATE', '0') == '1':
             # Diagnostic only. The eager replay writes the same owned slots;
             # compare them before allowing a later Draft step to observe them.
@@ -459,6 +493,16 @@ class RefillSession:
             logits_close = torch.allclose(logits, eager_logits,
                                           rtol=1e-3, atol=1e-3)
             max_abs = (logits - eager_logits).abs().max().item()
+            if chain:
+                from vllm.v1.spec_decode.cdb_av_chain_graph import native_hf_packet
+                packet_exact = torch.equal(entry['chain_packet'].view(torch.uint8),
+                                           native_hf_packet(eager_logits).view(torch.uint8))
+                logits_exact = torch.equal(logits.view(torch.uint8), eager_logits.view(torch.uint8))
+                logger.info('[CDB_DRAFT_CHAIN_VALIDATE] %s', json.dumps(dict(
+                    rows=logits.shape[0], action=action, dynamic=dynamic_layout,
+                    logits_byte_exact=logits_exact, packet_byte_exact=packet_exact)))
+                if not (packet_exact and logits_exact):
+                    raise RuntimeError('Draft chain Graph/eager byte mismatch')
             # Also compare against the original eager path, whose metadata
             # uses the live (unbucketed) sequence length and block width.
             dynamic_metadata = self.builder.build_for_drafting(
@@ -508,6 +552,7 @@ class RefillSession:
         return logits
 
     def _forward(self, ids, positions, cad, last_indices, req_ids, phase):
+        self._chain_pending = None
         p = self.p
         n = ids.numel()
         if n <= 0 or len(req_ids) > self.capacity:
@@ -861,17 +906,20 @@ class RefillSession:
                 # The confidence of the greedy token is exp(max(logits) -
                 # logsumexp(logits)). Avoid materializing a full log_softmax
                 # tensor for every vocabulary row.
-                logits_fp32 = logits.float()
-                max_logits, tokens = logits_fp32.max(dim=-1)
-                log_normalizer = torch.logsumexp(logits_fp32, dim=-1)
-                confidence = (max_logits - log_normalizer).exp()
-                # Pack the small per-request result before D2H. A single
-                # synchronization is cheaper than separately materializing
-                # confidence.cpu().tolist() and tokens.tolist().
-                packed_gpu = torch.stack(
-                    (tokens.to(torch.float64), confidence.to(torch.float64)),
-                    dim=1,
-                )
+                packed_gpu = None
+                if getattr(self, 'chain_graph', False):
+                    from vllm.v1.spec_decode.cdb_av_chain_graph import consume_packet
+                    packed_gpu = consume_packet(self._chain_pending, logits)
+                    self._chain_pending = None
+                if packed_gpu is None:
+                    logits_fp32 = logits.float()
+                    max_logits, tokens = logits_fp32.max(dim=-1)
+                    log_normalizer = torch.logsumexp(logits_fp32, dim=-1)
+                    confidence = (max_logits - log_normalizer).exp()
+                    packed_gpu = torch.stack(
+                        (tokens.to(torch.float64), confidence.to(torch.float64)),
+                        dim=1,
+                    )
                 if sample is not None:
                     sample.end('confidence_gpu')
                     d2h_total_start = time.perf_counter()
