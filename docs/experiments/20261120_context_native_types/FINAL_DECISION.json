@@ -1,0 +1,105 @@
+{
+  "decision": "retain_opt_in",
+  "source_commit": "fdad8bc258064c6c308554a43e57e26c5746955d",
+  "default_changed": false,
+  "independent_flag": "CDB_AV_CONTEXT_NATIVE_TYPES",
+  "recommended_value": 1,
+  "groups": {
+    "0": {
+      "n": 3,
+      "tps": [
+        283.13919578346946,
+        284.3102273231593,
+        286.1188024710593
+      ],
+      "mean_tps": 284.52274185922937,
+      "sd_tps": 1.501128183804888,
+      "mean_run_e2e_p95": 21.253757235563047,
+      "mean_run_ttft_p95": 0.34579075885315735,
+      "verify_events": 68324.0,
+      "candidates": 183621.0,
+      "accepted": 147117.0,
+      "target_iterations": 40470.0,
+      "acceptance_rate": 0.8011992092407731,
+      "mean_verified_K": 2.687503659036356,
+      "verify_events_per_target_iteration": 1.688262910798122,
+      "draft_dispatches": 48632,
+      "mean_draft_request_rows": 3.7757238032571148
+    },
+    "1": {
+      "n": 3,
+      "tps": [
+        288.65990939381777,
+        288.9163826435826,
+        289.33246829252647
+      ],
+      "mean_tps": 288.9695867766423,
+      "sd_tps": 0.33942138690577356,
+      "mean_run_e2e_p95": 20.703980147792024,
+      "mean_run_ttft_p95": 0.3509350257615248,
+      "verify_events": 67628.0,
+      "candidates": 183499.0,
+      "accepted": 147358.0,
+      "target_iterations": 40398.0,
+      "acceptance_rate": 0.8030452482029875,
+      "mean_verified_K": 2.71335837227184,
+      "verify_events_per_target_iteration": 1.6740432694687857,
+      "draft_dispatches": 48497,
+      "mean_draft_request_rows": 3.7837185805307545
+    }
+  },
+  "ratio_of_means_change_pct": 1.5629137018555284,
+  "mean_run_e2e_p95_change_pct": -2.58672893304297,
+  "paired_mean_change_pct": 1.564377304323646,
+  "paired_sd_change_pct": 0.4161244159927254,
+  "strict_output_equivalence": false,
+  "exact_output_requests": [
+    195,
+    203,
+    244
+  ],
+  "completed_requests": 3072,
+  "failed": 0,
+  "output_tokens": 606018,
+  "own_services_released": true,
+  "preregistered_criteria": {
+    "time": 1795136151.247916,
+    "source_commit": "fdad8bc258064c6c308554a43e57e26c5746955d",
+    "independent": "CDB_AV_CONTEXT_NATIVE_TYPES=0/1",
+    "fixed_context_fingerprint_cache": 1,
+    "prescribed_runs": 3,
+    "seeds": [
+      42,
+      43,
+      44
+    ],
+    "order": [
+      [
+        0,
+        1
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        0,
+        1
+      ]
+    ],
+    "retain_if": [
+      "all3 paired TPS changes >0",
+      "ratio of means TPS improvement >=0.5%",
+      "mean run E2E P95 increase <=1%"
+    ],
+    "always_report": [
+      "TTFT P95",
+      "all per-seed E2E P95",
+      "whole token ID differences",
+      "variance",
+      "all failures"
+    ],
+    "no_extra_runs_to_pick_success": true,
+    "global_optimality_claim": false
+  }
+}
