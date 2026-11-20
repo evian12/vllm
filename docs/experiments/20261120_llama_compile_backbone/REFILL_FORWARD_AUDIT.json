@@ -1,5 +1,5 @@
 {
-  "log": "/home/yypan/CDB-AV/results/llama_compile_backbone_20261120/gate_compiled_warmup1024/server.log",
+  "log": "/disk14T/yypan/CDB-AV-runtime/results/llama_compile_backbone_20261120/gate_compiled_warmup1024/server.log",
   "positive_step_admissions": 1049,
   "next_forward_same_window": 1049,
   "with_ready_and_surviving_active_rows": 967,

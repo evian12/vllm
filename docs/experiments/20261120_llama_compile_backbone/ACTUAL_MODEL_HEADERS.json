@@ -1,0 +1,207 @@
+{
+  "target": {
+    "path": "/disk14T/yypan/models/Llama-3.1-8B-Instruct",
+    "config_sha256": "073b48b1c601acd5e592000aaf13131055f26bb22e8fc71befced9b9213b6799",
+    "dimensions": {
+      "H": 4096,
+      "I": 14336,
+      "layers": 32,
+      "heads": 32,
+      "kv_heads": 8,
+      "head_dim": 128,
+      "vocab": 128256
+    },
+    "tie_word_embeddings": false,
+    "tensors": {
+      "model.layers.0.self_attn.q_proj.weight": {
+        "shape": [
+          4096,
+          4096
+        ],
+        "dtype": "BF16",
+        "raw_key": "model.layers.0.self_attn.q_proj.weight",
+        "logical_tied_alias": false
+      },
+      "model.layers.0.self_attn.k_proj.weight": {
+        "shape": [
+          1024,
+          4096
+        ],
+        "dtype": "BF16",
+        "raw_key": "model.layers.0.self_attn.k_proj.weight",
+        "logical_tied_alias": false
+      },
+      "model.layers.0.self_attn.v_proj.weight": {
+        "shape": [
+          1024,
+          4096
+        ],
+        "dtype": "BF16",
+        "raw_key": "model.layers.0.self_attn.v_proj.weight",
+        "logical_tied_alias": false
+      },
+      "model.layers.0.self_attn.o_proj.weight": {
+        "shape": [
+          4096,
+          4096
+        ],
+        "dtype": "BF16",
+        "raw_key": "model.layers.0.self_attn.o_proj.weight",
+        "logical_tied_alias": false
+      },
+      "model.layers.0.mlp.gate_proj.weight": {
+        "shape": [
+          14336,
+          4096
+        ],
+        "dtype": "BF16",
+        "raw_key": "model.layers.0.mlp.gate_proj.weight",
+        "logical_tied_alias": false
+      },
+      "model.layers.0.mlp.up_proj.weight": {
+        "shape": [
+          14336,
+          4096
+        ],
+        "dtype": "BF16",
+        "raw_key": "model.layers.0.mlp.up_proj.weight",
+        "logical_tied_alias": false
+      },
+      "model.layers.0.mlp.down_proj.weight": {
+        "shape": [
+          4096,
+          14336
+        ],
+        "dtype": "BF16",
+        "raw_key": "model.layers.0.mlp.down_proj.weight",
+        "logical_tied_alias": false
+      },
+      "lm_head.weight": {
+        "shape": [
+          128256,
+          4096
+        ],
+        "dtype": "BF16",
+        "raw_key": "lm_head.weight",
+        "logical_tied_alias": false
+      },
+      "model.embed_tokens.weight": {
+        "shape": [
+          128256,
+          4096
+        ],
+        "dtype": "BF16",
+        "raw_key": "model.embed_tokens.weight",
+        "logical_tied_alias": false
+      }
+    },
+    "safetensor_header_sha256": {
+      "/disk14T/yypan/models/Llama-3.1-8B-Instruct/model-00001-of-00004.safetensors": "b858d3d845fa68f9c7db308e7ad49173e6141385380f57dfcf93e6da69777bd3",
+      "/disk14T/yypan/models/Llama-3.1-8B-Instruct/model-00004-of-00004.safetensors": "bed1eb708f106718a4953e6e08d2842983985a567322d46914ded7ba02db6479"
+    },
+    "weights_data_checksummed": false,
+    "runtime_alias_pointer_probed": false
+  },
+  "draft": {
+    "path": "/disk14T/yypan/CDB-AV-runtime/baseline-comparison-20261113/models/Llama-3.2-1B-Instruct",
+    "config_sha256": "dfb67fd8afe73a1c75245824ef9d64a6ba8983025447e3bf76aa1ea57ee46152",
+    "dimensions": {
+      "H": 2048,
+      "I": 8192,
+      "layers": 16,
+      "heads": 32,
+      "kv_heads": 8,
+      "head_dim": 64,
+      "vocab": 128256
+    },
+    "tie_word_embeddings": true,
+    "tensors": {
+      "model.layers.0.self_attn.q_proj.weight": {
+        "shape": [
+          2048,
+          2048
+        ],
+        "dtype": "BF16",
+        "raw_key": "model.layers.0.self_attn.q_proj.weight",
+        "logical_tied_alias": false
+      },
+      "model.layers.0.self_attn.k_proj.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "BF16",
+        "raw_key": "model.layers.0.self_attn.k_proj.weight",
+        "logical_tied_alias": false
+      },
+      "model.layers.0.self_attn.v_proj.weight": {
+        "shape": [
+          512,
+          2048
+        ],
+        "dtype": "BF16",
+        "raw_key": "model.layers.0.self_attn.v_proj.weight",
+        "logical_tied_alias": false
+      },
+      "model.layers.0.self_attn.o_proj.weight": {
+        "shape": [
+          2048,
+          2048
+        ],
+        "dtype": "BF16",
+        "raw_key": "model.layers.0.self_attn.o_proj.weight",
+        "logical_tied_alias": false
+      },
+      "model.layers.0.mlp.gate_proj.weight": {
+        "shape": [
+          8192,
+          2048
+        ],
+        "dtype": "BF16",
+        "raw_key": "model.layers.0.mlp.gate_proj.weight",
+        "logical_tied_alias": false
+      },
+      "model.layers.0.mlp.up_proj.weight": {
+        "shape": [
+          8192,
+          2048
+        ],
+        "dtype": "BF16",
+        "raw_key": "model.layers.0.mlp.up_proj.weight",
+        "logical_tied_alias": false
+      },
+      "model.layers.0.mlp.down_proj.weight": {
+        "shape": [
+          2048,
+          8192
+        ],
+        "dtype": "BF16",
+        "raw_key": "model.layers.0.mlp.down_proj.weight",
+        "logical_tied_alias": false
+      },
+      "lm_head.weight": {
+        "shape": [
+          128256,
+          2048
+        ],
+        "dtype": "BF16",
+        "raw_key": "model.embed_tokens.weight",
+        "logical_tied_alias": true
+      },
+      "model.embed_tokens.weight": {
+        "shape": [
+          128256,
+          2048
+        ],
+        "dtype": "BF16",
+        "raw_key": "model.embed_tokens.weight",
+        "logical_tied_alias": false
+      }
+    },
+    "safetensor_header_sha256": {
+      "/disk14T/yypan/CDB-AV-runtime/baseline-comparison-20261113/models/Llama-3.2-1B-Instruct/model.safetensors": "98e2ee0633669af8e7fa5d23f2b9353b115954fd11d75e92d0aa825a9b962e41"
+    },
+    "weights_data_checksummed": false,
+    "runtime_alias_pointer_probed": false
+  }
+}
