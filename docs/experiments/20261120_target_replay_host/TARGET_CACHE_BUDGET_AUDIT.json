@@ -1,0 +1,95 @@
+{
+  "traces": [
+    {
+      "run": "gate_replay_host",
+      "calls": 645,
+      "actual24": {
+        "fallback_layout": 58,
+        "fallback_warmup": 176,
+        "capture": 14,
+        "replay": 397
+      },
+      "counterfactual": {
+        "24": {
+          "fallback_layout": 58,
+          "fallback_warmup": 176,
+          "capture": 14,
+          "replay": 397
+        },
+        "28": {
+          "fallback_layout": 58,
+          "fallback_warmup": 176,
+          "capture": 14,
+          "replay": 397
+        },
+        "32": {
+          "fallback_layout": 58,
+          "fallback_warmup": 176,
+          "capture": 14,
+          "replay": 397
+        }
+      }
+    },
+    {
+      "run": "gate_native",
+      "calls": 657,
+      "actual24": {
+        "fallback_layout": 57,
+        "fallback_warmup": 190,
+        "capture": 17,
+        "replay": 393
+      },
+      "counterfactual": {
+        "24": {
+          "fallback_layout": 57,
+          "fallback_warmup": 190,
+          "capture": 17,
+          "replay": 393
+        },
+        "28": {
+          "fallback_layout": 57,
+          "fallback_warmup": 190,
+          "capture": 17,
+          "replay": 393
+        },
+        "32": {
+          "fallback_layout": 57,
+          "fallback_warmup": 190,
+          "capture": 17,
+          "replay": 393
+        }
+      }
+    },
+    {
+      "run": "gate_cache",
+      "calls": 657,
+      "actual24": {
+        "fallback_layout": 57,
+        "fallback_warmup": 190,
+        "capture": 17,
+        "replay": 393
+      },
+      "counterfactual": {
+        "24": {
+          "fallback_layout": 57,
+          "fallback_warmup": 190,
+          "capture": 17,
+          "replay": 393
+        },
+        "28": {
+          "fallback_layout": 57,
+          "fallback_warmup": 190,
+          "capture": 17,
+          "replay": 393
+        },
+        "32": {
+          "fallback_layout": 57,
+          "fallback_warmup": 190,
+          "capture": 17,
+          "replay": 393
+        }
+      }
+    }
+  ],
+  "scope": "The 24-key baseline reproduces actual diagnostic events. Other cap values reuse the exact recorded workload, assume capture succeeds and no storage resets. Does not estimate latency, GPU memory or 512-request throughput."
+}

@@ -1,0 +1,26 @@
+{
+  "total_target_begin": 645,
+  "target_forward_verify_batch_histogram": {
+    "0": 110,
+    "3": 90,
+    "2": 149,
+    "1": 172,
+    "4": 124
+  },
+  "target_forward_row_histogram": {
+    "2": 25,
+    "4": 574,
+    "3": 34,
+    "1": 12
+  },
+  "selection_opportunities": 647,
+  "ready_queue_nonempty_opportunities": 593,
+  "ready_queue_nonempty_with_no_selected": 58,
+  "ready_queue_nonempty_with_no_selected_and_nonready_full": 58,
+  "no_candidate_with_any_scheduled_multitoken": 47,
+  "no_candidate_with_only_scheduled_single_rows": 63,
+  "h_boundaries": 124,
+  "ar_target_bypasses": 349,
+  "source": "/home/yypan/CDB-AV/results/target_replay_host_20261120/gate_replay_host/server.log",
+  "scope": "One 80-client correctness diagnostic, with heavy GPU checks. Selection opportunities need not execute a model. This is not the formal throughput workload, and verify rows are not final outputs."
+}
