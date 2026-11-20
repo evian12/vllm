@@ -210,7 +210,8 @@ def gpu_inputs(counts,vocab=256,dtype=torch.float32):
     m=SpecDecodeMetadata(draft_token_ids=t([i%vocab for i in range(n)]),
         num_draft_tokens=list(counts),cu_num_draft_tokens=t(cd),
         cu_num_sampled_tokens=t(cs),target_logits_indices=t(targets),
-        bonus_logits_indices=t(bonus),logits_indices=t(list(range(n+r))))
+        bonus_logits_indices=t(bonus),
+        logits_indices=torch.arange(n+r,dtype=torch.int64,device='cuda'))
     sampling=SamplingMetadata(temperature=None,all_greedy=True,all_random=False,
         top_p=None,top_k=None,generators={},max_num_logprobs=None,no_penalties=True,
         prompt_token_ids=None,frequency_penalties=torch.empty(0),
@@ -262,3 +263,36 @@ def test_real_vocab_graph_cache_and_memory_bound(dtype):
     assert torch.equal(limited(m,None,l,s).sampled_token_ids,
                        sampler(m,None,l,s).sampled_token_ids)
     assert not limited.cache
+
+
+@GPU
+@pytest.mark.parametrize('dtype',[torch.bfloat16,torch.float32])
+def test_default_eight_key_cache_real_vocab_peak_allocation(dtype):
+    import json
+    from pathlib import Path
+    from vllm.v1.sample.sampler import Sampler
+    from vllm.v1.sample.rejection_sampler import RejectionSampler
+    sampler=RejectionSampler(Sampler());wrapper=GreedyVerifyGraph(sampler,min_hits=1)
+    counts=[[1,1,1,1],[2,1,1,1],[2,2,1,1],[3,2,1,1],
+            [4,3,1,1],[8,3,1,1],[8,4,1,1],[8,6,1,1]]
+    torch.cuda.synchronize()
+    initial=torch.cuda.memory_allocated()
+    torch.cuda.reset_peak_memory_stats()
+    for row in counts:
+        m,l,s=gpu_inputs(row,128256,dtype=dtype)
+        expected=sampler(m,None,l,s).sampled_token_ids
+        actual=wrapper(m,None,l,s).sampled_token_ids
+        assert torch.equal(actual,expected)
+    torch.cuda.synchronize()
+    peak_delta=torch.cuda.max_memory_allocated()-initial
+    assert len(wrapper.cache)==8
+    assert wrapper.estimated_bytes<=wrapper.max_bytes
+    # This explicit primitive memory gate must pass before model integration;
+    # it is not a general proof that estimate bounds every CUDA allocation.
+    assert peak_delta<=512<<20
+    stats=dict(dtype=str(dtype),keys=len(wrapper.cache),estimated_bytes=wrapper.estimated_bytes,
+               peak_allocated_delta_bytes=peak_delta,peak_reserved_bytes=torch.cuda.max_memory_reserved(),
+               scope='isolated primitive eight historical warm-cache shapes, not model-service peak')
+    if os.getenv('CDB_VERIFY_GPU_STATS_DIR'):
+        root=Path(os.environ['CDB_VERIFY_GPU_STATS_DIR']);root.mkdir(exist_ok=True,parents=True)
+        (root/('memory_'+str(dtype).replace('.','_')+'.json')).write_text(json.dumps(stats,indent=2)+'\n')
