@@ -280,3 +280,28 @@ def test_target_graph_timing_ignores_sample_limit_when_disabled():
         'CDB_AV_TARGET_GRAPH_TIMING': '0',
         'CDB_AV_TARGET_GRAPH_TIMING_MAX_SAMPLES': 'not-used',
     }) == (False, 5)
+
+
+
+@pytest.mark.parametrize('case,expected', [
+    ('shared_view', True),
+    ('mixed_views', True),
+    ('later_pointer_mismatch', False),
+    ('later_shape_mismatch', False),
+])
+def test_replay_host_slot_guard_matches_original_for_all_layers(case, expected):
+    from vllm.v1.spec_decode.cdb_av_target_graph import slot_mappings_match
+
+    storage = torch.arange(32)
+    reference = storage[:8]
+    alias = storage[:8]
+    slots = [alias] * 32
+    if case == 'mixed_views':
+        slots[17] = reference
+        slots[26] = storage[:8]
+    elif case == 'later_pointer_mismatch':
+        slots[-1] = storage[1:9]
+    elif case == 'later_shape_mismatch':
+        slots[-1] = storage[:7]
+    assert slot_mappings_match(slots, reference) is expected
+    assert slot_mappings_match(slots, reference, fast=True) is expected

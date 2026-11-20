@@ -122,6 +122,26 @@ def compatible_graph_key(key, cached_keys):
     return min(candidates, key=lambda other: other[3], default=None)
 
 
+def slot_mappings_match(slots, reference, *, fast=False):
+    if not fast or type(reference) is not torch.Tensor:
+        return all(slot.data_ptr() == reference.data_ptr()
+                   and slot.shape == reference.shape for slot in slots)
+
+    # The runner gives each layer in one KV cache group the same Tensor.
+    # Check every layer in the current call, with one pointer/shape check for
+    # consecutive aliases of an already checked, plain Tensor object.
+    pointer, shape = reference.data_ptr(), reference.shape
+    checked = reference
+    for slot in slots:
+        if slot is checked:
+            continue
+        if slot.data_ptr() != pointer or slot.shape != shape:
+            return False
+        if type(slot) is torch.Tensor:
+            checked = slot
+    return True
+
+
 def metadata_has_no_planner(meta):
     # FA2 builder uses scalar0 for the inactive DCP maximum, not None.
     return (not meta.use_cascade and not meta.common_prefix_len and meta.causal
@@ -206,6 +226,10 @@ class TargetFullGraph:
             raise ValueError('Invalid Target Graph cache budget/frequency')
         self.cache, self.hits, self.counts = {}, Counter(), Counter()
         self.reuse_bounds = bound_reuse_opt_in()
+        replay_host = os.getenv('CDB_AV_TARGET_REPLAY_HOST', '0')
+        if replay_host not in ('0', '1'):
+            raise ValueError('CDB_AV_TARGET_REPLAY_HOST must be 0 or 1')
+        self.replay_host = replay_host == '1'
         self.storage = None
         self.timing_enabled, self.timing_max_samples = target_graph_timing_config()
         self.timing_samples = 0
@@ -271,9 +295,19 @@ class TargetFullGraph:
                 or any(m is not live for m in metas.values())
                 or any(getattr(live, field).device != input_ids.device for field in
                        ('query_start_loc','seq_lens','block_table','slot_mapping'))
-                or not metadata_has_no_planner(live)
-                or any(s.data_ptr() != live.slot_mapping.data_ptr()
-                       or s.shape != live.slot_mapping.shape for s in slots.values())):
+                or not metadata_has_no_planner(live)):
+            self._record('fallback_metadata')
+            return None
+        validate = os.getenv('CDB_AV_TARGET_GRAPH_VALIDATE', '0') == '1'
+        slots_match = slot_mappings_match(slots.values(), live.slot_mapping,
+                                          fast=self.replay_host)
+        if self.replay_host and validate:
+            if slots_match != slot_mappings_match(slots.values(), live.slot_mapping):
+                raise RuntimeError('Slot mapping guard disagrees with per-layer checks')
+            self.counts['slot_guard_compared'] += 1
+            if len({id(slot) for slot in slots.values()}) == 1:
+                self.counts['slot_guard_shared_tensor'] += 1
+        if not slots_match:
             self._record('fallback_metadata')
             return None
         n = input_ids.numel()
@@ -309,16 +343,19 @@ class TargetFullGraph:
             update_metadata(static, live, mixed_bound=self.max_query if self.dynamic else None)
             entry['ids'].copy_(input_ids)
             entry['positions'].copy_(positions)
-        static_metas = {name: static for name in self.layers}
-        static_slots = {name: static.slot_mapping for name in self.layers}
+        capturing = key not in self.cache
+        if capturing or not self.replay_host:
+            static_metas = {name: static for name in self.layers}
+            static_slots = {name: static.slot_mapping for name in self.layers}
 
-        def model(meta, slotmap, ids, pos):
-            with set_forward_context(meta, r.vllm_config, num_tokens=n,
-                    cudagraph_runtime_mode=CUDAGraphMode.NONE, slot_mapping=slotmap):
-                return r.model(input_ids=ids, positions=pos,
-                    intermediate_tensors=None, inputs_embeds=None)
+        if capturing or validate or not self.replay_host:
+            def model(meta, slotmap, ids, pos):
+                with set_forward_context(meta, r.vllm_config, num_tokens=n,
+                        cudagraph_runtime_mode=CUDAGraphMode.NONE, slot_mapping=slotmap):
+                    return r.model(input_ids=ids, positions=pos,
+                        intermediate_tensors=None, inputs_embeds=None)
 
-        if key not in self.cache:
+        if capturing:
             torch.cuda.synchronize(input_ids.device)
             graph = torch.cuda.CUDAGraph()
             # Private pools avoid cross-key temporary/output lifetime assumptions.
@@ -337,7 +374,7 @@ class TargetFullGraph:
                      query_lengths=[b-a for a,b in zip(starts, starts[1:])], padding=0,
                      requested_key=requested_key, bound_reuse=key != requested_key)
         result = entry['hidden']
-        if os.getenv('CDB_AV_TARGET_GRAPH_VALIDATE', '0') == '1':
+        if validate:
             if self.timing_enabled:
                 # In timing mode, sample only warmed Graph replays. Capture calls
                 # are not representative of steady-state replay cost.
@@ -459,7 +496,9 @@ class TargetFullGraph:
                 kv[:,block,offset] = saved[name]
         logger.info('[CDB_TARGET_FULL_GRAPH_VALIDATE] %s',json.dumps(dict(
             action=action,key=key,req_ids=req_ids,qlens=qlens,positions=positions,
-            slot_mapping=actual_slots,layers=list(caches),checks=checks,extra_eager_forwards=2)))
+            slot_mapping=actual_slots,layers=list(caches),checks=checks,extra_eager_forwards=2,
+            slot_guard_compared=self.counts['slot_guard_compared'],
+            slot_guard_shared_tensor=self.counts['slot_guard_shared_tensor'])))
         if not all(c['kv_byte_exact'] and c['token_exact'] and c['logits_close'] for c in checks):
             raise RuntimeError('Target full Graph/static/live eager mismatch')
         if timing is not None:
