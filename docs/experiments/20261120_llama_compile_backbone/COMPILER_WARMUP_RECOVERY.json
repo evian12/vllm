@@ -1,0 +1,11 @@
+{
+  "reason": "Both models compiled for (1, 1028). Native CUDA Graph NONE means there was no legal capture size covering the range. Worker selected the end 1028 for dummy warmup, where runtime budget assertion is 1024.",
+  "failed_gate": "gate_compiled",
+  "retry": "Explicit compile_sizes=[1024] in both configurations. This size covers the computed range for startup warmup. Keep max_num_batched_tokens=1024, assert intact, manual Graph and original reference checks.",
+  "release": {
+    "port_closed": true,
+    "memory_mib": 15,
+    "our_gpu_pids": [],
+    "time": 1795149977.1534982
+  }
+}

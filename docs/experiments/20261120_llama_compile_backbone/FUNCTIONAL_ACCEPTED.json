@@ -1,0 +1,609 @@
+{
+  "model": "llama",
+  "warmup_requests": 64,
+  "measured_requests": 16,
+  "target_scope": [
+    {
+      "model": "LlamaForCausalLM",
+      "layers": 32,
+      "fa_version": 2,
+      "llama_opt_in": true,
+      "dtype": "torch.bfloat16"
+    }
+  ],
+  "draft_graph_checks": 706,
+  "target_graph_checks": 411,
+  "cap": 8,
+  "completed": 16,
+  "ready": 1202,
+  "verified": 1202,
+  "K_values": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8
+  ],
+  "reasons": [
+    "low_confidence",
+    "max_k"
+  ],
+  "carry_byte_checks": 216,
+  "cross_target_checks": 216,
+  "cleanup": {
+    "event": "p2_reset",
+    "window": 127,
+    "target_epoch": 654,
+    "released_blocks": 0,
+    "live_leases": 0,
+    "ready": 0,
+    "inflight": 0
+  },
+  "target_sequence_floor": 1024,
+  "target_floor_checked_forwards": 411,
+  "target_floor_cache_keys": [
+    "[11, 4, 9, 1024, 64, 0, \"bounded\"]",
+    "[18, 4, 9, 1024, 64, 0, \"bounded\"]",
+    "[9, 4, 9, 1024, 64, 0, \"bounded\"]",
+    "[16, 4, 9, 1024, 64, 0, \"bounded\"]",
+    "[7, 4, 9, 1024, 64, 0, \"bounded\"]",
+    "[14, 4, 9, 1024, 64, 0, \"bounded\"]",
+    "[15, 4, 9, 1024, 64, 0, \"bounded\"]",
+    "[19, 4, 9, 1024, 64, 0, \"bounded\"]",
+    "[13, 4, 9, 1024, 64, 0, \"bounded\"]",
+    "[5, 3, 9, 1024, 64, 0, \"bounded\"]",
+    "[5, 4, 9, 1024, 64, 0, \"bounded\"]",
+    "[12, 4, 9, 1024, 64, 0, \"bounded\"]",
+    "[8, 4, 9, 1024, 64, 0, \"bounded\"]",
+    "[6, 4, 9, 1024, 64, 0, \"bounded\"]",
+    "[10, 4, 9, 1024, 64, 0, \"bounded\"]",
+    "[4, 4, 1, 1024, 64, 0, \"bounded\"]"
+  ],
+  "slot_guard_compared": 0,
+  "slot_guard_shared_tensor": 0,
+  "all_references_bypassed_compile": true,
+  "fingerprint_checks": [
+    {
+      "sample": 1,
+      "request_id": "cmpl-baseline-d0dd2eb6fe17-0-0-bed3b5f5",
+      "context_tokens": 46,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 2,
+      "request_id": "cmpl-baseline-d0dd2eb6fe17-0-0-bed3b5f5",
+      "context_tokens": 46,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 3,
+      "request_id": "cmpl-baseline-d0dd2eb6fe17-0-0-bed3b5f5",
+      "context_tokens": 46,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 4,
+      "request_id": "cmpl-baseline-d0dd2eb6fe17-0-0-bed3b5f5",
+      "context_tokens": 46,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 5,
+      "request_id": "cmpl-baseline-d0dd2eb6fe17-0-0-bed3b5f5",
+      "context_tokens": 46,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 6,
+      "request_id": "cmpl-baseline-d0dd2eb6fe17-1-0-97df3d87",
+      "context_tokens": 42,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 7,
+      "request_id": "cmpl-baseline-d0dd2eb6fe17-2-0-8c5d885d",
+      "context_tokens": 51,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 8,
+      "request_id": "cmpl-baseline-d0dd2eb6fe17-3-0-a2812d2c",
+      "context_tokens": 77,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 9,
+      "request_id": "cmpl-baseline-d0dd2eb6fe17-0-0-bed3b5f5",
+      "context_tokens": 46,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 10,
+      "request_id": "cmpl-baseline-d0dd2eb6fe17-1-0-97df3d87",
+      "context_tokens": 42,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 11,
+      "request_id": "cmpl-baseline-d0dd2eb6fe17-2-0-8c5d885d",
+      "context_tokens": 51,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 12,
+      "request_id": "cmpl-baseline-d0dd2eb6fe17-3-0-a2812d2c",
+      "context_tokens": 77,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 13,
+      "request_id": "cmpl-baseline-d0dd2eb6fe17-0-0-bed3b5f5",
+      "context_tokens": 46,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 14,
+      "request_id": "cmpl-baseline-d0dd2eb6fe17-1-0-97df3d87",
+      "context_tokens": 42,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 15,
+      "request_id": "cmpl-baseline-d0dd2eb6fe17-2-0-8c5d885d",
+      "context_tokens": 51,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 16,
+      "request_id": "cmpl-baseline-d0dd2eb6fe17-3-0-a2812d2c",
+      "context_tokens": 77,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 17,
+      "request_id": "cmpl-baseline-d0dd2eb6fe17-0-0-bed3b5f5",
+      "context_tokens": 46,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 18,
+      "request_id": "cmpl-baseline-d0dd2eb6fe17-1-0-97df3d87",
+      "context_tokens": 42,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 19,
+      "request_id": "cmpl-baseline-d0dd2eb6fe17-2-0-8c5d885d",
+      "context_tokens": 51,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 20,
+      "request_id": "cmpl-baseline-d0dd2eb6fe17-3-0-a2812d2c",
+      "context_tokens": 77,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 21,
+      "request_id": "cmpl-baseline-d0dd2eb6fe17-4-0-b7c440fd",
+      "context_tokens": 450,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 22,
+      "request_id": "cmpl-baseline-d0dd2eb6fe17-0-0-bed3b5f5",
+      "context_tokens": 46,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 23,
+      "request_id": "cmpl-baseline-d0dd2eb6fe17-1-0-97df3d87",
+      "context_tokens": 42,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 24,
+      "request_id": "cmpl-baseline-d0dd2eb6fe17-2-0-8c5d885d",
+      "context_tokens": 51,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 25,
+      "request_id": "cmpl-baseline-d0dd2eb6fe17-3-0-a2812d2c",
+      "context_tokens": 77,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 26,
+      "request_id": "cmpl-baseline-d0dd2eb6fe17-4-0-b7c440fd",
+      "context_tokens": 450,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 27,
+      "request_id": "cmpl-baseline-d0dd2eb6fe17-0-0-bed3b5f5",
+      "context_tokens": 46,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 28,
+      "request_id": "cmpl-baseline-d0dd2eb6fe17-1-0-97df3d87",
+      "context_tokens": 42,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 29,
+      "request_id": "cmpl-baseline-d0dd2eb6fe17-2-0-8c5d885d",
+      "context_tokens": 51,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 30,
+      "request_id": "cmpl-baseline-d0dd2eb6fe17-3-0-a2812d2c",
+      "context_tokens": 77,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 31,
+      "request_id": "cmpl-baseline-d0dd2eb6fe17-4-0-b7c440fd",
+      "context_tokens": 450,
+      "fingerprint_exact": true
+    },
+    {
+      "sample": 32,
+      "request_id": "cmpl-baseline-d0dd2eb6fe17-0-0-bed3b5f5",
+      "context_tokens": 46,
+      "fingerprint_exact": true
+    }
+  ],
+  "fingerprint_runtime": [
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 1,
+      "hits": 0,
+      "misses": 1,
+      "fallbacks": 0,
+      "entries": 1,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true,
+      "native_exact_type_check": true,
+      "native_type_calls": 1,
+      "native_module": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/_cdb_av_prefix_types.cpython-311-x86_64-linux-gnu.so"
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 1024,
+      "hits": 970,
+      "misses": 54,
+      "fallbacks": 0,
+      "entries": 16,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true,
+      "native_exact_type_check": true,
+      "native_type_calls": 1024,
+      "native_module": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/_cdb_av_prefix_types.cpython-311-x86_64-linux-gnu.so"
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 2048,
+      "hits": 1948,
+      "misses": 100,
+      "fallbacks": 0,
+      "entries": 16,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true,
+      "native_exact_type_check": true,
+      "native_type_calls": 2048,
+      "native_module": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/_cdb_av_prefix_types.cpython-311-x86_64-linux-gnu.so"
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 3072,
+      "hits": 2921,
+      "misses": 151,
+      "fallbacks": 0,
+      "entries": 15,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true,
+      "native_exact_type_check": true,
+      "native_type_calls": 3072,
+      "native_module": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/_cdb_av_prefix_types.cpython-311-x86_64-linux-gnu.so"
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 4096,
+      "hits": 3900,
+      "misses": 196,
+      "fallbacks": 0,
+      "entries": 14,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true,
+      "native_exact_type_check": true,
+      "native_type_calls": 4096,
+      "native_module": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/_cdb_av_prefix_types.cpython-311-x86_64-linux-gnu.so"
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 5120,
+      "hits": 4868,
+      "misses": 252,
+      "fallbacks": 0,
+      "entries": 13,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true,
+      "native_exact_type_check": true,
+      "native_type_calls": 5120,
+      "native_module": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/_cdb_av_prefix_types.cpython-311-x86_64-linux-gnu.so"
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 6144,
+      "hits": 5837,
+      "misses": 307,
+      "fallbacks": 0,
+      "entries": 15,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true,
+      "native_exact_type_check": true,
+      "native_type_calls": 6144,
+      "native_module": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/_cdb_av_prefix_types.cpython-311-x86_64-linux-gnu.so"
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 7168,
+      "hits": 6809,
+      "misses": 359,
+      "fallbacks": 0,
+      "entries": 16,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true,
+      "native_exact_type_check": true,
+      "native_type_calls": 7168,
+      "native_module": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/_cdb_av_prefix_types.cpython-311-x86_64-linux-gnu.so"
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 8192,
+      "hits": 7776,
+      "misses": 416,
+      "fallbacks": 0,
+      "entries": 14,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true,
+      "native_exact_type_check": true,
+      "native_type_calls": 8192,
+      "native_module": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/_cdb_av_prefix_types.cpython-311-x86_64-linux-gnu.so"
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 9216,
+      "hits": 8750,
+      "misses": 466,
+      "fallbacks": 0,
+      "entries": 16,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true,
+      "native_exact_type_check": true,
+      "native_type_calls": 9216,
+      "native_module": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/_cdb_av_prefix_types.cpython-311-x86_64-linux-gnu.so"
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 10240,
+      "hits": 9716,
+      "misses": 524,
+      "fallbacks": 0,
+      "entries": 16,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true,
+      "native_exact_type_check": true,
+      "native_type_calls": 10240,
+      "native_module": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/_cdb_av_prefix_types.cpython-311-x86_64-linux-gnu.so"
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 11264,
+      "hits": 10688,
+      "misses": 576,
+      "fallbacks": 0,
+      "entries": 15,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true,
+      "native_exact_type_check": true,
+      "native_type_calls": 11264,
+      "native_module": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/_cdb_av_prefix_types.cpython-311-x86_64-linux-gnu.so"
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 12288,
+      "hits": 11662,
+      "misses": 626,
+      "fallbacks": 0,
+      "entries": 16,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true,
+      "native_exact_type_check": true,
+      "native_type_calls": 12288,
+      "native_module": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/_cdb_av_prefix_types.cpython-311-x86_64-linux-gnu.so"
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 13312,
+      "hits": 12624,
+      "misses": 688,
+      "fallbacks": 0,
+      "entries": 16,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true,
+      "native_exact_type_check": true,
+      "native_type_calls": 13312,
+      "native_module": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/_cdb_av_prefix_types.cpython-311-x86_64-linux-gnu.so"
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 14336,
+      "hits": 13600,
+      "misses": 736,
+      "fallbacks": 0,
+      "entries": 16,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true,
+      "native_exact_type_check": true,
+      "native_type_calls": 14336,
+      "native_module": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/_cdb_av_prefix_types.cpython-311-x86_64-linux-gnu.so"
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 15360,
+      "hits": 14576,
+      "misses": 784,
+      "fallbacks": 0,
+      "entries": 16,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true,
+      "native_exact_type_check": true,
+      "native_type_calls": 15360,
+      "native_module": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/_cdb_av_prefix_types.cpython-311-x86_64-linux-gnu.so"
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 16384,
+      "hits": 15549,
+      "misses": 835,
+      "fallbacks": 0,
+      "entries": 13,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true,
+      "native_exact_type_check": true,
+      "native_type_calls": 16384,
+      "native_module": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/_cdb_av_prefix_types.cpython-311-x86_64-linux-gnu.so"
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 17408,
+      "hits": 16517,
+      "misses": 891,
+      "fallbacks": 0,
+      "entries": 7,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true,
+      "native_exact_type_check": true,
+      "native_type_calls": 17408,
+      "native_module": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/_cdb_av_prefix_types.cpython-311-x86_64-linux-gnu.so"
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 18432,
+      "hits": 17484,
+      "misses": 948,
+      "fallbacks": 0,
+      "entries": 3,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true,
+      "native_exact_type_check": true,
+      "native_type_calls": 18432,
+      "native_module": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/_cdb_av_prefix_types.cpython-311-x86_64-linux-gnu.so"
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 19456,
+      "hits": 18456,
+      "misses": 1000,
+      "fallbacks": 0,
+      "entries": 16,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true,
+      "native_exact_type_check": true,
+      "native_type_calls": 19456,
+      "native_module": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/_cdb_av_prefix_types.cpython-311-x86_64-linux-gnu.so"
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 20480,
+      "hits": 19432,
+      "misses": 1048,
+      "fallbacks": 0,
+      "entries": 16,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true,
+      "native_exact_type_check": true,
+      "native_type_calls": 20480,
+      "native_module": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/_cdb_av_prefix_types.cpython-311-x86_64-linux-gnu.so"
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 21504,
+      "hits": 20405,
+      "misses": 1099,
+      "fallbacks": 0,
+      "entries": 15,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true,
+      "native_exact_type_check": true,
+      "native_type_calls": 21504,
+      "native_module": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/_cdb_av_prefix_types.cpython-311-x86_64-linux-gnu.so"
+    },
+    {
+      "source": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/cdb_av_context_cache.py",
+      "calls": 22528,
+      "hits": 21376,
+      "misses": 1152,
+      "fallbacks": 0,
+      "entries": 11,
+      "max_entries": 64,
+      "full_typed_prefix_equality": true,
+      "request_weak_references": true,
+      "owner_thread_only": true,
+      "native_exact_type_check": true,
+      "native_type_calls": 22528,
+      "native_module": "/home/yypan/CDB-AV/worktrees/cdb-target-replay-host-20261120/vllm/v1/spec_decode/_cdb_av_prefix_types.cpython-311-x86_64-linux-gnu.so"
+    }
+  ]
+}

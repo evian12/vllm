@@ -1,0 +1,8 @@
+{
+  "compile_audit.py": "e555c0fb60bee5d236363319b01197847386403700f14eaae773f690d13a3ece",
+  "sitecustomize.py": "ff80ad374d21b963c1fd570c525f4dfca8ba11cd586afa3db9d14b04736370ae",
+  "test_compile_audit.py": "2f7f7c88a89ee13a82d9713f13fa91e672fa4a9a873c69de3056ae3bb6770069",
+  "driver.py": "935c79dd41543634590ec3d0a582e24522b0886e75be281ed17da7711604b7ff",
+  "controller.py": "553e2018072c474705f1705ba7aa7e3ec3c142b770b9372384326b8483d3d7ec",
+  "analyze.py": "c1aeb0ae3b7106b96fe3cb50f5a438b7ccf20a7a72e74fc43c7a0be1ccd7496c"
+}
