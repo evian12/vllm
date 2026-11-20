@@ -1,0 +1,4 @@
+{
+  "error": "Traceback (most recent call last):\n  File \"/disk14T/yypan/CDB-AV-runtime/results/logprob_preserve_20261120/driver.py\", line 214, in <module>\n    healthy(proc)\n  File \"/disk14T/yypan/CDB-AV-runtime/results/logprob_preserve_20261120/driver.py\", line 73, in healthy\n    raise RuntimeError('service exited ' + str(proc.returncode))\nRuntimeError: service exited 1\n",
+  "time": 1795163988.735171
+}

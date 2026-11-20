@@ -1,0 +1,23 @@
+{
+  "source_commit": "4baa0d1378b27cc1caaa64bac4909a72ab8394b8",
+  "protocol": "one ON screening, historical reference; no paired causal attribution",
+  "screen": {
+    "directory": "/disk14T/yypan/CDB-AV-runtime/results/logprob_preserve_20261120/screen_seed42_on",
+    "cap": 8,
+    "seed": 42,
+    "skip_unused": 1,
+    "tps": 312.66061173490823,
+    "e2e_p95": 17.830513415345923,
+    "ttft_p95": 0.10088369636796413
+  },
+  "historical_reference": 312.56473125804325,
+  "gain_vs_history_pct": 0.030675398493951178,
+  "p95_change_pct": 1.1543035912776611,
+  "promising": false,
+  "adopted": false,
+  "default_flag": 0,
+  "followup": "stop after screen; candidate remains off",
+  "same_input_sampler_checks": 32,
+  "strict_full_generation_equivalence": false,
+  "resources_released": true
+}

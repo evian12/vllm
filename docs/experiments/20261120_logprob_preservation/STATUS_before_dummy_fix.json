@@ -1,0 +1,7 @@
+{
+  "state": "failed",
+  "time": 1795163991.959244,
+  "pid": 1565293,
+  "error": "Traceback (most recent call last):\n  File \"/home/yypan/CDB-AV/results/logprob_preserve_20261120/controller.py\", line 122, in <module>\n    gate=execute('gate_preserve',8,diagnostic=True)\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/yypan/CDB-AV/results/logprob_preserve_20261120/controller.py\", line 48, in execute\n    subprocess.run(cmd + (['--dry-run'] if dry else []), cwd=R, stdout=output, stderr=subprocess.STDOUT, check=True, timeout=2700)\n  File \"/opt/anaconda3/lib/python3.11/subprocess.py\", line 571, in run\n    raise CalledProcessError(retcode, process.args,\nsubprocess.CalledProcessError: Command '['/home/yypan/CDB-AV/.venv/bin/python', '/disk14T/yypan/CDB-AV-runtime/results/logprob_preserve_20261120/driver.py', '--tag', 'gate_preserve', '--mode', 'hf', '--k-cap', '8', '--seed', '42', '--skip-unused', '1', '--diagnostic', '--requests', '16', '--max-tokens', '64', '--gate-warmup', '64']' returned non-zero exit status 1.\n",
+  "completed": []
+}

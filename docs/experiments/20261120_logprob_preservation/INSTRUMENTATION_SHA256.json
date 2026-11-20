@@ -1,0 +1,12 @@
+{
+  "progress.py": "f5f0dd6b6638469730162c703bba03c653ba6d5e0740db95e4a026bd153976a3",
+  "driver.py": "8bd61924db0eb012d13532ac24278cf7e5c762df3f58d88a531b9b065474cadc",
+  "test_sampler_audit.py": "3d49b31bb9678c09d39874e153263b7f72a36dbf437510a1645c211736aa8302",
+  "sampler_audit_before_dummy_fix.py": "2363dd99b461561ab79dda5da68655f0c985408bce820671bb01d4757a30bf6d",
+  "compile_audit.py": "e555c0fb60bee5d236363319b01197847386403700f14eaae773f690d13a3ece",
+  "controller.py": "24d5c0b443a4a869ffec32ab42623d35f422dcb7ab371ebe7f3119f11bfd0b1b",
+  "sitecustomize.py": "6cca3721bf5caeac52aad8d4d2a7fd11e102409b4b2c60796e2b60477f7ddfe7",
+  "benchmark.py": "218cb899acb5777f6e46ddb6fdff3070465fcac71275434691d5b12804e03027",
+  "sampler_audit.py": "b954681186f6989fcb793febf6786c10b75d79424b9241adca56d922c7a2d453",
+  "manual_observer.py": "243a8cd9fbb9c455f34b658be5f4b1a98899847eb8441cb90814929c7f48655f"
+}
