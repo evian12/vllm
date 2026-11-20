@@ -29,6 +29,8 @@ def test_key_uses_shapes_not_request_partition_values():
     assert a is not None
     m.num_draft_tokens=[3,2,1]
     assert verify_graph_key(m,None,l,s)==a
+    m.num_draft_tokens=[0,3,3]
+    assert verify_graph_key(m,None,l,s)==a
     m.num_draft_tokens=[2,2,2];m.max_spec_len=2
     assert verify_graph_key(m,None,l,s)!=a
 
@@ -131,7 +133,7 @@ def test_dynamic_partition_output_lifetime_and_exact_near_ties():
     sampler=RejectionSampler(Sampler());wrapper=GreedyVerifyGraph(sampler,min_hits=1)
     saved=[]
     for i in range(36):
-        counts=[[2,1,3],[3,2,1],[1,3,2]][i%3]
+        counts=[[2,1,3],[3,2,1],[1,3,2],[0,3,3],[3,0,3],[3,3,0]][i%6]
         m,logits,s=gpu_inputs(counts)
         if i%4==0:
             # Preserve S01's exact FP32 softmax rounding behavior.
