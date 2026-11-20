@@ -1,0 +1,11 @@
+{
+  "scope": "64warmup + 16 short functional gate, not formal workload or TPS",
+  "target_row_hist": {
+    "1": 42,
+    "4": 390,
+    "3": 15,
+    "2": 16
+  },
+  "deferred_windows": 74,
+  "deferred_rows_at_boundary": 171
+}

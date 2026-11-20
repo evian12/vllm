@@ -1,0 +1,9 @@
+{
+  "protocol": "one ON screen, user requested no OFF/redundant repetitions",
+  "reference_tps": 312.56473125804325,
+  "reference_sd": 0.49881798943056715,
+  "minimum_change_pct": 0.5,
+  "max_e2e_p95_increase_pct": 1,
+  "reference_e2e_p95": 17.627043815546976,
+  "time": 1795167226.5705569
+}

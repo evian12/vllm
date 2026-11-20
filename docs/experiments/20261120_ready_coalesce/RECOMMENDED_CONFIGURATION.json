@@ -1,0 +1,27 @@
+{
+  "source_commit": "ccf96aac0064aebebc2077fb47e36929d65aa06a",
+  "worktree": "/home/yypan/CDB-AV/worktrees/cdb-ready-coalesce-20261120",
+  "model_target": "Llama-3.1-8B-Instruct",
+  "model_draft": "Llama-3.2-1B-Instruct",
+  "H": 8,
+  "HF_threshold": 0.8,
+  "K_cap": 8,
+  "client_concurrency": 16,
+  "target_max_num_seqs": 4,
+  "environment_delta_from_accepted_wait": {
+    "CDB_AV_READY_COALESCE": "1"
+  },
+  "required_existing_flags": {
+    "CDB_AV_DRAFT_WAIT": "1"
+  },
+  "unadopted_flags": {
+    "CDB_AV_DRAFT_CHAIN_GRAPH": "0",
+    "CDB_AV_DRAFT_POST_GRAPH": "0",
+    "CDB_AV_SKIP_UNUSED_LOGPROBS": "0",
+    "CDB_AV_OUTPUT_BUDGET_CAP": "0"
+  },
+  "mean_tps": 322.7994798208757,
+  "sample_sd": 2.1173144384031555,
+  "comparison": "historical same-load reference; ON confirmation only",
+  "full_launch_reference": "screen_seed42_on/launch.sh"
+}
