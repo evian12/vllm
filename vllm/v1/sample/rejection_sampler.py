@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: Copyright contributors to the vLLM project
 
+import os
 from collections.abc import Sequence
 from dataclasses import replace
 
@@ -52,6 +53,10 @@ class RejectionSampler(nn.Module):
     def __init__(self, sampler: Sampler):
         super().__init__()
         self.sampler = sampler
+        flag = os.getenv("CDB_AV_SKIP_UNUSED_LOGPROBS", "0")
+        if flag not in ("0", "1"):
+            raise ValueError("CDB_AV_SKIP_UNUSED_LOGPROBS must be 0 or 1")
+        self.skip_unused_logprobs = flag == "1"
         logprobs_mode = self.sampler.logprobs_mode
         self.is_processed_logprobs_mode = logprobs_mode.startswith("processed")
         self.is_logits_logprobs_mode = logprobs_mode.endswith("logits")
@@ -89,6 +94,9 @@ class RejectionSampler(nn.Module):
         """
         assert metadata.max_spec_len <= MAX_SPEC_LEN
 
+        needs_logprobs = sampling_metadata.max_num_logprobs is not None
+        # Raw/processed copies are consumed only by requested logprob output.
+        preserve_logits = not self.skip_unused_logprobs or needs_logprobs
         bonus_logits_indices = metadata.bonus_logits_indices
         target_logits_indices = metadata.target_logits_indices
 
@@ -102,7 +110,7 @@ class RejectionSampler(nn.Module):
             logits=bonus_logits,
             sampling_metadata=replace(
                 sampling_metadata,
-                max_num_logprobs=-1,
+                max_num_logprobs=-1 if preserve_logits else None,
             ),
             predict_bonus_token=True,
             # Override the logprobs mode to return logits because they are
@@ -120,7 +128,7 @@ class RejectionSampler(nn.Module):
         # Use float32 for the target_logits.
         raw_target_logits = raw_target_logits.to(torch.float32)
         target_logits = raw_target_logits
-        if not self.is_processed_logprobs_mode:
+        if not self.is_processed_logprobs_mode and preserve_logits:
             # Clone raw_target_logits before applying processors to preserve
             # the original raw logits for logprobs computation, since
             # apply_logits_processors modifies the tensor in-place.
