@@ -6,7 +6,11 @@ import weakref
 
 import pytest
 
-from vllm.v1.spec_decode import _cdb_av_prefix_types as native
+native = pytest.importorskip(
+    'vllm.v1.spec_decode._cdb_av_prefix_types',
+    reason='Optional CPython predicate has not been built',
+    exc_type=ModuleNotFoundError,
+)
 
 
 @pytest.mark.parametrize('tokens',[[],(),[1,2,3],(0,2**32-1),[-1,2**256]])
