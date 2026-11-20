@@ -1,0 +1,16 @@
+{
+  "complete_current_source": "fdad8bc258064c6c308554a43e57e26c5746955d",
+  "paired_cdb_tps": 288.9695867766423,
+  "historical_native_tps": 341.0732791652744,
+  "tps_below_native_pct": 15.276392368275838,
+  "tps_lift_needed_from_current_pct": 18.030856800478933,
+  "current_cdb_target_forwards_per_512": 13466.0,
+  "native_target_forwards_per_512": 7559.333333333333,
+  "cdb_draft_dispatches_per_512": 16165.666666666666,
+  "native_draft_dispatches_per_512": 30237.333333333332,
+  "output_tokens_per_cdb_target_call": 7.500594088816278,
+  "output_tokens_per_native_target_call": 13.361363435929094,
+  "cdb_verify_rows_per_target": 1.6740432694687857,
+  "native_verify_rows_per_target": 3.919525531351971,
+  "scope": "Observed work counts over three complete runs per arm with identical per-seed request plans, lengths and GPU. Native historical compilation/K differ. These counts do not apportion the throughput gap causally."
+}

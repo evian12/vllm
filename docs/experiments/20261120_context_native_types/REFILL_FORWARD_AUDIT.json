@@ -1,0 +1,64 @@
+{
+  "log": "../context_native_types_20261120/gate_native/server.log",
+  "positive_step_admissions": 1044,
+  "next_forward_same_window": 1044,
+  "with_ready_and_surviving_active_rows": 961,
+  "distinct_windows": 106,
+  "examples": [
+    {
+      "window": 1,
+      "admitted_after": 3,
+      "req_id": "cmpl-baseline-39291f123e31-4-0-82183d23",
+      "preexisting_ready": 1,
+      "survivor_rows": 3,
+      "forward_phase": "mixed_prefill_decode",
+      "actual_token_rows": 453
+    },
+    {
+      "window": 1,
+      "admitted_after": 4,
+      "req_id": "cmpl-baseline-39291f123e31-5-0-99947466",
+      "preexisting_ready": 2,
+      "survivor_rows": 3,
+      "forward_phase": "mixed_prefill_decode",
+      "actual_token_rows": 49
+    },
+    {
+      "window": 1,
+      "admitted_after": 5,
+      "req_id": "cmpl-baseline-39291f123e31-6-0-a91d5d03",
+      "preexisting_ready": 4,
+      "survivor_rows": 2,
+      "forward_phase": "mixed_prefill_decode",
+      "actual_token_rows": 105
+    },
+    {
+      "window": 1,
+      "admitted_after": 5,
+      "req_id": "cmpl-baseline-39291f123e31-7-0-9c6d8ee4",
+      "preexisting_ready": 4,
+      "survivor_rows": 2,
+      "forward_phase": "mixed_prefill_decode",
+      "actual_token_rows": 105
+    },
+    {
+      "window": 1,
+      "admitted_after": 6,
+      "req_id": "cmpl-baseline-39291f123e31-8-0-af0a5d0c",
+      "preexisting_ready": 6,
+      "survivor_rows": 2,
+      "forward_phase": "mixed_prefill_decode",
+      "actual_token_rows": 97
+    },
+    {
+      "window": 1,
+      "admitted_after": 6,
+      "req_id": "cmpl-baseline-39291f123e31-9-0-a7c9b7b5",
+      "preexisting_ready": 6,
+      "survivor_rows": 2,
+      "forward_phase": "mixed_prefill_decode",
+      "actual_token_rows": 97
+    }
+  ],
+  "scope": "Request IDs were linked across scheduler and actual Draft forward events. Counts measure admission events, not unique client requests."
+}

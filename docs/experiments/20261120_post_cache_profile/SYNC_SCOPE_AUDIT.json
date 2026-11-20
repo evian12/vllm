@@ -1,0 +1,296 @@
+{
+  "trace": "/home/yypan/CDB-AV/results/llama_post_cache_profile_20261120/post_cache_cap8/trace/1795135113561266902-rank-0.1795135203707387654.pt.trace.json.gz",
+  "rows": [
+    {
+      "scope": "CDB::target_sampling",
+      "api": "cudaEventSynchronize",
+      "count": 5,
+      "cpu_wall_ms": 82.55261800000002,
+      "median_us": 16519.731
+    },
+    {
+      "scope": "CDB::worker_rpc::cdb_refill_rpc::p2_boundary",
+      "api": "cudaDeviceSynchronize",
+      "count": 10,
+      "cpu_wall_ms": 0.293517,
+      "median_us": 29.871000000000002
+    },
+    {
+      "scope": "CDB::draft_step_with_sampling",
+      "api": "cudaStreamSynchronize",
+      "count": 79,
+      "cpu_wall_ms": 0.201226,
+      "median_us": 2.399
+    },
+    {
+      "scope": "CDB::target_sampling",
+      "api": "cudaStreamSynchronize",
+      "count": 59,
+      "cpu_wall_ms": 0.1744219999999999,
+      "median_us": 2.704
+    },
+    {
+      "scope": "CDB::clear_slots::1",
+      "api": "cudaStreamSynchronize",
+      "count": 54,
+      "cpu_wall_ms": 0.13625400000000001,
+      "median_us": 2.432
+    },
+    {
+      "scope": "CDB::worker_rpc::cdb_refill_rpc::p2_drop",
+      "api": "cudaDeviceSynchronize",
+      "count": 2,
+      "cpu_wall_ms": 0.058514,
+      "median_us": 29.256999999999998
+    },
+    {
+      "scope": "CDB::clear_slots::2",
+      "api": "cudaStreamSynchronize",
+      "count": 18,
+      "cpu_wall_ms": 0.047787,
+      "median_us": 2.5805
+    },
+    {
+      "scope": "CDB::worker_rpc::execute_model",
+      "api": "cudaDeviceSynchronize",
+      "count": 1,
+      "cpu_wall_ms": 0.024069,
+      "median_us": 24.069
+    }
+  ],
+  "scope": "Read-only bounded 64 Target sample. Synchronization CPU-wall time waits for GPU work and is not an additive CPU or avoidable overhead estimate. cudaMemcpyAsync includes implicit host blocking on pageable transfers. API and kernel timings can overlap.",
+  "copies": [
+    {
+      "scope": "CDB::target_sampling",
+      "copy": "Memcpy DtoH (Device -> Pageable)",
+      "count": 59,
+      "cuda_api_cpu_wall_ms": 913.4178939999998,
+      "gpu_memcpy_sum_us": 60.25699999999998,
+      "median_api_us": 16290.787
+    },
+    {
+      "scope": "CDB::draft_step_with_sampling",
+      "copy": "Memcpy DtoH (Device -> Pageable)",
+      "count": 79,
+      "cuda_api_cpu_wall_ms": 210.700629,
+      "gpu_memcpy_sum_us": 77.41099999999996,
+      "median_api_us": 2838.376
+    },
+    {
+      "scope": "CDB::target_forward",
+      "copy": "Memcpy DtoD (Device -> Device)",
+      "count": 366,
+      "cuda_api_cpu_wall_ms": 3.8967690000000004,
+      "gpu_memcpy_sum_us": 368.3839999999993,
+      "median_api_us": 7.6925
+    },
+    {
+      "scope": "CDB::target_input_prepare_inputs",
+      "copy": "Memcpy HtoD (Pinned -> Device)",
+      "count": 443,
+      "cuda_api_cpu_wall_ms": 3.6799089999999977,
+      "gpu_memcpy_sum_us": 152.4239999999998,
+      "median_api_us": 6.37
+    },
+    {
+      "scope": "CDB::draft_forward",
+      "copy": "Memcpy DtoD (Device -> Device)",
+      "count": 163,
+      "cuda_api_cpu_wall_ms": 2.701408,
+      "gpu_memcpy_sum_us": 154.84799999999981,
+      "median_api_us": 17.478
+    },
+    {
+      "scope": "CDB::target_input_calc_spec_decode_metadata",
+      "copy": "Memcpy HtoD (Pageable -> Device)",
+      "count": 295,
+      "cuda_api_cpu_wall_ms": 1.9830679999999996,
+      "gpu_memcpy_sum_us": 100.67299999999985,
+      "median_api_us": 5.595
+    },
+    {
+      "scope": "CDB::draft_metadata_pack",
+      "copy": "Memcpy HtoD (Pinned -> Device)",
+      "count": 79,
+      "cuda_api_cpu_wall_ms": 1.0627460000000004,
+      "gpu_memcpy_sum_us": 28.547000000000015,
+      "median_api_us": 12.294
+    },
+    {
+      "scope": "CDB::target_input_build_attention_metadata",
+      "copy": "Memcpy HtoD (Pinned -> Device)",
+      "count": 59,
+      "cuda_api_cpu_wall_ms": 1.0405660000000003,
+      "gpu_memcpy_sum_us": 19.51900000000001,
+      "median_api_us": 19.67
+    },
+    {
+      "scope": "CDB::target_sampling",
+      "copy": "Memcpy DtoD (Device -> Device)",
+      "count": 59,
+      "cuda_api_cpu_wall_ms": 0.9902839999999997,
+      "gpu_memcpy_sum_us": 167.54900000000004,
+      "median_api_us": 15.654
+    },
+    {
+      "scope": "CDB::draft_graph_forward::hex_5b352c313032342c342c2264796e616d696338225d",
+      "copy": "Memcpy DtoD (Device -> Device)",
+      "count": 39,
+      "cuda_api_cpu_wall_ms": 0.4631199999999999,
+      "gpu_memcpy_sum_us": 36.57500000000001,
+      "median_api_us": 11.417
+    },
+    {
+      "scope": "CDB::target_input_prepare_input_ids",
+      "copy": "Memcpy HtoD (Pinned -> Device)",
+      "count": 64,
+      "cuda_api_cpu_wall_ms": 0.39028699999999994,
+      "gpu_memcpy_sum_us": 21.246000000000013,
+      "median_api_us": 5.6625
+    },
+    {
+      "scope": "CDB::draft_graph_forward::hex_5b362c313032342c342c2264796e616d696338225d",
+      "copy": "Memcpy DtoD (Device -> Device)",
+      "count": 33,
+      "cuda_api_cpu_wall_ms": 0.386647,
+      "gpu_memcpy_sum_us": 31.040000000000013,
+      "median_api_us": 9.447
+    },
+    {
+      "scope": "CDB::clear_slots::1",
+      "copy": "Memcpy HtoD (Pageable -> Device)",
+      "count": 54,
+      "cuda_api_cpu_wall_ms": 0.33012599999999986,
+      "gpu_memcpy_sum_us": 18.851000000000006,
+      "median_api_us": 5.714
+    },
+    {
+      "scope": "CDB::draft_graph_forward::hex_5b342c3531325d",
+      "copy": "Memcpy DtoD (Device -> Device)",
+      "count": 27,
+      "cuda_api_cpu_wall_ms": 0.29514100000000004,
+      "gpu_memcpy_sum_us": 25.316000000000003,
+      "median_api_us": 10.374
+    },
+    {
+      "scope": "CDB::draft_graph_forward::hex_5b382c313032342c342c2264796e616d696338225d",
+      "copy": "Memcpy DtoD (Device -> Device)",
+      "count": 21,
+      "cuda_api_cpu_wall_ms": 0.28415399999999996,
+      "gpu_memcpy_sum_us": 19.680000000000007,
+      "median_api_us": 12.752
+    },
+    {
+      "scope": "CDB::draft_graph_forward::hex_5b372c313032342c342c2264796e616d696338225d",
+      "copy": "Memcpy DtoD (Device -> Device)",
+      "count": 15,
+      "cuda_api_cpu_wall_ms": 0.195688,
+      "gpu_memcpy_sum_us": 14.049000000000007,
+      "median_api_us": 11.884
+    },
+    {
+      "scope": "CDB::draft_graph_forward::hex_5b31302c313032342c342c2264796e616d696338225d",
+      "copy": "Memcpy DtoD (Device -> Device)",
+      "count": 12,
+      "cuda_api_cpu_wall_ms": 0.113498,
+      "gpu_memcpy_sum_us": 11.392000000000003,
+      "median_api_us": 8.0295
+    },
+    {
+      "scope": "CDB::draft_graph_forward::hex_5b31312c313032342c342c2264796e616d696338225d",
+      "copy": "Memcpy DtoD (Device -> Device)",
+      "count": 9,
+      "cuda_api_cpu_wall_ms": 0.10811599999999999,
+      "gpu_memcpy_sum_us": 8.416,
+      "median_api_us": 9.255
+    },
+    {
+      "scope": "CDB::clear_slots::2",
+      "copy": "Memcpy HtoD (Pageable -> Device)",
+      "count": 18,
+      "cuda_api_cpu_wall_ms": 0.10645199999999998,
+      "gpu_memcpy_sum_us": 6.209000000000001,
+      "median_api_us": 5.4675
+    },
+    {
+      "scope": "CDB::draft_graph_forward::hex_5b342c3132385d",
+      "copy": "Memcpy DtoD (Device -> Device)",
+      "count": 9,
+      "cuda_api_cpu_wall_ms": 0.08308300000000002,
+      "gpu_memcpy_sum_us": 8.385,
+      "median_api_us": 8.018
+    },
+    {
+      "scope": "CDB::draft_graph_forward::hex_5b332c3132385d",
+      "copy": "Memcpy DtoD (Device -> Device)",
+      "count": 6,
+      "cuda_api_cpu_wall_ms": 0.062907,
+      "gpu_memcpy_sum_us": 5.599,
+      "median_api_us": 9.872499999999999
+    },
+    {
+      "scope": "CDB::draft_graph_forward::hex_5b392c313032342c342c2264796e616d696338225d",
+      "copy": "Memcpy DtoD (Device -> Device)",
+      "count": 6,
+      "cuda_api_cpu_wall_ms": 0.056128,
+      "gpu_memcpy_sum_us": 5.6,
+      "median_api_us": 8.194500000000001
+    },
+    {
+      "scope": "CDB::draft_graph_forward::hex_5b332c3531325d",
+      "copy": "Memcpy DtoD (Device -> Device)",
+      "count": 6,
+      "cuda_api_cpu_wall_ms": 0.053318000000000004,
+      "gpu_memcpy_sum_us": 5.632,
+      "median_api_us": 8.9385
+    },
+    {
+      "scope": "CDB::target_sampling",
+      "copy": "Memcpy DtoH (Device -> Pinned)",
+      "count": 5,
+      "cuda_api_cpu_wall_ms": 0.051319000000000004,
+      "gpu_memcpy_sum_us": 6.1419999999999995,
+      "median_api_us": 10.279
+    },
+    {
+      "scope": "CDB::draft_graph_forward::hex_5b322c3132385d",
+      "copy": "Memcpy DtoD (Device -> Device)",
+      "count": 4,
+      "cuda_api_cpu_wall_ms": 0.035840000000000004,
+      "gpu_memcpy_sum_us": 3.743,
+      "median_api_us": 8.6555
+    },
+    {
+      "scope": "CDB::draft_graph_forward::hex_5b342c313032342c332c2264796e616d696338225d",
+      "copy": "Memcpy DtoD (Device -> Device)",
+      "count": 3,
+      "cuda_api_cpu_wall_ms": 0.032838,
+      "gpu_memcpy_sum_us": 2.816,
+      "median_api_us": 8.863
+    },
+    {
+      "scope": "CDB::draft_graph_forward::hex_5b352c313032342c332c2264796e616d696338225d",
+      "copy": "Memcpy DtoD (Device -> Device)",
+      "count": 3,
+      "cuda_api_cpu_wall_ms": 0.028507,
+      "gpu_memcpy_sum_us": 2.7840000000000003,
+      "median_api_us": 8.769
+    },
+    {
+      "scope": "CDB::draft_graph_forward::hex_5b332c313032342c322c2264796e616d696338225d",
+      "copy": "Memcpy DtoD (Device -> Device)",
+      "count": 3,
+      "cuda_api_cpu_wall_ms": 0.026991,
+      "gpu_memcpy_sum_us": 2.815,
+      "median_api_us": 7.967
+    },
+    {
+      "scope": "CDB::draft_graph_forward::hex_5b322c3531325d",
+      "copy": "Memcpy DtoD (Device -> Device)",
+      "count": 2,
+      "cuda_api_cpu_wall_ms": 0.01701,
+      "gpu_memcpy_sum_us": 1.888,
+      "median_api_us": 8.505
+    }
+  ]
+}
