@@ -1,0 +1,8 @@
+{
+  "driver.py": "1f19d20ecbc6dca15d020673c9c32a9f39def7a688fbe055ff5dd9ed4b067a1a",
+  "compile_audit.py": "e555c0fb60bee5d236363319b01197847386403700f14eaae773f690d13a3ece",
+  "controller.py": "6a39df3f4dcb3ff759ce382adb1d53551fad9d664af4f62911198829ead2f8b6",
+  "sitecustomize.py": "ff80ad374d21b963c1fd570c525f4dfca8ba11cd586afa3db9d14b04736370ae",
+  "benchmark.py": "218cb899acb5777f6e46ddb6fdff3070465fcac71275434691d5b12804e03027",
+  "manual_observer.py": "243a8cd9fbb9c455f34b658be5f4b1a98899847eb8441cb90814929c7f48655f"
+}

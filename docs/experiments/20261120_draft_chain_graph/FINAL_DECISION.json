@@ -1,0 +1,23 @@
+{
+  "source_commit": "253d603af54b50eda4bddd4adaf2b5e4f1b212bd",
+  "protocol": "ON screening against historical reference, no paired causal attribution",
+  "runs": [
+    {
+      "directory": "/disk14T/yypan/CDB-AV-runtime/results/draft_chain_20261120/screen_seed42_on",
+      "cap": 8,
+      "seed": 42,
+      "chain_graph": 1,
+      "tps": 311.3656643071968,
+      "e2e_p95": 17.845716676162553,
+      "ttft_p95": 0.09520733440294861
+    }
+  ],
+  "mean_tps": 311.3656643071968,
+  "gain_vs_history_pct": -0.3836219608080227,
+  "p95_change_pct": 1.2405532255085783,
+  "promising": false,
+  "adopted": false,
+  "default_flag": 0,
+  "followup": "stop after screen; candidate remains off",
+  "resources_released": true
+}

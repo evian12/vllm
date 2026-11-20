@@ -1,0 +1,66 @@
+{
+  "cause": "New Git worktree had only tracked .gitkeep; generated FlashAttention package bindings were absent",
+  "action": "Linked identical existing FA2/FA3 libraries and Python glue used by validated baseline; no package installation, build, dependency upgrade, or backend switch",
+  "bindings": [
+    {
+      "path": "vllm/vllm_flash_attn/__init__.py",
+      "link": "/home/yypan/CDB-AV/worktrees/cdb-draft-chain-20261120/vllm/vllm_flash_attn/__init__.py",
+      "target": "/home/yypan/CDB-AV/worktrees/cdb-draft-stage-profile-20261109/vllm/vllm_flash_attn/__init__.py",
+      "sha256": {
+        "__init__.py": "e27ac4a87e52384ce7099358cb2d822cc108daddb08a1630eb84902e0c92467f"
+      }
+    },
+    {
+      "path": "vllm/vllm_flash_attn/flash_attn_interface.py",
+      "link": "/home/yypan/CDB-AV/worktrees/cdb-draft-chain-20261120/vllm/vllm_flash_attn/flash_attn_interface.py",
+      "target": "/home/yypan/CDB-AV/worktrees/cdb-draft-stage-profile-20261109/vllm/vllm_flash_attn/flash_attn_interface.py",
+      "sha256": {
+        "flash_attn_interface.py": "1a98839748ad9e7672758274d719b7d40fc5978bc9eafddf4515e5730bed6994"
+      }
+    },
+    {
+      "path": "vllm/vllm_flash_attn/layers",
+      "link": "/home/yypan/CDB-AV/worktrees/cdb-draft-chain-20261120/vllm/vllm_flash_attn/layers",
+      "target": "/home/yypan/CDB-AV/worktrees/cdb-draft-stage-profile-20261109/vllm/vllm_flash_attn/layers",
+      "sha256": {
+        "__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "rotary.py": "b826cc3339488815b26f974135a8f53d44149d019b4c82e1ad4240a6ec0e28c4"
+      }
+    },
+    {
+      "path": "vllm/vllm_flash_attn/ops",
+      "link": "/home/yypan/CDB-AV/worktrees/cdb-draft-chain-20261120/vllm/vllm_flash_attn/ops",
+      "target": "/home/yypan/CDB-AV/worktrees/cdb-draft-stage-profile-20261109/vllm/vllm_flash_attn/ops",
+      "sha256": {
+        "__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "triton/__init__.py": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+        "triton/rotary.py": "f1f4bf9a0b28cc544fa882b60628d74b8923e8b47e1f8438a7af43fa7b5061e4"
+      }
+    },
+    {
+      "path": "vllm/vllm_flash_attn/_vllm_fa2_C.abi3.so",
+      "link": "/home/yypan/CDB-AV/worktrees/cdb-draft-chain-20261120/vllm/vllm_flash_attn/_vllm_fa2_C.abi3.so",
+      "target": "/disk14T/yypan/CDB-AV-runtime/extensions/vllm/vllm_flash_attn/_vllm_fa2_C.abi3.so",
+      "sha256": {
+        "_vllm_fa2_C.abi3.so": "0b18c324e661d380a0d170608cd53f0f49e80e5a68d6a94315a328ee5839c314"
+      }
+    },
+    {
+      "path": "vllm/vllm_flash_attn/_vllm_fa3_C.abi3.so",
+      "link": "/home/yypan/CDB-AV/worktrees/cdb-draft-chain-20261120/vllm/vllm_flash_attn/_vllm_fa3_C.abi3.so",
+      "target": "/disk14T/yypan/CDB-AV-runtime/extensions/vllm/vllm_flash_attn/_vllm_fa3_C.abi3.so",
+      "sha256": {
+        "_vllm_fa3_C.abi3.so": "861374e8d8582262663669b471a24fd6958edd491c46b72a50684284e2e5f643"
+      }
+    },
+    {
+      "path": "vllm/v1/spec_decode/_cdb_av_prefix_types.cpython-311-x86_64-linux-gnu.so",
+      "target": "/disk14T/yypan/CDB-AV-runtime/results/context_native_types_20261120/build/_cdb_av_prefix_types.cpython-311-x86_64-linux-gnu.so",
+      "sha256": {
+        "_cdb_av_prefix_types.cpython-311-x86_64-linux-gnu.so": "226e8552e720b147c3fe3bfb4d19687109dcac48c1d59fcd47f8311e657cd2d0"
+      },
+      "link": "/home/yypan/CDB-AV/worktrees/cdb-draft-chain-20261120/vllm/v1/spec_decode/_cdb_av_prefix_types.cpython-311-x86_64-linux-gnu.so"
+    }
+  ],
+  "worktree": "/home/yypan/CDB-AV/worktrees/cdb-draft-chain-20261120"
+}
