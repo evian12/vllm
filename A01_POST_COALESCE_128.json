@@ -1,0 +1,27 @@
+{
+  "scope": "post-coalescing instrumented128-request measurement interval, not throughput or counterfactual simulation",
+  "ready_events": 7610,
+  "verified_events": 7610,
+  "matched": 7610,
+  "unmatched_ready": 0,
+  "unmatched_verify": 0,
+  "idle_barrier_events": 184,
+  "coalesce_events": 2048,
+  "k1_low_confidence_counts": {
+    "0.6": 1296,
+    "0.7": 588,
+    "0.4": 724,
+    "0.8": 323,
+    "0.75": 287,
+    "0.2": 140
+  },
+  "k1_low_confidence_accepted": {
+    "0.6": 705,
+    "0.7": 417,
+    "0.4": 246,
+    "0.8": 256,
+    "0.75": 218,
+    "0.2": 26
+  },
+  "limits": "Ungenerated continuation after a low-confidence stop is unknown. Idle barrier ticks issue no empty GPU forward. Do not infer equivalent GPU savings by deleting H ticks."
+}

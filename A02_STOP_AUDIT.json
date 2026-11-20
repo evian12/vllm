@@ -1,0 +1,19 @@
+{
+  "scope": "same instrumented128-request post-coalescing audit; no new GPU experiment",
+  "matched_verification_rows": 7610,
+  "hypothetical_HF_0_7_first_changed_stop_rows": 1352,
+  "fraction_of_verify_rows": 0.1776609724047306,
+  "by_existing_K": {
+    "2": 322,
+    "4": 101,
+    "3": 157,
+    "6": 52,
+    "1": 610,
+    "5": 76,
+    "7": 34
+  },
+  "current_candidate_allaccepted_rows": 1012,
+  "meaning": "At these already-observed stopping states, threshold0.7 would permit at least one more Draft step. Existing candidate acceptance is known; additional candidate token, its acceptance, later scheduling and total work are unknown.",
+  "decision": "A02 threshold0.7 is a possible independent algorithm candidate after historical de-dup; keep H8/cap8/Ready coalescing fixed. Require unchanged guards and actual-model gate, then one ON only. Never treat this observational count as predicted saved Target calls or throughput.",
+  "system_line": "S03 audit completed independently; next S04 audit must proceed and cannot be replaced by threshold search"
+}
