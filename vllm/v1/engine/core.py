@@ -445,6 +445,7 @@ class EngineCore:
                     emit('p2_ar_target_bypass',
                          window=self._cdb_persistent.window,
                          step=self._cdb_persistent._p3_steps)
+                self._cdb_target_bypassed = True
                 return {}, False
 
         scheduler_output = self.scheduler.schedule()
@@ -1256,12 +1257,24 @@ class EngineCoreProc(EngineCore):
     def _process_engine_step(self) -> bool:
         """Called only when there are unfinished local requests."""
 
-        # Step the engine core.
+        # A bypass marker applies to just this iteration.
+        self._cdb_target_bypassed = False
         outputs, model_executed = self.step_fn()
         # Put EngineCoreOutputs into the output queue.
         for output in outputs.items() if outputs else ():
             self.output_queue.put_nowait(output)
-        # Post-step hook.
+        # The Draft queue can make progress even when Target was skipped.
+        draft = None
+        if (
+            self._cdb_target_bypassed
+            and os.getenv("CDB_AV_DRAFT_PROGRESS_YIELD", "0") == "1"
+            and type(self) is EngineCoreProc
+            and not self.async_scheduling
+            and self.scheduler.connector is None
+            and self.scheduler.ec_connector is None
+        ):
+            draft = self._cdb_persistent
+        draft_before = (draft.window, draft._p3_steps) if draft is not None else None
         self.post_step(model_executed)
 
         # If no model execution happened but there are waiting requests
@@ -1269,7 +1282,12 @@ class EngineCoreProc(EngineCore):
         # background threads (like NIXL handshake) to make progress.
         # Without this, the tight polling loop can starve background threads.
         if not model_executed and self.scheduler.has_unfinished_requests():
-            time.sleep(0.001)
+            draft_progressed = (
+                draft is not None
+                and (draft.window, draft._p3_steps) != draft_before
+            )
+            # Keep releasing the GIL. The 1 ms backoff is for idle polling.
+            time.sleep(0 if draft_progressed else 0.001)
 
         return model_executed
 
