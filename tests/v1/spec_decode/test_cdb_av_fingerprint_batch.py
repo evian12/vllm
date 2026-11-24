@@ -91,3 +91,47 @@ def test_invalid_startup_flag_fails(value, monkeypatch):
     spec = importlib.util.spec_from_file_location("fp_bad_flag_test", fp.__file__)
     with pytest.raises(ValueError, match="CDB_AV_FINGERPRINT_BATCH"):
         spec.loader.exec_module(importlib.util.module_from_spec(spec))
+
+
+def test_native_packing_requires_batched_mode(monkeypatch):
+    monkeypatch.setenv("CDB_AV_FINGERPRINT_BATCH", "0")
+    monkeypatch.setenv("CDB_AV_FINGERPRINT_NATIVE_PACK", "1")
+    spec = importlib.util.spec_from_file_location("fp_invalid_native", fp.__file__)
+    with pytest.raises(ValueError, match="requires CDB_AV_FINGERPRINT_BATCH"):
+        spec.loader.exec_module(importlib.util.module_from_spec(spec))
+
+
+@pytest.mark.parametrize("length", [0, 128, 256, 257, 1024, 4096, 32768, 32769])
+def test_native_packing_matches_exact_byte_stream(length, monkeypatch):
+    pack = pytest.importorskip("vllm.v1.spec_decode._cdb_av_prefix_pack")
+    monkeypatch.setattr(fp, "BATCH_ENABLED", True)
+    monkeypatch.setattr(fp, "_native_pack", pack)
+    rng = random.Random(44 + length)
+    values = [rng.randrange(2**32) for _ in range(length)]
+    for container in (values, tuple(values), iter(values)):
+        assert fp.token_fingerprint(container) == reference(values)
+    assert pack.encode(values) == (
+        struct.pack(f"<{length}IQ", *values, length) if length <= 32768 else None
+    )
+
+
+def test_native_fallback_keeps_original_validation(monkeypatch):
+    pack = pytest.importorskip("vllm.v1.spec_decode._cdb_av_prefix_pack")
+    monkeypatch.setattr(fp, "BATCH_ENABLED", True)
+    monkeypatch.setattr(fp, "_native_pack", pack)
+
+    class IntSubclass(int):
+        pass
+
+    class ListSubclass(list):
+        def __iter__(self):
+            return iter([6, 17])
+
+    values = [False, IntSubclass(7), 2**32 - 1]
+    assert pack.encode(values) is None
+    assert fp.token_fingerprint(values) == reference(values)
+    assert fp.token_fingerprint(ListSubclass([0])) == reference([6, 17])
+    for bad in (-1, 2**32, 2**64, "1", None):
+        assert pack.encode([bad]) is None
+        with pytest.raises(ValueError, match="Invalid token ID"):
+            fp.token_fingerprint([bad])

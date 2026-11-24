@@ -29,8 +29,25 @@ if _mode not in ("0", "1"):
     raise ValueError("CDB_AV_FINGERPRINT_BATCH must be '0' or '1'")
 BATCH_ENABLED = _mode == "1"
 
+_native_mode = os.getenv("CDB_AV_FINGERPRINT_NATIVE_PACK", "0").strip()
+if _native_mode not in ("0", "1"):
+    raise ValueError("CDB_AV_FINGERPRINT_NATIVE_PACK must be '0' or '1'")
+_native_pack = None
+if _native_mode == "1":
+    if not BATCH_ENABLED:
+        raise ValueError("Native fingerprint packing requires CDB_AV_FINGERPRINT_BATCH=1")
+    from vllm.v1.spec_decode import _cdb_av_prefix_pack
+
+    _native_pack = _cdb_av_prefix_pack
+
 
 def _batched_token_fingerprint(token_ids: Iterable[int]) -> str:
+    if _native_pack is not None:
+        payload = _native_pack.encode(token_ids)
+        if payload is not None:
+            return hashlib.blake2b(
+                payload, digest_size=16, person=b"CDB-AV-prefix"
+            ).hexdigest()
     h = hashlib.blake2b(digest_size=16, person=b"CDB-AV-prefix")
     values = []
     count = 0
