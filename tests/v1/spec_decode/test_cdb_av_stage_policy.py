@@ -45,7 +45,7 @@ class TestStagePolicy(unittest.TestCase):
 
     def test_invalid_input(self):
         with self.assertRaises(ValueError):
-            choose_stage(replace(self.state, target_count=5))
+            choose_stage(replace(self.state, target_count=-1))
         with self.assertRaises(ValueError):
             choose_stage(replace(self.state, target_deadlines=()))
         with self.assertRaises(ValueError):

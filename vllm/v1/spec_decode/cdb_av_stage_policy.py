@@ -24,7 +24,7 @@ class StageState:
 
 def choose_stage(s: StageState) -> str:
     """Choose one executable stage; do not wait for hypothetical arrivals."""
-    if not 0 <= s.target_count <= s.target_capacity or s.target_capacity < 1:
+    if s.target_count < 0 or s.target_capacity < 1:
         raise ValueError("invalid target capacity")
     if len(s.target_deadlines) != s.target_count:
         raise ValueError("one deadline per eligible target request required")
@@ -37,7 +37,7 @@ def choose_stage(s: StageState) -> str:
         return "draft" if s.draft_can_progress else "idle"
     if not s.draft_can_progress:
         return "target"
-    if s.target_count == s.target_capacity:
+    if s.target_count >= s.target_capacity:
         return "target"
     if not s.draft_can_add_ready:
         return "target"

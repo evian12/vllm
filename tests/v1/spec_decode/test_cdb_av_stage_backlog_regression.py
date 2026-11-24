@@ -6,7 +6,6 @@ from vllm.v1.spec_decode.cdb_av_stage_policy import StageState, choose_stage
 
 
 class TestTargetBacklog(unittest.TestCase):
-    @unittest.expectedFailure
     def test_backlog_must_trigger_target(self):
         state = StageState(
             now=0.0, target_deadlines=(100.0,) * 12,
