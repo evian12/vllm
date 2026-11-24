@@ -496,6 +496,14 @@ class PersistentDraftQueue:
         nblocks = (req.num_tokens + cap + self.block_size - 1) // self.block_size
         pool = self.s.kv_cache_manager.block_pool
         cached = getattr(self, "cached_leases", {}).get(req.request_id, ())
+        # A first mixed Draft prefill must fit its entire confirmed prefix.
+        # With no reusable lease, this limit cannot improve by waiting.
+        if (
+            self._uses_mixed_prefill
+            and not cached
+            and req.num_tokens > self.s.max_num_scheduled_tokens
+        ):
+            return 'draft_prefill_token_budget'
         extra = max(0, nblocks - len(cached))
         audit = (hasattr(self, "cached_leases")
                  and os.getenv("CDB_AV_REUSE_VALIDATE", "0") == "1")

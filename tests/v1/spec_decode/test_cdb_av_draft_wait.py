@@ -166,6 +166,25 @@ def test_only_explicit_resource_or_support_limits_release_to_native(queue, reaso
     assert 'a' not in queue.frozen
 
 
+def test_oversized_mixed_prefill_resumes_target_when_reuse_is_lost(queue):
+    add(queue, 'a')
+    queue._uses_mixed_prefill = True
+    queue.s.max_model_len = 4096
+    req = queue.s.requests['a']
+    req.prompt_token_ids = [1] * 1100
+    req.num_computed_tokens = req.num_tokens - 1
+    queue.cached_leases = {'a': [object()]}
+    queue.refresh_draft_wait()
+    assert 'a' in queue.frozen
+
+    queue.cached_leases.clear()
+    queue.refresh_draft_wait()
+    assert 'a' not in queue.frozen
+    assert queue._draft_wait_fallbacks['a'][0] == 'draft_prefill_token_budget'
+    queue.refresh_draft_wait()
+    assert 'a' not in queue.draft_wait
+
+
 def test_validation_after_target_selection_does_not_enroll_new_ar_rows(queue):
     add(queue, 'a')
     queue.refresh_draft_wait(enroll=False)
