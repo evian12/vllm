@@ -40,6 +40,47 @@ from .utils import EOS_TOKEN_ID, create_requests, create_scheduler, mock_kv
 pytestmark = pytest.mark.cpu_test
 
 
+def test_cdb_target_capacity_when_frozen_requests_become_native(tmp_path):
+    from transformers import OPTConfig
+
+    OPTConfig().save_pretrained(tmp_path)
+    scheduler = create_scheduler(
+        model=str(tmp_path), max_num_seqs=4, skip_tokenizer_init=True
+    )
+    requests = create_requests(num_requests=9)
+    for request in requests:
+        scheduler.add_request(request)
+
+    first = scheduler.schedule()
+    assert len(first.num_scheduled_tokens) == 4
+    cdb = Mock(ready={}, preempt_protected=set())
+    cdb.frozen = set(first.num_scheduled_tokens)
+    cdb.can_schedule_verify.return_value = True
+    scheduler._cdb_p2 = cdb
+    second = scheduler.schedule()
+    assert len(second.num_scheduled_tokens) == 4
+    assert len(scheduler.running) == 8
+
+    # CDB ownership can end between ticks, e.g. when reuse is unavailable.
+    # Keep all eight live requests, but advance only four in one Target call.
+    cdb.frozen = set()
+    for request in scheduler.running:
+        request.append_output_token_ids(42)
+    recovered = scheduler.schedule()
+    assert list(recovered.num_scheduled_tokens) == [
+        request.request_id for request in requests[:4]
+    ]
+    assert len(scheduler.waiting) == 1
+
+    scheduler.finish_requests(
+        list(recovered.num_scheduled_tokens), RequestStatus.FINISHED_ABORTED
+    )
+    following = scheduler.schedule()
+    assert set(following.num_scheduled_tokens) == {
+        request.request_id for request in requests[4:8]
+    }
+
+
 def test_add_requests():
     scheduler = create_scheduler()
     requests = create_requests(num_requests=10)

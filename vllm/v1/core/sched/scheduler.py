@@ -370,7 +370,11 @@ class Scheduler(SchedulerInterface):
 
         # First, schedule the RUNNING requests.
         req_index = 0
-        while req_index < len(self.running) and token_budget > 0:
+        while (
+            req_index < len(self.running)
+            and token_budget > 0
+            and (p2 is None or len(num_scheduled_tokens) < self.max_num_running_reqs)
+        ):
             request = self.running[req_index]
             p2 = getattr(self, "_cdb_p2", None)
             if p2 is not None and request.request_id in p2.frozen:
@@ -604,7 +608,11 @@ class Scheduler(SchedulerInterface):
                 target_running_count = sum(
                     req.request_id not in frozen_ids for req in self.running
                 )
-                if target_running_count >= self.max_num_running_reqs:
+                if (
+                    target_running_count >= self.max_num_running_reqs
+                    or (p2 is not None
+                        and len(num_scheduled_tokens) >= self.max_num_running_reqs)
+                ):
                     break
 
                 request = self.waiting.peek_request()
@@ -881,12 +889,13 @@ class Scheduler(SchedulerInterface):
         assert total_num_scheduled_tokens <= self.max_num_scheduled_tokens
 
         assert token_budget >= 0
-        p2 = getattr(self, "_cdb_p2", None)
-        frozen_ids = p2.frozen if p2 is not None else set()
-        target_running_count = sum(
-            req.request_id not in frozen_ids for req in self.running
-        )
-        assert target_running_count <= self.max_num_running_reqs
+        if p2 is None:
+            assert len(self.running) <= self.max_num_running_reqs
+        else:
+            # CDB can hold additional logical RUNNING requests in frozen
+            # state. Several may return to native scheduling in one tick.
+            # Capacity applies to the requests sent to the Target this tick.
+            assert len(num_scheduled_tokens) <= self.max_num_running_reqs
         # Since some requests in the RUNNING queue may not be scheduled in
         # this step, the total number of scheduled requests can be smaller than
         # len(self.running).
