@@ -1,0 +1,58 @@
+name: CDB-AV 3090 preflight
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cdb-av-3090-preflight
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    if: github.ref == 'refs/heads/codex/slo-aware-stage-selection'
+    runs-on: [self-hosted, Linux, X64, cdb-av-gpu3090]
+    timeout-minutes: 5
+    steps:
+      - name: Verify selected branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REF}" = "refs/heads/codex/slo-aware-stage-selection"
+          printf 'commit=%s\nref=%s\n' "${GITHUB_SHA}" "${GITHUB_REF}"
+
+      - name: Read-only host and GPU diagnostics
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo '=== identity ==='
+          id
+          echo '=== host ==='
+          hostname
+          uname -a
+          echo '=== gpu ==='
+          nvidia-smi --query-gpu=index,name,memory.total,memory.used,utilization.gpu,temperature.gpu --format=csv
+          echo '=== gpu0 processes ==='
+          nvidia-smi -i 0
+          echo '=== python ==='
+          python3 --version
+          command -v python3
+          echo '=== torch availability ==='
+          python3 - <<'PY'
+          try:
+              import torch
+              print("torch", torch.__version__)
+              print("torch_cuda", torch.version.cuda)
+              print("cuda_available", torch.cuda.is_available())
+              print("device_count", torch.cuda.device_count())
+          except Exception as exc:
+              print("torch_import_error", repr(exc))
+          PY
+          echo '=== cuda compiler ==='
+          if command -v nvcc >/dev/null 2>&1; then nvcc --version; else echo 'nvcc not found in PATH'; fi
+          echo '=== disk ==='
+          df -h /home /disk6T 2>/dev/null || df -h
+          echo '=== runner ==='
+          printf 'runner_name=%s\nrunner_os=%s\nrunner_arch=%s\n' "${RUNNER_NAME}" "${RUNNER_OS}" "${RUNNER_ARCH}"
