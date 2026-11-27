@@ -17,8 +17,11 @@ from vllm.v1.request import RequestStatus
 
 
 def snapshot(m):
-    return {k: m[k] for k in ('req_id', 'context_tokens', 'fingerprint', 'cap',
+    state = {k: m[k] for k in ('req_id', 'context_tokens', 'fingerprint', 'cap',
         'progress', 'next_token', 'next_position', 'blocks', 'tokens', 'origin_window')}
+    if 'prefill_cursor' in m:
+        state['prefill_cursor'] = m['prefill_cursor']
+    return state
 
 
 class PersistentDraftSession(RefillSession):
@@ -31,6 +34,9 @@ class PersistentDraftSession(RefillSession):
         self.suspended = {}
         self.target_epoch = 0
         self.kv_snapshots = {}
+
+    def active_member_ids(self):
+        return list(self.active) + [entry[4] for entry in getattr(self, 'pending_prefill', ())]
 
     def open_window(self, payload, requests):
         if self.window is not None and payload['window'] <= self.window:
@@ -52,7 +58,7 @@ class PersistentDraftSession(RefillSession):
             )
         if (
             set(self.members) != set(self.suspended)
-            or set(self.active) != set(self.suspended)
+            or set(self.active_member_ids()) != set(self.suspended)
         ):
             raise RuntimeError("P2 Worker Carry/Active membership mismatch")
         self.window, self.horizon = payload['window'], payload['H']
@@ -245,7 +251,7 @@ class PersistentDraftSession(RefillSession):
             rid: snapshot(m)
             for rid, m in next_members.items()
         }
-        if set(self.active) != set(next_members):
+        if set(self.active_member_ids()) != set(next_members):
             raise RuntimeError("P2 Worker Active/Carry boundary mismatch")
 
         next_kv_snapshots = self.kv_snapshots
@@ -273,7 +279,7 @@ class PersistentDraftSession(RefillSession):
             window=self.window,
             steps=self.steps_completed,
             ready=[r['req_id'] for r in records],
-            carry=list(self.active),
+            carry=self.active_member_ids(),
         )
 
         return {'records': records, 'carry': self.suspended}
@@ -500,6 +506,7 @@ class PersistentDraftQueue:
         # With no reusable lease, this limit cannot improve by waiting.
         if (
             self._uses_mixed_prefill
+            and os.getenv('CDB_AV_CHUNKED_DRAFT_PREFILL') != '1'
             and not cached
             and req.num_tokens > self.s.max_num_scheduled_tokens
         ):
@@ -1263,6 +1270,8 @@ class PersistentDraftQueue:
             if self._uses_mixed_prefill
             else None
         )
+        if any('prefill_cursor' in carry for carry in self.carry.values()):
+            self._cdb_admit_limit = 0
         previous_leases = set(self.leases)
         try:
             plans = self.plans()
@@ -1395,7 +1404,8 @@ class PersistentDraftQueue:
         # Ready members have left Active, but they stay in the Worker/CPU lease
         # set until H. Their freed Active slots may be filled by other requests
         # whose Target first token was produced in an intervening Target step.
-        if intra and self._p3_steps < self.horizon:
+        if (intra and self._p3_steps < self.horizon
+                and not status.get('prefill_pending', False)):
             slots = max(0, int(status.get("slots", 0)))
             if slots:
                 previous_leases = set(self.leases)

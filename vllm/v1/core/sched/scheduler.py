@@ -790,6 +790,11 @@ class Scheduler(SchedulerInterface):
                     else 0
                 )
 
+                if (getattr(p2, 'reserved_kv_enabled', False)
+                        and not p2.target_admission_fits_kv(request)):
+                    self.encoder_cache_manager.free(request)
+                    break
+
                 new_blocks = self.kv_cache_manager.allocate_slots(
                     request,
                     num_new_tokens,

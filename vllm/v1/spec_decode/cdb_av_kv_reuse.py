@@ -636,7 +636,46 @@ class ReuseDraftSession(PersistentDraftSession):
             return self._prepare_legacy(plans, requests)
         return self._prepare_mixed(plans, requests)
 
+    def _continue_long_prefill(self):
+        """Advance one KV-only chunk without consuming a proposal token."""
+        if os.getenv('CDB_AV_CHUNKED_DRAFT_PREFILL') != '1' or not self.pending_prefill:
+            return None
+        budget = self.p.vllm_config.scheduler_config.max_num_batched_tokens
+        materialized = sum(end - start for _, start, end, _, _, _ in self.pending_prefill)
+        if materialized + len(self.active) <= budget:
+            return None
+        if (len(self.pending_prefill) != 1 or budget <= len(self.active)
+                or self.steps_completed >= self.horizon):
+            raise RuntimeError('Invalid chunked Draft prefill budget')
+        prefix, start, end, blocks, rid, phase = self.pending_prefill[0]
+        member = self.members[rid]
+        stop = min(start + budget, end - 1)
+        if not (len(member['kv_inputs']) == start < stop < end):
+            raise RuntimeError('Invalid chunked Draft KV lineage')
+        positions = list(range(start, stop))
+        slots = [blocks[pos // self.block_size] * self.block_size + pos % self.block_size
+                 for pos in positions]
+        metadata = self._metadata([blocks], [stop], [stop - start], slots)
+        self._forward(torch.tensor(prefix[start:stop], dtype=torch.int32, device=self.p.device),
+                      torch.tensor(positions, dtype=torch.int64, device=self.p.device),
+                      metadata, None, [rid], 'chunked_draft_prefill')
+        member['kv_inputs'].extend(prefix[start:stop])
+        member['prefill_cursor'] = stop
+        self.pending_prefill[0] = (prefix, stop, end, blocks, rid, phase)
+        self.steps_completed += 1
+        active = self.active_member_ids()
+        return dict(pending=True, done=False, window=self.window,
+                    steps_completed=self.steps_completed, active_req_ids=active,
+                    newly_completed_req_ids=[],
+                    ready_req_ids=[rid for rid, m in self.members.items() if m['ready']],
+                    progress={rid: m['progress'] for rid, m in self.members.items()},
+                    slots=self.capacity - len(active), remaining_steps=self.horizon - self.steps_completed,
+                    prefill_pending=True)
+
     def step(self):
+        partial = self._continue_long_prefill()
+        if partial is not None:
+            return partial
         decode_inputs = {
             rid: (self.members[rid]['next_position'],
                   self.members[rid]['next_token'])
@@ -677,6 +716,7 @@ class ReuseDraftSession(PersistentDraftSession):
             if old_valid > end:
                 self.invalidate(blocks, end, old_valid)
             member['kv_inputs'] = list(prefix[:end])
+            member.pop('prefill_cursor', None)
 
         return status
 
@@ -709,6 +749,48 @@ class ReuseDraftSession(PersistentDraftSession):
         return result
 
 class ReuseDraftQueue(PersistentDraftQueue):
+    @property
+    def reserved_kv_enabled(self):
+        return os.getenv('CDB_AV_RESERVE_KV_FOR_PROGRESS') == '1'
+
+    def target_admission_fits_kv(self, candidate):
+        """Keep capacity for complete Target progress and a private Draft lease."""
+        from vllm.v1.kv_cache_interface import FullAttentionSpec
+
+        scheduler = self.s
+        manager = scheduler.kv_cache_manager
+        groups = manager.kv_cache_config.kv_cache_groups
+        if (manager.enable_caching or scheduler.connector is not None
+                or len(groups) != 1
+                or not isinstance(groups[0].kv_cache_spec, FullAttentionSpec)
+                or groups[0].kv_cache_spec.block_size != self.block_size
+                or os.getenv('CDB_AV_REUSE_VALIDATE') == '1'):
+            raise RuntimeError('CDB KV reservation requires one shared full-attention KV pool')
+
+        def pages(tokens):
+            return (min(tokens, scheduler.max_model_len) + self.block_size - 1) // self.block_size
+
+        # The progress guard also preserves the existing free-block margin
+        # used by Draft lease allocation.
+        required = 2 * scheduler.max_num_running_reqs
+        for request in (*scheduler.running, candidate):
+            rid = request.request_id
+            end = request.num_prompt_tokens + request.max_tokens
+            target = pages(end + self.max_k + scheduler.num_lookahead_tokens)
+            draft = pages(end + self.max_k)
+            target_blocks, = manager.get_blocks(rid).blocks
+            draft_blocks = self.leases.get(rid) or self.cached_leases.get(rid, ())
+            if len(target_blocks) > target or len(draft_blocks) > draft:
+                raise RuntimeError('CDB KV allocation exceeded the request reserve')
+            required += target - len(target_blocks) + draft - len(draft_blocks)
+
+        free = manager.block_pool.get_num_free_blocks()
+        if free >= required:
+            return True
+        if not scheduler.running:
+            raise RuntimeError(f'CDB KV reservation cannot fit one request: {required} > {free}')
+        return False
+
     def __init__(self,engine):
         from vllm.v1.spec_decode.cdb_av_config import is_enabled
         self._reuse_parent_ownership_check = is_enabled(
@@ -891,7 +973,15 @@ class ReuseDraftQueue(PersistentDraftQueue):
                 reason=reuse_reason,
                 detail=reuse_detail,
             )
-            if prefill_cost > self.s.max_num_scheduled_tokens:
+            token_limit = self._cdb_admit_token_limit
+            budget = self.s.max_num_scheduled_tokens
+            charge = prefill_cost
+            if (os.getenv('CDB_AV_CHUNKED_DRAFT_PREFILL') == '1'
+                    and token_limit and prefill_cost > token_limit):
+                if plans:
+                    continue
+                charge = token_limit
+            if charge > budget:
                 self.discard_cached([rid] if cached else [], "prefill_token_limit")
                 emit(
                     "p2_skip_prefill_too_large",
@@ -905,10 +995,9 @@ class ReuseDraftQueue(PersistentDraftQueue):
             from vllm.v1.spec_decode.cdb_av_config import (
                 can_admit_prefill_tokens,
             )
-            token_limit=self._cdb_admit_token_limit
             if not can_admit_prefill_tokens(
                 planned_prefill_tokens,
-                prefill_cost,
+                charge,
                 token_limit,
                 self.s.max_num_scheduled_tokens,
             ):
