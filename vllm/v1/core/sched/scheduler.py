@@ -410,6 +410,13 @@ class Scheduler(SchedulerInterface):
                 - request.num_computed_tokens
             )
             is_p2_ready = p2 is not None and request.request_id in p2.ready
+            if (p2 is not None and request.num_output_tokens
+                    and request.num_computed_tokens < request.num_tokens - 1):
+                recompute_limit = p2.target_recompute_limit(
+                    request, request.num_computed_tokens
+                )
+                if recompute_limit is not None:
+                    num_new_tokens = min(num_new_tokens, recompute_limit)
             if (
                 not is_p2_ready
                 and 0 < self.scheduler_config.long_prefill_token_threshold < num_new_tokens
@@ -723,6 +730,13 @@ class Scheduler(SchedulerInterface):
                     # `request.num_prompt_tokens` to consider the resumed
                     # requests, which have output tokens.
                     num_new_tokens = request.num_tokens - num_computed_tokens
+                    if (p2 is not None and request.num_output_tokens
+                            and num_computed_tokens < request.num_tokens - 1):
+                        recompute_limit = p2.target_recompute_limit(
+                            request, num_computed_tokens
+                        )
+                        if recompute_limit is not None:
+                            num_new_tokens = min(num_new_tokens, recompute_limit)
                     refill_queue = getattr(self, "_cdb_refill_queue", None)
                     if refill_queue is not None and request.request_id in refill_queue.ready:
                         # Full Target prompt prefill and candidate verification occur

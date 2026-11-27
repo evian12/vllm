@@ -479,6 +479,21 @@ class PersistentDraftQueue:
         for rid in set(self._draft_wait_fallbacks) - live:
             del self._draft_wait_fallbacks[rid]
 
+    def target_recompute_limit(self, req, computed):
+        """Restore KV without generating an unverified post-prefill token.
+
+        Leave the last confirmed token for the ordinary Draft/Verify handoff.
+        The model runner discards sampling while computed < num_tokens, and
+        draft-wait enrolls the request once computed == num_tokens - 1.
+        Initial prefill and unsupported native-only requests keep their path.
+        """
+        if (not getattr(self, "draft_wait_enabled", False)
+                or not req.num_output_tokens or req.spec_token_ids
+                or computed >= req.num_tokens - 1
+                or self.unsupported_reason(req) is not None):
+            return None
+        return req.num_tokens - 1 - computed
+
     def draft_wait_reason(self, req):
         """Explicit native-only reasons; lack of a Draft slot is not a fallback."""
         if req.status != RequestStatus.RUNNING or req.is_finished():
