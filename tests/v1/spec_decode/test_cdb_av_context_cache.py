@@ -2,10 +2,12 @@
 from dataclasses import replace
 import gc
 import importlib.util
+import os
 from pathlib import Path
 import sys
 import threading
 import unittest
+from unittest.mock import patch
 import weakref
 
 
@@ -147,6 +149,35 @@ class CacheTests(unittest.TestCase):
         for kw in [dict(max_entries=0),dict(max_entries=True),dict(max_tokens=1025)]:
             with self.assertRaises(ValueError):m.ContextFingerprintCache(**kw)
         with self.assertRaises(ValueError):m.flag('X',{'X':'true'})
+
+    def test_opt_in_extended_cache_is_exact_and_bounded(self):
+        env = {
+            'CDB_AV_CONTEXT_FINGERPRINT_CACHE': '1',
+            'CDB_AV_CONTEXT_NATIVE_TYPES': '0',
+            'CDB_AV_CONTEXT_FINGERPRINT_VALIDATE': '0',
+            'CDB_AV_LONG_FINGERPRINT_CACHE': '1',
+        }
+        with patch.dict(os.environ, env):
+            module = load('extended_context_cache', SOURCE/'cdb_av_context_cache.py')
+        request = Request()
+        tokens = list(range(4096))
+        expected = self.digest(tokens)
+        self.assertEqual(module.cached_context(request, tokens, self.digest)['fingerprint'],
+                         expected)
+        self.assertEqual(module.cached_context(request, tokens, self.digest)['fingerprint'],
+                         expected)
+        self.assertEqual(module._cache.hits, 1)
+        tokens[-1] += 1
+        result = module.cached_context(request, tokens, self.digest)
+        self.assertNotEqual(result['fingerprint'], expected)
+        self.assertEqual(result['fingerprint'], self.digest(tokens))
+        tokens.append(0)
+        for _ in range(2):
+            module.cached_context(request, tokens, self.digest)
+        self.assertEqual(module._cache.hits, 1)
+        self.assertEqual(module._cache.fallbacks, 2)
+        with self.assertRaises(ValueError):
+            module.ContextFingerprintCache(max_tokens=4097)
 
 
 if __name__=='__main__':unittest.main()

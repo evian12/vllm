@@ -21,6 +21,9 @@ def flag(name,env=None):
     return value=='1'
 
 
+_MAX_PREFIX_TOKENS = 4096 if flag('CDB_AV_LONG_FINGERPRINT_CACHE') else 1024
+
+
 @dataclass(frozen=True)
 class Entry:
     tokens: tuple
@@ -31,7 +34,7 @@ class Entry:
 class ContextFingerprintCache:
     def __init__(self,*,max_entries=64,max_tokens=1024,validate=False):
         if (type(max_entries) is not int or not 1<=max_entries<=256
-                or type(max_tokens) is not int or not 1<=max_tokens<=1024):
+                or type(max_tokens) is not int or not 1<=max_tokens<=_MAX_PREFIX_TOKENS):
             raise ValueError('Unbounded context fingerprint memoization')
         self.max_entries=max_entries;self.max_tokens=max_tokens;self.validate=validate
         self.entries=weakref.WeakKeyDictionary();self.owner=threading.get_ident()
@@ -104,5 +107,7 @@ _cache=None
 def cached_context(request,tokens,hasher):
     global _cache
     if not ENABLED:raise RuntimeError('Context memoization called while disabled')
-    if _cache is None:_cache=ContextFingerprintCache(validate=VALIDATE)
+    if _cache is None:
+        _cache = ContextFingerprintCache(max_tokens=_MAX_PREFIX_TOKENS,
+                                         validate=VALIDATE)
     return _cache.context(request,tokens,hasher)
