@@ -6,6 +6,7 @@ import os
 import struct
 import threading
 from dataclasses import dataclass
+from itertools import chain, repeat
 
 import torch
 
@@ -55,7 +56,8 @@ def make_input_plan(ids, positions, blocks, seqs, qlens, slots, last_indices,
     if list(last_indices) != [s - 1 for s in starts[1:]]:
         raise ValueError("Staged last-token indices differ from request offsets")
     width = max(map(len, blocks))
-    table = tuple(v for row in blocks for v in (*row, *([0] * (width-len(row)))))
+    table = tuple(chain.from_iterable(
+        chain(row, repeat(0, width-len(row))) for row in blocks))
     raw = [
         ("ids", "i", torch.int32, (n,), tuple(ids)),
         ("positions", "q", torch.int64, (n,), tuple(positions)),

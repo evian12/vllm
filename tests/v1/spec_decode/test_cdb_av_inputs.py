@@ -219,3 +219,33 @@ def test_bounded_gpu_validation_uses_actual_typed_payload(monkeypatch):
     stager=PinnedDraftInputStager("cuda:0")
     for _ in range(4):stager.pack(**case([1,2,4]))
     assert stager.validation_samples==2
+
+
+@pytest.mark.parametrize('qlens', [(1, 1, 1, 1), (1, 2, 4, 8)])
+def test_long_ragged_block_table_bytes_and_snapshot(qlens):
+    args = case(qlens)
+    args['blocks'] = [list(range(1000*i+1, 1000*i+count+1))
+                      for i, count in enumerate((17, 32, 48, 64))]
+    args['seqs'] = [272, 512, 768, 1024]
+    plan = make_input_plan(**args)
+    table = next(f for f in plan.fields if f.name == 'block_table_tensor')
+    assert table.shape == (4, 64)
+    dest = bytearray([255] * plan.nbytes)
+    encode_input_plan(plan, dest)
+    actual = torch.frombuffer(dest, dtype=torch.int32,
+                              count=256, offset=table.offset).view(4, 64)
+    assert torch.equal(actual, expected(args)['block_table_tensor'])
+    for row, length in enumerate((17, 32, 48, 64)):
+        assert torch.count_nonzero(actual[row, length:]) == 0
+    saved = table.values
+    args['blocks'][0][0] = 123456
+    args['blocks'][1].append(654321)
+    assert table.values == saved
+    changed = make_input_plan(**args)
+    dest2 = bytearray(changed.nbytes)
+    encode_input_plan(changed, dest2)
+    field2 = next(f for f in changed.fields if f.name == 'block_table_tensor')
+    actual2 = torch.frombuffer(dest2, dtype=torch.int32,
+                               count=256, offset=field2.offset).view(4, 64)
+    assert torch.equal(actual2, expected(args)['block_table_tensor'])
+    assert actual[0, 0] == 1 and actual2[0, 0] == 123456
