@@ -29,6 +29,15 @@ def llama_graph_opt_in(env=None):
     return value == '1'
 
 
+def target_graph_context_limit(env=None):
+    """Extend only the explicitly gated FA2 graph launch-bound domain."""
+    env = os.environ if env is None else env
+    value = env.get('CDB_AV_TARGET_GRAPH_LONG_CONTEXT', '0')
+    if value not in ('0', '1'):
+        raise ValueError('CDB_AV_TARGET_GRAPH_LONG_CONTEXT must be 0 or 1')
+    return 4096 if value == '1' else 1024
+
+
 def validate_scope(*, persistent, refill, eager, async_scheduling,
                    prefix_caching, lora, model, dtype, quantization,
                    parallel_sizes, allow_llama=False):
@@ -188,6 +197,7 @@ class TargetFullGraph:
         cfg = runner.vllm_config
         pc = cfg.parallel_config
         allow_llama = llama_graph_opt_in()
+        self.context_limit = target_graph_context_limit()
         validate_scope(persistent=runner.cdb_persistent, refill=runner.cdb_refill,
             eager=cfg.model_config.enforce_eager,
             async_scheduling=cfg.scheduler_config.async_scheduling,
@@ -209,12 +219,13 @@ class TargetFullGraph:
         logger.info('[CDB_TARGET_GRAPH_SCOPE] %s', json.dumps(dict(
             model=type(runner.model).__name__, layers=len(self.layers),
             fa_version=2, llama_opt_in=allow_llama,
-            dtype=str(cfg.model_config.dtype))))
+            dtype=str(cfg.model_config.dtype), context_limit=self.context_limit,
+            max_model_len=cfg.model_config.max_model_len)))
         self.capacity = cfg.scheduler_config.max_num_seqs
         self.max_query = cfg.speculative_config.num_speculative_tokens + 1
         self.max_model_len = cfg.model_config.max_model_len
         if (self.capacity != 4 or not 1 <= self.max_query <= 9
-                or self.max_model_len > 1024 or runner.model.training
+                or not 1 <= self.max_model_len <= self.context_limit or runner.model.training
                 or getattr(cfg.model_config, 'enable_sleep_mode', False)):
             raise ValueError('Unsupported Target full Graph size/training domain')
         self.dynamic = os.getenv('CDB_AV_TARGET_GRAPH_DYNAMIC', '0') == '1'
