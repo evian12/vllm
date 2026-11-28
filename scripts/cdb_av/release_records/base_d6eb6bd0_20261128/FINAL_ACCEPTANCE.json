@@ -1,0 +1,265 @@
+{
+  "accepted": true,
+  "frozen": true,
+  "accepted_at_utc": "2026-11-28T08:25:25.413372+00:00",
+  "accepted_at_beijing": "2026-11-28T16:25:25.413372+08:00",
+  "release_id": "cdb-av-base-d6eb6bd0-20261128",
+  "source_commit": "d6eb6bd0d358b116245fc2384f779cbc65ddb7c7",
+  "source_branch": "codex/cdb-av-350-dev-20261127",
+  "remote": "myfork",
+  "remote_sha_verified": true,
+  "source_clean": true,
+  "original350_baseline_unchanged": true,
+  "payload_manifest_sha256": "502052e58738a0e5476c4d9366aeaea0c2092cb31a9036b00f3a7dd6175aa37a",
+  "qualified_case_count": 9,
+  "total_audited_tokens_including_warmup": 1545137,
+  "formal_requests": 2304,
+  "formal_output_tokens": 1397681,
+  "normal_initial_tokens": 3456,
+  "verified_output_tokens": 1541681,
+  "ar_fallback_tokens": 0,
+  "failed_requests": 0,
+  "measurement_preemptions": 0,
+  "states": {
+    "code_implemented": true,
+    "related_cpu_tests": 97,
+    "workflow_tests": 18,
+    "final_path_package_tests": 21,
+    "existing_output_guard_passed": true,
+    "gpu_functional_acceptance": true,
+    "declared_gpu_performance_tests_completed": true,
+    "new_gpu_performance_gain_proven": false,
+    "adopted_in_old350_baseline": false
+  },
+  "baseline350": {
+    "old_mean": 350.8685643255013,
+    "current_mean": 349.72827197266673,
+    "mean_delta_pct": -0.3249913126377235
+  },
+  "qualified_cases": [
+    {
+      "case": "closed_llama_sharegpt_16_42",
+      "kind": "closed",
+      "seed": 42,
+      "formal_requests": 512,
+      "formal_tokens": 101003,
+      "audited_tokens_including_warmup": 117387,
+      "throughput_tok_s": 349.1101025956328,
+      "arrival_lag_p95_s": null,
+      "target_graph": 1,
+      "draft_graphs": 1,
+      "actual_k": [
+        1,
+        8
+      ],
+      "ttft_p95_s": 0.10449938438832758,
+      "e2e_p95_s": 15.935290410369634,
+      "raw_directory": "/home/yypan/CDB-AV/results/cdb_final_packaged_frozen_matrix_d6eb6bd0_gpu3_20261128_r3/closed_llama_sharegpt_16_42"
+    },
+    {
+      "case": "closed_llama_sharegpt_16_43",
+      "kind": "closed",
+      "seed": 43,
+      "formal_requests": 512,
+      "formal_tokens": 101003,
+      "audited_tokens_including_warmup": 117387,
+      "throughput_tok_s": 350.1228972024952,
+      "arrival_lag_p95_s": null,
+      "target_graph": 1,
+      "draft_graphs": 1,
+      "actual_k": [
+        1,
+        8
+      ],
+      "ttft_p95_s": 0.10269214520230889,
+      "e2e_p95_s": 15.901594515470787,
+      "raw_directory": "/home/yypan/CDB-AV/results/cdb_final_packaged_frozen_matrix_d6eb6bd0_gpu3_20261128_r3/closed_llama_sharegpt_16_43"
+    },
+    {
+      "case": "closed_llama_sharegpt_16_44",
+      "kind": "closed",
+      "seed": 44,
+      "formal_requests": 512,
+      "formal_tokens": 101003,
+      "audited_tokens_including_warmup": 117387,
+      "throughput_tok_s": 349.95181611987215,
+      "arrival_lag_p95_s": null,
+      "target_graph": 1,
+      "draft_graphs": 1,
+      "actual_k": [
+        1,
+        8
+      ],
+      "ttft_p95_s": 0.10708731468766923,
+      "e2e_p95_s": 15.567483506258577,
+      "raw_directory": "/home/yypan/CDB-AV/results/cdb_final_packaged_frozen_matrix_d6eb6bd0_gpu3_20261128_r3/closed_llama_sharegpt_16_44"
+    },
+    {
+      "case": "open_llama_aime_4_42",
+      "kind": "open",
+      "seed": 42,
+      "formal_requests": 128,
+      "formal_tokens": 262144,
+      "audited_tokens_including_warmup": 278528,
+      "throughput_tok_s": 279.6333556876682,
+      "arrival_lag_p95_s": 0.002043077719437746,
+      "target_graph": 0,
+      "draft_graphs": 1,
+      "actual_k": [
+        1,
+        8
+      ],
+      "ttft_p95_s": 459.3199252193841,
+      "e2e_p95_s": 494.84381153097013,
+      "raw_directory": "/home/yypan/CDB-AV/results/cdb_final_packaged_frozen_matrix_d6eb6bd0_gpu3_20261128_r3/open_llama_aime_4_42"
+    },
+    {
+      "case": "open_llama_codeelo_0_42",
+      "kind": "open",
+      "seed": 42,
+      "formal_requests": 128,
+      "formal_tokens": 262144,
+      "audited_tokens_including_warmup": 278528,
+      "throughput_tok_s": 101.18272831530432,
+      "arrival_lag_p95_s": 0.0012536207020843904,
+      "target_graph": 0,
+      "draft_graphs": 1,
+      "actual_k": [
+        1,
+        8
+      ],
+      "ttft_p95_s": 0.15606463937789383,
+      "e2e_p95_s": 25.71271667010766,
+      "raw_directory": "/disk14T/yypan/CDB-AV-runtime/results/cdb_final_arrival_recovery_d6_20261128/open_llama_codeelo_0_42"
+    },
+    {
+      "case": "open_llama_sharegpt_4_42",
+      "kind": "open",
+      "seed": 42,
+      "formal_requests": 128,
+      "formal_tokens": 23048,
+      "audited_tokens_including_warmup": 39432,
+      "throughput_tok_s": 304.508487886401,
+      "arrival_lag_p95_s": 0.0018793471976103146,
+      "target_graph": 1,
+      "draft_graphs": 1,
+      "actual_k": [
+        1,
+        8
+      ],
+      "ttft_p95_s": 24.36392349384119,
+      "e2e_p95_s": 41.842632634814805,
+      "raw_directory": "/home/yypan/CDB-AV/results/cdb_final_packaged_frozen_matrix_d6eb6bd0_gpu3_20261128_r3/open_llama_sharegpt_4_42"
+    },
+    {
+      "case": "open_qwen_aime_4_42",
+      "kind": "open",
+      "seed": 42,
+      "formal_requests": 128,
+      "formal_tokens": 262144,
+      "audited_tokens_including_warmup": 278528,
+      "throughput_tok_s": 142.7802873742671,
+      "arrival_lag_p95_s": 0.0019960400206059602,
+      "target_graph": 0,
+      "draft_graphs": 1,
+      "actual_k": [
+        1,
+        8
+      ],
+      "ttft_p95_s": 1296.6583104480123,
+      "e2e_p95_s": 1324.403965808644,
+      "raw_directory": "/home/yypan/CDB-AV/results/cdb_final_packaged_frozen_matrix_d6eb6bd0_gpu3_20261128_r3/open_qwen_aime_4_42"
+    },
+    {
+      "case": "open_qwen_codeelo_4_42",
+      "kind": "open",
+      "seed": 42,
+      "formal_requests": 128,
+      "formal_tokens": 262144,
+      "audited_tokens_including_warmup": 278528,
+      "throughput_tok_s": 91.34007182894315,
+      "arrival_lag_p95_s": 0.0016304257186568801,
+      "target_graph": 0,
+      "draft_graphs": 1,
+      "actual_k": [
+        1,
+        8
+      ],
+      "ttft_p95_s": 2258.0107248668855,
+      "e2e_p95_s": 2280.9023549107665,
+      "raw_directory": "/home/yypan/CDB-AV/results/cdb_final_packaged_frozen_matrix_d6eb6bd0_gpu3_20261128_r3/open_qwen_codeelo_4_42"
+    },
+    {
+      "case": "open_qwen_sharegpt_4_42",
+      "kind": "open",
+      "seed": 42,
+      "formal_requests": 128,
+      "formal_tokens": 23048,
+      "audited_tokens_including_warmup": 39432,
+      "throughput_tok_s": 243.38881032107793,
+      "arrival_lag_p95_s": 0.0017488326107503835,
+      "target_graph": 1,
+      "draft_graphs": 1,
+      "actual_k": [
+        1,
+        8
+      ],
+      "ttft_p95_s": 45.00537229270531,
+      "e2e_p95_s": 54.08917301486222,
+      "raw_directory": "/home/yypan/CDB-AV/results/cdb_final_packaged_frozen_matrix_d6eb6bd0_gpu3_20261128_r3/open_qwen_sharegpt_4_42"
+    }
+  ],
+  "final_path_cold_functional": {
+    "qwen": {
+      "passed": true,
+      "requests": 4,
+      "tokens": 8192,
+      "first_tokens": 4,
+      "verify_tokens": 8188,
+      "ar_fallback_tokens": 0,
+      "actual_final_path_source_confirmed": true,
+      "directory": "/home/yypan/CDB-AV/results/cdb_final_release_build_d6_20261128/final_path_functional/qwen_cold4"
+    },
+    "llama": {
+      "passed": true,
+      "requests": 4,
+      "tokens": 8192,
+      "first_tokens": 4,
+      "verify_tokens": 8188,
+      "ar_fallback_tokens": 0,
+      "actual_final_path_source_confirmed": true,
+      "directory": "/home/yypan/CDB-AV/results/cdb_final_release_build_d6_20261128/final_path_functional/llama_cold4"
+    }
+  },
+  "full_external_model_hashes_verified_from_final_path": true,
+  "current_package_cancellation_and_recovery": {
+    "aborted_requests": 3,
+    "before_states": [
+      "WAITING",
+      "RUNNING",
+      "RUNNING"
+    ],
+    "all_cpu_worker_owners_released": true,
+    "free_blocks_restored": 651,
+    "initial_free_blocks": 651
+  },
+  "cancellation_recovery_tokens": 8192,
+  "lifecycle_child_status_note": "The diagnostic helper retains its running child STATUS;the parent passed only after LIFECYCLE_RESULT,server cleanup,package recheck and GPU2 health.Original child status is preserved.",
+  "client_timing_policy_sha256": "4a049c850cea1780821f5b718be8ffa3c17b249d934c150b94f0ad9eff80230c",
+  "unchanged_benchmark_sha256": "448e19849779bb67418e28d5d25dade194e6bbbd1fb6135bbd6b8d34c0b43f4a",
+  "acceptance_judgment": "Freeze as a scoped correctness,lifecycle and reproducibility reference base:all declared gates completed,original350 Graph configuration retained,and known high-load capacity limits explicitly accepted as limitations.No universal latency/SLO or new performance-gain claim.",
+  "known_limits": [
+    "Qwen/CodeElo3x scheduled TTFTp95=2258.0107s and E2Ep95=2280.9024s;no SLO or universal high-load efficiency claim",
+    "651 usable KV blocks;7610/8128 frozen request pairs cannot fit the conservative complete Target+Draft reservation lower bound;not an exact allocator replay",
+    "Llama/CodeElo qualified reference is0.5x;five other open cases are3x,not uniform3x coverage",
+    "Historical native references use another physical GPU;no cross-GPU formal acceleration ratio",
+    "Core source,strict/progress settings differ from historical350;mean delta is descriptive,not an isolated Graph effect or significance claim",
+    "Original R3 final arrival-gate failure remains failed;qualified set is explicitly8old+1diagnosed recovery with unchanged10ms gate",
+    "New client idle polling is separately versioned;future reproduction applies it to all cases,while original eight scores used the original event loop",
+    "Certification covers declared greedy token-ID workloads and specified probes,not every context boundary,API feature,natural-pressure scenario or arbitrary platform",
+    "Full-vs-chunk numerical failures and all historical failed probes/launches remain archived at original tolerances"
+  ],
+  "original_matrix_passed": false,
+  "assembled_evidence": "/home/yypan/CDB-AV/results/cdb_final_arrival_recovery_d6_20261128/ASSEMBLED_ACCEPTANCE_AUDIT.json",
+  "final_path_gate_directory": "/home/yypan/CDB-AV/results/cdb_final_release_build_d6_20261128"
+}

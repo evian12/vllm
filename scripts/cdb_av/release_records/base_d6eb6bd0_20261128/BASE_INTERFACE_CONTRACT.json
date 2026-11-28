@@ -1,0 +1,198 @@
+{
+  "state": "frozen_scoped_reference_base",
+  "accepted": true,
+  "frozen": true,
+  "source_commit": "d6eb6bd0d358b116245fc2384f779cbc65ddb7c7",
+  "package_manifest_sha256": "502052e58738a0e5476c4d9366aeaea0c2092cb31a9036b00f3a7dd6175aa37a",
+  "source_file_hashes": {
+    "vllm/v1/spec_decode/cdb_av_persistent.py": "8fa6706392b616147e30d8e21b6ef2dc5bff486c5f90670a3699585ee4dc7f23",
+    "vllm/v1/spec_decode/cdb_av_kv_reuse.py": "cc619488055b2767ccbf07d0849f0349d50f4daed1d35276f3b8870f1f36ecf1",
+    "vllm/v1/core/sched/scheduler.py": "5f639e6c79bf288374f232cea2fa0b712781484d09b7ed672550304dc692b4e4"
+  },
+  "function_locations": {
+    "vllm/v1/spec_decode/cdb_av_persistent.py": {
+      "PersistentDraftQueue.target_recompute_limit": {
+        "line": 482,
+        "end_line": 495,
+        "ast_sha256": "83f82a100f5bbb24cc94d54fc20669f3418743bf3e6d2f23d138aeaef6764d53"
+      },
+      "PersistentDraftQueue.begin_target_schedule": {
+        "line": 608,
+        "end_line": 656,
+        "ast_sha256": "b2acbf791b6a8342254e33badb981ab69a45c593c3bedc49bafe6e7022320ba0"
+      },
+      "PersistentDraftQueue.can_schedule_verify": {
+        "line": 658,
+        "end_line": 686,
+        "ast_sha256": "8b43d4ec8646f07bd59d1ebbc198190afa3f69f90fbee9d3df3bc6602ea18b09"
+      },
+      "PersistentDraftQueue.release": {
+        "line": 702,
+        "end_line": 714,
+        "ast_sha256": "4ad7b9df3fc8f442d33331e7b55ce195b76f31d6bdb703e16d6c7b4dc928ce1e"
+      },
+      "PersistentDraftQueue.unsupported_reason": {
+        "line": 717,
+        "end_line": 742,
+        "ast_sha256": "8d52ba9ff0e0309d4b325ca8dab7074d9fd45b2c84ae4a356be970f92cb38ba0"
+      },
+      "PersistentDraftQueue.close": {
+        "line": 926,
+        "end_line": 938,
+        "ast_sha256": "2042bdde652fda1e56e98ddaa5c60bfa2d981dbae883272153440c9874f02c9f"
+      },
+      "PersistentDraftQueue.reconcile": {
+        "line": 940,
+        "end_line": 982,
+        "ast_sha256": "632af8ab533dc15cf5bd57c6f2fa00065b5b4f610e7b1f7121e0acacf7fc1db0"
+      },
+      "PersistentDraftQueue.resolve_k_cap": {
+        "line": 1099,
+        "end_line": 1139,
+        "ast_sha256": "1919fef15514ccad0645604c94beefe0360899bd8b9d4715462fe5446ab4670c"
+      }
+    },
+    "vllm/v1/spec_decode/cdb_av_kv_reuse.py": {
+      "ReuseDraftSession.prepare": {
+        "line": 631,
+        "end_line": 637,
+        "ast_sha256": "275e4111b984f6a8b2bca63f761b3ef1a925f8c75d9a8ab62fbf3700e41f6278"
+      },
+      "ReuseDraftSession.step": {
+        "line": 675,
+        "end_line": 721,
+        "ast_sha256": "d61323bb8f0e612aa6cae690ebe192fa5710432e3651cfda3ff7ca268558ab0d"
+      },
+      "ReuseDraftSession.boundary": {
+        "line": 723,
+        "end_line": 741,
+        "ast_sha256": "96fb1e582bfe8e70c7447c0aa2aa62f6250ed105dfc4dd62ff3cb03fe5b4a791"
+      },
+      "ReuseDraftSession.drop": {
+        "line": 743,
+        "end_line": 749,
+        "ast_sha256": "340b61236e27ddc6f40bf95040ae2a60846a44aa43da87138b1b0ff2dc89c704"
+      },
+      "ReuseDraftQueue.release": {
+        "line": 819,
+        "end_line": 830,
+        "ast_sha256": "412cc7484896feb7850b379a7c5b11817afef9ee58d3bd9b749a62d997b4c05f"
+      },
+      "ReuseDraftQueue.discard_cached": {
+        "line": 832,
+        "end_line": 845,
+        "ast_sha256": "a67fd1f508e1c55fb8e34cfd626bb6c4acf09871d15d74e55f1d3b7cf4ce98af"
+      },
+      "ReuseDraftQueue.plans": {
+        "line": 902,
+        "end_line": 1067,
+        "ast_sha256": "3370e4d1452afd6dd165fb11c9ce88317596fe5880951ba2e916979697fcb6c4"
+      },
+      "ReuseDraftQueue.rpc": {
+        "line": 1069,
+        "end_line": 1128,
+        "ast_sha256": "e1f426b15c2292fefff5a269de522ee2584af681fe1e40a51d662d769c270a82"
+      },
+      "ReuseDraftQueue.close": {
+        "line": 1130,
+        "end_line": 1134,
+        "ast_sha256": "f1db791e37ccb033da13b3e61d048a25521080ddbd739921efd5857f7cf8c6ea"
+      },
+      "ReuseDraftQueue.target_admission_fits_kv": {
+        "line": 756,
+        "end_line": 792,
+        "ast_sha256": "c166c10765a13c081c988ad9b4917ce8ad870e6b34b9a1e464e7bb6d09ea5e65"
+      }
+    },
+    "vllm/v1/core/sched/scheduler.py": {
+      "Scheduler.schedule": {
+        "line": 335,
+        "end_line": 1027,
+        "ast_sha256": "544063e135115c92955041977581a461a8c3a2ad1f7ab3548c430f9c8f97f150"
+      },
+      "Scheduler.finish_requests": {
+        "line": 2127,
+        "end_line": 2169,
+        "ast_sha256": "29814abb1b28f421915d16ee7c019aef37cd1fd2738a1922f9eaaf8c8b917f70"
+      }
+    }
+  },
+  "validated_domain": {
+    "model_pairs": [
+      "Llama-3.1-8B-Instruct / Llama-3.2-1B-Instruct",
+      "Qwen3-8B / Qwen3-1.7B"
+    ],
+    "inputs": "Frozen token-ID prompts;greedy temperature0;ignore_eos;original per-request output budgets",
+    "profiles": [
+      "llama_1024",
+      "qwen_1024",
+      "llama_4096",
+      "qwen_4096"
+    ],
+    "target_capacity": 4,
+    "hf": 0.8,
+    "window_h": 8,
+    "k_max": 8,
+    "step_tokens": 1024,
+    "automatic_prefix_KV_cache": false
+  },
+  "invariants": [
+    "Target owns the confirmed output sequence;after the normal initial token,new output must pass Target Verify",
+    "CPU queue owns exclusive KV leases and versioned context snapshots;Worker owns session state and KV contents",
+    "Draft-wait preserves confirmed context without allocating Draft KV;unsupported_reason classifies native-only paths",
+    "Supported resumed requests recompute Target KV only through confirmed num_tokens minus one,then return to Draft/Verify",
+    "Ownership or Worker acknowledgement failures retain auditable ownership records and raise;they do not silently discard owners",
+    "Strict auditing stays enabled and raises on post-initial unverified output;unsupported native-only features are outside this zero-AR certification",
+    "Graph-to-eager fallback changes execution,not the output verification requirement"
+  ],
+  "algorithm_extension_rules": [
+    "Keep confidence/K policy changes within validated caps and versioned confirmed contexts;version changes and rerun affected gates",
+    "Keep official tokens,frozen arrival plans and original output budgets intact when comparing performance",
+    "Keep scheduler admission,lease ownership,Worker acknowledgement and strict output auditing intact",
+    "Develop new algorithms in an isolated version and preserve this source and the original350 artifacts"
+  ],
+  "evidence_status": {
+    "independently_audited_packaged_cases": 9,
+    "audited_tokens": 1545137,
+    "ar_fallback_tokens": 0,
+    "failed_requests": 0,
+    "measurement_preemptions": 0,
+    "preemption": "Both models on d6:two forced native preemptions each,CPU/Worker cleared and KV restored;not a claim covering every natural-pressure scenario",
+    "cancellation": "Current packaged source:WAITING+2RUNNING cancelled,CPU/Worker empty,KV restored651;8192 subsequent cold tokens strict0AR",
+    "last_case_original_output_functional_passed": true,
+    "last_case_original_arrival_qualified": false,
+    "current_recovery": {
+      "state": "completed_and_independently_accepted",
+      "directory": "/home/yypan/CDB-AV/results/cdb_final_arrival_recovery_d6_20261128",
+      "original_matrix_still_failed": true
+    },
+    "final_path_cold_functional_tokens": 16384
+  },
+  "performance_scope": {
+    "original350_regression": "Same-card three seeds:349.7283 versus historical350.8686 tok/s,minus0.3250%;source and strict/progress settings differ",
+    "qwen_codeelo_3x": {
+      "throughput_tok_s": 91.34007182894315,
+      "scheduled_ttft_p95_s": 2258.0107248668855,
+      "scheduled_e2e_p95_s": 2280.9023549107665,
+      "kv_cache_tokens": 10432,
+      "interpretation": "Substantial queueing at the offered load remains a limitation;no predefined SLO exists",
+      "cumulative_peak_running_including_warmup": 2,
+      "cumulative_peak_waiting_including_warmup": 107,
+      "sampled_measurement_running_max": 2,
+      "sampled_measurement_waiting_max": 106,
+      "kv_capacity_lower_bound_review": "iteration_20261128_1108/release_review/KV_CAPACITY_REVIEW.json",
+      "minimum_pair_infeasible_fraction": 0.93626968503937
+    },
+    "native_reference_gpu": "GPU-b68ce562-1ffa-ce8d-4738-654da140a7e1",
+    "current_gpu": "GPU-b493bb52-b935-1cf4-47fe-7869125775b9",
+    "native_speedup_claimed": false
+  },
+  "known_limits": [
+    "Final Llama/CodeElo reference is0.5x;there is no qualified archived3x reference",
+    "Coverage is frozen workloads plus specific functional probes,not every4096-boundary input or vLLM API feature",
+    "Full-versus-chunk numerical differences beyond original tolerances remain preserved;shape-matched native/session checks are separate evidence",
+    "External Linux CPython3.11 ABI,dependencies and models are pinned;arbitrary-platform compatibility is unproven",
+    "No predefined latency SLO;raw delays and offered-load scope must remain in the final report"
+  ],
+  "final_acceptance": "FINAL_ACCEPTANCE.json"
+}
