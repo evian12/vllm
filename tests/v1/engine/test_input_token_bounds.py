@@ -96,3 +96,43 @@ def test_prompt_embeddings_have_no_token_ids(processor):
     processor._validate_model_input(
         {"type": "embeds", "prompt_embeds": torch.zeros(2, 4)}, prompt_type="decoder"
     )
+
+
+@pytest.mark.parametrize("prompt_type", ["encoder", "decoder"])
+@pytest.mark.parametrize("token_id", [128, 2147483647])
+def test_upper_bound_without_tokenizer(processor, prompt_type, token_id):
+    with pytest.raises(ValueError, match="out of vocabulary"):
+        processor._validate_model_input(
+            {"type": "token", "prompt_token_ids": [1, token_id]},
+            prompt_type=prompt_type,
+        )
+
+
+@pytest.mark.parametrize("prompt_type", ["encoder", "decoder"])
+def test_model_vocab_boundary_without_tokenizer(processor, prompt_type):
+    processor._validate_model_input(
+        {"type": "token", "prompt_token_ids": [0, 127]},
+        prompt_type=prompt_type,
+    )
+
+
+@pytest.mark.parametrize(
+    "persistent,audit", [("1", "strict"), ("1", "off"), ("0", "off")]
+)
+def test_oversized_request_never_enters_core_without_tokenizer(
+    processor, monkeypatch, persistent, audit
+):
+    monkeypatch.setenv("CDB_AV_PERSISTENT", persistent)
+    monkeypatch.setenv("CDB_AV_AR_OUTPUT_AUDIT", audit)
+    constructor = Mock()
+    with monkeypatch.context() as patch:
+        patch.setattr("vllm.v1.engine.input_processor.EngineCoreRequest", constructor)
+        with pytest.raises(ValueError, match="out of vocabulary"):
+            processor.process_inputs(
+                "invalid", [1, 128], SamplingParams(temperature=0, max_tokens=4)
+            )
+        constructor.assert_not_called()
+    request = processor.process_inputs(
+        "valid", [0, 1, 2], SamplingParams(temperature=0, max_tokens=4)
+    )
+    assert request.prompt_token_ids == [0, 1, 2]
