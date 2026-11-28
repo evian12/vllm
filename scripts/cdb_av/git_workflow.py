@@ -87,7 +87,7 @@ def unsafe_path(name: str) -> str | None:
 
 
 def staged_paths() -> list[str]:
-    return [p for p in git("diff", "--cached", "--name-only", "--diff-filter=ACMR").splitlines() if p]
+    return [p for p in git("diff", "--cached", "--name-only", "--diff-filter=ACMRT").splitlines() if p]
 
 
 def scan_staged() -> list[str]:
@@ -98,7 +98,9 @@ def scan_staged() -> list[str]:
             errors.append(f"{name}: {reason}")
             continue
         path = ROOT / name
-        if path.is_symlink():
+        # Validate the staged object type, not just its possibly newer worktree.
+        index_entry = command(["git", "ls-files", "--stage", "-z", "--", name]).stdout
+        if path.is_symlink() or index_entry.startswith("120000 "):
             errors.append(f"{name}: symlink requires explicit review")
             continue
         staged = subprocess.run(["git", "show", f":{name}"], cwd=ROOT,
@@ -174,6 +176,14 @@ def preflight(remote: str) -> dict[str, object]:
             "worktree_entries": len(status), "worktree_status": status}
 
 
+def _staged_checkpoint_paths(*, deleted_only: bool = False) -> set[str]:
+    # Keep exact path names and both halves of a rename for explicit-path checks.
+    args = ["git", "diff", "--cached", "--no-renames", "--name-only", "-z"]
+    if deleted_only:
+        args.append("--diff-filter=D")
+    return {name for name in command(args).stdout.split("\0") if name}
+
+
 def checkpoint(args: argparse.Namespace) -> dict[str, object]:
     branch = git("branch", "--show-current")
     if branch == "main" or not branch:
@@ -183,7 +193,7 @@ def checkpoint(args: argparse.Namespace) -> dict[str, object]:
     intended = set(args.path)
     if any((ROOT / name).is_dir() for name in intended):
         raise RuntimeError("--path must name individual files, not directories")
-    previously_staged = set(git("diff", "--cached", "--name-only").splitlines())
+    previously_staged = _staged_checkpoint_paths()
     if previously_staged - intended:
         raise RuntimeError("Unrelated paths are already staged: " + ", ".join(sorted(previously_staged - intended)))
     before = remote_sha(args.remote, branch)
@@ -194,8 +204,16 @@ def checkpoint(args: argparse.Namespace) -> dict[str, object]:
     for path in args.path:
         if unsafe_path(path):
             raise RuntimeError(f"Unsafe path {path}: {unsafe_path(path)}")
-    git("add", "--", *args.path)
-    staged = set(git("diff", "--cached", "--name-only").splitlines())
+    staged_deletions = _staged_checkpoint_paths(deleted_only=True)
+    # Re-adding an already-staged deletion fails because neither the index nor
+    # worktree contains that path. Recreated files and dangling symlinks must
+    # still reach git add and the normal staged-content guards.
+    paths_to_add = [name for name in args.path
+                    if name not in staged_deletions
+                    or (ROOT / name).exists() or (ROOT / name).is_symlink()]
+    if paths_to_add:
+        git("add", "--", *paths_to_add)
+    staged = _staged_checkpoint_paths()
     if not staged:
         raise RuntimeError("No staged changes")
     if staged - intended:

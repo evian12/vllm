@@ -1,0 +1,52 @@
+{
+  "id": "INFRA-006",
+  "status": "fixed_and_verified",
+  "checked_at": 1795869959.4447255,
+  "base_commit": "a1f8c1fcbfe53205499a041551d011865e3cfd06",
+  "evidence_root": "/home/yypan/CDB-AV/results/cdb_infrastructure_audit_20261128/infra006_checkpoint",
+  "scope": "Git checkpoint path/index contract only;no vLLM runtime or algorithm changes",
+  "defects": [
+    "Re-adding already-staged deletions fails with missing pathspec",
+    "Rename detection omitted old paths from explicit-path checks",
+    "Staged type changes were excluded from content scanning",
+    "Symlink guard trusted worktree type instead of staged index type"
+  ],
+  "changes": [
+    "Only skip add for index-deleted paths still absent in worktree;recreated files and dangling symlinks still reach staging",
+    "Use NUL-separated exact names with rename detection disabled for explicit checkpoint path checks",
+    "IncludeTtype changes in staged scan;read index mode to reject staged symlinks even ifworktree changed"
+  ],
+  "targeted_tests": 15,
+  "targeted_subtest_paths": [
+    "non-ASCII",
+    "newline",
+    "leading whitespace"
+  ],
+  "all_workflow_tests": 33,
+  "baseline": {
+    "cases": 15,
+    "failures": 4,
+    "errors": 7,
+    "note": "unittest error count includes three special-path subtest errors;do not derive passed case count by subtraction",
+    "log": "BASELINE_EXPANDED.log"
+  },
+  "test_method": "Real temporary Git repositories and local bare remotes;real fetch/stage/commit/push/remote-SHA checks;fixture validation invokes realscan_staged instead of recursively running wholeworkflow suite",
+  "guard_regressions": [
+    "unknownmissingpathfails",
+    "unrelatedstagedchangesnotcommitted",
+    "traversalblocked",
+    "stale staged-additionblob notcommitted",
+    "danglingsymlink/type-change secret content rejected"
+  ],
+  "changed_files_sha256": {
+    "scripts/cdb_av/git_workflow.py": "66773f148a44f0315947ce6b9a157efcaa609ffe2345dc9aa70e3797a467f5a1",
+    "scripts/cdb_av/tests/test_checkpoint_paths.py": "0870f997e3b03fc2a88d8094d0a8d978347d8a46b16c6a541459495b9698051b"
+  },
+  "source_test_patch_sha256": "6e072db01a96547946942640bd3d7966cf5cfb075bb3e79d77f3b1322d874a38",
+  "runtime_source_commit": "c956de3a659d101753aea114aeb11f5ad1d54b76",
+  "runtime_code_byte_identical": true,
+  "inherited_runtime_evidence": "CPU_ITERATION2:816passed14skipped24subtests;cleanup_functional_gate:16384normal recovery tokens zeroAR;inherited bybyteidentity,not rerun forthis tooling-only change",
+  "GPU_experiments_started": 0,
+  "new_runtime_performance_claim": false,
+  "comprehensive_infrastructure_accepted": false
+}
