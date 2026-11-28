@@ -884,6 +884,8 @@ class RefillSession:
                     sample.cpu_span(
                         'pre_d2h_gpu_wait_cpu_ms', gpu_wait_start)
                     d2h_copy_start = time.perf_counter()
+                from vllm.v1.spec_decode.cdb_av_d2h_wait import wait_for_d2h
+                wait_for_d2h(packed_gpu, 'draft')
                 packed = packed_gpu.cpu().tolist()
                 if sample is not None:
                     sample.cpu_span('d2h_materialize_cpu_ms', d2h_copy_start)
@@ -904,6 +906,8 @@ class RefillSession:
                     sample.cpu_span(
                         'pre_d2h_gpu_wait_cpu_ms', gpu_wait_start)
                     d2h_copy_start = time.perf_counter()
+                from vllm.v1.spec_decode.cdb_av_d2h_wait import wait_for_d2h
+                wait_for_d2h(tokens, 'draft')
                 token_values = tokens.tolist()
                 if sample is not None:
                     sample.cpu_span('d2h_materialize_cpu_ms', d2h_copy_start)
