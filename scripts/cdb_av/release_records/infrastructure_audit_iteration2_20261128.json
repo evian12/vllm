@@ -1,0 +1,179 @@
+{
+  "updated_at": 1795868631.3953404,
+  "runtime_source_commit": "c956de3a659d101753aea114aeb11f5ad1d54b76",
+  "remote_sha": "c956de3a659d101753aea114aeb11f5ad1d54b76",
+  "source_clean": true,
+  "adopted_fixes": [
+    {
+      "id": "INFRA-004",
+      "commit": "efe3f4c4dedf21742580924f1f1122fde14f5b1f",
+      "finding": "Oversized token ID with skip-tokenizer-init bypasses vocabulary validation and kills EngineCore",
+      "baseline": "upper_bound_no_tokenizer_baseline/RESULT.json",
+      "CPU_bounds_tests": 26,
+      "GPU_models": [
+        "llama",
+        "qwen"
+      ],
+      "normal_tokens": 160,
+      "AR_tokens": 0,
+      "health_after_invalid": 200
+    },
+    {
+      "id": "INFRA-005",
+      "commit": "c956de3a659d101753aea114aeb11f5ad1d54b76",
+      "finding": "Cleanup failure or partial initialization skips independent teardown;DP group cleanup skips after parent failure",
+      "baseline": "CLEANUP_BASELINE_CORRECTED.log",
+      "baseline_failed": 7,
+      "baseline_passed": 3,
+      "regression_tests_passed": 10,
+      "GPU_cleanup_traces": {
+        "qwen": {
+          "pid": 226761,
+          "events": [
+            "engine:enter",
+            "draft:enter",
+            "draft:return",
+            "structured:enter",
+            "structured:return",
+            "executor:enter",
+            "executor:return",
+            "scheduler:enter",
+            "scheduler:return",
+            "engine:return"
+          ]
+        },
+        "llama": {
+          "pid": 253951,
+          "events": [
+            "engine:enter",
+            "draft:enter",
+            "draft:return",
+            "structured:enter",
+            "structured:return",
+            "executor:enter",
+            "executor:return",
+            "scheduler:enter",
+            "scheduler:return",
+            "engine:return"
+          ]
+        }
+      },
+      "note": "DP destruction fault path is CPU-injected;normal real GPU gates are single-device,not multiprocess distributed fault injection"
+    }
+  ],
+  "retired_candidate": {
+    "candidate_commit": "4d5e758b26f598767903d7e991e19c1c69a84938",
+    "retirement_commit": "b6391fe5572d7ccfd4fe58e7cd948a991d2039ae",
+    "review": {
+      "candidate_commit": "4d5e758b26f598767903d7e991e19c1c69a84938",
+      "scope": "SameGPU3 Llama/ShareGPT first32originalrows closedC16 withcomplete32request warmup;two seeds inoppositeAB/BA order;not comparable directly tohistorical full128request350TPS",
+      "pairs": [
+        {
+          "seed": 42,
+          "baseline_TPS": 326.66542678513906,
+          "candidate_TPS": 244.73825166637843,
+          "TPS_delta_pct": -25.079842677274634,
+          "CPU_per_token_delta_pct": -27.584388185654053,
+          "plan_sha256": "5ff225fcd8aa3af10d69b78dc6323722d418540ad48c61fa5ca4d870403a4f70"
+        },
+        {
+          "seed": 43,
+          "baseline_TPS": 323.7655355397583,
+          "candidate_TPS": 243.20955390459085,
+          "TPS_delta_pct": -24.880962546205044,
+          "CPU_per_token_delta_pct": -28.355091383812013,
+          "plan_sha256": "c696dc6c01fc6cec4219a2488521b15b39180b8a9fbb852dc4c6507a88206ced"
+        }
+      ],
+      "mean_baseline_TPS": 325.21548116244867,
+      "mean_candidate_TPS": 243.97390278548465,
+      "all_arms_zero_failed": true,
+      "strict_AR_tokens": 0,
+      "total_warmup_and_measurement_tokens": 48608,
+      "decision": "reject_and_retire_source_candidate",
+      "reason": "Bothorder-balancedpairsloseabout25percentthroughput;lowerCPUconsumptiondoesnotjustifythisregressionforcurrentbase",
+      "default_never_enabled": true,
+      "evidence": "Rawrequests/serverlogs andconfiguration/source/plan manifests retained;noQwenperformanceextensionafterclearLlamaregression"
+    }
+  },
+  "CPU_regression": {
+    "passed": 816,
+    "skipped": 14,
+    "subtests_passed": 24,
+    "skip_classification": {
+      "CUDA_gated": 13,
+      "nonapplicable_optional_handler": 1
+    },
+    "log": "CPU_ITERATION2.log",
+    "source_commit": "c956de3a659d101753aea114aeb11f5ad1d54b76"
+  },
+  "GPU_functional": {
+    "cancelled_requests": 7,
+    "recovery_tokens": 16384,
+    "AR_tokens": 0,
+    "failures": 0,
+    "quiescent_owners_empty": true,
+    "KV_restored": {
+      "qwen": 651,
+      "llama": 1518
+    },
+    "normal_cleanup_all_four_resources_returned": true
+  },
+  "Python_profiles": {
+    "source_commit": "efe3f4c4dedf21742580924f1f1122fde14f5b1f",
+    "output_tokens": 28536,
+    "AR_tokens": 0,
+    "analysis": "python_profiles/PYTHON_PROFILE_ANALYSIS.json",
+    "scope": "Complete warmup then synchronous ingress plus512EngineCore loop scopes;not all async frontend CPU and not TPS qualification"
+  },
+  "open_tooling_finding": {
+    "id": "INFRA-006",
+    "priority": "P2",
+    "status": "reproduced_workaround_applied_not_fixed",
+    "finding": "git_checkpoint re-adds already-staged deletions as missing pathspecs",
+    "evidence": "D2H_RETIRE_CHECKPOINT_FAILED_STAGED_DELETE.log",
+    "workaround": "Restore only the two own candidate deletion index entries fromHEAD;leave files absent;checkpoint can stage and commit deletions normally",
+    "next": "Regression-test staged deletion/new deletion/recreated file/dangling symlink and correct checkpoint path staging without weakening explicit-path protection"
+  },
+  "resources": {
+    "GPU3_compute_processes": [],
+    "GPU2_health_http": 200,
+    "frozen_manifest_hashes": {
+      "RELEASE.json": "63ba9de2c6bc706baf33dabef6db88d17cf63bada5b6544e03fbe01c64d6106f",
+      "payload/PACKAGE.json": "502052e58738a0e5476c4d9366aeaea0c2092cb31a9036b00f3a7dd6175aa37a"
+    }
+  },
+  "algorithm_changed": false,
+  "current_source_performance_gain_proven": false,
+  "comprehensive_infrastructure_accepted": false,
+  "ready_for_comprehensive_freeze": false,
+  "remaining": [
+    "Other input/stream failure boundaries",
+    "Real RPC faults and natural-pressure allocator/progress",
+    "Graph resource/capture/fallback boundaries",
+    "Async frontend CPU and same-GPU native/current-source qualification",
+    "Build/deployment reproducibility and INFRA-006 checkpoint staging boundary"
+  ],
+  "evidence_root": "/home/yypan/CDB-AV/results/cdb_infrastructure_audit_20261128",
+  "gpu_uuid": "GPU-b493bb52-b935-1cf4-47fe-7869125775b9",
+  "reproduction": {
+    "input_boundary": "Run upper_bound_no_tokenizer_candidate_{llama,qwen}/probe_token_boundaries_no_tokenizer.py with matching --family under the fixed venv from a fresh output directory",
+    "python_attribution": "python_profiles/run_python_profiles.py;private runtime hash and original frozen benchmark recorded per case",
+    "rejected_screen": "d2h_AB_BA_screen/run_blocking_d2h_pair.py on candidate4d5e758b only;mode0/1 pairs seed42/43;do not adopt or mechanically rerun",
+    "current_functional": "cleanup_functional_gate/run_cleanup_functional_gate.py from runtimec956de3a with bothGPU locks;original CodeElo cold recovery,not performance"
+  },
+  "supporting_manifest_hashes": {
+    "d2h_AB_BA_screen/00_mode0_seed42/CONFIG.json": "1244cab02bd414c9c8679d8f07c3144cccb63996c23ec15827b4d3ab198da608",
+    "d2h_AB_BA_screen/01_mode1_seed42/CONFIG.json": "5be089a24c826ef03ac1eaf45e16d6365ada8aa0ddba50bc1f25fb2339cd4a60",
+    "d2h_AB_BA_screen/02_mode1_seed43/CONFIG.json": "6b5fa9293e8b8cb35cb6dee4b570a89c7fba9f22fc0dd5be161ade2ab0da8c05",
+    "d2h_AB_BA_screen/03_mode0_seed43/CONFIG.json": "00f1929ba7b95b862e82f59ddb4de56e79bfcfc350aecebcb384e9461f9bc2f8",
+    "d2h_AB_BA_screen/00_mode0_seed42/experiment_manifest.json": "502b0ad1c4ae2569afecee9f161ad822ddbd7aa466cf868311e938aeef53be46",
+    "d2h_AB_BA_screen/01_mode1_seed42/experiment_manifest.json": "181e70efbced6e71e96c57ff90669b04e839467c523b52a566262076f754edda",
+    "d2h_AB_BA_screen/02_mode1_seed43/experiment_manifest.json": "5a4bd110c64586fc27e140162b7b85df6e9a27e557caa2beb1c119f3fa1473ac",
+    "d2h_AB_BA_screen/03_mode0_seed43/experiment_manifest.json": "23b2ad33e4133d7d8fa59ec87ea65ac0da441ca1cf15fbd207a629aba5744e40",
+    "cleanup_functional_gate/qwen/experiment_manifest.json": "75a5921e8a4b4e301e3d64aa6fcc553aac019f5634ce4ecdab58c0ca3a15b3c6",
+    "cleanup_functional_gate/llama/experiment_manifest.json": "36b44542fb8eb60b5d35b8c67108e7ac9f5b3fd6d9554b99f726eb4a3dd4fb4b",
+    "python_profiles/qwen_codeelo/experiment_manifest.json": "cfcd6d0b4a6c076790ac391578478a1b520fc46e9873db71653f89f48affd950",
+    "python_profiles/llama_sharegpt/experiment_manifest.json": "3b85d3be821c578fcb697c67e2d3068cbb184377f1145d76016932c7dc807b2a"
+  }
+}
