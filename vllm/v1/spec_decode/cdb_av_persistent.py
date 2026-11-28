@@ -716,30 +716,19 @@ class PersistentDraftQueue:
     @staticmethod
     def unsupported_reason(req):
         """Return why a request must stay on native Target-only generation."""
-        params = req.sampling_params
-        if params is None:
-            return "missing_sampling_params"
-        if params.temperature != 0:
-            return "non_greedy_sampling"
         from vllm.v1.spec_decode.cdb_av_config import (
-            get_token_only_input_unsupported_reason,
+            get_persistent_request_unsupported_reason,
         )
-        token_input_reason = get_token_only_input_unsupported_reason(
+
+        return get_persistent_request_unsupported_reason(
+            req.sampling_params,
             getattr(req, "prompt_token_ids", None),
-            getattr(req, "prompt_embeds", None),
-            getattr(req, "mm_features", None),
+            prompt_embeds=getattr(req, "prompt_embeds", None),
+            mm_features=getattr(req, "mm_features", None),
+            has_encoder_inputs=getattr(req, "has_encoder_inputs", False),
+            lora_request=getattr(req, "lora_request", None),
+            structured_output_request=getattr(req, "structured_output_request", None),
         )
-        if token_input_reason is not None:
-            return token_input_reason
-        if req.has_encoder_inputs:
-            return "encoder_inputs"
-        if req.lora_request is not None:
-            return "lora"
-        if req.structured_output_request:
-            return "structured_output"
-        if params.prompt_logprobs is not None:
-            return "prompt_logprobs"
-        return None
 
     def rollback_plans(self, req_ids, reason):
         """Drop Worker state before releasing leases staged for a failed window."""

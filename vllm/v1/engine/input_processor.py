@@ -618,6 +618,31 @@ class InputProcessor:
                     )
                 )
 
+        if (os.getenv("CDB_AV_PERSISTENT", "0") == "1"
+                and os.getenv("CDB_AV_AR_OUTPUT_AUDIT") == "strict"):
+            from vllm.v1.spec_decode.cdb_av_config import (
+                get_persistent_request_unsupported_reason,
+            )
+
+            reason = get_persistent_request_unsupported_reason(
+                sampling_params,
+                prompt_token_ids,
+                prompt_embeds=prompt_embeds,
+                mm_features=mm_features,
+                has_encoder_inputs=encoder_inputs is not None,
+                lora_request=lora_request,
+                structured_output_request=(
+                    sampling_params.structured_outputs if sampling_params else None
+                ),
+            )
+            if reason is not None:
+                raise VLLMValidationError(
+                    "CDB-AV strict persistent mode does not support this request: "
+                    f"{reason}",
+                    parameter="request",
+                    value=reason,
+                )
+
         return EngineCoreRequest(
             request_id=request_id,
             prompt_token_ids=prompt_token_ids,

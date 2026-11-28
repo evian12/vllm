@@ -340,6 +340,37 @@ def get_token_only_input_unsupported_reason(
     return None
 
 
+def get_persistent_request_unsupported_reason(
+    sampling_params,
+    prompt_token_ids,
+    *,
+    prompt_embeds=None,
+    mm_features=None,
+    has_encoder_inputs=False,
+    lora_request=None,
+    structured_output_request=None,
+) -> str | None:
+    """Share the persistent runtime's request domain across ingress and queue."""
+    if sampling_params is None:
+        return "missing_sampling_params"
+    if sampling_params.temperature != 0:
+        return "non_greedy_sampling"
+    reason = get_token_only_input_unsupported_reason(
+        prompt_token_ids, prompt_embeds, mm_features
+    )
+    if reason is not None:
+        return reason
+    if has_encoder_inputs:
+        return "encoder_inputs"
+    if lora_request is not None:
+        return "lora"
+    if structured_output_request:
+        return "structured_output"
+    if sampling_params.prompt_logprobs is not None:
+        return "prompt_logprobs"
+    return None
+
+
 def validate_verification_commit(
     record, request_finished: bool, drafts, generated
 ) -> int | None:
