@@ -234,8 +234,6 @@ class RejectionSampler(nn.Module):
         Returns:
             A list of lists of token IDs.
         """
-        from vllm.v1.spec_decode.cdb_av_d2h_wait import wait_for_d2h
-        wait_for_d2h(output_token_ids, 'verify')
         output_token_ids_np = output_token_ids.cpu().numpy()
         # Create mask for valid tokens.
         valid_mask = (output_token_ids_np != PLACEHOLDER_TOKEN_ID) & (
