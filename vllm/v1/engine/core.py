@@ -795,12 +795,19 @@ class EngineCore:
             if p2 is not None and hasattr(p2, "close"):
                 p2.close()
         finally:
-            # Even a failed GPU drain must not skip executor teardown.
-            self.structured_output_manager.clear_backend()
-            if self.model_executor:
-                self.model_executor.shutdown()
-            if self.scheduler:
-                self.scheduler.shutdown()
+            # Each independent resource gets a teardown attempt, including after
+            # partial initialization or an earlier cleanup failure. Nested
+            # finally blocks preserve failures in the exception context chain.
+            try:
+                if manager := getattr(self, "structured_output_manager", None):
+                    manager.clear_backend()
+            finally:
+                try:
+                    if executor := getattr(self, "model_executor", None):
+                        executor.shutdown()
+                finally:
+                    if scheduler := getattr(self, "scheduler", None):
+                        scheduler.shutdown()
 
     def profile(self, is_start: bool = True):
         self.model_executor.profile(is_start)
@@ -1579,9 +1586,11 @@ class DPEngineCoreProc(EngineCoreProc):
         self.dp_group = vllm_config.parallel_config.stateless_init_dp_group()
 
     def shutdown(self):
-        super().shutdown()
-        if dp_group := getattr(self, "dp_group", None):
-            stateless_destroy_torch_distributed_process_group(dp_group)
+        try:
+            super().shutdown()
+        finally:
+            if dp_group := getattr(self, "dp_group", None):
+                stateless_destroy_torch_distributed_process_group(dp_group)
 
     def add_request(self, request: Request, request_wave: int = 0):
         if self.has_coordinator and request_wave != self.current_wave:
