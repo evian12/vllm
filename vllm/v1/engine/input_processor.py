@@ -695,6 +695,15 @@ class InputProcessor:
             else:
                 raise ValueError(f"The {prompt_type} prompt cannot be empty")
 
+        # Validate the lower bound even when tokenizer initialization is skipped.
+        # A negative ID can otherwise reach GPU embedding lookup and poison the
+        # device context for every request served by this engine.
+        min_input_id = min(prompt_ids or (), default=0)
+        if min_input_id < 0:
+            raise ValueError(
+                f"Token id {min_input_id} is negative; token ids must be non-negative"
+            )
+
         tokenizer = self.tokenizer
         if tokenizer is not None:
             max_input_id = max(prompt_ids or (), default=0)
