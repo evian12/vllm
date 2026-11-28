@@ -6,7 +6,10 @@ from starlette.responses import JSONResponse
 from typing_extensions import assert_never
 
 from vllm.entrypoints.openai.engine.protocol import ErrorResponse
-from vllm.entrypoints.openai.utils import validate_json_request
+from vllm.entrypoints.openai.utils import (
+    error_response_to_json,
+    validate_json_request,
+)
 from vllm.entrypoints.pooling.classify.protocol import (
     ClassificationRequest,
     ClassificationResponse,
@@ -28,14 +31,16 @@ async def create_classify(request: ClassificationRequest, raw_request: Request):
     handler = classify(raw_request)
     if handler is None:
         base_server = raw_request.app.state.openai_serving_tokenization
-        return base_server.create_error_response(
-            message="The model does not support Classification API"
+        return error_response_to_json(
+            base_server.create_error_response(
+                message="The model does not support Classification API"
+            )
         )
 
     try:
         generator = await handler.create_classify(request, raw_request)
     except Exception as e:
-        return handler.create_error_response(e)
+        return error_response_to_json(handler.create_error_response(e))
 
     if isinstance(generator, ErrorResponse):
         return JSONResponse(

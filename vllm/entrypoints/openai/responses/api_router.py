@@ -15,7 +15,10 @@ from vllm.entrypoints.openai.responses.protocol import (
     StreamingResponsesResponse,
 )
 from vllm.entrypoints.openai.responses.serving import OpenAIServingResponses
-from vllm.entrypoints.openai.utils import validate_json_request
+from vllm.entrypoints.openai.utils import (
+    error_response_to_json,
+    validate_json_request,
+)
 from vllm.entrypoints.utils import (
     load_aware_call,
     with_cancellation,
@@ -60,13 +63,15 @@ async def create_responses(request: ResponsesRequest, raw_request: Request):
     handler = responses(raw_request)
     if handler is None:
         base_server = raw_request.app.state.openai_serving_tokenization
-        return base_server.create_error_response(
-            message="The model does not support Responses API"
+        return error_response_to_json(
+            base_server.create_error_response(
+                message="The model does not support Responses API"
+            )
         )
     try:
         generator = await handler.create_responses(request, raw_request)
     except Exception as e:
-        return handler.create_error_response(e)
+        return error_response_to_json(handler.create_error_response(e))
 
     if isinstance(generator, ErrorResponse):
         return JSONResponse(
@@ -91,8 +96,10 @@ async def retrieve_responses(
     handler = responses(raw_request)
     if handler is None:
         base_server = raw_request.app.state.openai_serving_tokenization
-        return base_server.create_error_response(
-            message="The model does not support Responses API"
+        return error_response_to_json(
+            base_server.create_error_response(
+                message="The model does not support Responses API"
+            )
         )
 
     try:
@@ -102,7 +109,7 @@ async def retrieve_responses(
             stream=stream,
         )
     except Exception as e:
-        return handler.create_error_response(e)
+        return error_response_to_json(handler.create_error_response(e))
 
     if isinstance(response, ErrorResponse):
         return JSONResponse(
@@ -121,14 +128,16 @@ async def cancel_responses(response_id: str, raw_request: Request):
     handler = responses(raw_request)
     if handler is None:
         base_server = raw_request.app.state.openai_serving_tokenization
-        return base_server.create_error_response(
-            message="The model does not support Responses API"
+        return error_response_to_json(
+            base_server.create_error_response(
+                message="The model does not support Responses API"
+            )
         )
 
     try:
         response = await handler.cancel_responses(response_id)
     except Exception as e:
-        return handler.create_error_response(e)
+        return error_response_to_json(handler.create_error_response(e))
 
     if isinstance(response, ErrorResponse):
         return JSONResponse(

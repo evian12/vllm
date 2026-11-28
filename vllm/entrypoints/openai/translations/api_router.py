@@ -19,6 +19,7 @@ from vllm.entrypoints.openai.translations.serving import (
     OpenAIServingTranscription,
     OpenAIServingTranslation,
 )
+from vllm.entrypoints.openai.utils import error_response_to_json
 from vllm.entrypoints.utils import (
     load_aware_call,
     with_cancellation,
@@ -55,15 +56,17 @@ async def create_transcriptions(
     handler = transcription(raw_request)
     if handler is None:
         base_server = raw_request.app.state.openai_serving_tokenization
-        return base_server.create_error_response(
-            message="The model does not support Transcriptions API"
+        return error_response_to_json(
+            base_server.create_error_response(
+                message="The model does not support Transcriptions API"
+            )
         )
 
     audio_data = await request.file.read()
     try:
         generator = await handler.create_transcription(audio_data, request, raw_request)
     except Exception as e:
-        return handler.create_error_response(e)
+        return error_response_to_json(handler.create_error_response(e))
     if isinstance(generator, ErrorResponse):
         return JSONResponse(
             content=generator.model_dump(), status_code=generator.error.code
@@ -92,15 +95,17 @@ async def create_translations(
     handler = translation(raw_request)
     if handler is None:
         base_server = raw_request.app.state.openai_serving_tokenization
-        return base_server.create_error_response(
-            message="The model does not support Translations API"
+        return error_response_to_json(
+            base_server.create_error_response(
+                message="The model does not support Translations API"
+            )
         )
 
     audio_data = await request.file.read()
     try:
         generator = await handler.create_translation(audio_data, request, raw_request)
     except Exception as e:
-        return handler.create_error_response(e)
+        return error_response_to_json(handler.create_error_response(e))
 
     if isinstance(generator, ErrorResponse):
         return JSONResponse(

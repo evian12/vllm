@@ -7,7 +7,10 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from typing_extensions import assert_never
 
 from vllm.entrypoints.openai.engine.protocol import ErrorResponse
-from vllm.entrypoints.openai.utils import validate_json_request
+from vllm.entrypoints.openai.utils import (
+    error_response_to_json,
+    validate_json_request,
+)
 from vllm.entrypoints.pooling.pooling.protocol import (
     IOProcessorResponse,
     PoolingBytesResponse,
@@ -38,13 +41,15 @@ async def create_pooling(request: PoolingRequest, raw_request: Request):
     handler = pooling(raw_request)
     if handler is None:
         base_server = raw_request.app.state.openai_serving_tokenization
-        return base_server.create_error_response(
-            message="The model does not support Pooling API"
+        return error_response_to_json(
+            base_server.create_error_response(
+                message="The model does not support Pooling API"
+            )
         )
     try:
         generator = await handler.create_pooling(request, raw_request)
     except Exception as e:
-        return handler.create_error_response(e)
+        return error_response_to_json(handler.create_error_response(e))
 
     if isinstance(generator, ErrorResponse):
         return JSONResponse(

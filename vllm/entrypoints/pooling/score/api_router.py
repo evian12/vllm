@@ -7,7 +7,10 @@ from fastapi.responses import JSONResponse
 from typing_extensions import assert_never
 
 from vllm.entrypoints.openai.engine.protocol import ErrorResponse
-from vllm.entrypoints.openai.utils import validate_json_request
+from vllm.entrypoints.openai.utils import (
+    error_response_to_json,
+    validate_json_request,
+)
 from vllm.entrypoints.pooling.score.protocol import (
     RerankRequest,
     RerankResponse,
@@ -45,14 +48,16 @@ async def create_score(request: ScoreRequest, raw_request: Request):
     handler = score(raw_request)
     if handler is None:
         base_server = raw_request.app.state.openai_serving_tokenization
-        return base_server.create_error_response(
-            message="The model does not support Score API"
+        return error_response_to_json(
+            base_server.create_error_response(
+                message="The model does not support Score API"
+            )
         )
 
     try:
         generator = await handler.create_score(request, raw_request)
     except Exception as e:
-        return handler.create_error_response(e)
+        return error_response_to_json(handler.create_error_response(e))
 
     if isinstance(generator, ErrorResponse):
         return JSONResponse(
@@ -97,13 +102,15 @@ async def do_rerank(request: RerankRequest, raw_request: Request):
     handler = rerank(raw_request)
     if handler is None:
         base_server = raw_request.app.state.openai_serving_tokenization
-        return base_server.create_error_response(
-            message="The model does not support Rerank (Score) API"
+        return error_response_to_json(
+            base_server.create_error_response(
+                message="The model does not support Rerank (Score) API"
+            )
         )
     try:
         generator = await handler.do_rerank(request, raw_request)
     except Exception as e:
-        return handler.create_error_response(e)
+        return error_response_to_json(handler.create_error_response(e))
 
     if isinstance(generator, ErrorResponse):
         return JSONResponse(

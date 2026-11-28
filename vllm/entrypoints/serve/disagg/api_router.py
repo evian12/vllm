@@ -13,7 +13,10 @@ from vllm.engine.protocol import EngineClient
 from vllm.entrypoints.openai.engine.protocol import (
     ErrorResponse,
 )
-from vllm.entrypoints.openai.utils import validate_json_request
+from vllm.entrypoints.openai.utils import (
+    error_response_to_json,
+    validate_json_request,
+)
 from vllm.entrypoints.serve.disagg.protocol import (
     GenerateRequest,
     GenerateResponse,
@@ -61,13 +64,15 @@ router = APIRouter()
 async def generate(request: GenerateRequest, raw_request: Request):
     handler = generate_tokens(raw_request)
     if handler is None:
-        return tokenization(raw_request).create_error_response(
-            message="The model does not support generate tokens API"
+        return error_response_to_json(
+            tokenization(raw_request).create_error_response(
+                message="The model does not support generate tokens API"
+            )
         )
     try:
         generator = await handler.serve_tokens(request, raw_request)
     except Exception as e:
-        return handler.create_error_response(e)
+        return error_response_to_json(handler.create_error_response(e))
 
     if isinstance(generator, ErrorResponse):
         return JSONResponse(
