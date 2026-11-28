@@ -4,12 +4,14 @@ from typing import TypeVar
 
 from fastapi import Request
 from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 
 from vllm.entrypoints.openai.chat_completion.protocol import (
     ChatCompletionRequest,
     ChatCompletionResponseChoice,
     ChatCompletionResponseStreamChoice,
 )
+from vllm.entrypoints.openai.engine.protocol import ErrorResponse
 
 # Used internally
 _ChatCompletionResponseChoiceT = TypeVar(
@@ -38,6 +40,11 @@ def maybe_filter_parallel_tool_calls(
         ]
 
     return choice
+
+
+def error_response_to_json(error: ErrorResponse) -> JSONResponse:
+    """Keep an API error's HTTP status consistent with its serialized body."""
+    return JSONResponse(content=error.model_dump(), status_code=error.error.code)
 
 
 async def validate_json_request(raw_request: Request):

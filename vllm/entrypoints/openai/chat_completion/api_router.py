@@ -14,7 +14,10 @@ from vllm.entrypoints.openai.chat_completion.protocol import (
 from vllm.entrypoints.openai.chat_completion.serving import OpenAIServingChat
 from vllm.entrypoints.openai.engine.protocol import ErrorResponse
 from vllm.entrypoints.openai.orca_metrics import metrics_header
-from vllm.entrypoints.openai.utils import validate_json_request
+from vllm.entrypoints.openai.utils import (
+    error_response_to_json,
+    validate_json_request,
+)
 from vllm.entrypoints.utils import (
     load_aware_call,
     with_cancellation,
@@ -50,19 +53,19 @@ async def create_chat_completion(request: ChatCompletionRequest, raw_request: Re
     handler = chat(raw_request)
     if handler is None:
         base_server = raw_request.app.state.openai_serving_tokenization
-        return base_server.create_error_response(
-            message="The model does not support Chat Completions API"
+        return error_response_to_json(
+            base_server.create_error_response(
+                message="The model does not support Chat Completions API"
+            )
         )
 
     try:
         generator = await handler.create_chat_completion(request, raw_request)
     except Exception as e:
-        return handler.create_error_response(e)
+        return error_response_to_json(handler.create_error_response(e))
 
     if isinstance(generator, ErrorResponse):
-        return JSONResponse(
-            content=generator.model_dump(), status_code=generator.error.code
-        )
+        return error_response_to_json(generator)
 
     elif isinstance(generator, ChatCompletionResponse):
         return JSONResponse(
@@ -89,17 +92,19 @@ async def render_chat_completion(request: ChatCompletionRequest, raw_request: Re
     handler = chat(raw_request)
     if handler is None:
         base_server = raw_request.app.state.openai_serving_tokenization
-        return base_server.create_error_response(
-            message="The model does not support Chat Completions API"
+        return error_response_to_json(
+            base_server.create_error_response(
+                message="The model does not support Chat Completions API"
+            )
         )
 
     try:
         result = await handler.render_chat_request(request)
     except Exception as e:
-        return handler.create_error_response(e)
+        return error_response_to_json(handler.create_error_response(e))
 
     if isinstance(result, ErrorResponse):
-        return JSONResponse(content=result.model_dump(), status_code=result.error.code)
+        return error_response_to_json(result)
 
     return JSONResponse(content=result)
 
